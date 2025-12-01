@@ -40,7 +40,7 @@ export const AdminDashboardPage = () => {
             <Link to="/transactions" className={styles.statLink}>
               <AdminStatCard 
                   title="Total Revenue" 
-                  value={`R ${stats.revenue?.currentMonth || 0}`} 
+                  value={`R ${stats.revenue?.allTime || 0}`} // Change to 'allTime' 
                   change="+0%" 
                   Icon={DollarSign}
                   changeType="increase"

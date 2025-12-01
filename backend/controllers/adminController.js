@@ -18,75 +18,39 @@ const getPlatformStats = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
     const totalProjects = await Project.countDocuments();
+    const openReportsCount = await Report.countDocuments({ status: 'open' });
     const sevenDaysAgo = new Date(new Date().setDate(new Date().getDate() - 7));
-    const newUsersLast7Days = await User.countDocuments({
-      createdAt: { $gte: sevenDaysAgo },
-    });
-    const openReportsCount = await Report.countDocuments({ status: "open" });
+    const newUsersLast7Days = await User.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
 
-    const now = new Date();
-    const currentYearUTC = now.getUTCFullYear();
-    const currentMonthUTC = now.getUTCMonth();
-    const startOfCurrentMonth = new Date(
-      Date.UTC(currentYearUTC, currentMonthUTC, 1)
-    );
-    const startOfLastMonth = new Date(
-      Date.UTC(currentYearUTC, currentMonthUTC - 1, 1)
-    );
-
+    // --- THIS IS THE NEW, SIMPLIFIED REVENUE LOGIC ---
     const revenueData = await Transaction.aggregate([
       {
-        $match: { status: "succeeded", createdAt: { $gte: startOfLastMonth } },
+        $match: { status: 'succeeded' } // Match ALL successful transactions
       },
       {
         $group: {
-          _id: null,
-          currentMonth: {
-            $sum: {
-              $cond: [
-                { $gte: ["$createdAt", startOfCurrentMonth] },
-                "$amountInCents",
-                0,
-              ],
-            },
-          },
-          lastMonth: {
-            $sum: {
-              $cond: [
-                {
-                  $and: [
-                    { $gte: ["$createdAt", startOfLastMonth] },
-                    { $lt: ["$createdAt", startOfCurrentMonth] },
-                  ],
-                },
-                "$amountInCents",
-                0,
-              ],
-            },
-          },
-        },
-      },
-    ]);
-
-    const revenue = revenueData[0]
-      ? {
-          currentMonth: revenueData[0].currentMonth / 100,
-          lastMonth: revenueData[0].lastMonth / 100,
+          _id: null, // Group all of them together
+          totalRevenue: { $sum: '$amountInCents' } // Sum their amounts
         }
-      : { currentMonth: 0, lastMonth: 0 };
+      }
+    ]);
+    
+    // Process the result
+    const totalRevenue = revenueData[0] ? revenueData[0].totalRevenue / 100 : 0;
+    // --- END NEW LOGIC ---
 
     res.json({
       totalUsers,
       totalProjects,
       newUsersLast7Days,
-      revenue,
       openReportsCount,
+      // Send a single revenue number
+      revenue: { allTime: totalRevenue } 
     });
+
   } catch (error) {
     console.error(`[GET STATS ERROR]: ${error.message}`);
-    res
-      .status(500)
-      .json({ message: "Server error while fetching platform stats." });
+    res.status(500).json({ message: 'Server error while fetching platform stats.' });
   }
 };
 
