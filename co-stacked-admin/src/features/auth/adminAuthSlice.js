@@ -1,4 +1,5 @@
 // src/features/auth/adminAuthSlice.js
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import API from '../../api/axios';
 
@@ -14,6 +15,7 @@ const loadInitialState = () => {
     const { user, token } = JSON.parse(serializedAuth);
     return { user, token, isAuthenticated: !!token };
   } catch (e) {
+    console.error("Could not load admin auth state from localStorage", e);
     return { user: null, token: null, isAuthenticated: false };
   }
 };
@@ -27,7 +29,6 @@ export const loginAdmin = createAsyncThunk(
   'auth/loginAdmin',
   async (credentials, { rejectWithValue }) => {
     try {
-      // The admin login now correctly uses the general /users/login endpoint
       const response = await API.post('/users/login', credentials);
       const { user, token } = response.data;
       if (!user?.isAdmin) {
