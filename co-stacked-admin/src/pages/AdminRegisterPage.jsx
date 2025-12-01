@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerAdmin, clearAuthState } from '../features/auth/adminAuthSlice'; 
-import styles from './AdminLoginPage.module.css'; // Re-use the login page styles
+import styles from './AdminLoginPage.module.css';
 import { Loader2 } from 'lucide-react';
 
 export const AdminRegisterPage = () => {
@@ -23,12 +23,8 @@ export const AdminRegisterPage = () => {
   const { name, email, password, secretKey } = formData;
 
   useEffect(() => {
-    // Clear any previous auth messages when the component mounts
     dispatch(clearAuthState());
-    return () => {
-        // And clean up when it unmounts
-        dispatch(clearAuthState());
-    }
+    return () => { dispatch(clearAuthState()); }
   }, [dispatch]);
 
   const handleChange = (e) => {
@@ -42,17 +38,15 @@ export const AdminRegisterPage = () => {
         email,
         password,
         secretKey,
-        role: 'admin' // The role is fixed to 'admin' for this form
+        role: 'admin'
     };
     
     const resultAction = await dispatch(registerAdmin(adminData));
     
-    // ==========================================================
-    // THIS IS THE FINAL CHANGE
-    // On successful registration, redirect to the login page.
-    // ==========================================================
+    // --- THIS IS THE FIX ---
+    // On successful registration, redirect to the new email verification page.
     if (registerAdmin.fulfilled.match(resultAction)) {
-      navigate('/login');
+      navigate('/verify-email');
     }
   };
 
@@ -83,8 +77,7 @@ export const AdminRegisterPage = () => {
           </div>
 
           {status === 'failed' && error && <p className={styles.error}>{error}</p>}
-          {/* You can keep this success message, but the user will be redirected quickly */}
-          {status === 'succeeded' && successMessage && <p className={styles.success}>{successMessage}</p>}
+          {/* A success message is not needed here as the user is immediately redirected */}
           
           <button type="submit" className={styles.button} disabled={status === 'loading'}>
             {status === 'loading' ? <Loader2 className={styles.loader} /> : "Register Account"}
