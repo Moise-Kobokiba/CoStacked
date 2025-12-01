@@ -2,36 +2,46 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import API from '../../api/axios';
 
-// ===================================================================
-// UTILITY: Get admin profile from localStorage
-// ===================================================================
-const adminProfile = JSON.parse(localStorage.getItem('adminProfile'));
+const TOKEN_NAME = 'costacked-admin-token';
+
+// Utility to load initial state from localStorage
+const loadInitialState = () => {
+  try {
+    const serializedAuth = localStorage.getItem(TOKEN_NAME);
+    if (serializedAuth === null) {
+      return { user: null, token: null, isAuthenticated: false };
+    }
+    const { user, token } = JSON.parse(serializedAuth);
+    return { user, token, isAuthenticated: !!token };
+  } catch (e) {
+    return { user: null, token: null, isAuthenticated: false };
+  }
+};
+
 
 // ===================================================================
 // ASYNC THUNKS
 // ===================================================================
 
-// --- Thunk for Admin LOGIN ---
 export const loginAdmin = createAsyncThunk(
   'auth/loginAdmin',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await API.post('/admin/login', credentials);
-      
-      if (response.data && response.data.token) {
-        localStorage.setItem('adminProfile', JSON.stringify(response.data));
-      } else {
-        return rejectWithValue({ message: 'Invalid server response.' });
+      // The admin login now correctly uses the general /users/login endpoint
+      const response = await API.post('/users/login', credentials);
+      const { user, token } = response.data;
+      if (!user?.isAdmin) {
+        return rejectWithValue({ message: 'Access Denied: Not an administrator.' });
       }
-
-      return response.data;
+      // Store the entire auth object on successful login
+      localStorage.setItem(TOKEN_NAME, JSON.stringify({ user, token }));
+      return { user, token };
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
   }
 );
 
-// --- Thunk for Admin REGISTRATION ---
 export const registerAdmin = createAsyncThunk(
   'auth/registerAdmin',
   async (adminData, { rejectWithValue }) => {
@@ -44,12 +54,11 @@ export const registerAdmin = createAsyncThunk(
   }
 );
 
-// --- Thunk for VERIFYING a session ---
-export const getAdminProfile = createAsyncThunk(
-  'auth/getAdminProfile',
-  async (_, { rejectWithValue }) => {
+export const verifyAdminEmail = createAsyncThunk(
+  'auth/verifyAdminEmail',
+  async ({ email, token }, { rejectWithValue }) => {
     try {
-      const response = await API.get('/admin/profile');
+      const response = await API.post('/users/verify-email', { email, token });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -57,14 +66,32 @@ export const getAdminProfile = createAsyncThunk(
   }
 );
 
-// --- The Slice Definition (Corrected and Simplified) ---
+export const getAdminProfile = createAsyncThunk(
+  'auth/getAdminProfile',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await API.get('/users/profile');
+      if (!response.data?.isAdmin) {
+        return rejectWithValue({ message: 'Access Denied: Not an administrator.' });
+      }
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+
+// ===================================================================
+// THE SLICE DEFINITION
+// ===================================================================
+
 const initialState = {
-  user: adminProfile ? adminProfile.user : null,
-  token: adminProfile ? adminProfile.token : null,
-  isAuthenticated: !!(adminProfile && adminProfile.token),
+  ...loadInitialState(),
   status: 'idle',
   error: null,
   successMessage: null,
+  unverifiedEmail: null,
 };
 
 const adminAuthSlice = createSlice({
@@ -72,13 +99,14 @@ const adminAuthSlice = createSlice({
   initialState,
   reducers: {
     logoutAdmin: (state) => {
-      localStorage.removeItem('adminProfile');
+      localStorage.removeItem(TOKEN_NAME);
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
       state.status = 'idle';
       state.error = null;
       state.successMessage = null;
+      state.unverifiedEmail = null;
     },
     clearAuthState: (state) => {
       state.error = null;
@@ -91,6 +119,7 @@ const adminAuthSlice = createSlice({
       .addCase(loginAdmin.pending, (state) => {
         state.status = 'loading';
         state.error = null;
+        state.unverifiedEmail = null;
       })
       .addCase(loginAdmin.fulfilled, (state, action) => {
         state.status = 'succeeded';
@@ -100,10 +129,10 @@ const adminAuthSlice = createSlice({
       })
       .addCase(loginAdmin.rejected, (state, action) => {
         state.status = 'failed';
-        state.isAuthenticated = false;
-        state.user = null;
-        state.token = null;
         state.error = action.payload?.message || 'Login failed.';
+        if (action.payload?.emailNotVerified) {
+          state.unverifiedEmail = action.meta.arg.email;
+        }
       })
 
       // Register Admin
@@ -111,18 +140,35 @@ const adminAuthSlice = createSlice({
         state.status = 'loading';
         state.error = null;
         state.successMessage = null;
+        state.unverifiedEmail = null;
       })
       .addCase(registerAdmin.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        // The component will handle the redirect. We just set a success message.
         state.successMessage = action.payload.message;
+        state.unverifiedEmail = action.meta.arg.email;
       })
       .addCase(registerAdmin.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload?.message || 'Registration failed.';
       })
       
-      // Get Profile
+      // Email Verification
+      .addCase(verifyAdminEmail.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(verifyAdminEmail.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.successMessage = action.payload.message;
+        state.unverifiedEmail = null;
+      })
+      .addCase(verifyAdminEmail.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload.message || 'Verification failed.';
+      })
+
+      // Get Profile (for persistent session)
       .addCase(getAdminProfile.pending, (state) => {
         state.status = 'loading';
       })
@@ -132,7 +178,7 @@ const adminAuthSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(getAdminProfile.rejected, (state) => {
-        localStorage.removeItem('adminProfile');
+        localStorage.removeItem(TOKEN_NAME);
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;

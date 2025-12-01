@@ -16,11 +16,13 @@ import { UserManagementPage } from './pages/UserManagementPage';
 import { ProjectManagementPage } from './pages/ProjectManagementPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { TransactionsPage } from './pages/TransactionsPage';
+import { AdminVerifyEmailPage } from './pages/AdminVerifyEmailPage';
 
 // The router configuration is updated with all necessary routes.
 const router = createBrowserRouter([
   { path: '/login', element: <AdminLoginPage /> },
-  { path: '/register', element: <AdminRegisterPage /> }, // <-- 2. ADD the new route
+  { path: '/register', element: <AdminRegisterPage /> }, 
+  { path: '/verify-email', element: <AdminVerifyEmailPage /> },
   {
     path: '/',
     element: <AdminProtectedRoute />,
