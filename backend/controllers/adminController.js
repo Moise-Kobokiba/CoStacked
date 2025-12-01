@@ -5,7 +5,7 @@ const Project = require("../models/Project");
 const Report = require("../models/Report");
 const Transaction = require("../models/Transaction");
 const AdminNotification = require("../models/AdminNotification");
-// const sendEmail = require('../utils/sendEmail'); // No longer needed for admin registration
+const sendEmail = require('../utils/sendEmail');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -156,74 +156,62 @@ const loginAdmin = async (req, res) => {
 const registerAdmin = async (req, res) => {
   try {
     const { name, email, password, role, secretKey } = req.body;
+
     if (secretKey !== process.env.ADMIN_SECRET_KEY) {
-      return res
-        .status(401)
-        .json({ message: "Invalid secret key. Not authorized." });
+        return res.status(401).json({ message: 'Invalid secret key. Not authorized.' });
     }
     if (!name || !email || !password || !role) {
-      return res
-        .status(400)
-        .json({ message: "Please provide all required fields." });
+      return res.status(400).json({ message: 'Please provide all required fields.' });
     }
     if (await User.findOne({ email })) {
-      return res
-        .status(400)
-        .json({ message: "An admin with this email already exists." });
+      return res.status(400).json({ message: 'An admin with this email already exists.' });
     }
-
+    
+    // --- 2. THIS IS THE NEW, CORRECT LOGIC ---
+    // Create the user. isEmailVerified will be false by default.
     const user = await User.create({
-      name,
-      email,
-      password,
-      role,
+      name, email, password, role,
       isAdmin: true,
     });
 
     if (user) {
-      const verificationToken = Math.floor(
-        100000 + Math.random() * 900000
-      ).toString();
-      user.emailVerificationToken = verificationToken;
-      user.emailVerificationExpires = Date.now() + 10 * 60 * 1000;
-      await user.save({ validateBeforeSave: false });
+      // Generate and save the verification token
+      const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+      await User.findByIdAndUpdate(user._id, {
+        emailVerificationToken: verificationToken,
+        emailVerificationExpires: Date.now() + 10 * 60 * 1000, // 10 minutes
+      });
 
-      // --- UPDATED EMAIL CONTENT with HTML ---
-      const textMessage = `Welcome to the CoStacked Admin team! Your verification code is: ${verificationToken}`;
-      const htmlMessage = `<p>Welcome to the CoStacked Admin team! Your verification code is: <strong>${verificationToken}</strong></p>`;
+      // Prepare email content
+      const textMessage = `Welcome to the CoStacked Admin team!\n\nYour verification code is: ${verificationToken}\n\nThis code will expire in 10 minutes.`;
+      const htmlMessage = `<p>Welcome to the CoStacked Admin team! Your verification code is: <strong>${verificationToken}</strong></p><p>This code will expire in 10 minutes.</p>`;
 
       try {
+        // Send the verification email using the AhaSend utility
         await sendEmail({
           to: user.email,
-          subject: "CoStacked Admin - Verify Your Email",
+          subject: 'CoStacked Admin - Verify Your Email',
           text: textMessage,
-          html: htmlMessage, // Pass the HTML version
+          html: htmlMessage,
         });
-        res
-          .status(201)
-          .json({
-            success: true,
-            message:
-              "Admin user registered successfully! Please check your email for a verification code.",
-          });
+
+        res.status(201).json({ 
+            success: true, 
+            message: 'Admin user registered! Please check your email for a verification code.' 
+        });
       } catch (emailError) {
-        console.error("Admin Email Sending Error:", emailError);
-        return res
-          .status(500)
-          .json({
-            message: "Admin registered, but could not send verification email.",
-          });
+        console.error('Admin Email Sending Error:', emailError);
+        return res.status(500).json({ message: 'Admin registered, but could not send verification email.' });
       }
     } else {
-      res.status(400).json({ message: "Invalid admin data provided." });
+      res.status(400).json({ message: 'Invalid admin data provided.' });
     }
   } catch (error) {
     console.error(`[REGISTER ADMIN ERROR]: ${error.message}`);
-    res
-      .status(500)
-      .json({ message: "Server error during admin registration." });
+    res.status(500).json({ message: 'Server error during admin registration.' });
   }
 };
+
 
 /**
  * @desc    Get all users for the admin panel's user management table
