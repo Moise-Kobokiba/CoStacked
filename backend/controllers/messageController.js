@@ -1,7 +1,7 @@
 // backend/controllers/messageController.js
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
-const Notification = require('../models/Notification'); // <-- 1. IMPORT
+const Notification = require('../models/Notification');
 
 /**
  * @desc    Get all conversations for the logged-in user
@@ -12,6 +12,9 @@ const getConversations = async (req, res) => {
   try {
     const conversations = await Conversation.find({ participants: req.user._id })
       .populate('participants', 'name role avatarUrl')
+      // --- THIS IS THE UPDATE ---
+      // Populate the 'projectId' field, but only select the 'title' for efficiency.
+      .populate('projectId', 'title') 
       .sort({ updatedAt: -1 }); // Sort by most recent activity
     res.json(conversations);
   } catch (error) {
@@ -74,8 +77,7 @@ const sendMessage = async (req, res) => {
     const populatedMessage = await Message.findById(message._id)
                                           .populate('sender', 'name avatarUrl');
 
-    // --- 2. CREATE A NOTIFICATION for the other user in the conversation ---
-    // Find the recipient (the participant who is NOT the current user)
+    // Create a notification for the other user in the conversation
     const recipientId = conversation.participants.find(p => p.toString() !== req.user._id.toString());
 
     if (recipientId) {
@@ -84,11 +86,9 @@ const sendMessage = async (req, res) => {
         sender: req.user._id,
         type: 'NEW_MESSAGE',
         conversationId: conversation._id,
-        // We can add a projectId if the conversation is linked to one
         projectId: conversation.projectId 
       });
     }
-    // --- END NOTIFICATION LOGIC ---
 
     res.status(201).json(populatedMessage);
   } catch (error) {

@@ -1,70 +1,92 @@
 /* src/components/messaging/ConversationList.module.css */
+
 .container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  border-right: 1px solid var(--border);
   background-color: var(--card-background);
+  border-right: 1px solid var(--border);
 }
+
 .title {
-  font-size: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  font-size: 1.5rem;
   font-weight: 700;
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
+
 .list {
-  overflow-y: auto;
   flex-grow: 1;
+  overflow-y: auto;
 }
-.convoDetails {
-  overflow: hidden; /* This is key for text truncation */
-}
-/* NEW style for the empty state */
-.emptyState {
-  padding: 2rem 1rem;
-  text-align: center;
-  color: var(--muted-foreground);
-}
+
 .convoItem {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1rem;
-  width: 100%;
-  border: none;
-  background: none;
-  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.5rem;
   cursor: pointer;
-  text-align: left;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.2s ease;
+  width: 100%;
+  background: none;
+  border-left: 3px solid transparent;
 }
-.convoItem:hover {
-  background-color: var(--background);
-}
-.convoItem.active {
-  background-color: hsl(221, 83%, 95%);
-}
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--primary);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
+
+.convoItem > div:first-child {
   flex-shrink: 0;
 }
-.userName {
-  font-weight: 600;
+
+.convoItem:hover {
+  background-color: var(--muted);
 }
-.lastMessage {
+
+.convoItem.selected {
+  background-color: var(--primary-light);
+  border-left-color: var(--primary);
+}
+
+.convoDetails {
+  overflow: hidden;
+  text-align: left;
+}
+
+.convoTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+  /* --- THIS IS THE FIX --- */
+  /* Set the base color for the container. The ellipsis will inherit this color. */
+  color: var(--foreground);
+}
+
+.userName {
+  /* This rule is more specific, so it will override the parent and remain blue. */
+  color: var(--primary);
+}
+
+.projectName {
+  /* This color is now redundant but harmless. We can leave it for clarity. */
+  color: var(--foreground);
+}
+
+.convoSubtitle {
   font-size: 0.9rem;
   color: var(--muted-foreground);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
+  margin: 0;
 }
-.header {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border);
+
+.emptyMessage {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-style: italic;
 }
