@@ -6,6 +6,7 @@ import { changePassword, clearAuthMessages } from '../../features/auth/authSlice
 
 import { Dialog } from '../shared/Dialog';
 import { Button } from '../shared/Button';
+import { PasswordInput } from '../shared/PasswordInput';
 import { Input } from '../shared/Input';
 import { Label } from '../shared/Label';
 import { Loader2 } from 'lucide-react';
@@ -23,6 +24,7 @@ export const ChangePasswordModal = ({ open, onClose }) => {
   });
   // Local state for client-side validation errors (e.g., passwords don't match)
   const [localError, setLocalError] = useState('');
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
 
   const { currentPassword, newPassword, confirmPassword } = formData;
 
@@ -39,6 +41,10 @@ export const ChangePasswordModal = ({ open, onClose }) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleStrengthChange = (strength) => {
+    setIsPasswordValid(strength.isValid);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLocalError('');
@@ -49,9 +55,10 @@ export const ChangePasswordModal = ({ open, onClose }) => {
       setLocalError("New passwords do not match.");
       return;
     }
-    if (newPassword.length < 6) {
-      setLocalError("New password must be at least 6 characters long.");
-      return;
+    
+    if (!isPasswordValid) {
+        setLocalError("New password must be strong/valid (6-8 chars, mixed types).");
+        return;
     }
 
     const resultAction = await dispatch(changePassword({ currentPassword, newPassword }));
@@ -72,15 +79,25 @@ export const ChangePasswordModal = ({ open, onClose }) => {
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
           <Label htmlFor="currentPassword">Current Password</Label>
-          <Input id="currentPassword" name="currentPassword" type="password" value={currentPassword} onChange={handleChange} required autoComplete="current-password" />
+          <PasswordInput id="currentPassword" name="currentPassword" value={currentPassword} onChange={handleChange} required autoComplete="current-password" />
         </div>
         <div className={styles.formGroup}>
           <Label htmlFor="newPassword">New Password</Label>
-          <Input id="newPassword" name="newPassword" type="password" value={newPassword} onChange={handleChange} required autoComplete="new-password" />
+          <PasswordInput 
+            id="newPassword" 
+            name="newPassword" 
+            value={newPassword} 
+            onChange={handleChange} 
+            required 
+            autoComplete="new-password"
+            showStrengthMeter={true}
+            onStrengthChange={handleStrengthChange}
+            placeholder="6-8 characters"
+         />
         </div>
         <div className={styles.formGroup}>
           <Label htmlFor="confirmPassword">Confirm New Password</Label>
-          <Input id="confirmPassword" name="confirmPassword" type="password" value={confirmPassword} onChange={handleChange} required autoComplete="new-password" />
+          <PasswordInput id="confirmPassword" name="confirmPassword" value={confirmPassword} onChange={handleChange} required autoComplete="new-password" placeholder="Re-enter new password" />
         </div>
         
         {/* Display feedback messages from local state and Redux */}
