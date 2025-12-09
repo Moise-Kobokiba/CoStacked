@@ -4,20 +4,19 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "../../features/auth/authSlice";
-import styles from "./RegistrationForm.module.css";
-
-// Import all required UI components
+import { PasswordInput } from "../shared/PasswordInput";
 import { Card } from "../shared/Card";
 import { Input } from "../shared/Input";
 import { Label } from "../shared/Label";
 import { Button } from "../shared/Button";
-import { RadioGroup } from "../shared/RadioGroup";
 import { Textarea } from "../shared/Textarea";
+import { RadioGroup } from "../shared/RadioGroup";
 import { Loader2 } from "lucide-react";
+import styles from "./RegistrationForm.module.css";
 
 const roleOptions = [
-  { value: "developer", label: "Developer" },
-  { value: "founder", label: "Founder / Creative" },
+  { value: 'developer', label: 'Developer' },
+  { value: 'founder', label: 'Founder' }
 ];
 
 export const RegistrationForm = () => {
@@ -29,6 +28,7 @@ export const RegistrationForm = () => {
     name: "",
     email: "",
     password: "",
+    confirmPassword: "", // Added confirmPassword
     role: "developer",
     bio: "",
     skills: "",
@@ -37,17 +37,38 @@ export const RegistrationForm = () => {
     portfolioLink: "",
   });
 
+    const [validationError, setValidationError] = useState("");
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
+
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    // Clear validation error on change
+    if (validationError) setValidationError("");
+  };
+
+  const handleStrengthChange = (strength) => {
+    setIsPasswordValid(strength.isValid);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const resultAction = await dispatch(registerUser(formData));
+    
+    // Password Validation
+    if (formData.password !== formData.confirmPassword) {
+      setValidationError("Passwords do not match.");
+      return;
+    }
 
-    // --- THIS IS THE CRITICAL UPDATE ---
-    // If the registration is successful, the backend sends a verification email.
-    // We now redirect the user to the page where they can enter their verification code.
+    if (!isPasswordValid) {
+      setValidationError("Password must be weak/invalid. Please follow the security tips.");
+      return;
+    }
+
+    // Remove confirmPassword before sending to backend
+    const { confirmPassword, ...dataToSend } = formData;
+
+    const resultAction = await dispatch(registerUser(dataToSend));
+
     if (registerUser.fulfilled.match(resultAction)) {
       navigate("/verify-email");
     }
@@ -65,52 +86,69 @@ export const RegistrationForm = () => {
       <div className={styles.content}>
         <form onSubmit={handleSubmit} className={styles.form}>
           {/* === Core Account Fields === */}
-          <div className={styles.formGrid}>
-            <div className={styles.formGroup}>
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                autoComplete="email"
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                minLength="6"
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <Label>Your Role</Label>
-              <RadioGroup
-                name="role"
-                options={roleOptions}
-                selectedValue={formData.role}
-                onChange={handleChange}
-              />
-            </div>
+          {/* === Core Account Fields === */}
+          {/* Removed formGrid to stack fields vertically */}
+          <div className={styles.formGroup}>
+            <Label htmlFor="name">Full Name</Label>
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <Label htmlFor="email">Email Address</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              autoComplete="email"
+            />
+          </div>
+          
+          {/* Password Field */}
+          <div className={styles.formGroup}>
+            <Label htmlFor="password">Password</Label>
+            <PasswordInput
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              showStrengthMeter={true}
+              showSecurityTip={true}
+              onStrengthChange={handleStrengthChange}
+              placeholder="6-8 characters"
+            />
+          </div>
+
+          {/* Confirm Password Field */}
+          <div className={styles.formGroup}>
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <PasswordInput
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              placeholder="Re-enter password"
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <Label>Your Role</Label>
+            <RadioGroup
+              name="role"
+              options={roleOptions}
+              selectedValue={formData.role}
+              onChange={handleChange}
+            />
           </div>
 
           <div className={styles.separator} />
@@ -170,6 +208,7 @@ export const RegistrationForm = () => {
             </div>
           </div>
 
+          {validationError && <p className={styles.error}>{validationError}</p>}
           {status === "failed" && <p className={styles.error}>{error}</p>}
 
           <Button type="submit" disabled={status === "loading"}>

@@ -5,6 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { resetPassword } from '../features/auth/authSlice'; // We will create this
 
+import { PasswordInput } from '../components/shared/PasswordInput';
 import { Card } from '../components/shared/Card';
 import { Input } from '../components/shared/Input';
 import { Label } from '../components/shared/Label';
@@ -21,13 +22,26 @@ export const ResetPasswordPage = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [localError, setLocalError] = useState('');
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
+
+  const handleStrengthChange = (strength) => {
+    setIsPasswordValid(strength.isValid);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLocalError(""); // Clear previous errors
+
     if (password !== confirmPassword) {
       setLocalError("Passwords do not match.");
       return;
     }
+
+    if (!isPasswordValid) {
+        setLocalError("Password must be weak/invalid. Please follow the security tips.");
+        return;
+    }
+
     const resultAction = await dispatch(resetPassword({ token, password }));
     if (resetPassword.fulfilled.match(resultAction)) {
       setTimeout(() => navigate('/login'), 2500);
@@ -46,11 +60,26 @@ export const ResetPasswordPage = () => {
           <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.formGroup}>
               <Label htmlFor="password">New Password</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <PasswordInput 
+                id="password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required 
+                showStrengthMeter={true}
+                showSecurityTip={true}
+                onStrengthChange={handleStrengthChange}
+                placeholder="6-8 characters"
+              />
             </div>
             <div className={styles.formGroup}>
               <Label htmlFor="confirmPassword">Confirm New Password</Label>
-              <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+              <PasswordInput 
+                id="confirmPassword" 
+                value={confirmPassword} 
+                onChange={(e) => setConfirmPassword(e.target.value)} 
+                required 
+                placeholder="Re-enter new password"
+              />
             </div>
             
             {localError && <p className={styles.error}>{localError}</p>}

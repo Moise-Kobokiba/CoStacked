@@ -2,7 +2,7 @@
 
 .card {
   width: 100%;
-  max-width: 450px; /* A bit wider for a better feel */
+  max-width: 700px; /* Increased to support 2-column layout */
   border: 1px solid var(--border); /* Softer border than a shadow */
 }
 

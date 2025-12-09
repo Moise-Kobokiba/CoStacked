@@ -5,6 +5,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearAuthMessages } from '../features/auth/authSlice';
 
+import { PasswordInput } from '../components/shared/PasswordInput';
 import { Card } from '../components/shared/Card';
 import { Input } from '../components/shared/Input';
 import { Label } from '../components/shared/Label';
@@ -67,7 +68,13 @@ export const LoginPage = () => {
                   Forgot password?
                 </Link>
               </div>
-              <Input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <PasswordInput 
+                id="password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required 
+                showStrengthMeter={false}
+              />
             </div>
 
             {status === 'failed' && error && <p className={styles.error}>{error}</p>}
