@@ -1,0 +1,20 @@
+// backend/routes/authRoutes.js
+
+const express = require('express');
+const router = express.Router();
+const passport = require('../config/passport');
+const { oauthCallback } = require('../controllers/authController');
+
+// GitHub OAuth Routes
+router.get(
+  '/github',
+  passport.authenticate('github', { scope: ['user:email'] })
+);
+
+router.get(
+  '/github/callback',
+  passport.authenticate('github', { failureRedirect: '/login', session: false }),
+  oauthCallback
+);
+
+module.exports = router;

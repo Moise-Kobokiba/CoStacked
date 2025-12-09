@@ -4,6 +4,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const session = require('express-session');
+const passport = require('./config/passport');
 const connectDB = require('./config/db');
 
 // Only load environment variables from the .env file if we are in development mode.
@@ -32,6 +34,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const connectionRoutes = require('./routes/connectionRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 // --- 3. INITIAL CONFIGURATION ---
 connectDB();
@@ -71,6 +74,18 @@ app.use(cors({
 
 app.use(express.json());
 
+// Session middleware (required for Passport)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 // --- 6. API ROUTE MOUNTING ---
 app.get('/', (req, res) => {
@@ -87,6 +102,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/connections', connectionRoutes);
+app.use('/api/auth', authRoutes); // OAuth routes
 
 
 // --- 7. SERVER STARTUP ---

@@ -31,6 +31,7 @@ import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 import { PaymentPage } from "./pages/PaymentPage"; 
 import { MyNetworkPage } from './pages/MyNetworkPage';
+import { OAuthCallback } from './pages/OAuthCallback';
 
 export const router = createBrowserRouter([
   {
@@ -52,6 +53,7 @@ export const router = createBrowserRouter([
       { path: "about", element: <AboutPage /> },
       { path: "privacy", element: <PrivacyPolicyPage /> },
       { path: "terms", element: <TermsOfServicePage /> },
+      { path: "auth/callback", element: <OAuthCallback /> }, // OAuth callback route
 
       // --- PROTECTED CHILDREN ROUTES ---
       { 

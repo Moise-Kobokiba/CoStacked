@@ -10,7 +10,7 @@ import { Card } from '../components/shared/Card';
 import { Input } from '../components/shared/Input';
 import { Label } from '../components/shared/Label';
 import { Button } from '../components/shared/Button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Github } from 'lucide-react';
 import styles from './LoginPage.module.css';
 
 export const LoginPage = () => {
@@ -45,6 +45,11 @@ export const LoginPage = () => {
       // If the email isn't verified, redirect to the verify page
       navigate('/verify-email');
     }
+  };
+
+  const handleGitHubLogin = () => {
+    // Redirect to backend OAuth endpoint
+    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/github`;
   };
 
   return (
@@ -83,6 +88,20 @@ export const LoginPage = () => {
               {status === 'loading' ? (<><Loader2 className="animate-spin mr-2" /> Logging in...</>) : ( "Login" )}
             </Button>
           </form>
+
+          <div className={styles.divider}>
+            <span>OR</span>
+          </div>
+
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleGitHubLogin}
+            className={styles.githubButton}
+          >
+            <Github size={20} style={{ marginRight: '8px' }} />
+            Continue with GitHub
+          </Button>
 
           <div className={styles.footer}>
             <p>Don't have an account?{' '}<Link to="/signup" className={styles.link}>Sign Up</Link></p>

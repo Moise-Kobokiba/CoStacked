@@ -19,8 +19,12 @@ const userSchema = mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false, // Optional for OAuth users
     },
+    
+    // --- OAuth Provider IDs ---
+    githubId: { type: String, unique: true, sparse: true },
+    
     role: { 
       type: String, 
       required: true, 
