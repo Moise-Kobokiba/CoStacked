@@ -103,49 +103,49 @@
   grid-template-columns: 1fr;
   gap: 1.5rem;
 }
-
-
-/* ======================================== */
-/*            RESPONSIVE QUERIES            */
-/* ======================================== */
-
-/* --- Medium Screens / Tablets (768px and up) --- */
-@media (min-width: 768px) {
-  .hero {
-    min-height: 70vh;
-  }
-  .heroTitle {
-    font-size: 3.5rem;
-  }
-  .heroSubtitle {
-    font-size: 1.25rem;
-  }
-  .heroActions {
-    flex-direction: row; /* Place buttons side-by-side */
-    justify-content: center;
-    gap: 1.25rem;
-  }
-  .heroActions > * {
-    width: auto; /* Allow buttons to size to their content */
-    max-width: none;
-  }
-  .featuresGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .testimonialsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .sectionTitle {
-    font-size: 2.5rem;
-  }
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
 }
 
-/* --- Large Screens / Desktops (1024px and up) --- */
-@media (min-width: 1024px) {
-  .howItWorksSection, .testimonialsSection {
-    padding: 6rem 2rem;
-  }
-  .heroTitle {
-    font-size: 4rem;
-  }
+.contentSection {
+  width: 100%;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.sectionHeader .sectionTitle {
+  margin: 0;
+  text-align: left;
+  font-size: 1.75rem;
+}
+
+.seeAllLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.seeAllLink:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
