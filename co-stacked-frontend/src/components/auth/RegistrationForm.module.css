@@ -1,134 +1,64 @@
 /* src/components/auth/RegistrationForm.module.css */
-
 .card {
   width: 100%;
-  max-width: 700px; /* Increased to support 2-column layout */
-  border: 1px solid var(--border); /* Softer border than a shadow */
+  max-width: 540px;
+  background: var(--card-background);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
 }
 
 .header {
   text-align: center;
-  padding: 2rem 1.5rem 1.5rem; /* More top padding */
+  padding: 2rem 2rem 1rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .title {
-  font-size: 2rem; /* Larger title */
-  font-weight: 800;
-  letter-spacing: -0.05em;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
 }
 
 .description {
   color: var(--muted-foreground);
-  margin-top: 0.5rem;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .content {
-  padding: 0 1.5rem 1.5rem;
+  padding: 2rem;
 }
 
-/* --- OAuth Section --- */
-.oauthGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-/* On screens wider than the card, make buttons side-by-side */
-@media (min-width: 480px) {
-  .oauthGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.oauthButton {
-  width: 100%;
-  gap: 0.75rem;
-  font-weight: 600;
-  background-color: var(--card-background);
-  border: 1px solid var(--border);
-}
-
-.oauthButton:hover {
-  background-color: var(--secondary-button-hover);
-}
-
-/* --- Separator ("Or continue with") --- */
-.separator {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  color: var(--muted-foreground);
-  font-size: 0.8rem;
-  margin: 1.5rem 0;
-  text-transform: uppercase;
-}
-.separator::before,
-.separator::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid var(--border);
-}
-.separator span {
-  padding: 0 1rem;
-}
-.separator:not(:empty)::before {
-  margin-right: -1em; /* Adjust to get closer to text */
-}
-.separator:not(:empty)::after {
-  margin-left: -1em; /* Adjust to get closer to text */
-}
-
-/* --- Form Section --- */
 .form {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
 }
+
 .formGroup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
-.loader {
-  display: inline-block;
-  margin-right: 0.5rem;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-
-/* --- Footer Link --- */
-.footer {
-  margin-top: 1.5rem;
-  font-size: 0.9rem;
-  text-align: center;
-}
-.link {
-  font-weight: 600;
-  color: var(--primary);
-  text-decoration: none;
-}
-.link:hover {
-  text-decoration: underline;
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
 }
 
-.oauthButton {
-  width: 100%;
-  display: flex; /* Make sure this is present */
-  align-items: center; /* Vertically center the icon and text */
-  justify-content: center; /* Horizontally center the content */
-  gap: 0.75rem;
-  font-weight: 600;
-  background-color: var(--card-background);
-  border: 1px solid var(--border);
+.formGroupSpan2 {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-/* NEW: Add this style for the PNG icons */
-.oauthIcon {
-  height: 20px; /* Adjust this value to get the perfect size */
-  width: auto;
+.separator {
+  height: 1px;
+  background: var(--border);
+  margin: 0.5rem 0;
 }
 
 .error {
@@ -139,45 +69,62 @@
   padding: 0.75rem;
   text-align: center;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem; /* More spacing for a larger form */
+.loader {
+  animation: spin 1s linear infinite;
+  margin-right: 0.5rem;
 }
 
-/* NEW grid styles */
-.formGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
-
-@media (min-width: 640px) {
-  .formGrid {
-    grid-template-columns: 1fr 1fr;
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
-.formGroupSpan2 {
-    grid-column: 1 / -1;
+.footer {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
 }
 
-.separator {
-  /* ... (same as before) */
-  font-size: 0.8rem;
-  text-align: center;
-  color: var(--muted-foreground);
-  margin: 1rem 0;
-  text-transform: none; /* Changed from uppercase */
-  font-weight: 500;
+.link {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
 }
-.separator span {
-  /* Hiding the span text, using just the line */
-  display: none;
+
+.link:hover {
+  opacity: 0.8;
 }
-.separator::before, .separator::after {
-  content: ''; flex: 1; border-bottom: 1px solid var(--border);
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formGroupSpan2 {
+    grid-column: span 1;
+  }
+
+  .header {
+    padding: 1.5rem 1.5rem 1rem;
+  }
+
+  .content {
+    padding: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
 }

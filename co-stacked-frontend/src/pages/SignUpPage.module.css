@@ -3,41 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem 1rem;
+  padding: 2rem 1rem;
   min-height: calc(100vh - 65px);
-}
-
-.card {
-  width: 100%;
-  max-width: 450px;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.header h1 {
-  font-size: 1.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.header p {
-  color: var(--muted-foreground);
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.label {
-  font-weight: 500;
+  background: var(--background);
 }
