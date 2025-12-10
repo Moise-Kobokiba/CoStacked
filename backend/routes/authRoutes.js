@@ -29,4 +29,16 @@ router.get(
   oauthCallback
 );
 
+// LinkedIn OAuth Routes
+router.get(
+  '/linkedin',
+  passport.authenticate('linkedin', { scope: ['openid', 'profile', 'email'] })
+);
+
+router.get(
+  '/linkedin/callback',
+  passport.authenticate('linkedin', { failureRedirect: '/login', session: false }),
+  oauthCallback
+);
+
 module.exports = router;
