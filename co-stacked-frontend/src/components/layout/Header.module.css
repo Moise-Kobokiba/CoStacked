@@ -1,5 +1,3 @@
-/* src/components/layout/Header.module.css */
-
 /* --- Header Container --- */
 .header {
   background-color: var(--card-background);
@@ -12,15 +10,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  backdrop-filter: blur(8px);
-  background-color: rgba(255, 255, 255, 0.95);
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .header {
-    background-color: rgba(17, 24, 39, 0.95);
-  }
 }
 
 /* --- Logo Section --- */
@@ -70,13 +59,7 @@
 
 .navLink:hover {
   color: var(--foreground);
-  background-color: rgba(0, 0, 0, 0.04);
-}
-
-@media (prefers-color-scheme: dark) {
-  .navLink:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-  }
+  background-color: var(--secondary-button-hover);
 }
 
 .activeLink {
@@ -129,14 +112,7 @@
 
 .profileLink:hover,
 .notificationButton:hover {
-  background-color: rgba(0, 0, 0, 0.04);
-}
-
-@media (prefers-color-scheme: dark) {
-  .profileLink:hover,
-  .notificationButton:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-  }
+  background-color: var(--secondary-button-hover);
 }
 
 .notificationWrapper {
@@ -177,13 +153,7 @@
 }
 
 .hamburgerButton:hover {
-  background-color: rgba(0, 0, 0, 0.04);
-}
-
-@media (prefers-color-scheme: dark) {
-  .hamburgerButton:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-  }
+  background-color: var(--secondary-button-hover);
 }
 
 /* --- Mobile Menu Overlay --- */
@@ -226,13 +196,7 @@
 }
 
 .closeButton:hover {
-  background-color: rgba(0, 0, 0, 0.04);
-}
-
-@media (prefers-color-scheme: dark) {
-  .closeButton:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-  }
+  background-color: var(--secondary-button-hover);
 }
 
 .mobileNavLinks {
@@ -252,13 +216,7 @@
 }
 
 .mobileNavLink:hover {
-  background-color: rgba(0, 0, 0, 0.04);
-}
-
-@media (prefers-color-scheme: dark) {
-  .mobileNavLink:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-  }
+  background-color: var(--secondary-button-hover);
 }
 
 .activeMobileLink {
