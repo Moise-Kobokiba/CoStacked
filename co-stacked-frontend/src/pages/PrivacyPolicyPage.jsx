@@ -7,7 +7,7 @@ export const PrivacyPolicyPage = () => {
     <div className={styles.pageContainer}>
       <div className={styles.content}>
         <header className={styles.header}>
-          <h1>Privacy Policy for Co-Stacked</h1>
+          <h1>Privacy Policy for CoStacked</h1>
           <p>Last Updated: December 10, 2025</p>
         </header>
 
