@@ -1,6 +1,6 @@
 // src/pages/OAuthCallback.jsx
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { Loader2 } from 'lucide-react';
@@ -10,8 +10,15 @@ export const OAuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
+    // Prevent multiple executions
+    if (hasProcessed.current) {
+      console.log('OAuth callback already processed, skipping...');
+      return;
+    }
+
     const token = searchParams.get('token');
     const error = searchParams.get('error');
 
@@ -20,11 +27,13 @@ export const OAuthCallback = () => {
 
     if (error) {
       console.error('OAuth Error:', error);
+      hasProcessed.current = true;
       navigate(`/login?error=${error}`, { replace: true });
       return;
     }
 
     if (token) {
+      hasProcessed.current = true;
       console.log('Storing token in localStorage...');
       localStorage.setItem('userToken', token);
       
@@ -66,6 +75,7 @@ export const OAuthCallback = () => {
         });
     } else {
       console.warn('No token found in URL, redirecting to login');
+      hasProcessed.current = true;
       navigate('/login', { replace: true });
     }
   }, [searchParams, navigate, dispatch]);
