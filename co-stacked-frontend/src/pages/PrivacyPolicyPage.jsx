@@ -8,12 +8,12 @@ export const PrivacyPolicyPage = () => {
       <div className={styles.content}>
         <header className={styles.header}>
           <h1>Privacy Policy for Co-Stacked</h1>
-          <p>Last Updated: December 10, 2024</p>
+          <p>Last Updated: December 10, 2025</p>
         </header>
 
         <section>
           <h2>1. Introduction</h2>
-          <p>Welcome to Co-Stacked ("we," "our," "us"). We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our services. Please read this privacy policy carefully. If you do not agree with the terms, do not access the site.</p>
+          <p>Welcome to CoStacked ("we," "our," "us"). We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our services. Please read this privacy policy carefully. If you do not agree with the terms, do not access the site.</p>
         </section>
 
         <section>
@@ -106,7 +106,7 @@ export const PrivacyPolicyPage = () => {
         <section>
           <h2>11. Contact Us</h2>
           <p>If you have questions or comments about this Privacy Policy, please contact us at:</p>
-          <p><strong>Email:</strong> privacy@co-stacked.com</p>
+          <p><strong>Email:</strong> privacy@costacked.com</p>
         </section>
       </div>
     </div>
