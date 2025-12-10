@@ -17,4 +17,16 @@ router.get(
   oauthCallback
 );
 
+// Google OAuth Routes
+router.get(
+  '/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login', session: false }),
+  oauthCallback
+);
+
 module.exports = router;

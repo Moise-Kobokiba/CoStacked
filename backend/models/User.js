@@ -24,6 +24,7 @@ const userSchema = mongoose.Schema(
     
     // --- OAuth Provider IDs ---
     githubId: { type: String, unique: true, sparse: true },
+    googleId: { type: String, unique: true, sparse: true },
     
     role: { 
       type: String, 
