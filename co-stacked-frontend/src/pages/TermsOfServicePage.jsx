@@ -8,7 +8,7 @@ export const TermsOfServicePage = () => {
       <div className={styles.content}>
         <header className={styles.header}>
           <h1>Terms of Service</h1>
-          <p>Last Updated: December 10, 2024</p>
+          <p>Last Updated: December 10, 2025</p>
         </header>
 
         <section>
