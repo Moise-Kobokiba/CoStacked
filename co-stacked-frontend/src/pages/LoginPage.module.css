@@ -5,30 +5,40 @@
   justify-content: center;
   padding: 3rem 1rem;
   min-height: calc(100vh - 65px);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .card {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  background: white;
 }
 
 .header {
   text-align: center;
-  padding: 1.5rem;
+  padding: 2rem 1.5rem 1rem;
 }
 
 .title {
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
 }
 
 .description {
   color: var(--muted-foreground);
   margin-top: 0.5rem;
+  font-size: 0.95rem;
 }
 
 .content {
-  padding: 0 1.5rem 1.5rem;
+  padding: 0 2rem 2rem;
 }
 
 .form, .formGroup {
@@ -45,6 +55,7 @@
   margin-top: 1.5rem;
   font-size: 0.9rem;
   text-align: center;
+  color: var(--muted-foreground);
 }
 
 .error {
@@ -57,14 +68,16 @@
   font-weight: 500;
   font-size: 0.9rem;
 }
+
 .success {
-  color: #15803d; /* A success green color */
+  color: #15803d;
   background-color: #f0fdf4;
   border: 1px solid #bbf7d0;
   padding: 0.75rem;
   border-radius: 6px;
   text-align: center;
   font-size: 0.9rem;
+  margin-bottom: 1rem;
 }
 
 .passwordHeader {
@@ -77,28 +90,104 @@
   font-size: 0.85rem;
   color: var(--primary);
   text-decoration: none;
+  transition: all 0.2s ease;
 }
 
 .forgotLink:hover {
   text-decoration: underline;
+  color: #764ba2;
 }
 
-/* You probably already have a .link class, but ensure it's there */
 .link {
   font-weight: 600;
   color: var(--primary);
-}
-.link:hover {
-  text-decoration: underline;
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
-.success {
-  color: #15803d; /* A success green color */
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  padding: 0.75rem;
-  border-radius: 6px;
+.link:hover {
+  text-decoration: underline;
+  color: #764ba2;
+}
+
+.divider {
+  position: relative;
   text-align: center;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
+  margin: 1.5rem 0;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+}
+
+.divider span {
+  position: relative;
+  display: inline-block;
+  padding: 0 1rem;
+  background: white;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Social Login Buttons */
+.githubButton,
+.googleButton,
+.linkedinButton {
+  width: 100%;
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 2px solid var(--border);
+}
+
+.githubButton:hover {
+  background-color: #24292e;
+  color: white;
+  border-color: #24292e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(36, 41, 46, 0.2);
+}
+
+.googleButton:hover {
+  background-color: #f8f9fa;
+  border-color: #4285F4;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.2);
+}
+
+.linkedinButton:hover {
+  background-color: #0A66C2;
+  color: white;
+  border-color: #0A66C2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(10, 102, 194, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .pageContainer {
+    padding: 1.5rem 1rem;
+  }
+
+  .card {
+    max-width: 100%;
+  }
+
+  .content {
+    padding: 0 1.5rem 1.5rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
 }
