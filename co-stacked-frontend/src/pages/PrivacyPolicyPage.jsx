@@ -65,7 +65,7 @@ export const PrivacyPolicyPage = () => {
           <h2>5. Disclosure of Your Information</h2>
           <p>We do not share your personal information with third parties except as described in this policy. We may share information we have collected about you in certain situations. Your information may be disclosed as follows:</p>
           <ul>
-            <li><strong>Publicly on the Platform:</strong> Your profile information (name, bio, skills, etc.) and project details are visible to other users of the platform to enable the core functionality of Co-Stacked.</li>
+            <li><strong>Publicly on the Platform:</strong> Your profile information (name, bio, skills, etc.) and project details are visible to other users of the platform to enable the core functionality of CoStacked.</li>
             <li><strong>With Your Consent:</strong> We may disclose your information for any other purpose with your consent.</li>
             <li><strong>By Law or to Protect Rights:</strong> If we believe the release of information about you is necessary to respond to legal process, we may share your information as permitted or required by any applicable law.</li>
           </ul>
@@ -90,7 +90,7 @@ export const PrivacyPolicyPage = () => {
             <li><strong>Deletion:</strong> You can request deletion of your account and associated data.</li>
             <li><strong>Data Portability:</strong> You can request a copy of your data in a machine-readable format.</li>
           </ul>
-          <p>To exercise these rights, please contact us at privacy@co-stacked.com</p>
+          <p>To exercise these rights, please contact us at privacy@costacked.com</p>
         </section>
 
         <section>
