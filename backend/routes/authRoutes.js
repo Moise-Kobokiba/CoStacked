@@ -29,10 +29,9 @@ router.get(
   oauthCallback
 );
 
-// LinkedIn OAuth Routes
 router.get(
   '/linkedin',
-  passport.authenticate('linkedin', { scope: ['openid', 'profile', 'email'] })
+  passport.authenticate('linkedin', { scope: ['r_emailaddress', 'r_liteprofile'], state: true })
 );
 
 router.get(
