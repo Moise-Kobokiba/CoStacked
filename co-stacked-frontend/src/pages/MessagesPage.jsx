@@ -6,21 +6,20 @@ import styles from './MessagesPage.module.css';
 import { ConversationList } from '../components/messaging/ConversationList';
 import { ChatWindow } from '../components/messaging/ChatWindow';
 
+// Import hooks and actions
+import { useSocket } from '../hooks/useSocket'; // <-- 1. IMPORT our custom socket hook
 import { fetchConversations, fetchMessages } from '../features/messages/messagesSlice';
 
 const LoadingSpinner = () => <div className={styles.placeholder}><p>Loading conversations...</p></div>;
 
-// --- NEW: A simple hook to detect mobile viewport ---
 const useMediaQuery = (query) => {
   const [matches, setMatches] = useState(window.matchMedia(query).matches);
-
   useEffect(() => {
     const media = window.matchMedia(query);
     const listener = () => setMatches(media.matches);
     media.addEventListener('change', listener);
     return () => media.removeEventListener('change', listener);
   }, [query]);
-
   return matches;
 };
 
@@ -34,6 +33,9 @@ export const MessagesPage = () => {
     messagesByConversation, 
     status: messagesStatus 
   } = useSelector(state => state.messages);
+  
+  // --- 2. INITIALIZE the socket connection using the logged-in user's ID ---
+  const socket = useSocket(currentUser?._id);
   
   const [selectedConversationId, setSelectedConversationId] = useState(null);
   
@@ -49,27 +51,35 @@ export const MessagesPage = () => {
     }
   }, [selectedConversationId, messagesByConversation, dispatch]);
 
-  // --- MODIFIED: Auto-select first conversation ONLY on desktop ---
   useEffect(() => {
     if (!isMobile && conversations.length > 0 && !selectedConversationId) {
       setSelectedConversationId(conversations[0]._id);
     }
   }, [conversations, selectedConversationId, isMobile]);
 
+  // --- 3. NEW EFFECT: Join and leave socket rooms ---
+  useEffect(() => {
+    if (socket && selectedConversationId) {
+      // Tell the server we want to join this conversation's room
+      socket.emit('join_conversation', selectedConversationId);
+      
+      // Cleanup: When the selected conversation changes or component unmounts,
+      // you could optionally leave the room, but it's often not necessary.
+    }
+  }, [socket, selectedConversationId]);
+
 
   if (!currentUser) {
     return <LoadingSpinner />;
   }
   
-  // --- NEW: Function to handle going "back" on mobile ---
   const handleBackToList = () => {
     setSelectedConversationId(null);
   };
 
   const selectedConversation = conversations.find(c => c._id === selectedConversationId);
-  const messages = messagesByConversation[selectedConversationId] || [];
+  const messages = selectedConversationId ? (messagesByConversation[selectedConversationId] || []) : [];
 
-  // --- NEW: Dynamically apply a class when a chat is active on mobile ---
   const pageContainerClass = `${styles.pageContainer} ${isMobile && selectedConversationId ? styles.chatActive : ''}`;
   
   return (
@@ -83,14 +93,15 @@ export const MessagesPage = () => {
         />
       </div>
       <div className={styles.chatWindowWrapper}>
-        {messagesStatus === 'loading' && !selectedConversation ? (
+        {messagesStatus === 'loading' && conversations.length === 0 ? (
              <div className={styles.placeholder}><p>Loading...</p></div>
         ) : selectedConversation ? (
           <ChatWindow
             conversation={selectedConversation}
             messages={messages}
             currentUserId={currentUser._id}
-            onBack={handleBackToList} // <-- Pass the back function here
+            onBack={handleBackToList}
+            socket={socket} // <-- 4. PASS the socket instance down to the ChatWindow
           />
         ) : (
           <div className={styles.placeholder}>

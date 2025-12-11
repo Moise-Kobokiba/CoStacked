@@ -13,11 +13,30 @@ const messageSchema = mongoose.Schema(
       required: true,
       ref: 'User',
     },
-    text: {
+    // --- UPDATED & NEW FIELDS ---
+    type: {
+      type: String,
+      required: true,
+      enum: ['text', 'image', 'audio', 'file'],
+      default: 'text',
+    },
+    // The 'text' field is renamed to 'content' to be more generic.
+    // It will store the text for text messages, or the URL for media files.
+    content: {
       type: String,
       required: true,
       trim: true,
     },
+    status: {
+      type: String,
+      required: true,
+      enum: ['sent', 'delivered', 'read'],
+      default: 'sent',
+    },
+    // Metadata can store additional information, like the original filename, size, or audio duration.
+    metadata: {
+      type: Object,
+    }
   },
   { timestamps: true }
 );
