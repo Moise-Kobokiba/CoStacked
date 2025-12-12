@@ -63,12 +63,25 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: function (origin, callback) {
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'));
+        // Allow requests with no origin (like mobile apps, curl, etc.)
+        if (!origin) return callback(null, true);
+        
+        // If the origin is in our allowed list, allow it
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
         }
-    }
+        
+        // Also check if origin matches any regex patterns
+        for (let pattern of allowedOrigins) {
+            if (pattern instanceof RegExp && pattern.test(origin)) {
+                return callback(null, true);
+            }
+        }
+        
+        // Otherwise, block it
+        callback(new Error(`The CORS policy for this site does not allow access from ${origin}`));
+    },
+    credentials: true
 }));
 
 app.use(express.json());
