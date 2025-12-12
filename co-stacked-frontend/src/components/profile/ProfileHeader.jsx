@@ -25,7 +25,7 @@ export const ProfileHeader = ({
   connectionStatus,
   connectionHandlers,
   isConnectionLoading,
-  isConnectionLoading,
+
   onMessage,
   connectionCount, // New Prop
 }) => (
