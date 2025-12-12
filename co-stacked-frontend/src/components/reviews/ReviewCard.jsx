@@ -25,7 +25,9 @@ export const ReviewCard = ({ review }) => {
         />
         <div className={styles.headerInfo}>
           <span className={styles.founderName}>{founderId.name}</span>
-          <span className={styles.projectName}>on "{projectId.title}"</span>
+          <span className={styles.projectName}>
+            For project: <strong>{projectId.title}</strong>
+          </span>
         </div>
         <div className={styles.headerRight}>
           <StarRating rating={rating} size={16} />
