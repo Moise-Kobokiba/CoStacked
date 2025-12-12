@@ -54,6 +54,11 @@ export const ProfilePage = () => {
   const [copySuccess, setCopySuccess] = useState("");
   const [connectionStatus, setConnectionStatus] = useState("loading");
 
+  // Messaging State
+  const [activeChat, setActiveChat] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [newMessageText, setNewMessageText] = useState("");
+
   // State from Redux
   const { actionStatus: connectionActionStatus } = useSelector(
     (state) => state.connections || {}
@@ -164,6 +169,51 @@ export const ProfilePage = () => {
     }
   }, [userId, loggedInUser, dispatch]);
 
+  // Fetch chat access when connected
+  useEffect(() => {
+    if (connectionStatus === "connected" && userToDisplay && !isOwnProfile) {
+      const accessChat = async () => {
+        try {
+          const { data } = await API.post("/messages/access", { userId: userToDisplay._id });
+          setActiveChat(data);
+        } catch (error) {
+          console.error("Error accessing chat:", error);
+        }
+      };
+      accessChat();
+    }
+  }, [connectionStatus, userToDisplay, isOwnProfile]);
+
+  // Fetch messages for active chat
+  useEffect(() => {
+    if (activeChat) {
+      const fetchMessages = async () => {
+        try {
+          const { data } = await API.get(`/messages/${activeChat._id}`);
+          setMessages(data);
+        } catch (error) {
+          console.error("Error fetching messages:", error);
+        }
+      };
+      fetchMessages();
+    }
+  }, [activeChat]);
+
+  // Handle sending message
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessageText.trim() || !activeChat) return;
+
+    try {
+      const { data } = await API.post(`/messages/${activeChat._id}`, { content: newMessageText });
+      setMessages((prev) => [...prev, data]);
+      setNewMessageText("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+      alert("Failed to send message.");
+    }
+  };
+
   // Loading state guard clause
   if (usersStatus === "loading" || !userToDisplay) {
     return (
@@ -259,7 +309,7 @@ export const ProfilePage = () => {
                     )}
                   </div>
                 </div>
-                <div className={styles.infoGrid}>
+                  <div className={styles.infoGrid}>
                   <div className={styles.infoItem}>
                     <MapPin size={18} />
                     <span>{userToDisplay.location || "N/A"}</span>
@@ -279,6 +329,64 @@ export const ProfilePage = () => {
                     {userToDisplay.availability || "N/A"}
                   </p>
                 </div>
+
+                {/* --- Messaing UI Section --- */}
+                {!isOwnProfile && connectionStatus === "connected" && (
+                  <>
+                    <div className={styles.separator} />
+                    <div className={styles.section}>
+                      <h3 className={styles.sectionTitle}>
+                        Message {userToDisplay.name.split(" ")[0]}
+                      </h3>
+                      
+                      <div className={styles.chatContainer}>
+                        {activeChat ? (
+                          <>
+                            <div className={styles.messagesList}>
+                              {messages.length > 0 ? (
+                                messages.map((msg) => (
+                                  <div
+                                    key={msg._id}
+                                    className={`${styles.messageBubble} ${
+                                      msg.sender._id === loggedInUser._id
+                                        ? styles.sent
+                                        : styles.received
+                                    }`}
+                                  >
+                                    {msg.content}
+                                    <span className={styles.messageTime}>
+                                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-muted text-sm text-center py-4">No messages yet. Say hi!</p>
+                              )}
+                            </div>
+                            <form onSubmit={handleSendMessage} className={styles.chatInputArea}>
+                              <input
+                                type="text"
+                                className={styles.chatInput}
+                                placeholder="Type a message..."
+                                value={newMessageText}
+                                onChange={(e) => setNewMessageText(e.target.value)}
+                              />
+                              <button 
+                                type="submit" 
+                                className={styles.sendButton}
+                                disabled={!newMessageText.trim()}
+                              >
+                                Send
+                              </button>
+                            </form>
+                          </>
+                        ) : (
+                          <div className="text-center py-4">Loading chat...</div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
                 {userProjects.length > 0 && (
                   <>
                     <div className={styles.separator} />

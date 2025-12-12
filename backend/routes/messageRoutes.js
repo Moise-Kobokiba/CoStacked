@@ -2,9 +2,12 @@
 
 const express = require('express');
 const router = express.Router();
-const { getConversations, getMessages, sendMessage } = require('../controllers/messageController');
+const { getConversations, getMessages, sendMessage, accessChat } = require('../controllers/messageController');
 const { protect } = require('../middleware/authMiddleware');
-const chatUpload = require('../config/cloudinaryChat'); // <-- 1. IMPORT the chat upload middleware
+const chatUpload = require('../config/cloudinaryChat'); 
+
+// Defines POST /api/messages/access to get or create a direct chat
+router.route('/access').post(protect, accessChat);
 
 // Defines GET /api/messages/conversations
 router.route('/conversations').get(protect, getConversations);
@@ -12,10 +15,7 @@ router.route('/conversations').get(protect, getConversations);
 // Defines GET /api/messages/:conversationId
 router.route('/:conversationId').get(protect, getMessages);
 
-// --- THIS IS THE UPDATE ---
-// The POST route is now specifically for uploading files.
-// It uses the `chatUpload.single('chatFile')` middleware to process the file.
-// 'chatFile' is the field name the frontend must use when sending the file data.
+// Defines POST /api/messages/:conversationId to send a message (File or Text)
 router.route('/:conversationId').post(protect, chatUpload.single('chatFile'), sendMessage);
 
 module.exports = router;
