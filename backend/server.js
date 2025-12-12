@@ -49,10 +49,16 @@ const app = express();
 // --- 5. CORE MIDDLEWARE ---
 // Production-ready CORS configuration
 const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    process.env.FRONTEND_URL,
-    process.env.ADMIN_URL
+    'http://localhost:5173', // Local user-frontend
+    'http://localhost:3000', // Local admin-dashboard
+    // --- Production Domains ---
+    'https://costacked.co.za',
+    'https://www.costacked.co.za',
+    'https://admin.costacked.co.za',
+    'https://www.admin.costacked.co.za',
+    // --- Render URLs (keep for backup) ---
+    process.env.FRONTEND_URL, // e.g., 'https://co-stacked-userfrontend.onrender.com'
+    process.env.ADMIN_URL     // e.g., 'https://co-stacked-admin.onrender.com'
 ].filter(Boolean);
 
 app.use(cors({
