@@ -3,6 +3,7 @@
 const Connection = require('../models/Connection');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const Interest = require('../models/Interest');
 
 // @desc    Get the connection status with another user
 // @route   GET /api/connections/status/:userId
@@ -18,24 +19,42 @@ const getConnectionStatus = async (req, res) => {
       ],
     });
 
-    if (!connection) {
-      return res.json({ status: 'not_connected' });
-    }
-    
-    if (connection.status === 'accepted') {
-      return res.json({ status: 'connected' });
-    }
-    
-    if (connection.status === 'pending') {
-      if (connection.requester.toString() === loggedInUserId.toString()) {
-        return res.json({ status: 'pending_sent' }); // You sent the request
-      } else {
-        return res.json({ status: 'pending_received' }); // You received the request
+    // 1. Check direct connection status
+    if (connection) {
+      if (connection.status === 'accepted') {
+        return res.json({ status: 'connected' });
+      }
+      if (connection.status === 'pending') {
+        if (connection.requester.toString() === loggedInUserId.toString()) {
+          return res.json({ status: 'pending_sent' });
+        } else {
+          return res.json({ status: 'pending_received' });
+        }
       }
     }
 
+    // 2. Check for Project Collaboration (Approved Interest)
+    // If no direct connection (or connection is not accepted/pending?), check if they are working together.
+    // Note: We prioritize direct connection status if it exists and is pending, to allow handling that request.
+    // But if connection is missing or somehow declined (removed), we check interest.
+    
+    const collaboration = await Interest.findOne({
+      $or: [
+        { senderId: loggedInUserId, receiverId: otherUserId },
+        { senderId: otherUserId, receiverId: loggedInUserId },
+      ],
+      status: 'approved'
+    });
+
+    if (collaboration) {
+      return res.json({ status: 'connected' });
+    }
+
     res.json({ status: 'not_connected' });
-  } catch (error) { res.status(500).json({ message: 'Server Error' }); }
+  } catch (error) { 
+    console.error(`[GET CONNECTION STATUS ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server Error' }); 
+  }
 };
 
 
