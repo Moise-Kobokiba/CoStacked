@@ -56,6 +56,7 @@ const formatDate = (dateString) => {
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState("");
   const [connectionStatus, setConnectionStatus] = useState("loading");
+  const [connectionCount, setConnectionCount] = useState(0);
 
   // State from Redux
   const { actionStatus: connectionActionStatus } = useSelector(
@@ -153,6 +154,13 @@ const formatDate = (dateString) => {
   }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, dispatch]);
 
   useEffect(() => {
+    if (userToDisplay) {
+      // Fetch connection count for the displayed user
+      API.get(`/connections/count/${userToDisplay._id}`)
+        .then((res) => setConnectionCount(res.data.count))
+        .catch((err) => console.error("Error fetching connection count:", err));
+    }
+
     if (!isOwnProfile && loggedInUser && userToDisplay) {
       setConnectionStatus("loading");
       API.get(`/connections/status/${userToDisplay._id}`)
@@ -255,6 +263,7 @@ const formatDate = (dateString) => {
                 connectionHandlers={connectionHandlers}
                 isConnectionLoading={connectionActionStatus === "loading"}
                 onMessage={handleMessage}
+                connectionCount={connectionCount}
               />
 
               <div className={styles.content}>

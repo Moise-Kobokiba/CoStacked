@@ -13,6 +13,7 @@ const {
   removeOrCancelConnection,
   getConnections,
   getPendingRequests,
+  getConnectionCount,
 } = require('../controllers/connectionController');
 
 // All connection routes are protected and require a user to be logged in.
@@ -31,26 +32,6 @@ router.route('/accept').put(protect, acceptRequest); // Accept a received reques
 // DELETE Route
 router.route('/:userId').delete(protect, removeOrCancelConnection); // Remove a connection, or cancel/decline a request
 
-// Count approved/connected relationships for a user
-router.get('/count/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    // Accept multiple possible status names your app might use.
-    const approvedStatuses = ['connected', 'accepted', 'approved'];
-
-    const count = await Connection.countDocuments({
-      $or: [
-        { senderId: userId, status: { $in: approvedStatuses } },
-        { receiverId: userId, status: { $in: approvedStatuses } },
-      ],
-    });
-
-    return res.json({ count });
-  } catch (err) {
-    console.error('Error fetching connection count:', err);
-    return res.status(500).json({ error: 'Server error' });
-  }
-});
+router.get('/count/:userId', getConnectionCount);
 
 module.exports = router;

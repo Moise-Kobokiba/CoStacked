@@ -25,7 +25,9 @@ export const ProfileHeader = ({
   connectionStatus,
   connectionHandlers,
   isConnectionLoading,
-  onMessage, // New Prop
+  isConnectionLoading,
+  onMessage,
+  connectionCount, // New Prop
 }) => (
   <div className={styles.header}>
     {/* The main content (avatar, name, etc.) remains unchanged */}
@@ -58,7 +60,12 @@ export const ProfileHeader = ({
             <span>({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})</span>
           </div>
         )}
-        <p className={styles.subtitle}>{user.role}</p>
+        <p className={styles.subtitle}>
+          {user.role}
+          {connectionCount !== undefined && (
+            <span className={styles.connectionCount}> • {connectionCount} connections</span>
+          )}
+        </p>
       </div>
     </div>
     
@@ -111,5 +118,6 @@ ProfileHeader.propTypes = {
   connectionStatus: PropTypes.string,
   connectionHandlers: PropTypes.object,
   isConnectionLoading: PropTypes.bool,
-  onMessage: PropTypes.func, // New Prop
+  onMessage: PropTypes.func,
+  connectionCount: PropTypes.number,
 };

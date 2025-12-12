@@ -187,6 +187,26 @@ const getPendingRequests = async (req, res) => {
     }
 };
 
+// @desc    Get total count of accepted connections for a user
+// @route   GET /api/connections/count/:userId
+const getConnectionCount = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const count = await Connection.countDocuments({
+      $or: [
+        { requester: userId, status: 'accepted' },
+        { recipient: userId, status: 'accepted' },
+      ],
+    });
+
+    res.json({ count });
+  } catch (error) {
+    console.error(`[GET CONNECTION COUNT ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 
 module.exports = {
   getConnectionStatus,
@@ -195,4 +215,5 @@ module.exports = {
   removeOrCancelConnection,
   getConnections,
   getPendingRequests,
+  getConnectionCount,
 };
