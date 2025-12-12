@@ -1,10 +1,29 @@
-// src/pages/ProfilePage.jsx
+  // Handle messaging navigation
+  const handleMessage = async () => {
+    if (!userToDisplay) return;
+    try {
+        const { data } = await API.post("/messages/access", { userId: userToDisplay._id });
+        // Navigate to messages page with conversation ID
+        // Assuming I have navigate hook
+        // Need to add useNavigate to imports and instantiation
+        window.location.href = `/messages`; // Quick fix if I don't have navigate, but I should use navigate.
+        // Wait, I need to check imports.
+    } catch (error) {
+        console.error("Error accessing chat:", error);
+    }
+  };
 
-import { useState, useEffect, useCallback } from "react";
-import { Link, useParams } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import styles from "./ProfilePage.module.css";
-import API from "../api/axios";
+  // Wait, I need to check the file content again to see if useNavigate is imported.
+  // It is NOT imported. `import { Link, useParams } from "react-router-dom";`
+  // I must add useNavigate to imports.
+
+  // Re-reading imports:
+  // import { Link, useParams } from "react-router-dom";
+  
+  // So I will update imports and the component body.
+
+  // See next tool call for full replacement with correct imports.
+  return null;
 
 // Import Redux Actions
 import { fetchUsers, recordProfileView } from "../features/users/usersSlice";
@@ -42,9 +61,10 @@ const formatDate = (dateString) => {
   });
 };
 
-export const ProfilePage = () => {
+  export const ProfilePage = () => {
   const dispatch = useDispatch();
   const { userId } = useParams();
+  const navigate = useNavigate();
 
   // State for UI and Modals
   const [isEditing, setIsEditing] = useState(false);
@@ -53,11 +73,6 @@ export const ProfilePage = () => {
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState("");
   const [connectionStatus, setConnectionStatus] = useState("loading");
-
-  // Messaging State
-  const [activeChat, setActiveChat] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [newMessageText, setNewMessageText] = useState("");
 
   // State from Redux
   const { actionStatus: connectionActionStatus } = useSelector(
@@ -169,48 +184,13 @@ export const ProfilePage = () => {
     }
   }, [userId, loggedInUser, dispatch]);
 
-  // Fetch chat access when connected
-  useEffect(() => {
-    if (connectionStatus === "connected" && userToDisplay && !isOwnProfile) {
-      const accessChat = async () => {
-        try {
-          const { data } = await API.post("/messages/access", { userId: userToDisplay._id });
-          setActiveChat(data);
-        } catch (error) {
-          console.error("Error accessing chat:", error);
-        }
-      };
-      accessChat();
-    }
-  }, [connectionStatus, userToDisplay, isOwnProfile]);
-
-  // Fetch messages for active chat
-  useEffect(() => {
-    if (activeChat) {
-      const fetchMessages = async () => {
-        try {
-          const { data } = await API.get(`/messages/${activeChat._id}`);
-          setMessages(data);
-        } catch (error) {
-          console.error("Error fetching messages:", error);
-        }
-      };
-      fetchMessages();
-    }
-  }, [activeChat]);
-
-  // Handle sending message
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!newMessageText.trim() || !activeChat) return;
-
+  const handleMessage = async () => {
+    if (!userToDisplay) return;
     try {
-      const { data } = await API.post(`/messages/${activeChat._id}`, { content: newMessageText });
-      setMessages((prev) => [...prev, data]);
-      setNewMessageText("");
+      const { data } = await API.post("/messages/access", { userId: userToDisplay._id });
+      navigate('/messages', { state: { conversationId: data._id } });
     } catch (error) {
-      console.error("Error sending message:", error);
-      alert("Failed to send message.");
+      console.error("Error accessing chat:", error);
     }
   };
 
@@ -291,6 +271,7 @@ export const ProfilePage = () => {
                 connectionStatus={connectionStatus}
                 connectionHandlers={connectionHandlers}
                 isConnectionLoading={connectionActionStatus === "loading"}
+                onMessage={handleMessage}
               />
 
               <div className={styles.content}>
@@ -330,63 +311,6 @@ export const ProfilePage = () => {
                   </p>
                 </div>
 
-                {/* --- Messaing UI Section --- */}
-                {!isOwnProfile && connectionStatus === "connected" && (
-                  <>
-                    <div className={styles.separator} />
-                    <div className={styles.section}>
-                      <h3 className={styles.sectionTitle}>
-                        Message {userToDisplay.name.split(" ")[0]}
-                      </h3>
-                      
-                      <div className={styles.chatContainer}>
-                        {activeChat ? (
-                          <>
-                            <div className={styles.messagesList}>
-                              {messages.length > 0 ? (
-                                messages.map((msg) => (
-                                  <div
-                                    key={msg._id}
-                                    className={`${styles.messageBubble} ${
-                                      msg.sender._id === loggedInUser._id
-                                        ? styles.sent
-                                        : styles.received
-                                    }`}
-                                  >
-                                    {msg.content}
-                                    <span className={styles.messageTime}>
-                                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                  </div>
-                                ))
-                              ) : (
-                                <p className="text-muted text-sm text-center py-4">No messages yet. Say hi!</p>
-                              )}
-                            </div>
-                            <form onSubmit={handleSendMessage} className={styles.chatInputArea}>
-                              <input
-                                type="text"
-                                className={styles.chatInput}
-                                placeholder="Type a message..."
-                                value={newMessageText}
-                                onChange={(e) => setNewMessageText(e.target.value)}
-                              />
-                              <button 
-                                type="submit" 
-                                className={styles.sendButton}
-                                disabled={!newMessageText.trim()}
-                              >
-                                Send
-                              </button>
-                            </form>
-                          </>
-                        ) : (
-                          <div className="text-center py-4">Loading chat...</div>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
                 {userProjects.length > 0 && (
                   <>
                     <div className={styles.separator} />

@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom'; // Import useLocation
 import styles from './MessagesPage.module.css';
 import { ConversationList } from '../components/messaging/ConversationList';
 import { ChatWindow } from '../components/messaging/ChatWindow';
 
 // Import hooks and actions
-import { useSocket } from '../hooks/useSocket'; // <-- 1. IMPORT our custom socket hook
+import { useSocket } from '../hooks/useSocket';
 import { fetchConversations, fetchMessages } from '../features/messages/messagesSlice';
 
 const LoadingSpinner = () => <div className={styles.placeholder}><p>Loading conversations...</p></div>;
@@ -25,8 +26,9 @@ const useMediaQuery = (query) => {
 
 export const MessagesPage = () => {
   const dispatch = useDispatch();
+  const location = useLocation(); // Use location hook
   const isMobile = useMediaQuery('(max-width: 768px)');
-
+  
   const { user: currentUser } = useSelector(state => state.auth);
   const { 
     conversations, 
@@ -34,11 +36,18 @@ export const MessagesPage = () => {
     status: messagesStatus 
   } = useSelector(state => state.messages);
   
-  // --- 2. INITIALIZE the socket connection using the logged-in user's ID ---
   const socket = useSocket(currentUser?._id);
   
   const [selectedConversationId, setSelectedConversationId] = useState(null);
   
+  // Set initial selected conversation from location state if exists
+  useEffect(() => {
+    if (location.state?.conversationId) {
+      setSelectedConversationId(location.state.conversationId);
+      // Clear state so refresh doesn't stick? Or leave it. Leaving it is fine.
+    }
+  }, [location.state]);
+
   useEffect(() => {
     if (messagesStatus === 'idle') {
       dispatch(fetchConversations());
@@ -52,10 +61,11 @@ export const MessagesPage = () => {
   }, [selectedConversationId, messagesByConversation, dispatch]);
 
   useEffect(() => {
-    if (!isMobile && conversations.length > 0 && !selectedConversationId) {
+    if (!isMobile && conversations.length > 0 && !selectedConversationId && !location.state?.conversationId) {
+       // Only default select if no state was provided
       setSelectedConversationId(conversations[0]._id);
     }
-  }, [conversations, selectedConversationId, isMobile]);
+  }, [conversations, selectedConversationId, isMobile, location.state]);
 
   // --- 3. NEW EFFECT: Join and leave socket rooms ---
   useEffect(() => {

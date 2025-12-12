@@ -25,6 +25,7 @@ export const ProfileHeader = ({
   connectionStatus,
   connectionHandlers,
   isConnectionLoading,
+  onMessage, // New Prop
 }) => (
   <div className={styles.header}>
     {/* The main content (avatar, name, etc.) remains unchanged */}
@@ -78,6 +79,7 @@ export const ProfileHeader = ({
           onAccept={connectionHandlers.accept}
           onDecline={connectionHandlers.decline}
           isLoading={isConnectionLoading}
+          onMessage={onMessage} // Pass it down
         />
       ) : (
         // If viewing your own profile, show the management buttons
@@ -109,4 +111,5 @@ ProfileHeader.propTypes = {
   connectionStatus: PropTypes.string,
   connectionHandlers: PropTypes.object,
   isConnectionLoading: PropTypes.bool,
+  onMessage: PropTypes.func, // New Prop
 };
