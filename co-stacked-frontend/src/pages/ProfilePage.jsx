@@ -1,29 +1,10 @@
-  // Handle messaging navigation
-  const handleMessage = async () => {
-    if (!userToDisplay) return;
-    try {
-        const { data } = await API.post("/messages/access", { userId: userToDisplay._id });
-        // Navigate to messages page with conversation ID
-        // Assuming I have navigate hook
-        // Need to add useNavigate to imports and instantiation
-        window.location.href = `/messages`; // Quick fix if I don't have navigate, but I should use navigate.
-        // Wait, I need to check imports.
-    } catch (error) {
-        console.error("Error accessing chat:", error);
-    }
-  };
+// src/pages/ProfilePage.jsx
 
-  // Wait, I need to check the file content again to see if useNavigate is imported.
-  // It is NOT imported. `import { Link, useParams } from "react-router-dom";`
-  // I must add useNavigate to imports.
-
-  // Re-reading imports:
-  // import { Link, useParams } from "react-router-dom";
-  
-  // So I will update imports and the component body.
-
-  // See next tool call for full replacement with correct imports.
-  return null;
+import { useState, useEffect, useCallback } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import styles from "./ProfilePage.module.css";
+import API from "../api/axios";
 
 // Import Redux Actions
 import { fetchUsers, recordProfileView } from "../features/users/usersSlice";
@@ -60,6 +41,8 @@ const formatDate = (dateString) => {
     day: "numeric",
   });
 };
+
+
 
   export const ProfilePage = () => {
   const dispatch = useDispatch();
