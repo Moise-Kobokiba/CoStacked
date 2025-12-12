@@ -8,7 +8,7 @@ const session = require('express-session');
 // --- THIS IS THE FIX ---
 // Import passport, but NOT the configuration file that causes the crash.
 const passport = require('passport'); 
-// const passportConfig = require('./config/passport'); // This line is the problem.
+const passportConfig = require('./config/passport');
 const connectDB = require('./config/db');
 
 // Only load environment variables from the .env file if we are in development mode.
@@ -91,17 +91,17 @@ app.use(express.json());
 // the missing GitHub OAuth credentials. When you are ready to implement "Login with GitHub",
 // you can uncomment these lines and provide the necessary environment variables.
 
-// // Session middleware (required for Passport)
-// app.use(session({
-//   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
-//   resave: false,
-//   saveUninitialized: false,
-//   cookie: { secure: process.env.NODE_ENV === 'production' }
-// }));
+// Session middleware (required for Passport)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
 
-// // Initialize Passport
-// app.use(passport.initialize());
-// app.use(passport.session());
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 // --- END FIX ---
 
 

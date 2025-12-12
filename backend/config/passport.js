@@ -4,6 +4,8 @@ const passport = require('passport');
 const GitHubStrategy = require('passport-github2').Strategy;
 const User = require('../models/User');
 
+const BACKEND_URL = (process.env.BACKEND_URL || 'http://localhost:5000').replace(/\/$/, '');
+
 // Serialize user for session
 passport.serializeUser((user, done) => {
   done(null, user.id);
@@ -25,7 +27,7 @@ passport.use(
     {
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/github/callback`,
+      callbackURL: `${BACKEND_URL}/api/auth/github/callback`,
       scope: ['user:email'], // Request email access
     },
     async (accessToken, refreshToken, profile, done) => {
@@ -105,7 +107,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/google/callback`,
+      callbackURL: `${BACKEND_URL}/api/auth/google/callback`,
       scope: ['profile', 'email'],
     },
     async (accessToken, refreshToken, profile, done) => {
@@ -164,7 +166,7 @@ passport.use(
     {
       clientID: process.env.LINKEDIN_CLIENT_ID,
       clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-      callbackURL: `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/linkedin/callback`,
+      callbackURL: `${BACKEND_URL}/api/auth/linkedin/callback`,
       scope: ['r_liteprofile', 'r_emailaddress'],
       state: true,
       profileFields: ['id', 'first-name', 'last-name', 'email-address', 'picture-url'],
