@@ -159,12 +159,17 @@ const getConnections = async (req, res) => {
     .populate('recipient');
     
     // Remap data to show the other user, not the logged-in user
-    const userConnections = connections.map(conn => {
-      const otherUser = conn.requester._id.toString() === req.user._id.toString()
-        ? conn.recipient
-        : conn.requester;
-      return otherUser;
-    });
+    const userConnections = connections
+      .map(conn => {
+        // Safety check: ensure both users exist (in case of deleted users)
+        if (!conn.requester || !conn.recipient) return null;
+
+        const otherUser = conn.requester._id.toString() === req.user._id.toString()
+          ? conn.recipient
+          : conn.requester;
+        return otherUser;
+      })
+      .filter(user => user !== null);
 
     res.json(userConnections);
   } catch (error) {
