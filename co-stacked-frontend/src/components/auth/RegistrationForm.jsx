@@ -124,7 +124,7 @@ export const RegistrationForm = () => {
               showStrengthMeter={true}
               showSecurityTip={true}
               onStrengthChange={handleStrengthChange}
-              placeholder="6-8 characters"
+              placeholder="Min 12 characters"
             />
           </div>
 

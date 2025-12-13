@@ -57,7 +57,7 @@ export const ChangePasswordModal = ({ open, onClose }) => {
     }
     
     if (!isPasswordValid) {
-        setLocalError("New password must be strong/valid (6-8 chars, mixed types).");
+        setLocalError("New password must be strong/valid (min 12 chars, mixed types).");
         return;
     }
 
@@ -92,7 +92,7 @@ export const ChangePasswordModal = ({ open, onClose }) => {
             autoComplete="new-password"
             showStrengthMeter={true}
             onStrengthChange={handleStrengthChange}
-            placeholder="6-8 characters"
+            placeholder="Min 12 characters"
          />
         </div>
         <div className={styles.formGroup}>

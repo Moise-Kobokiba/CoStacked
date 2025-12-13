@@ -27,12 +27,9 @@ export const PasswordInput = ({
   const calculateStrength = (pwd) => {
     if (!pwd) return { score: 0, label: '', color: '', isValid: false };
 
-    // Strict length check per user request (6-8 characters)
-    if (pwd.length < 6) {
-      return { score: 1, label: 'Weak (min 6 chars)', color: 'weak', isValid: false };
-    }
-    if (pwd.length > 8) {
-      return { score: 1, label: 'Weak (max 8 chars)', color: 'weak', isValid: false };
+    // Strict length check per user request (min 12 characters)
+    if (pwd.length < 12) {
+      return { score: 1, label: 'Weak (min 12 chars)', color: 'weak', isValid: false };
     }
 
     let complexity = 0;
@@ -107,7 +104,7 @@ export const PasswordInput = ({
         <div className={styles.securityTip}>
           <Info size={14} className={styles.tipIcon} />
           <span className={styles.tipText}>
-            Use 6-8 characters with a mix of letters, numbers & symbols.
+            Use at least 12 characters with a mix of letters, numbers & symbols.
           </span>
         </div>
       )}

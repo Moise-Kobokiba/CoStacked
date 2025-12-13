@@ -19,6 +19,10 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Name, email, password, and role are required fields.' });
     }
 
+    if (password.length < 12) {
+      return res.status(400).json({ message: 'Password must be at least 12 characters long.' });
+    }
+
     if (await User.findOne({ email })) {
       return res.status(400).json({ message: 'A user with this email already exists.' });
     }
@@ -204,6 +208,9 @@ const changeUserPassword = async (req, res) => {
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ message: 'Please provide both current and new passwords.' });
     }
+    if (newPassword.length < 12) {
+      return res.status(400).json({ message: 'New password must be at least 12 characters long.' });
+    }
     const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
@@ -299,6 +306,9 @@ const resetPassword = async (req, res) => {
     });
     if (!user) {
       return res.status(400).json({ message: 'Token is invalid or has expired.' });
+    }
+    if (req.body.password.length < 12) {
+      return res.status(400).json({ message: 'Password must be at least 12 characters long.' });
     }
     user.password = req.body.password;
     user.passwordResetToken = undefined;
