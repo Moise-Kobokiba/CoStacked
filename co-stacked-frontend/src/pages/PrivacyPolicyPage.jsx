@@ -106,7 +106,7 @@ export const PrivacyPolicyPage = () => {
         <section>
           <h2>11. Contact Us</h2>
           <p>If you have questions or comments about this Privacy Policy, please contact us at:</p>
-          <p><strong>Email:</strong> privacy@costacked.com</p>
+          <p><strong>Email:</strong> info@costacked.co.za</p>
         </section>
       </div>
     </div>
