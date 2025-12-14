@@ -108,7 +108,7 @@ export const TermsOfServicePage = () => {
         <section>
           <h2>13. Contact Us</h2>
           <p>If you have any questions about these Terms, please contact us at:</p>
-          <p><strong>Email:</strong> legal@costacked.com</p>
+          <p><strong>Email:</strong> info@costacked.co.za</p>
         </section>
       </div>
     </div>
