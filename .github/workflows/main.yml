@@ -21,36 +21,30 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: 22
           script: |
-            # Navigate to project directory
             cd ~/CoStacked
             
             echo "=========================================="
             echo "Starting deployment..."
             echo "=========================================="
             
-            # Pull latest code from GitHub
             echo "[1/8] Pulling latest code from GitHub..."
             git fetch origin
             git reset --hard origin/main
             
-            # Install backend dependencies
             echo "[2/8] Installing backend dependencies..."
             cd ~/CoStacked/backend
             npm install --production
             
-            # Install frontend dependencies
             echo "[3/8] Installing frontend dependencies..."
             cd ~/CoStacked/co-stacked-frontend
             npm install --production
             
-            # Install admin dependencies
             echo "[4/8] Installing admin dependencies..."
             cd ~/CoStacked/co-stacked-admin
             npm install --production
             
-            # Create backend .env file with secrets
             echo "[5/8] Configuring backend environment..."
-            cat > ~/CoStacked/backend/.env << 'ENVEOF'
+            cat > ~/CoStacked/backend/.env << EOF
 PORT=5001
 MONGO_URI=${{ secrets.MONGO_URI }}
 JWT_SECRET=${{ secrets.JWT_SECRET }}
@@ -66,32 +60,26 @@ AHA_FROM_NAME=${{ secrets.AHA_FROM_NAME }}
 CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
 CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
 CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
-ENVEOF
+EOF
             
-            # Create frontend .env file
             echo "[6/8] Configuring frontend environment..."
-            cat > ~/CoStacked/co-stacked-frontend/.env << 'ENVEOF'
+            cat > ~/CoStacked/co-stacked-frontend/.env << EOF
 VITE_API_URL=${{ secrets.VITE_API_URL }}
-ENVEOF
+EOF
             
-            # Create admin .env file
             echo "[7/8] Configuring admin environment..."
-            cat > ~/CoStacked/co-stacked-admin/.env << 'ENVEOF'
+            cat > ~/CoStacked/co-stacked-admin/.env << EOF
 VITE_API_URL=${{ secrets.VITE_API_URL }}
-ENVEOF
+EOF
             
-            # Restart all PM2 apps
             echo "[8/8] Restarting applications..."
             pm2 restart all --update-env
             
-            # Wait for apps to start
             sleep 5
             
-            # Verify deployment
             echo "=========================================="
             echo "Deployment completed!"
             echo "=========================================="
             pm2 status
             
-            # Log deployment
             echo "Deployment completed at $(date)" >> ~/deployments.log
