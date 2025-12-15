@@ -100,7 +100,7 @@ passport.use(
       }
     }
   )
-);*/
+);
 
 // Google OAuth Strategy
 passport.use(
@@ -220,6 +220,6 @@ passport.use(
       }
     }
   )
-);
+);*/
 
 module.exports = passport;
