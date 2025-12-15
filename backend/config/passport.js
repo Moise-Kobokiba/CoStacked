@@ -21,7 +21,8 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// GitHub OAuth Strategy
+// GitHub OAuth Strategy (DISABLED - waiting for real credentials)
+/*
 passport.use(
   new GitHubStrategy(
     {
@@ -99,7 +100,7 @@ passport.use(
       }
     }
   )
-);
+);*/
 
 // Google OAuth Strategy
 passport.use(
