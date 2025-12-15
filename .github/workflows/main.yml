@@ -1,0 +1,83 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+
+            cd ~/CoStacked
+
+            echo "=========================================="
+            echo "Starting deployment..."
+            echo "=========================================="
+
+            echo "[1/8] Pulling latest code from GitHub..."
+            git fetch origin
+            git reset --hard origin/main
+
+            echo "[2/8] Installing backend dependencies..."
+            cd backend
+            npm install --production
+
+            echo "[3/8] Installing frontend dependencies..."
+            cd ../co-stacked-frontend
+            npm install --production
+
+            echo "[4/8] Installing admin dependencies..."
+            cd ../co-stacked-admin
+            npm install --production
+
+            echo "[5/8] Writing backend .env..."
+            cat <<EOL > ~/CoStacked/backend/.env
+            PORT=5001
+            MONGO_URI=${{ secrets.MONGO_URI }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            NODE_ENV=development
+            ADMIN_SECRET_KEY=${{ secrets.ADMIN_SECRET_KEY }}
+            YOCO_PUBLIC_KEY=${{ secrets.YOCO_PUBLIC_KEY }}
+            YOCO_SECRET_KEY=${{ secrets.YOCO_SECRET_KEY }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            ADMIN_URL=${{ secrets.ADMIN_URL }}
+            AHA_API_KEY=${{ secrets.AHA_API_KEY }}
+            AHA_FROM_EMAIL=${{ secrets.AHA_FROM_EMAIL }}
+            AHA_FROM_NAME=${{ secrets.AHA_FROM_NAME }}
+            CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+            CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+            EOL
+
+            echo "[6/8] Writing frontend .env..."
+            echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > ~/CoStacked/co-stacked-frontend/.env
+
+            echo "[7/8] Writing admin .env..."
+            echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > ~/CoStacked/co-stacked-admin/.env
+
+            echo "[8/8] Restarting applications..."
+            pm2 restart all --update-env
+
+            sleep 5
+
+            echo "=========================================="
+            echo "Deployment completed!"
+            echo "=========================================="
+
+            pm2 status
+            echo "Deployment completed at $(date)" >> ~/deployments.log
