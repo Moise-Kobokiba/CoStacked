@@ -35,15 +35,15 @@ jobs:
 
             echo "[2/8] Installing backend dependencies..."
             cd backend
-            npm install --production
+            npm install
 
             echo "[3/8] Installing frontend dependencies..."
             cd ../co-stacked-frontend
-            npm install --production
+            npm install
 
             echo "[4/8] Installing admin dependencies..."
             cd ../co-stacked-admin
-            npm install --production
+            npm install
 
             echo "[5/8] Writing backend .env..."
             cat <<EOL > ~/CoStacked/backend/.env
