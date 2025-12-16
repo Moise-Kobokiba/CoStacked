@@ -1,8 +1,8 @@
+// src/pages/OAuthCallback.jsx
 import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { Loader2 } from 'lucide-react';
-import styles from './LoginPage.module.css';
 
 export const OAuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -17,7 +17,8 @@ export const OAuthCallback = () => {
       try {
         const token = searchParams.get('token');
         const error = searchParams.get('error');
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const API_URL = import.meta.env.VITE_API_URL;
+        const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
 
         if (error) {
           hasProcessed.current = true;
@@ -29,31 +30,37 @@ export const OAuthCallback = () => {
           return navigate('/login', { replace: true });
         }
 
-        // Store token
+        // Store token in localStorage
         localStorage.setItem('userToken', token);
 
-        // Fetch user profile from backend
-        const res = await fetch(`${apiUrl}/api/users/profile`, {
+        // Fetch user profile
+        const userRes = await fetch(`${API_URL}/api/users/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const user = await res.json();
+        if (!userRes.ok) throw new Error(`Could not fetch users: ${userRes.status}`);
+        const user = await userRes.json();
 
-        // If not verified, update verification in backend and send email
+        // Fetch projects
+        const projectsRes = await fetch(`${API_URL}/api/projects`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!projectsRes.ok) throw new Error(`Could not fetch projects: ${projectsRes.status}`);
+        const projects = await projectsRes.json();
+
+        // Send email verification if user not verified
         if (!user.isVerified) {
-          await fetch(`${apiUrl}/api/users/${user._id}/verify`, {
+          const verificationRes = await fetch(`${API_URL}/api/users/${user._id}/verify`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({
-              emailVerificationToken: null, // backend should generate token
-              isVerified: true,
-            }),
+            body: JSON.stringify({ isVerified: true }),
           });
+          if (!verificationRes.ok) console.warn('Failed to mark user verified');
 
-          await fetch(`${apiUrl}/api/email`, {
+          // Trigger backend to send verification email
+          await fetch(`${API_URL}/api/email`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -63,9 +70,16 @@ export const OAuthCallback = () => {
           });
         }
 
-        // Always store profile and update Redux
+        // Store data locally
         localStorage.setItem('userProfile', JSON.stringify(user));
-        dispatch({ type: 'auth/loginUser/fulfilled', payload: { user, token } });
+        localStorage.setItem('userProjects', JSON.stringify(projects));
+
+        // Update Redux
+        dispatch({
+          type: 'auth/loginUser/fulfilled',
+          payload: { user, token, projects },
+        });
+
         hasProcessed.current = true;
         navigate('/dashboard', { replace: true });
 
@@ -80,11 +94,9 @@ export const OAuthCallback = () => {
   }, [searchParams, navigate, dispatch]);
 
   return (
-    <div className={styles.pageContainer}>
-      <div style={{ textAlign: 'center', padding: '4rem' }}>
-        <Loader2 className="animate-spin" size={48} style={{ margin: '0 auto 1rem' }} />
-        <p>Completing sign in...</p>
-      </div>
+    <div style={{ textAlign: 'center', padding: '4rem' }}>
+      <Loader2 className="animate-spin" size={48} style={{ margin: '0 auto 1rem' }} />
+      <p>Completing sign in...</p>
     </div>
   );
 };
