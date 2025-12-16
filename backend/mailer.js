@@ -1,5 +1,5 @@
 // mailer.js
-const MailerSend = require("@mailersend/mailersend");
+const { MailerSend } = require("mailersend");
 
 // Initialize MailerSend with your API key
 const mailer = new MailerSend({
