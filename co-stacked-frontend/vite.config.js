@@ -1,16 +1,28 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    host: true, // allow external hosts
-    allowedHosts: [
-      'costacked.co.za',
-      'www.costacked.co.za',
-      'localhost',
-      '127.0.0.1',
-      '154.66.197.173' // optional: your server IP
-    ]
-  }
+export default defineConfig(({ mode }) => {
+  const isDev = mode === 'development';
+
+  return {
+    plugins: [react()],
+
+    // Dev server config (only applies during development)
+    server: isDev
+      ? {
+          host: true, // allow access from any host/IP
+          allowedHosts: [
+            'localhost',
+            '127.0.0.1',
+            'costacked.co.za',
+            'www.costacked.co.za',
+          ],
+        }
+      : undefined,
+
+    build: {
+      outDir: 'dist',
+      sourcemap: !isDev, // optional for production debugging
+    },
+  };
 });
