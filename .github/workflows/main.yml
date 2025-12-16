@@ -62,8 +62,8 @@ jobs:
             CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
             CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
             CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
-            GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}
-            GITHUB_CLIENT_SECRET=${{ secrets.GITHUB_CLIENT_SECRET }}
+            MYAPP.GITHUB_CLIENT_ID=${{ secrets.MYAPP.GITHUB_CLIENT_ID }}
+            MYAPP.GITHUB_CLIENT_SECRET=${{ secrets.MYAPP.GITHUB_CLIENT_SECRET }}
             SESSION_SECRET=${{ secrets.SESSION_SECRET }}
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
