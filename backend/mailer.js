@@ -14,7 +14,7 @@ const mailer = new MailerSend({
 export async function sendVerificationEmail(toEmail, verificationLink) {
   try {
     const response = await mailer.email.send({
-      from: "noreply@yourdomain.com", // must be verified in MailerSend
+      from: "clement03jr@gmail.com", // must be verified in MailerSend
       to: [toEmail],
       subject: "Please verify your email",
       html: `
