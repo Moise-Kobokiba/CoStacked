@@ -13,7 +13,7 @@ const sendEmail = async (options) => {
     console.error("FATAL: AhaSend API environment variables (AHA_API_KEY, AHA_FROM_EMAIL) are missing!");
     throw new Error("Email service is not configured correctly on the server.");
   }
-
+  
   const emailPayload = {
     from: {
       email: AHASEND_FROM_EMAIL,
