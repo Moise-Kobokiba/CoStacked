@@ -25,6 +25,18 @@ export const OAuthCallback = () => {
     console.log('OAuth Callback - Token:', token ? 'Present' : 'Missing');
     console.log('OAuth Callback - Error:', error);
 
+    if (!user.isVerified) {
+  // Generate a verification token
+  const verificationToken = crypto.randomBytes(32).toString("hex");
+  user.emailVerificationToken = verificationToken;
+  user.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+  user.isVerified = true; // mark as verified if you trust OAuth email
+  await user.save();
+
+  const verificationLink = `${FRONTEND_URL}/verify?token=${verificationToken}`;
+  await sendVerificationEmail(user.email, verificationLink);
+}
+
     if (error) {
       console.error('OAuth Error:', error);
       hasProcessed.current = true;
