@@ -14,6 +14,8 @@ const sendEmail = async (options) => {
     throw new Error("Email service is not configured correctly on the server.");
   }
 
+console.log('FROM EMAIL:', AHASEND_FROM_EMAIL);
+  
   const emailPayload = {
     from: {
       email: AHASEND_FROM_EMAIL,
