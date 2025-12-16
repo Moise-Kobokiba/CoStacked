@@ -82,6 +82,18 @@ export const getAdminProfile = createAsyncThunk(
   }
 );
 
+export const forgotAdminPassword = createAsyncThunk(
+  'auth/forgotAdminPassword',
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await API.post('/admin/forgot-password', { email });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: 'Failed to send reset link.' });
+    }
+  }
+);
+
 
 // ===================================================================
 // THE SLICE DEFINITION
@@ -169,22 +181,37 @@ const adminAuthSlice = createSlice({
         state.error = action.payload.message || 'Verification failed.';
       })
 
-      // Get Profile (for persistent session)
-      .addCase(getAdminProfile.pending, (state) => {
-        state.status = 'loading';
-      })
-      .addCase(getAdminProfile.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.isAuthenticated = true;
-        state.user = action.payload;
-      })
-      .addCase(getAdminProfile.rejected, (state) => {
-        localStorage.removeItem(TOKEN_NAME);
-        state.isAuthenticated = false;
-        state.user = null;
-        state.token = null;
-        state.status = 'failed';
-      });
+       // Get Profile (for persistent session)
+       .addCase(getAdminProfile.pending, (state) => {
+         state.status = 'loading';
+       })
+       .addCase(getAdminProfile.fulfilled, (state, action) => {
+         state.status = 'succeeded';
+         state.isAuthenticated = true;
+         state.user = action.payload;
+       })
+       .addCase(getAdminProfile.rejected, (state) => {
+         localStorage.removeItem(TOKEN_NAME);
+         state.isAuthenticated = false;
+         state.user = null;
+         state.token = null;
+         state.status = 'failed';
+       })
+
+       // Forgot Password
+       .addCase(forgotAdminPassword.pending, (state) => {
+         state.status = 'loading';
+         state.error = null;
+         state.successMessage = null;
+       })
+       .addCase(forgotAdminPassword.fulfilled, (state, action) => {
+         state.status = 'succeeded';
+         state.successMessage = action.payload.message;
+       })
+       .addCase(forgotAdminPassword.rejected, (state, action) => {
+         state.status = 'failed';
+         state.error = action.payload?.message || 'Failed to send reset link.';
+       });
   },
 });
 

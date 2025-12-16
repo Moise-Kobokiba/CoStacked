@@ -12,6 +12,7 @@ import { AdminLayout } from './components/layout/AdminLayout';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { AdminRegisterPage } from './pages/AdminRegisterPage'; // <-- 1. IMPORT
+import { AdminForgotPasswordPage } from './pages/AdminForgotPasswordPage';
 import { UserManagementPage } from './pages/UserManagementPage';
 import { ProjectManagementPage } from './pages/ProjectManagementPage';
 import { ReportsPage } from './pages/ReportsPage';
@@ -21,7 +22,8 @@ import { AdminVerifyEmailPage } from './pages/AdminVerifyEmailPage';
 // The router configuration is updated with all necessary routes.
 const router = createBrowserRouter([
   { path: '/login', element: <AdminLoginPage /> },
-  { path: '/register', element: <AdminRegisterPage /> }, 
+  { path: '/register', element: <AdminRegisterPage /> },
+  { path: '/forgot-password', element: <AdminForgotPasswordPage /> },
   { path: '/verify-email', element: <AdminVerifyEmailPage /> },
   {
     path: '/',
