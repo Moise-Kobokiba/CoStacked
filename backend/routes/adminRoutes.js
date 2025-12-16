@@ -4,12 +4,12 @@ const express = require('express');
 const router = express.Router();
 
 // 1. Import all necessary controller functions, including the new login and notification ones.
-const { 
+const {
     loginAdmin, // <-- IMPORT THE NEW LOGIN CONTROLLER
-    getPlatformStats, 
-    registerAdmin, 
-    getUsersForAdmin, 
-    deleteUserByAdmin, 
+    getPlatformStats,
+    registerAdmin,
+    getUsersForAdmin,
+    deleteUserByAdmin,
     updateUserByAdmin,
     getProjectsForAdmin,
     updateProjectByAdmin,
@@ -19,13 +19,15 @@ const {
     getAdminNotifications,
     markAdminNotificationsAsRead,
     updateReportStatus,
-     getAdminProfile
+      getAdminProfile,
+    forgotAdminPassword
 } = require('../controllers/adminController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 // === Auth Routes (Public) ===
 router.route('/login').post(loginAdmin); // <-- ADD THE LOGIN ROUTE HERE
 router.route('/register').post(registerAdmin); // Note: This should probably be protected
+router.route('/forgot-password').post(forgotAdminPassword);
 
 // === Dashboard & Protected Routes ===
 router.route('/stats').get(protect, admin, getPlatformStats);

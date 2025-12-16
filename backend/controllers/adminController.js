@@ -446,6 +446,45 @@ const getAdminProfile = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Request a password reset for admin users
+ * @route   POST /api/admin/forgot-password
+ * @access  Public
+ */
+const forgotAdminPassword = async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user || !user.isAdmin) {
+      return res.json({ success: true, message: 'If an admin account with that email exists, a password reset link has been sent.' });
+    }
+    const resetToken = user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false });
+
+    // --- UPDATED EMAIL CONTENT with HTML ---
+    const resetUrl = `${process.env.ADMIN_FRONTEND_URL || process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const textMessage = `You have requested a password reset for your admin account. Please click the link below to set a new password:\n\n${resetUrl}\n\nThis link is valid for 10 minutes.`;
+    const htmlMessage = `<p>You have requested a password reset for your admin account. Please click the link below to set a new password:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>This link is valid for 10 minutes.</p>`;
+
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'CoStacked Admin - Password Reset Request',
+        text: textMessage,
+        html: htmlMessage,
+      });
+      res.json({ success: true, message: 'If an admin account with that email exists, a password reset link has been sent.' });
+    } catch (emailError) {
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+      console.error(emailError);
+      res.status(500).json({ message: 'Error sending email. Please try again.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error.' });
+  }
+};
+
 module.exports = {
   loginAdmin,
   getPlatformStats,
@@ -462,4 +501,5 @@ module.exports = {
   markAdminNotificationsAsRead,
   updateReportStatus,
   getAdminProfile,
+  forgotAdminPassword,
 };

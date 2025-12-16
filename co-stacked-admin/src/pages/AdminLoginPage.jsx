@@ -84,6 +84,11 @@ export const AdminLoginPage = () => {
         </form>
 
         <div className={styles.footer} style={{marginTop: '1.5rem', textAlign: 'center'}}>
+          <div style={{marginBottom: '0.5rem'}}>
+            <Link to="/forgot-password" style={{color: 'var(--primary)', textDecoration: 'none', fontWeight: '500'}}>
+              Forgot your password?
+            </Link>
+          </div>
           <Link to="/register" style={{color: 'var(--primary)', textDecoration: 'none', fontWeight: '500'}}>
               Register a new admin account
           </Link>
