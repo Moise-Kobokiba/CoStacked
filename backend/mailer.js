@@ -1,32 +1,34 @@
-// mailer.js
-const { MailerSend } = require("mailersend");
+// mailer.js - Using AhaSend
+const fetch = require('node-fetch');
 
-// Initialize MailerSend with your API key
-const mailer = new MailerSend({
-  apiKey: process.env.MAILERSEND_API_KEY, // stored as secret in GitHub or .env
-});
-
-/**
- * Sends a verification email to a new user
- * @param {string} toEmail - The recipient's email address
- * @param {string} verificationLink - The unique verification URL
- */
 async function sendVerificationEmail(toEmail, verificationLink) {
   try {
-    const response = await mailer.email.send({
-      from: "clement03jr@gmail.com", // must be verified in MailerSend
-      to: [toEmail],
-      subject: "Please verify your email",
-      html: `
-        <h2>Welcome to CoStacked!</h2>
-        <p>Click the link below to verify your email:</p>
-        <a href="${verificationLink}">Verify Email</a>
-      `,
+    const response = await fetch('https://api.ahasend.com/v2/accounts/YOUR_ACCOUNT_ID/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.AHA_API_KEY}`
+      },
+      body: JSON.stringify({
+        from: { 
+          email: process.env.AHA_FROM_EMAIL,
+          name: 'CoStacked'
+        },
+        recipients: [{ email: toEmail }],
+        subject: 'Verify your email',
+        html_content: `
+          <h2>Welcome to CoStacked!</h2>
+          <p>Click the link below to verify your email:</p>
+          <a href="${verificationLink}">Verify Email</a>
+        `
+      })
     });
 
-    console.log("Verification email sent:", response);
+    const data = await response.json();
+    console.log('Email sent via AhaSend:', data);
   } catch (error) {
-    console.error("Error sending verification email:", error);
+    console.error('Error sending email:', error);
+    throw error;
   }
 }
 
