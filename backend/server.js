@@ -37,6 +37,8 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const connectionRoutes = require('./routes/connectionRoutes');
 const authRoutes = require('./routes/authRoutes');
+const emailRoutes = require('./routes/emailRoutes');
+app.use('/api/email', emailRoutes);
 
 // --- 3. INITIAL CONFIGURATION ---
 connectDB();
