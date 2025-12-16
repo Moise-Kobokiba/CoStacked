@@ -65,8 +65,14 @@ export const OAuthCallback = () => {
             });
 
             const verificationLink = `${FRONTEND_URL}/verify?token=${verificationToken}`;
-            await sendVerificationEmail(user.email, verificationLink);
-          }
+            await fetch(`${apiUrl}/api/email`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({ userId: user._id, verificationToken }),
+});
 
           // Store user profile in localStorage & Redux
           localStorage.setItem('userProfile', JSON.stringify(user));
