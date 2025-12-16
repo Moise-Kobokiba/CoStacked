@@ -1,5 +1,5 @@
 // mailer.js
-import MailerSend from "@mailersend/mailersend";
+const MailerSend = require("@mailersend/mailersend");
 
 // Initialize MailerSend with your API key
 const mailer = new MailerSend({
@@ -11,7 +11,7 @@ const mailer = new MailerSend({
  * @param {string} toEmail - The recipient's email address
  * @param {string} verificationLink - The unique verification URL
  */
-export async function sendVerificationEmail(toEmail, verificationLink) {
+async function sendVerificationEmail(toEmail, verificationLink) {
   try {
     const response = await mailer.email.send({
       from: "clement03jr@gmail.com", // must be verified in MailerSend
@@ -29,3 +29,5 @@ export async function sendVerificationEmail(toEmail, verificationLink) {
     console.error("Error sending verification email:", error);
   }
 }
+
+module.exports = { sendVerificationEmail };
