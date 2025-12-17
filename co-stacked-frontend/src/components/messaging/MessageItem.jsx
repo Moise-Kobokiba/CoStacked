@@ -1,8 +1,9 @@
 // src/components/messaging/MessageItem.jsx
+import { Avatar } from '../shared/Avatar';
 import styles from './ChatWindow.module.css';
 import PropTypes from 'prop-types';
 
-export const MessageItem = ({ msg, isMyMessage }) => {
+export const MessageItem = ({ msg, isMyMessage, sender }) => {
   const renderContent = () => {
     switch (msg.type) {
       case 'text':
@@ -22,10 +23,28 @@ export const MessageItem = ({ msg, isMyMessage }) => {
     }
   };
 
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
-    <div className={`${styles.messageRow} ${isMyMessage ? styles.myMessageRow : styles.theirMessageRow}`}>
-      <div className={`${styles.messageBubble} ${isMyMessage ? styles.myMessageBubble : styles.theirMessageBubble}`}>
-        {renderContent()}
+    <div className={`${styles.messageGroup} ${isMyMessage ? styles.myMessageGroup : styles.theirMessageGroup}`}>
+      {!isMyMessage && (
+        <Avatar
+          src={sender?.avatarUrl}
+          fallback={(sender?.name || '?').charAt(0)}
+          size="small"
+        />
+      )}
+      <div className={styles.messageWrapper}>
+        <div className={`${styles.messageBubble} ${isMyMessage ? styles.myMessageBubble : styles.theirMessageBubble}`}>
+          {renderContent()}
+        </div>
+        <div className={`${styles.timestamp} ${isMyMessage ? styles.myTimestamp : styles.theirTimestamp}`}>
+          {formatTimestamp(msg.createdAt)}
+          {isMyMessage && <span className={styles.seenIndicator}>Seen</span>}
+        </div>
       </div>
     </div>
   );

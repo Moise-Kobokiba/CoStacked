@@ -4,17 +4,80 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: var(--card-background);
-  border-right: 1px solid var(--border);
+  background-color: #1e293b; /* slate-800 */
 }
 
-.title {
-  padding: 1.25rem 1.5rem;
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid #374151; /* slate-700 */
+}
+
+.logo {
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: #6366f1; /* indigo-600 */
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #ffffff;
+}
+
+.appTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.searchContainer {
+  padding: 1rem;
+  border-bottom: 1px solid #374151; /* slate-700 */
+}
+
+.searchWrapper {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af; /* slate-400 */
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  background-color: #374151; /* slate-700 */
+  border: 1px solid #4b5563; /* slate-600 */
+  border-radius: 0.5rem;
+  color: #ffffff;
+  placeholder-color: #9ca3af; /* slate-400 */
+}
+
+.searchInput:focus {
+  border-color: #6366f1; /* indigo-500 */
+  outline: none;
+}
+
+.conversationsHeading {
+  padding: 0.75rem 1rem;
+}
+
+.heading {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--foreground);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
+  color: #ffffff;
+  margin: 0;
 }
 
 .list {
@@ -22,71 +85,98 @@
   overflow-y: auto;
 }
 
-.convoItem {
+.userGroup {
+  border-bottom: 1px solid #374151; /* slate-700 */
+}
+
+.userHeader {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  cursor: pointer;
-  border-bottom: 1px solid var(--border);
-  transition: background-color 0.2s ease;
+  gap: 0.75rem;
+  padding: 1rem;
   width: 100%;
   background: none;
-  border-left: 3px solid transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: #9ca3af; /* slate-400 */
 }
 
-.convoItem > div:first-child {
-  flex-shrink: 0;
+.userHeader:hover {
+  background-color: #37415150; /* slate-700 with opacity */
 }
 
-.convoItem:hover {
-  background-color: var(--muted);
-}
-
-.convoItem.selected {
-  background-color: var(--primary-light);
-  border-left-color: var(--primary);
-}
-
-.convoDetails {
-  overflow: hidden;
+.userInfo {
+  flex: 1;
   text-align: left;
 }
 
-.convoTitle {
-  font-size: 1rem;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin: 0;
-  /* --- THIS IS THE FIX --- */
-  /* Set the base color for the container. The ellipsis will inherit this color. */
-  color: var(--foreground);
-}
-
 .userName {
-  /* This rule is more specific, so it will override the parent and remain blue. */
-  color: var(--primary);
+  font-weight: 600;
+  color: #6366f1; /* indigo-400 */
+  margin: 0;
 }
 
-.projectName {
-  /* This color is now redundant but harmless. We can leave it for clarity. */
-  color: var(--foreground);
+.chevron {
+  color: #9ca3af; /* slate-400 */
 }
 
-.convoSubtitle {
-  font-size: 0.9rem;
-  color: var(--muted-foreground);
-  white-space: nowrap;
+.projectsContainer {
+  background-color: #334155; /* slate-750 */
+}
+
+.projectItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1rem 1rem 4rem;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #37415150; /* slate-700 with opacity */
+  text-align: left;
+}
+
+.projectItem:hover {
+  background-color: #37415170; /* slate-700 with opacity */
+}
+
+.projectItem.selected {
+  background-color: #3b82f660; /* blue-600 with opacity */
+}
+
+.projectContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.projectHeader {
+  margin-bottom: 0.25rem;
+}
+
+.projectTitle {
+  font-weight: 500;
+  color: #ffffff;
+  font-size: 0.875rem;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.projectSubtitle {
+  font-size: 0.75rem;
+  color: #9ca3af; /* slate-500 */
   margin: 0;
 }
 
 .emptyMessage {
-  padding: 2rem 1.5rem;
+  padding: 2rem 1rem;
   text-align: center;
-  color: var(--muted-foreground);
+  color: #9ca3af; /* slate-400 */
   font-style: italic;
 }
+

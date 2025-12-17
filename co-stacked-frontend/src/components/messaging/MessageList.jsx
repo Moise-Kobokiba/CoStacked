@@ -14,7 +14,12 @@ export const MessageList = ({ messages, currentUserId }) => {
   return (
     <div className={styles.messageList}>
       {messages.map(msg => (
-        <MessageItem key={msg._id} msg={msg} isMyMessage={msg.sender?._id === currentUserId} />
+        <MessageItem
+          key={msg._id}
+          msg={msg}
+          isMyMessage={msg.sender?._id === currentUserId}
+          sender={msg.sender}
+        />
       ))}
       <div ref={messagesEndRef} />
     </div>
