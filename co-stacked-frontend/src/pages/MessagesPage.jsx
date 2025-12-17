@@ -28,18 +28,23 @@ export const MessagesPage = () => {
   const dispatch = useDispatch();
   const location = useLocation(); // Use location hook
   const isMobile = useMediaQuery('(max-width: 768px)');
-  
+
   const { user: currentUser } = useSelector(state => state.auth);
-  const { 
-    conversations, 
-    messagesByConversation, 
-    status: messagesStatus 
+  const {
+    conversations,
+    messagesByConversation,
+    status: messagesStatus
   } = useSelector(state => state.messages);
-  
+
   const socket = useSocket(currentUser?._id);
-  
+
   const [selectedConversationId, setSelectedConversationId] = useState(null);
-  
+
+  // Scroll to top when navigating to MessagesPage
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Set initial selected conversation from location state if exists
   useEffect(() => {
     if (location.state?.conversationId) {

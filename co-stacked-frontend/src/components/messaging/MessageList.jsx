@@ -5,12 +5,6 @@ import styles from './ChatWindow.module.css';
 import PropTypes from 'prop-types';
 
 export const MessageList = ({ messages, currentUserId }) => {
-  const messagesEndRef = useRef(null);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
   return (
     <div className={styles.messageList}>
       {messages.map(msg => (
@@ -21,7 +15,6 @@ export const MessageList = ({ messages, currentUserId }) => {
           sender={msg.sender}
         />
       ))}
-      <div ref={messagesEndRef} />
     </div>
   );
 };
