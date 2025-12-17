@@ -1,8 +1,7 @@
 // backend/controllers/authController.js
 
 const generateToken = require('../utils/generateToken');
-const { sendVerificationEmail } = require('../mailer');
-const User = require('../models/User'); // adjust path to your User model
+const { sendVerificationEmail } = require('../utils/sendEmail');
 
 /**
  * @desc    Handle OAuth callback success

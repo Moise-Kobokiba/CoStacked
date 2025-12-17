@@ -3,28 +3,28 @@
 const fetch = require('node-fetch');  // Make sure you have node-fetch@2 installed
 
 const sendEmail = async ({ to, subject, text, html }) => {
-  const API_KEY = process.env.AHASEND_API_KEY;
-  const ACCOUNT_ID = process.env.AHASEND_ACCOUNT_ID;
+  const API_KEY = process.env.AHA_API_KEY;
   const FROM_EMAIL = process.env.AHA_FROM_EMAIL;
   const FROM_NAME = process.env.AHA_FROM_NAME || "CoStacked";
 
-  if (!API_KEY || !ACCOUNT_ID || !FROM_EMAIL) {
-    console.error("Missing AhaSend v2 config:", {
+  if (!API_KEY || !FROM_EMAIL) {
+    console.error("Missing AhaSend/MailerSend config:", {
       hasKey: !!API_KEY,
-      hasAccountId: !!ACCOUNT_ID,
       fromEmail: FROM_EMAIL,
+      fromName: FROM_NAME,
     });
     throw new Error("Email service is not configured correctly.");
   }
 
-  const url = `https://api.ahasend.com/v2/accounts/${ACCOUNT_ID}/messages`;
+  // Using MailerSend API (AHA Send service)
+  const url = `https://api.mailersend.com/v1/email`;
 
   const payload = {
     from: { email: FROM_EMAIL, name: FROM_NAME },
-    recipients: [{ email: to }],
+    to: [{ email: to }],
     subject,
-    text_content: text,
-    html_content: html,
+    text,
+    html,
   };
 
   try {
@@ -32,7 +32,8 @@ const sendEmail = async ({ to, subject, text, html }) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,   // v2 uses Bearer token
+        "Authorization": `Bearer ${API_KEY}`,
+        "X-Requested-With": "XMLHttpRequest",
       },
       body: JSON.stringify(payload),
     });
@@ -40,15 +41,15 @@ const sendEmail = async ({ to, subject, text, html }) => {
     const body = await response.json();
 
     if (!response.ok) {
-      console.error("AhaSend v2 API Error:", {
+      console.error("MailerSend API Error:", {
         status: response.status,
         statusText: response.statusText,
         body,
       });
-      throw new Error(`AhaSend failed: ${body.error?.message || JSON.stringify(body)}`);
+      throw new Error(`MailerSend failed: ${body.message || JSON.stringify(body)}`);
     }
 
-    console.log("Email successfully sent via AhaSend v2 ✅", body);
+    console.log("Email successfully sent via MailerSend ✅", body);
     return body;
   } catch (err) {
     console.error("Critical fetch error in sendEmail:", err);
@@ -56,4 +57,20 @@ const sendEmail = async ({ to, subject, text, html }) => {
   }
 };
 
-module.exports = sendEmail;
+const sendVerificationEmail = async (toEmail, verificationLink) => {
+  const subject = "CoStacked - Verify Your Email Address";
+  const textMessage = `Welcome to CoStacked! Please click the link below to verify your email:\n\n${verificationLink}\n\nThis link will expire in 24 hours.`;
+  const htmlMessage = `<p>Welcome to CoStacked! Please click the link below to verify your email:</p><p><a href="${verificationLink}">Verify Email</a></p><p>This link will expire in 24 hours.</p>`;
+
+  return await sendEmail({
+    to: toEmail,
+    subject,
+    text: textMessage,
+    html: htmlMessage,
+  });
+};
+
+module.exports = {
+  sendEmail,
+  sendVerificationEmail,
+};

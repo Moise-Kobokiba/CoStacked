@@ -1,7 +1,7 @@
 // routes/emailRoutes.js
 const express = require('express');
 const router = express.Router();
-const { sendVerificationEmail } = require('../mailer');
+const { sendVerificationEmail } = require('../utils/sendEmail');
 const User = require('../models/User');
 
 router.post('/', async (req, res) => {

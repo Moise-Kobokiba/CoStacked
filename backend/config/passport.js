@@ -25,8 +25,8 @@ passport.deserializeUser(async (id, done) => {
 passport.use(
   new GitHubStrategy(
     {
-      clientID: process.env.MYAPP.GITHUB_CLIENT_ID,
-      clientSecret: process.env.MYAPP.GITHUB_CLIENT_SECRET,
+      clientID: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL: `${BACKEND_URL}/api/auth/github/callback`,
       scope: ['user:email'], // Request email access
     },

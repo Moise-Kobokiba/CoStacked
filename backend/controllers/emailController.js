@@ -1,4 +1,4 @@
-const { sendVerificationEmail } = require('../mailer'); // backend mailer.js
+const { sendVerificationEmail } = require('../utils/sendEmail');
 const User = require('../models/User');
 
 const sendVerification = async (req, res) => {
