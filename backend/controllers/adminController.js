@@ -461,9 +461,18 @@ const forgotAdminPassword = async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     // --- UPDATED EMAIL CONTENT with HTML ---
-    const resetUrl = `${process.env.ADMIN_FRONTEND_URL || process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const baseUrl = process.env.ADMIN_FRONTEND_URL || process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetUrl = `${baseUrl}/reset-password/${resetToken}`;
+
+    console.log('Forgot password attempt:', {
+      email: user.email,
+      resetToken: resetToken.substring(0, 10) + '...', // Log partial token for debugging
+      resetUrl,
+      baseUrl,
+    });
+
     const textMessage = `You have requested a password reset for your admin account. Please click the link below to set a new password:\n\n${resetUrl}\n\nThis link is valid for 10 minutes.`;
-    const htmlMessage = `<p>You have requested a password reset for your admin account. Please click the link below to set a new password:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>This link is valid for 10 minutes.</p>`;
+    const htmlMessage = `<p>You have requested a password reset for your admin account. Please click the link below to set a new password:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>This link will expire in 10 minutes.</p>`;
 
     try {
       await sendEmail({
@@ -472,12 +481,13 @@ const forgotAdminPassword = async (req, res) => {
         text: textMessage,
         html: htmlMessage,
       });
+      console.log('Admin forgot password email sent successfully to:', user.email);
       res.json({ success: true, message: 'If an admin account with that email exists, a password reset link has been sent.' });
     } catch (emailError) {
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
       await user.save({ validateBeforeSave: false });
-      console.error(emailError);
+      console.error('Failed to send admin forgot password email:', emailError);
       res.status(500).json({ message: 'Error sending email. Please try again.' });
     }
   } catch (error) {
