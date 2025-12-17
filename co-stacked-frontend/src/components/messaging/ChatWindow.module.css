@@ -76,15 +76,10 @@
 }
 
 .timestamp {
-  opacity: 0;
-  transition: opacity 0.2s;
+  opacity: 1;
   font-size: 0.75rem;
   color: #9ca3af; /* slate-400 */
   margin-top: 0.25rem;
-}
-
-.messageGroup:hover .timestamp {
-  opacity: 1;
 }
 
 /* My messages (sender) */
