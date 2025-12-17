@@ -7,35 +7,7 @@
   background-color: #1e293b; /* slate-800 */
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  border-bottom: 1px solid #374151; /* slate-700 */
-}
 
-.logo {
-  width: 2.5rem;
-  height: 2.5rem;
-  background-color: #6366f1; /* indigo-600 */
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logoIcon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: #ffffff;
-}
-
-.appTitle {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #ffffff;
-}
 
 .searchContainer {
   padding: 1rem;
