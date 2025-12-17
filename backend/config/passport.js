@@ -21,15 +21,16 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// GitHub OAuth Strategy 
-passport.use(
-  new GitHubStrategy(
-    {
-      clientID: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: `${BACKEND_URL}/api/auth/github/callback`,
-      scope: ['user:email'], // Request email access
-    },
+// GitHub OAuth Strategy (only if credentials are provided)
+if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+  passport.use(
+    new GitHubStrategy(
+      {
+        clientID: process.env.GITHUB_CLIENT_ID,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET,
+        callbackURL: `${BACKEND_URL}/api/auth/github/callback`,
+        scope: ['user:email'], // Request email access
+      },
     async (accessToken, refreshToken, profile, done) => {
       try {
         // Check if user already exists with this GitHub ID
@@ -99,9 +100,11 @@ passport.use(
       }
     }
   )
-);
+  );
+}
 
-// Google OAuth Strategy
+// Google OAuth Strategy (only if credentials are provided)
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 passport.use(
   new (require('passport-google-oauth20').Strategy)(
     {
@@ -158,9 +161,11 @@ passport.use(
       }
     }
   )
-);
+  );
+}
 
-// LinkedIn OAuth Strategy
+// LinkedIn OAuth Strategy (only if credentials are provided)
+if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
 passport.use(
   new (require('passport-linkedin-oauth2').Strategy)(
     {
@@ -219,6 +224,7 @@ passport.use(
       }
     }
   )
-);
+  );
+}
 
 module.exports = passport;
