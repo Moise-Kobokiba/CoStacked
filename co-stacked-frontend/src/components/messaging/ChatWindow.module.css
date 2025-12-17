@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #1e293b; /* slate-800 */
+  background-color: var(--card-background);
 }
 
 .header {
@@ -12,17 +12,17 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  border-bottom: 1px solid #374151; /* slate-700 */
-  background-color: #1e293b; /* slate-800 */
+  border-bottom: 1px solid var(--border);
+  background-color: var(--card-background);
 }
 .headerInfo p { margin: 0; }
 .userName {
   font-weight: 600;
-  color: #ffffff;
+  color: var(--foreground);
 }
 .userRole {
   font-size: 0.875rem;
-  color: #9ca3af; /* slate-400 */
+  color: var(--muted-foreground);
 }
 
 .backButton {
@@ -30,14 +30,14 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #9ca3af; /* slate-400 */
+  color: var(--muted-foreground);
   padding: 0.5rem;
   border-radius: 0.375rem;
   transition: color 0.2s, background-color 0.2s;
 }
 .backButton:hover {
-  color: #ffffff;
-  background-color: #374151; /* slate-700 */
+  color: var(--foreground);
+  background-color: var(--secondary-button-hover);
 }
 
 .messageList {
@@ -78,7 +78,7 @@
 .timestamp {
   opacity: 1;
   font-size: 0.75rem;
-  color: #9ca3af; /* slate-400 */
+  color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
 
@@ -88,15 +88,15 @@
   flex-direction: row-reverse;
 }
 .myMessageBubble {
-  background-color: #3b82f6; /* blue-600 */
-  color: #ffffff;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
 }
 .myTimestamp {
   text-align: right;
 }
 .seenIndicator {
   margin-left: 0.5rem;
-  color: #60a5fa; /* blue-400 */
+  color: var(--primary-hover);
 }
 
 /* Their messages (receiver) */
@@ -104,8 +104,9 @@
   align-self: flex-start;
 }
 .theirMessageBubble {
-  background-color: #374151; /* slate-700 */
-  color: #ffffff;
+  background-color: var(--card-background);
+  color: var(--foreground);
+  border: 1px solid var(--border);
 }
 .theirTimestamp {
   text-align: left;
@@ -117,8 +118,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1rem;
-  border-top: 1px solid #374151; /* slate-700 */
-  background-color: #1e293b; /* slate-800 */
+  border-top: 1px solid var(--border);
+  background-color: var(--card-background);
 }
 
 .footer .textarea {
@@ -126,15 +127,15 @@
   max-height: 120px;
   resize: none;
   padding: 0.6rem 1rem;
-  background-color: #374151; /* slate-700 */
-  border: 1px solid #4b5563; /* slate-600 */
+  background-color: var(--input-background);
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
-  color: #ffffff;
+  color: var(--foreground);
   transition: border-color 0.2s;
 }
 
 .footer .textarea:focus {
-  border-color: #6366f1; /* indigo-500 */
+  border-color: var(--primary);
   outline: none;
 }
 

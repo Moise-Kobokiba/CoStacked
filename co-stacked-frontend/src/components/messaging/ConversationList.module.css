@@ -4,14 +4,14 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #1e293b; /* slate-800 */
+  background-color: var(--card-background);
 }
 
 
 
 .searchContainer {
   padding: 1rem;
-  border-bottom: 1px solid #374151; /* slate-700 */
+  border-bottom: 1px solid var(--border);
 }
 
 .searchWrapper {
@@ -23,21 +23,20 @@
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #9ca3af; /* slate-400 */
+  color: var(--muted-foreground);
 }
 
 .searchInput {
   width: 100%;
   padding: 0.5rem 1rem 0.5rem 2.5rem;
-  background-color: #374151; /* slate-700 */
-  border: 1px solid #4b5563; /* slate-600 */
+  background-color: var(--input-background);
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
-  color: #ffffff;
-  placeholder-color: #9ca3af; /* slate-400 */
+  color: var(--foreground);
 }
 
 .searchInput:focus {
-  border-color: #6366f1; /* indigo-500 */
+  border-color: var(--primary);
   outline: none;
 }
 
@@ -48,7 +47,7 @@
 .heading {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--foreground);
   margin: 0;
 }
 
@@ -58,7 +57,7 @@
 }
 
 .userGroup {
-  border-bottom: 1px solid #374151; /* slate-700 */
+  border-bottom: 1px solid var(--border);
 }
 
 .userHeader {
@@ -71,11 +70,11 @@
   border: none;
   cursor: pointer;
   transition: background-color 0.2s;
-  color: #9ca3af; /* slate-400 */
+  color: var(--muted-foreground);
 }
 
 .userHeader:hover {
-  background-color: #37415150; /* slate-700 with opacity */
+  background-color: var(--secondary-button-hover);
 }
 
 .userInfo {
@@ -85,16 +84,16 @@
 
 .userName {
   font-weight: 600;
-  color: #6366f1; /* indigo-400 */
+  color: var(--primary);
   margin: 0;
 }
 
 .chevron {
-  color: #9ca3af; /* slate-400 */
+  color: var(--muted-foreground);
 }
 
 .projectsContainer {
-  background-color: #334155; /* slate-750 */
+  background-color: var(--secondary-button-background);
 }
 
 .projectItem {
@@ -107,16 +106,15 @@
   border: none;
   cursor: pointer;
   transition: background-color 0.2s;
-  border-bottom: 1px solid #37415150; /* slate-700 with opacity */
   text-align: left;
 }
 
 .projectItem:hover {
-  background-color: #37415170; /* slate-700 with opacity */
+  background-color: var(--secondary-button-hover);
 }
 
 .projectItem.selected {
-  background-color: #3b82f660; /* blue-600 with opacity */
+  background-color: var(--primary-light);
 }
 
 .projectContent {
@@ -130,7 +128,7 @@
 
 .projectTitle {
   font-weight: 500;
-  color: #ffffff;
+  color: var(--foreground);
   font-size: 0.875rem;
   line-height: 1.25;
   display: -webkit-box;
@@ -141,14 +139,14 @@
 
 .projectSubtitle {
   font-size: 0.75rem;
-  color: #9ca3af; /* slate-500 */
+  color: var(--muted-foreground);
   margin: 0;
 }
 
 .emptyMessage {
   padding: 2rem 1rem;
   text-align: center;
-  color: #9ca3af; /* slate-400 */
+  color: var(--muted-foreground);
   font-style: italic;
 }
 
