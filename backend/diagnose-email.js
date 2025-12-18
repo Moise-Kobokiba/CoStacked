@@ -5,8 +5,8 @@ async function diagnose() {
   console.log("--- AhaSend Configuration Diagnosis ---");
   
   const vars = {
-    AHA_API_KEY: process.env.AHA_API_KEY,
-    AHA_ACCOUNT_ID: process.env.AHA_ACCOUNT_ID,
+    AHASEND_API_KEY: process.env.AHASEND_API_KEY,
+    AHASEND_ACCOUNT_ID: process.env.AHASEND_ACCOUNT_ID,
     AHA_FROM_EMAIL: process.env.AHA_FROM_EMAIL,
     AHA_FROM_NAME: process.env.AHA_FROM_NAME
   };
@@ -30,10 +30,10 @@ async function diagnose() {
   console.log("\n2. Testing API Key Authentication...");
   const fetch = require('node-fetch');
   try {
-    const authResponse = await fetch(`https://api.ahasend.com/v2/accounts/${vars.AHA_ACCOUNT_ID}/messages`, {
+    const authResponse = await fetch(`https://api.ahasend.com/v2/accounts/${vars.AHASEND_ACCOUNT_ID}/messages`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${vars.AHA_API_KEY}`,
+        'Authorization': `Bearer ${vars.AHASEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -54,10 +54,6 @@ async function diagnose() {
       console.error("Error details:", errorBody);
       return;
     }
-  } catch (authError) {
-    console.error("❌ API authentication test failed:", authError.message);
-    return;
-  }
   } catch (authError) {
     console.error("❌ API authentication test failed:", authError.message);
     return;

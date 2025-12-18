@@ -3,8 +3,8 @@
 const fetch = require('node-fetch'); // v2 syntax
 
 const sendEmail = async ({ to, subject, text, html }) => {
-  const API_KEY = process.env.AHA_API_KEY;
-  const ACCOUNT_ID = process.env.AHA_ACCOUNT_ID; // Add this
+  const API_KEY = process.env.AHASEND_API_KEY;
+  const ACCOUNT_ID = process.env.AHASEND_ACCOUNT_ID;
   const FROM_EMAIL = process.env.AHA_FROM_EMAIL;
   const FROM_NAME = process.env.AHA_FROM_NAME || "CoStacked";
 
