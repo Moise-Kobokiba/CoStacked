@@ -1,12 +1,11 @@
 require('dotenv').config();
-const sendEmail = require('./utils/sendEmail');
+const { sendEmail } = require('./utils/sendEmail');
 
 async function diagnose() {
   console.log("--- AhaSend Configuration Diagnosis ---");
   
   const vars = {
-    AHASEND_API_KEY: process.env.AHASEND_API_KEY,
-    AHASEND_ACCOUNT_ID: process.env.AHASEND_ACCOUNT_ID,
+    AHA_API_KEY: process.env.AHA_API_KEY,
     AHA_FROM_EMAIL: process.env.AHA_FROM_EMAIL,
     AHA_FROM_NAME: process.env.AHA_FROM_NAME
   };
@@ -26,6 +25,33 @@ async function diagnose() {
     return;
   }
 
+  // First test API key authentication
+  console.log("\nTesting API key authentication...");
+  const fetch = require('node-fetch');
+  try {
+    const authResponse = await fetch('https://api.mailersend.com/v1/domains', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${vars.AHA_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (authResponse.ok) {
+      console.log("✅ API key authentication successful");
+      const domains = await authResponse.json();
+      console.log(`Found ${domains.data?.length || 0} verified domains`);
+    } else {
+      console.error(`❌ API key authentication failed: ${authResponse.status} ${authResponse.statusText}`);
+      const errorBody = await authResponse.json();
+      console.error("Error details:", errorBody);
+      return;
+    }
+  } catch (authError) {
+    console.error("❌ API authentication test failed:", authError.message);
+    return;
+  }
+
   console.log("\nAttempting to send test email...");
   try {
     await sendEmail({
@@ -39,10 +65,13 @@ async function diagnose() {
     console.error("FAILURE: Error sending email.");
     console.error(error.message);
     if (error.message.includes("401")) {
-      console.error("Hint: Check if API Key is valid.");
+      console.error("Hint: API Key authentication works but email sending failed.");
     }
-    if (error.message.includes("404")) {
-      console.error("Hint: Check if Account ID is correct.");
+    if (error.message.includes("422")) {
+      console.error("Hint: Check if sender email is verified in MailerSend.");
+    }
+    if (error.message.includes("403")) {
+      console.error("Hint: Check API key permissions or domain verification.");
     }
   }
 }

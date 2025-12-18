@@ -46,7 +46,7 @@ const registerUser = async (req, res) => {
     // --- UPDATED EMAIL CONTENT with HTML ---
     const textMessage = `Welcome to CoStacked! Your verification code is: ${verificationToken}\n\nThis code will expire in 10 minutes.`;
     const htmlMessage = `<p>Welcome to CoStacked! Your verification code is: <strong>${verificationToken}</strong></p><p>This code will expire in 10 minutes.</p>`;
-    
+
     try {
       await sendEmail({
         to: user.email,
