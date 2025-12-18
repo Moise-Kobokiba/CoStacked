@@ -2,12 +2,13 @@
 
 const User = require('../models/User'); // Correct casing
 const AdminNotification = require('../models/AdminNotification'); // For admin panel notifications
+const TempRegistration = require('../models/TempRegistration');
 const generateToken = require('../utils/generateToken');
 const sendEmail = require('../utils/sendEmail');
 const crypto = require('crypto');
 
 /**
- * @desc    Register a new user & send verification email
+ * @desc    Register a new user - send verification email first, then store temporarily
  * @route   POST /api/users/register
  * @access  Public
  */
@@ -23,51 +24,63 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 12 characters long.' });
     }
 
+    // Check if user already exists
     if (await User.findOne({ email })) {
       return res.status(400).json({ message: 'A user with this email already exists.' });
     }
 
-    const user = await User.create({
-      name, email, password, role, bio, skills: skills ? skills.split(',').map(skill => skill.trim()) : [], location, availability, portfolioLink
-    });
+    // Check if there's already a pending registration for this email
+    if (await TempRegistration.findOne({ email })) {
+      return res.status(400).json({ message: 'A verification email has already been sent to this email address. Please check your inbox.' });
+    }
 
-    await AdminNotification.create({
-      type: 'NEW_USER_REGISTERED',
-      message: `${user.name} has just signed up as a ${user.role}.`,
-      link: `/users`,
-      refId: user._id
-    });
-
+    // Generate verification token
     const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
-    user.emailVerificationToken = verificationToken;
-    user.emailVerificationExpires = Date.now() + 10 * 60 * 1000;
-    await user.save({ validateBeforeSave: false });
 
-    // --- UPDATED EMAIL CONTENT with HTML ---
+    // --- EMAIL CONTENT ---
     const textMessage = `Welcome to CoStacked! Your verification code is: ${verificationToken}\n\nThis code will expire in 10 minutes.`;
     const htmlMessage = `<p>Welcome to CoStacked! Your verification code is: <strong>${verificationToken}</strong></p><p>This code will expire in 10 minutes.</p>`;
 
+    // Send verification email FIRST
     try {
       await sendEmail({
-        to: user.email,
+        to: email,
         subject: 'CoStacked - Verify Your Email Address',
         text: textMessage,
-        html: htmlMessage, // Pass the HTML version
+        html: htmlMessage,
       });
-      res.status(201).json({ success: true, message: 'Registration successful! Please check your email for a verification code.' });
     } catch (emailError) {
-      console.error('Email sending error:', emailError);
-      return res.status(500).json({ message: 'User registered, but could not send verification email. Please try resending.' });
+      console.error('Email sending error during registration:', emailError);
+      return res.status(500).json({ message: 'Could not send verification email. Please try again later.' });
     }
+
+    // Only create temporary registration record if email was sent successfully
+    await TempRegistration.create({
+      name,
+      email,
+      password,
+      role,
+      bio,
+      skills: skills ? skills.split(',').map(skill => skill.trim()) : [],
+      location,
+      availability,
+      portfolioLink,
+      verificationToken,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Verification email sent! Please check your email and enter the verification code to complete registration.'
+    });
 
   } catch (error) {
     console.error(`[REGISTER ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server Error: Could not register user.' });
+    res.status(500).json({ message: 'Server Error: Could not process registration.' });
   }
 };
 
 /**
- * @desc    Verify user email with OTP
+ * @desc    Verify user email with OTP and complete registration
  * @route   POST /api/users/verify-email
  * @access  Public
  */
@@ -77,19 +90,53 @@ const verifyEmail = async (req, res) => {
         if (!email || !token) {
             return res.status(400).json({ message: 'Email and token are required.' });
         }
-        const user = await User.findOne({ 
-            email, 
-            emailVerificationToken: token,
-            emailVerificationExpires: { $gt: Date.now() }
+
+        // Find temporary registration record
+        const tempRegistration = await TempRegistration.findOne({
+            email,
+            verificationToken: token,
+            expiresAt: { $gt: Date.now() }
         });
-        if (!user) {
+
+        if (!tempRegistration) {
             return res.status(400).json({ message: 'Invalid or expired verification token.' });
         }
-        user.isEmailVerified = true;
-        user.emailVerificationToken = undefined;
-        user.emailVerificationExpires = undefined;
-        await user.save({ validateBeforeSave: false });
-        res.json({ success: true, message: 'Email verified successfully! You can now log in.' });
+
+        // Create the actual user account
+        const user = await User.create({
+            name: tempRegistration.name,
+            email: tempRegistration.email,
+            password: tempRegistration.password, // Password is already hashed by the model pre-save hook
+            role: tempRegistration.role,
+            bio: tempRegistration.bio,
+            skills: tempRegistration.skills,
+            location: tempRegistration.location,
+            availability: tempRegistration.availability,
+            portfolioLink: tempRegistration.portfolioLink,
+            isEmailVerified: true
+        });
+
+        // Create admin notification
+        await AdminNotification.create({
+            type: 'NEW_USER_REGISTERED',
+            message: `${user.name} has just signed up as a ${user.role}.`,
+            link: `/users`,
+            refId: user._id
+        });
+
+        // Remove the temporary registration record
+        await TempRegistration.deleteOne({ _id: tempRegistration._id });
+
+        res.json({
+            success: true,
+            message: 'Email verified successfully! Your account has been created. You can now log in.',
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
     } catch (error) {
         console.error(`[VERIFY EMAIL ERROR]: ${error.message}`);
         res.status(500).json({ message: 'Server error during email verification.' });
