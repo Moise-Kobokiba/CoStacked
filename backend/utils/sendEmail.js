@@ -17,7 +17,7 @@ const sendEmail = async ({ to, subject, text, html }) => {
     throw new Error("Email service is not configured correctly.");
   }
 
-  const url = `https://api.ahasend.com/v2/accounts/d4e5e453-a555-4f80-a1e2-2da7941b1012/messages`;
+  const url = `https://api.ahasend.com/v2/accounts/${ACCOUNT_ID}/messages`;
 
   const payload = {
     from: { email: FROM_EMAIL, name: FROM_NAME },

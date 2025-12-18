@@ -6,6 +6,7 @@ async function diagnose() {
   
   const vars = {
     AHA_API_KEY: process.env.AHA_API_KEY,
+    AHA_ACCOUNT_ID: process.env.AHA_ACCOUNT_ID,
     AHA_FROM_EMAIL: process.env.AHA_FROM_EMAIL,
     AHA_FROM_NAME: process.env.AHA_FROM_NAME
   };
@@ -26,27 +27,37 @@ async function diagnose() {
   }
 
   // First test API key authentication
-  console.log("\nTesting API key authentication...");
+  console.log("\n2. Testing API Key Authentication...");
   const fetch = require('node-fetch');
   try {
-    const authResponse = await fetch('https://api.mailersend.com/v1/domains', {
-      method: 'GET',
+    const authResponse = await fetch(`https://api.ahasend.com/v2/accounts/${vars.AHA_ACCOUNT_ID}/messages`, {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${vars.AHA_API_KEY}`,
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        from: { email: vars.AHA_FROM_EMAIL, name: vars.AHA_FROM_NAME },
+        recipients: [{ email: vars.AHA_FROM_EMAIL }],
+        subject: "API Test",
+        text_content: "This is a test email to verify API connectivity."
+      })
     });
 
     if (authResponse.ok) {
       console.log("✅ API key authentication successful");
-      const domains = await authResponse.json();
-      console.log(`Found ${domains.data?.length || 0} verified domains`);
+      const result = await authResponse.json();
+      console.log("Test message queued successfully");
     } else {
       console.error(`❌ API key authentication failed: ${authResponse.status} ${authResponse.statusText}`);
       const errorBody = await authResponse.json();
       console.error("Error details:", errorBody);
       return;
     }
+  } catch (authError) {
+    console.error("❌ API authentication test failed:", authError.message);
+    return;
+  }
   } catch (authError) {
     console.error("❌ API authentication test failed:", authError.message);
     return;
