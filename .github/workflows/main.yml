@@ -56,9 +56,9 @@ jobs:
             YOCO_SECRET_KEY=${{ secrets.YOCO_SECRET_KEY }}
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
             ADMIN_URL=${{ secrets.ADMIN_URL }}
-            AHA_API_KEY=${{ secrets.AHA_API_KEY }}
-            AHA_FROM_EMAIL=${{ secrets.AHA_FROM_EMAIL }}
-            AHA_FROM_NAME=${{ secrets.AHA_FROM_NAME }}
+            AHASEND_API_KEY=${{ secrets.AHA_API_KEY }}
+            AHASEND_FROM_EMAIL=${{ secrets.AHA_FROM_EMAIL }}
+            AHASEND_FROM_NAME=${{ secrets.AHA_FROM_NAME }}
             CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
             CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
             CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
