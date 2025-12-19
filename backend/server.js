@@ -141,6 +141,20 @@ io.on('connection', (socket) => {
       conversation.updatedAt = new Date();
       await conversation.save();
 
+      // Create notifications for other participants (same as HTTP API)
+      const Notification = require('./models/Notification');
+      const recipients = conversation.participants.filter(p => p.toString() !== senderId.toString());
+
+      for (const recipientId of recipients) {
+        await Notification.create({
+          recipient: recipientId,
+          sender: senderId,
+          type: 'NEW_MESSAGE',
+          conversationId: conversation._id,
+          projectId: conversation.projectId
+        });
+      }
+
       // Populate sender details for the response
       const populatedMessage = await Message.findById(message._id)
         .populate('sender', 'name avatarUrl');
@@ -155,7 +169,7 @@ io.on('connection', (socket) => {
         status: 'delivered'
       });
 
-      console.log(`Message saved and delivered in conversation ${conversationId} by user ${senderId}`);
+      console.log(`Message saved, notifications created, and delivered in conversation ${conversationId} by user ${senderId}`);
 
     } catch (error) {
       console.error('Error sending message via socket:', error);
