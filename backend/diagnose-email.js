@@ -54,7 +54,7 @@ async function diagnose() {
       console.error("🔍 Hint: Account access denied - check AHASEND_ACCOUNT_ID and domain verification");
     }
     if (error.message.includes("400")) {
-      console.error("🔍 Hint: Bad request - check AHA_FROM_EMAIL domain verification");
+      console.error("🔍 Hint: Bad request - check AHASEND_FROM_EMAIL domain verification");
     }
     if (error.message.includes("412")) {
       console.error("🔍 Hint: Domain not verified - check DNS records for costacked.co.za");
