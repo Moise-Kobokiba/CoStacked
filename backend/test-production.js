@@ -10,22 +10,22 @@ async function testProductionEmail() {
   // Check if environment variables are set (without dotenv)
   const API_KEY = process.env.AHASEND_API_KEY;
   const ACCOUNT_ID = process.env.AHASEND_ACCOUNT_ID;
-  const FROM_EMAIL = process.env.AHA_FROM_EMAIL;
-  const FROM_NAME = process.env.AHA_FROM_NAME || "CoStacked";
+  const FROM_EMAIL = process.env.AHASEND_FROM_EMAIL;
+  const FROM_NAME = process.env.AHASEND_FROM_NAME || "CoStacked";
 
   console.log("Environment Variables Check:");
   console.log(`AHASEND_API_KEY: ${API_KEY ? 'Set (length: ' + API_KEY.length + ')' : '❌ NOT SET'}`);
   console.log(`AHASEND_ACCOUNT_ID: ${ACCOUNT_ID || '❌ NOT SET'}`);
-  console.log(`AHA_FROM_EMAIL: ${FROM_EMAIL || '❌ NOT SET'}`);
-  console.log(`AHA_FROM_NAME: ${FROM_NAME}`);
+  console.log(`AHASEND_FROM_EMAIL: ${FROM_EMAIL || '❌ NOT SET'}`);
+  console.log(`AHASEND_FROM_NAME: ${FROM_NAME}`);
 
   if (!API_KEY || !ACCOUNT_ID || !FROM_EMAIL) {
     console.log("\n❌ Missing required environment variables on Render.com!");
     console.log("Please add these to your Render.com service environment variables:");
     console.log("- AHASEND_API_KEY");
     console.log("- AHASEND_ACCOUNT_ID");
-    console.log("- AHA_FROM_EMAIL");
-    console.log("- AHA_FROM_NAME (optional)");
+    console.log("- AHASEND_FROM_EMAIL");
+    console.log("- AHASEND_FROM_NAME (optional)");
     return;
   }
 
