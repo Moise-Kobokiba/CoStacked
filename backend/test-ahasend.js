@@ -4,8 +4,8 @@ const fetch = require('node-fetch');
 async function testAhaSendAPI() {
   const API_KEY = process.env.AHASEND_API_KEY;
   const ACCOUNT_ID = process.env.AHASEND_ACCOUNT_ID;
-  const FROM_EMAIL = process.env.AHA_FROM_EMAIL;
-  const FROM_NAME = process.env.AHA_FROM_NAME;
+  const FROM_EMAIL = process.env.AHASEND_FROM_EMAIL;
+  const FROM_NAME = process.env.AHASEND_FROM_NAME;
 
   console.log("=== AHAsend API v2 Configuration Test ===\n");
 
@@ -21,8 +21,8 @@ async function testAhaSendAPI() {
     console.log("   Required variables:");
     console.log("   • AHASEND_API_KEY - Your AHAsend API key");
     console.log("   • AHASEND_ACCOUNT_ID - Your AHAsend account ID");
-    console.log("   • AHA_FROM_EMAIL - Verified sender email");
-    console.log("   • AHA_FROM_NAME - Sender name (optional)");
+    console.log("   • AHASEND_FROM_EMAIL - Verified sender email");
+    console.log("   • AHASEND_FROM_NAME - Sender name (optional)");
     console.log("\n   📋 How to find your Account ID:");
     console.log("   1. Go to https://dash.ahasend.com");
     console.log("   2. Look at the URL: https://dash.ahasend.com/accounts/YOUR_ACCOUNT_ID/...");
@@ -71,7 +71,7 @@ async function testAhaSendAPI() {
         console.log("   • Go to: https://dash.ahasend.com/domains");
       } else if (emailResponse.status === 400) {
         console.log("\n🔧 Troubleshooting - 400 Bad Request:");
-        console.log("   • Check that AHA_FROM_EMAIL is from a verified domain");
+        console.log("   • Check that AHASEND_FROM_EMAIL is from a verified domain");
         console.log("   • Verify the email format is correct");
       }
     }
