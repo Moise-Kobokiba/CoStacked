@@ -94,6 +94,37 @@ const messagesSlice = createSlice({
         state.conversations.unshift(conversation);
       }
     },
+
+    // Update message status (delivered/read)
+    updateMessageStatus: (state, action) => {
+      const { messageId, status } = action.payload;
+
+      // Find and update the message status in all conversations
+      for (const conversationId in state.messagesByConversation) {
+        const messages = state.messagesByConversation[conversationId];
+        const messageIndex = messages.findIndex(msg => msg._id === messageId);
+        if (messageIndex !== -1) {
+          messages[messageIndex].status = status;
+          break; // Found and updated, no need to continue
+        }
+      }
+    },
+
+    // Update multiple message statuses (for bulk read updates)
+    updateMessagesStatus: (state, action) => {
+      const { conversationId, updatedMessages } = action.payload;
+
+      if (state.messagesByConversation[conversationId]) {
+        updatedMessages.forEach(update => {
+          const messageIndex = state.messagesByConversation[conversationId]
+            .findIndex(msg => msg._id === update.messageId);
+          if (messageIndex !== -1) {
+            state.messagesByConversation[conversationId][messageIndex].status = update.status;
+          }
+        });
+      }
+    }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -134,5 +165,5 @@ const messagesSlice = createSlice({
 });
 
 // Export the new action
-export const { addMessage } = messagesSlice.actions;
+export const { addMessage, updateMessageStatus, updateMessagesStatus } = messagesSlice.actions;
 export default messagesSlice.reducer;

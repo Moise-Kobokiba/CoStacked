@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { useDispatch } from 'react-redux';
-import { addMessage } from '../features/messages/messagesSlice'; // We will create this action
+import { addMessage, updateMessageStatus, updateMessagesStatus } from '../features/messages/messagesSlice';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
@@ -44,6 +44,17 @@ export const useSocket = (userId) => {
 
     // Set up listeners for events from the server
     newSocket.on('receive_message', receiveMessageHandler);
+
+    // Listen for message status updates
+    newSocket.on('message_status_update', (data) => {
+      console.log('Message status update:', data);
+      dispatch(updateMessageStatus(data));
+    });
+
+    newSocket.on('messages_read', (data) => {
+      console.log('Messages marked as read:', data);
+      dispatch(updateMessagesStatus(data));
+    });
 
     // Listen for connection events
     newSocket.on('connect', () => {

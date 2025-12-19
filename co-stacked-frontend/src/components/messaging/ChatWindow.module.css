@@ -94,6 +94,34 @@
 .myTimestamp {
   text-align: right;
 }
+/* Message status indicators */
+.statusIndicator {
+  margin-left: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+}
+
+.statusIcon {
+  font-weight: bold;
+  color: var(--muted-foreground);
+}
+
+.statusText {
+  color: var(--muted-foreground);
+}
+
+/* Read status styling */
+.readStatus .statusIcon {
+  color: var(--primary);
+}
+
+.readStatus .statusText {
+  color: var(--primary);
+}
+
+/* Legacy seen indicator for backward compatibility */
 .seenIndicator {
   margin-left: 0.5rem;
   color: var(--primary-hover);

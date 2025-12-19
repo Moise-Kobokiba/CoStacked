@@ -24,11 +24,18 @@ export const ChatWindow = ({ conversation, messages = [], currentUserId, onBack,
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Join conversation room when component mounts
+  // Join conversation room and mark messages as read when component mounts
   useEffect(() => {
-    if (socket && conversation._id) {
+    if (socket && conversation._id && currentUserId) {
       console.log('Joining conversation:', conversation._id);
       socket.emit('joinConversation', conversation._id);
+
+      // Mark messages as read when opening conversation
+      console.log('Marking messages as read for conversation:', conversation._id);
+      socket.emit('mark_messages_read', {
+        conversationId: conversation._id,
+        userId: currentUserId
+      });
     }
 
     // Leave conversation room when component unmounts
@@ -38,7 +45,7 @@ export const ChatWindow = ({ conversation, messages = [], currentUserId, onBack,
         socket.emit('leaveConversation', conversation._id);
       }
     };
-  }, [socket, conversation._id]);
+  }, [socket, conversation._id, currentUserId]);
 
   return (
     <div className={styles.container}>

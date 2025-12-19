@@ -28,6 +28,36 @@ export const MessageItem = ({ msg, isMyMessage, sender }) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const getStatusIcon = () => {
+    if (!isMyMessage) return null;
+
+    switch (msg.status) {
+      case 'sent':
+        return '✓'; // Single checkmark for sent
+      case 'delivered':
+        return '✓✓'; // Double checkmark for delivered
+      case 'read':
+        return '✓✓'; // Blue double checkmark for read (you can style this differently)
+      default:
+        return '⏳'; // Clock for sending/unknown
+    }
+  };
+
+  const getStatusText = () => {
+    if (!isMyMessage) return null;
+
+    switch (msg.status) {
+      case 'sent':
+        return 'Sent';
+      case 'delivered':
+        return 'Delivered';
+      case 'read':
+        return 'Read';
+      default:
+        return 'Sending...';
+    }
+  };
+
   return (
     <div className={`${styles.messageGroup} ${isMyMessage ? styles.myMessageGroup : styles.theirMessageGroup}`}>
       {!isMyMessage && (
@@ -43,7 +73,12 @@ export const MessageItem = ({ msg, isMyMessage, sender }) => {
         </div>
         <div className={`${styles.timestamp} ${isMyMessage ? styles.myTimestamp : styles.theirTimestamp}`}>
           {formatTimestamp(msg.createdAt)}
-          {isMyMessage && <span className={styles.seenIndicator}>Seen</span>}
+          {isMyMessage && (
+            <span className={`${styles.statusIndicator} ${msg.status === 'read' ? styles.readStatus : ''}`}>
+              <span className={styles.statusIcon}>{getStatusIcon()}</span>
+              <span className={styles.statusText}>{getStatusText()}</span>
+            </span>
+          )}
         </div>
       </div>
     </div>
