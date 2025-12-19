@@ -7,8 +7,8 @@ async function diagnose() {
   const vars = {
     AHASEND_API_KEY: process.env.AHASEND_API_KEY,
     AHASEND_ACCOUNT_ID: process.env.AHASEND_ACCOUNT_ID,
-    AHA_FROM_EMAIL: process.env.AHA_FROM_EMAIL,
-    AHA_FROM_NAME: process.env.AHA_FROM_NAME
+    AHASEND_FROM_EMAIL: process.env.AHASEND_FROM_EMAIL,
+    AHASEND_FROM_NAME: process.env.AHASEND_FROM_NAME
   };
 
   let missing = [];
@@ -26,8 +26,8 @@ async function diagnose() {
     console.log("\nRequired variables:");
     console.log("• AHASEND_API_KEY - Your AHAsend API key");
     console.log("• AHASEND_ACCOUNT_ID - Your AHAsend account ID");
-    console.log("• AHA_FROM_EMAIL - Verified sender email");
-    console.log("• AHA_FROM_NAME - Sender name (optional)");
+    console.log("• AHASEND_FROM_EMAIL - Verified sender email");
+    console.log("• AHASEND_FROM_NAME - Sender name (optional)");
     console.log("\nGet API credentials from: https://dash.ahasend.com/api-keys");
     return;
   }
@@ -35,7 +35,7 @@ async function diagnose() {
   console.log("\nAttempting to send test email via API...");
   try {
     await sendEmail({
-      to: vars.AHA_FROM_EMAIL, // Send to self
+      to: vars.AHASEND_FROM_EMAIL, // Send to self
       subject: "Test Email from Diagnosis Script",
       text: "This is a test email to verify AHAsend API v2 configuration.",
       html: "<p>This is a test email to verify <strong>AHAsend API v2</strong> configuration.</p>"
@@ -54,7 +54,7 @@ async function diagnose() {
       console.error("🔍 Hint: Account access denied - check AHASEND_ACCOUNT_ID and domain verification");
     }
     if (error.message.includes("400")) {
-      console.error("🔍 Hint: Bad request - check AHA_FROM_EMAIL domain verification");
+      console.error("🔍 Hint: Bad request - check AHASEND_FROM_EMAIL domain verification");
     }
     if (error.message.includes("412")) {
       console.error("🔍 Hint: Domain not verified - check DNS records for costacked.co.za");

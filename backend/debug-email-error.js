@@ -13,14 +13,14 @@ async function debugEmailError() {
   console.log("📋 ENVIRONMENT VARIABLES:");
   console.log("AHASEND_API_KEY:", process.env.AHASEND_API_KEY ? `Set (${process.env.AHASEND_API_KEY.length} chars)` : "❌ NOT SET");
   console.log("AHASEND_ACCOUNT_ID:", process.env.AHASEND_ACCOUNT_ID || "❌ NOT SET");
-  console.log("AHA_FROM_EMAIL:", process.env.AHA_FROM_EMAIL || "❌ NOT SET");
-  console.log("AHA_FROM_NAME:", process.env.AHA_FROM_NAME || "❌ NOT SET");
+  console.log("AHASEND_FROM_EMAIL:", process.env.AHASEND_FROM_EMAIL || "❌ NOT SET");
+  console.log("AHASEND_FROM_NAME:", process.env.AHASEND_FROM_NAME || "❌ NOT SET");
   console.log("");
 
   // Test API connectivity
   console.log("🌐 TESTING AHASEND API CONNECTIVITY:");
   try {
-    const testEmail = process.env.AHA_FROM_EMAIL || "test@example.com";
+    const testEmail = process.env.AHASEND_FROM_EMAIL || "test@example.com";
     console.log("Sending test email to:", testEmail);
 
     await sendEmail({
@@ -58,10 +58,10 @@ async function debugEmailError() {
       console.log("• Domain not verified");
       console.log("• Check DNS records for the sender domain");
       console.log("• Verify domain in AHAsend dashboard");
-      console.log("• Domain:", process.env.AHA_FROM_EMAIL?.split('@')[1] || "unknown");
+      console.log("• Domain:", process.env.AHASEND_FROM_EMAIL?.split('@')[1] || "unknown");
     } else if (error.message.includes("400")) {
       console.log("• Bad request - invalid email format or missing required fields");
-      console.log("• Check AHA_FROM_EMAIL format");
+      console.log("• Check AHASEND_FROM_EMAIL format");
     } else if (error.message.includes("429")) {
       console.log("• Rate limit exceeded");
       console.log("• Wait a few minutes and try again");

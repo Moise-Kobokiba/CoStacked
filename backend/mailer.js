@@ -3,15 +3,15 @@ const fetch = require('node-fetch');
 
 async function sendVerificationEmail(toEmail, verificationLink) {
   try {
-    const response = await fetch('https://api.ahasend.com/v2/accounts/YOUR_ACCOUNT_ID/messages', {
+    const response = await fetch('https://api.ahasend.com/v2/accounts/91f3ec7d-f931-464d-952e-82ee894ee90e/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.AHA_API_KEY}`
+        'Authorization': `Bearer ${process.env.AHASEND_API_KEY}`
       },
       body: JSON.stringify({
         from: { 
-          email: process.env.AHA_FROM_EMAIL,
+          email: process.env.AHASEND_FROM_EMAIL,
           name: 'CoStacked'
         },
         recipients: [{ email: toEmail }],

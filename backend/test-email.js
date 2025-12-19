@@ -2,9 +2,9 @@
 
 const sendEmail = async (options) => {
   // Use the API Key, not the SMTP credentials
-  const AHASEND_API_KEY = process.env.AHA_API_KEY;
-  const AHASEND_FROM_EMAIL = process.env.AHA_FROM_EMAIL;
-  const AHASEND_FROM_NAME = process.env.AHA_FROM_NAME;
+  const AHASEND_API_KEY = process.env.AHASEND_API_KEY;
+  const AHASEND_FROM_EMAIL = process.env.AHASEND_FROM_EMAIL;
+  const AHASEND_FROM_NAME = process.env.AHASEND_FROM_NAME;
   
   // According to AhaSend docs, the API endpoint is api.ahasend.com/v1/email
   const AHASEND_API_URL = "https://api.ahasend.com/v1/email"; 
