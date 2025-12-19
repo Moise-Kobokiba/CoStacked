@@ -12,8 +12,11 @@ export const AdminVerifyEmailPage = () => {
   const dispatch = useDispatch();
 
   // Get the necessary state from the Redux auth slice
-  const { status, error, successMessage, unverifiedEmail } = useSelector(state => state.auth);
-  
+  const { status, error, successMessage, unverifiedEmail: reduxUnverifiedEmail } = useSelector(state => state.auth);
+
+  // Use Redux state or fallback to localStorage for persistence across page refreshes
+  const unverifiedEmail = reduxUnverifiedEmail || localStorage.getItem('admin-unverified-email');
+
   const [token, setToken] = useState('');
 
   // This effect protects the route. If a user lands here without having just
@@ -35,6 +38,8 @@ export const AdminVerifyEmailPage = () => {
     const resultAction = await dispatch(verifyAdminEmail({ email: unverifiedEmail, token }));
 
     if (verifyAdminEmail.fulfilled.match(resultAction)) {
+      // Clear the unverified email from localStorage on successful verification
+      localStorage.removeItem('admin-unverified-email');
       // On success, wait a moment for the user to read the message, then redirect to login.
       setTimeout(() => {
         navigate('/login');

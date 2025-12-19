@@ -159,6 +159,8 @@ const adminAuthSlice = createSlice({
         state.status = 'succeeded';
         state.successMessage = action.payload.message;
         state.unverifiedEmail = action.meta.arg.email;
+        // Save to localStorage so it persists on page refresh
+        localStorage.setItem('admin-unverified-email', action.meta.arg.email);
       })
       .addCase(registerAdmin.rejected, (state, action) => {
         state.status = 'failed';
