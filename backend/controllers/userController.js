@@ -4,7 +4,7 @@ const User = require('../models/User'); // Correct casing
 const AdminNotification = require('../models/AdminNotification'); // For admin panel notifications
 const TempRegistration = require('../models/TempRegistration');
 const generateToken = require('../utils/generateToken');
-const sendEmail = require('../utils/sendEmail');
+const { sendEmail } = require('../utils/sendEmail');
 const crypto = require('crypto');
 
 /**

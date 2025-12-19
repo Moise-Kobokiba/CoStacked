@@ -5,7 +5,7 @@ const Project = require("../models/Project");
 const Report = require("../models/Report");
 const Transaction = require("../models/Transaction");
 const AdminNotification = require("../models/AdminNotification");
-const sendEmail = require('../utils/sendEmail');
+const { sendEmail } = require('../utils/sendEmail');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
