@@ -60,6 +60,7 @@ jobs:
             AHASEND_API_KEY=${{ secrets.AHA_API_KEY }}
             AHASEND_FROM_EMAIL=${{ secrets.AHA_FROM_EMAIL }}
             AHASEND_FROM_NAME=${{ secrets.AHA_FROM_NAME }}
+            AHASEND_ACCOUNT_ID=${{ secrets. AHASEND_ACCOUNT_ID }}
             CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
             CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
             CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
