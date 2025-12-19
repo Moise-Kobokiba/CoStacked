@@ -124,7 +124,6 @@ const messagesSlice = createSlice({
         });
       }
     }
-    },
   },
   extraReducers: (builder) => {
     builder
