@@ -5,6 +5,8 @@ const cors = require('cors');
 const session = require('express-session');
 const passport = require('passport');
 const connectDB = require('./config/db');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 
 // Load env variables
 if (process.env.NODE_ENV !== 'production') dotenv.config();
@@ -79,6 +81,91 @@ app.use('/api/auth', authRoutes);
 // --- 6. DEFAULT ROUTE ---
 app.get('/', (req, res) => res.send('API is running successfully...'));
 
-// --- 7. START SERVER ---
+// --- 7. CREATE HTTP SERVER & SOCKET.IO ---
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    credentials: true
+  }
+});
+
+// --- 8. SOCKET.IO CONNECTION HANDLING ---
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  // Join conversation room
+  socket.on('joinConversation', (conversationId) => {
+    socket.join(conversationId);
+    console.log(`User ${socket.id} joined conversation ${conversationId}`);
+  });
+
+  // Leave conversation room
+  socket.on('leaveConversation', (conversationId) => {
+    socket.leave(conversationId);
+    console.log(`User ${socket.id} left conversation ${conversationId}`);
+  });
+
+  // Handle sending messages
+  socket.on('send_message', async (data) => {
+    try {
+      const { conversationId, senderId, content, type = 'text' } = data;
+
+      // Validate required fields
+      if (!conversationId || !senderId || !content) {
+        socket.emit('messageError', { error: 'Missing required fields' });
+        return;
+      }
+
+      // Import Message model dynamically to avoid circular dependencies
+      const Message = require('./models/Message');
+      const Conversation = require('./models/Conversation');
+
+      // Verify the conversation exists and user is authorized
+      const conversation = await Conversation.findById(conversationId);
+      if (!conversation || !conversation.participants.includes(senderId)) {
+        socket.emit('messageError', { error: 'Not authorized to send messages to this conversation' });
+        return;
+      }
+
+      // Save the message to database
+      const message = await Message.create({
+        conversationId,
+        sender: senderId,
+        type,
+        content,
+      });
+
+      // Update conversation timestamp
+      conversation.updatedAt = new Date();
+      await conversation.save();
+
+      // Populate sender details for the response
+      const populatedMessage = await Message.findById(message._id)
+        .populate('sender', 'name avatarUrl');
+
+      // Emit to all users in the conversation (including sender)
+      io.to(conversationId).emit('receive_message', populatedMessage);
+
+      console.log(`Message saved and sent in conversation ${conversationId} by user ${senderId}`);
+
+    } catch (error) {
+      console.error('Error sending message via socket:', error);
+      socket.emit('messageError', { error: 'Failed to send message' });
+    }
+  });
+
+  // Handle typing indicators
+  socket.on('typing', (data) => {
+    const { conversationId, userId, isTyping } = data;
+    socket.to(conversationId).emit('userTyping', { userId, isTyping });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
+
+// --- 9. START SERVER ---
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`));
