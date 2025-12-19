@@ -128,12 +128,13 @@ io.on('connection', (socket) => {
         return;
       }
 
-      // Save the message to database
+      // Save the message to database with delivered status
       const message = await Message.create({
         conversationId,
         sender: senderId,
         type,
         content,
+        status: 'delivered', // Mark as delivered when successfully saved
       });
 
       // Update conversation timestamp
@@ -147,7 +148,14 @@ io.on('connection', (socket) => {
       // Emit to all users in the conversation (including sender)
       io.to(conversationId).emit('receive_message', populatedMessage);
 
-      console.log(`Message saved and sent in conversation ${conversationId} by user ${senderId}`);
+      // Emit delivery status update to sender
+      socket.emit('message_status_update', {
+        messageId: message._id,
+        conversationId,
+        status: 'delivered'
+      });
+
+      console.log(`Message saved and delivered in conversation ${conversationId} by user ${senderId}`);
 
     } catch (error) {
       console.error('Error sending message via socket:', error);
@@ -159,6 +167,67 @@ io.on('connection', (socket) => {
   socket.on('typing', (data) => {
     const { conversationId, userId, isTyping } = data;
     socket.to(conversationId).emit('userTyping', { userId, isTyping });
+  });
+
+  // Handle marking messages as read
+  socket.on('mark_messages_read', async (data) => {
+    try {
+      const { conversationId, userId } = data;
+
+      if (!conversationId || !userId) {
+        socket.emit('messageError', { error: 'Missing required fields' });
+        return;
+      }
+
+      // Import Message model dynamically
+      const Message = require('./models/Message');
+      const Conversation = require('./models/Conversation');
+
+      // Verify the conversation exists and user is authorized
+      const conversation = await Conversation.findById(conversationId);
+      if (!conversation || !conversation.participants.includes(userId)) {
+        socket.emit('messageError', { error: 'Not authorized to access this conversation' });
+        return;
+      }
+
+      // Find messages in this conversation that are not from the current user and not already read
+      const messagesToMarkRead = await Message.find({
+        conversationId,
+        sender: { $ne: userId }, // Messages not sent by current user
+        status: { $ne: 'read' }   // Messages not already read
+      });
+
+      if (messagesToMarkRead.length > 0) {
+        // Update all these messages to 'read' status
+        await Message.updateMany(
+          {
+            conversationId,
+            sender: { $ne: userId },
+            status: { $ne: 'read' }
+          },
+          { status: 'read' }
+        );
+
+        // Get the updated messages
+        const updatedMessages = await Message.find({
+          conversationId,
+          sender: { $ne: userId }
+        }).select('_id status');
+
+        // Notify all participants in the conversation about the read status update
+        io.to(conversationId).emit('messages_read', {
+          conversationId,
+          readerId: userId,
+          updatedMessages: updatedMessages.map(msg => ({ messageId: msg._id, status: msg.status }))
+        });
+
+        console.log(`Marked ${messagesToMarkRead.length} messages as read in conversation ${conversationId} by user ${userId}`);
+      }
+
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+      socket.emit('messageError', { error: 'Failed to mark messages as read' });
+    }
   });
 
   socket.on('disconnect', () => {
