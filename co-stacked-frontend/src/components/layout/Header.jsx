@@ -49,18 +49,20 @@ export const Header = () => {
    useEffect(() => {
      if (isAuthenticated) {
        console.log('Header: User authenticated, fetching notifications...');
+       console.log('Header: Current user:', user);
        dispatch(fetchNotifications());
      }
-   }, [isAuthenticated, dispatch]);
+   }, [isAuthenticated, dispatch, user]);
   useEffect(() => { setMobileMenuOpen(false); setDropdownOpen(false); setNotifOpen(false); }, [location.pathname]);
   useEffect(() => { document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'auto'; return () => { document.body.style.overflow = 'auto'; }; }, [isMobileMenuOpen]);
 
   const handleLogout = () => { dispatch(logout()); navigate('/login'); };
   const handleCloseNotifications = () => setNotifOpen(false);
-  const handleMarkAsRead = () => {
-    if (notifications.length > 0) dispatch(markNotificationsAsRead());
-    setNotifOpen(false);
-  };
+   const handleMarkAsRead = () => {
+     console.log('Marking notifications as read, current count:', notifications.length);
+     if (notifications.length > 0) dispatch(markNotificationsAsRead());
+     setNotifOpen(false);
+   };
   
   const navigationLinks = [
     { label: 'Discover', path: '/projects' },

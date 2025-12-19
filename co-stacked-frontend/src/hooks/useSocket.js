@@ -60,9 +60,10 @@ export const useSocket = (userId) => {
       dispatch(updateMessagesStatus(data));
     });
 
-    // Listen for connection events
+      // Listen for connection events
     newSocket.on('connect', () => {
       console.log('✅ Connected to Socket.IO server with ID:', newSocket.id);
+      console.log('📡 Socket ready for real-time messaging');
     });
 
     newSocket.on('disconnect', (reason) => {
@@ -72,6 +73,7 @@ export const useSocket = (userId) => {
     newSocket.on('connect_error', (error) => {
       console.error('❌ Socket.IO connection error:', error);
       console.error('Error details:', error.message);
+      console.error('This may prevent real-time notifications');
     });
 
     newSocket.on('reconnect', (attemptNumber) => {
