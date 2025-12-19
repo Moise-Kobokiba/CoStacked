@@ -46,7 +46,12 @@ export const Header = () => {
   useClickOutside(dropdownRef, () => setDropdownOpen(false));
   useClickOutside(notifRef, () => setNotifOpen(false));
 
-  useEffect(() => { if (isAuthenticated) dispatch(fetchNotifications()); }, [isAuthenticated, dispatch]);
+   useEffect(() => {
+     if (isAuthenticated) {
+       console.log('Header: User authenticated, fetching notifications...');
+       dispatch(fetchNotifications());
+     }
+   }, [isAuthenticated, dispatch]);
   useEffect(() => { setMobileMenuOpen(false); setDropdownOpen(false); setNotifOpen(false); }, [location.pathname]);
   useEffect(() => { document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'auto'; return () => { document.body.style.overflow = 'auto'; }; }, [isMobileMenuOpen]);
 

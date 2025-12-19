@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { useDispatch } from 'react-redux';
 import { addMessage, updateMessageStatus, updateMessagesStatus } from '../features/messages/messagesSlice';
+import { fetchNotifications } from '../features/notifications/notificationsSlice';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
@@ -14,8 +15,11 @@ export const useSocket = (userId) => {
   // Memoize the handler to prevent re-creating it on every render
   const receiveMessageHandler = useCallback((message) => {
     console.log('Received message via socket:', message);
+    console.log('Dispatching addMessage and fetchNotifications...');
     // When a message comes in, add it directly to our Redux store
     dispatch(addMessage(message));
+    // Also fetch updated notifications to show new message notifications
+    dispatch(fetchNotifications());
   }, [dispatch]);
 
   useEffect(() => {
