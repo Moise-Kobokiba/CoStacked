@@ -5,8 +5,8 @@ const fetch = require('node-fetch'); // v2 syntax
 const sendEmail = async ({ to, subject, text, html }) => {
   const API_KEY = process.env.AHASEND_API_KEY;
   const ACCOUNT_ID = process.env.AHASEND_ACCOUNT_ID;
-  const FROM_EMAIL = process.env.AHASEND_FROM_EMAIL;
-  const FROM_NAME = process.env.AHASEND_FROM_NAME || "CoStacked";
+  const FROM_EMAIL = process.env.AHA_FROM_EMAIL;
+  const FROM_NAME = process.env.AHA_FROM_NAME || "CoStacked";
 
   if (!API_KEY || !ACCOUNT_ID || !FROM_EMAIL) {
     console.error("Missing AHAsend config:", {
