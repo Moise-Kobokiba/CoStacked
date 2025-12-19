@@ -7,11 +7,11 @@ async function sendVerificationEmail(toEmail, verificationLink) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.AHA_API_KEY}`
+        'Authorization': `Bearer ${process.env.AHASEND_API_KEY}`
       },
       body: JSON.stringify({
         from: { 
-          email: process.env.AHA_FROM_EMAIL,
+          email: process.env.AHASEND_FROM_EMAIL,
           name: 'CoStacked'
         },
         recipients: [{ email: toEmail }],
