@@ -49,10 +49,10 @@ router.route('/test-email').post(async (req, res) => {
 // Check email configuration
 router.route('/email-config').get((req, res) => {
   const config = {
-    hasApiKey: !!process.env.AHA_API_KEY,
-    hasFromEmail: !!process.env.AHA_FROM_EMAIL,
-    fromEmail: process.env.AHA_FROM_EMAIL,
-    fromName: process.env.AHA_FROM_NAME || 'CoStacked',
+    hasApiKey: !!process.env.AHASEND_API_KEY,
+    hasFromEmail: !!process.env.AHASEND_FROM_EMAIL,
+    fromEmail: process.env.AHASEND_FROM_EMAIL,
+    fromName: process.env.AHASEND_FROM_NAME || 'CoStacked',
     adminFrontendUrl: process.env.ADMIN_FRONTEND_URL,
     frontendUrl: process.env.FRONTEND_URL,
   };
