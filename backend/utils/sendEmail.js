@@ -8,11 +8,12 @@ const sendEmail = async ({ to, subject, text, html }) => {
   const FROM_EMAIL = process.env.AHA_FROM_EMAIL;
   const FROM_NAME = process.env.AHA_FROM_NAME || "CoStacked";
 
-  if (!API_KEY || !FROM_EMAIL || !ACCOUNT_ID) {
-    console.error("Missing AhaSend config:", {
+  if (!API_KEY || !ACCOUNT_ID || !FROM_EMAIL) {
+    console.error("Missing AHAsend config:", {
       hasKey: !!API_KEY,
+      hasAccountId: !!ACCOUNT_ID,
       fromEmail: FROM_EMAIL,
-      accountId: ACCOUNT_ID,
+      fromName: FROM_NAME,
     });
     throw new Error("Email service is not configured correctly.");
   }
@@ -27,9 +28,12 @@ const sendEmail = async ({ to, subject, text, html }) => {
     html_content: html,
   };
 
-  console.log("Sending email with AhaSend payload:", JSON.stringify(payload, null, 2));
+  console.log("Sending email with AHAsend API payload:", JSON.stringify(payload, null, 2));
 
   try {
+    console.log("🚀 Attempting to send email via AHAsend API v2");
+    console.log("📧 Payload:", JSON.stringify(payload, null, 2));
+
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -39,22 +43,48 @@ const sendEmail = async ({ to, subject, text, html }) => {
       body: JSON.stringify(payload),
     });
 
-    const body = await response.json();
+    console.log("📡 AHAsend API Response Status:", response.status, response.statusText);
 
-    if (!response.ok) {
-      console.error("AhaSend API Error:", {
-        status: response.status,
-        statusText: response.statusText,
-        body,
-      });
-      throw new Error(`AhaSend failed: ${JSON.stringify(body)}`);
+    let body;
+    try {
+      body = await response.json();
+      console.log("📦 AHAsend API Response Body:", JSON.stringify(body, null, 2));
+    } catch (parseError) {
+      console.error("❌ Failed to parse AHAsend response as JSON:", parseError);
+      body = { error: "Invalid JSON response from AHAsend" };
     }
 
-    console.log("Email successfully sent via AhaSend ✅", body);
+    if (!response.ok) {
+      console.error("❌ AHAsend API Error Details:", {
+        status: response.status,
+        statusText: response.statusText,
+        url: url,
+        requestPayload: payload,
+        responseBody: body,
+        timestamp: new Date().toISOString()
+      });
+
+      // Create a more detailed error message
+      const errorMessage = body?.message || body?.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+      throw new Error(`AHAsend API failed: ${errorMessage}`);
+    }
+
+    console.log("✅ Email successfully sent via AHAsend API:", body);
     return body;
   } catch (err) {
-    console.error("Critical fetch error in sendEmail:", err);
-    throw err;
+    console.error("💥 Critical error in sendEmail function:");
+    console.error("Error message:", err.message);
+    console.error("Error stack:", err.stack);
+    console.error("Error details:", {
+      apiKeyLength: API_KEY ? API_KEY.length : 0,
+      accountId: ACCOUNT_ID,
+      fromEmail: FROM_EMAIL,
+      payload: payload,
+      timestamp: new Date().toISOString()
+    });
+
+    // Re-throw with additional context
+    throw new Error(`Email sending failed: ${err.message}`);
   }
 };
 

@@ -43,15 +43,30 @@ const registerUser = async (req, res) => {
 
     // Send verification email FIRST
     try {
+      console.log("📧 Sending verification email to:", email);
       await sendEmail({
         to: email,
         subject: 'CoStacked - Verify Your Email Address',
         text: textMessage,
         html: htmlMessage,
       });
+      console.log("✅ Verification email sent successfully to:", email);
     } catch (emailError) {
-      console.error('Email sending error during registration:', emailError);
-      return res.status(500).json({ message: 'Could not send verification email. Please try again later.' });
+      console.error('❌ EMAIL SENDING FAILED during registration:');
+      console.error('Target email:', email);
+      console.error('Error message:', emailError.message);
+      console.error('Error stack:', emailError.stack);
+      console.error('Registration attempt details:', {
+        name,
+        email,
+        role,
+        timestamp: new Date().toISOString()
+      });
+
+      return res.status(500).json({
+        message: 'Could not send verification email. Please try again later.',
+        error: process.env.NODE_ENV === 'development' ? emailError.message : undefined
+      });
     }
 
     // Only create temporary registration record if email was sent successfully

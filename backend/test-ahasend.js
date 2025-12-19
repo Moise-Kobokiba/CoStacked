@@ -1,7 +1,7 @@
 require('dotenv').config();
 const fetch = require('node-fetch');
 
-async function testAhaSend() {
+async function testAhaSendAPI() {
   const API_KEY = process.env.AHASEND_API_KEY;
   const ACCOUNT_ID = process.env.AHASEND_ACCOUNT_ID;
   const FROM_EMAIL = process.env.AHA_FROM_EMAIL;
@@ -13,14 +13,14 @@ async function testAhaSend() {
   console.log("1. Environment Variables:");
   console.log(`   API Key: ${API_KEY ? 'Set (length: ' + API_KEY.length + ')' : '❌ NOT SET'}`);
   console.log(`   Account ID: ${ACCOUNT_ID ? ACCOUNT_ID : '❌ NOT SET'}`);
-  console.log(`   From Email: ${FROM_EMAIL ? FROM_EMAIL : '❌ NOT SET'}`);
-  console.log(`   From Name: ${FROM_NAME ? FROM_NAME : '❌ NOT SET'}`);
+  console.log(`   From Email: ${FROM_EMAIL || '❌ NOT SET'}`);
+  console.log(`   From Name: ${FROM_NAME || '❌ NOT SET'}`);
 
   if (!API_KEY || !ACCOUNT_ID || !FROM_EMAIL) {
     console.log("\n❌ Missing required environment variables");
     console.log("   Required variables:");
-    console.log("   • AHA_API_KEY - Your AHAsend API key");
-    console.log("   • AHA_ACCOUNT_ID - Your AHAsend account ID (found in dashboard URL)");
+    console.log("   • AHASEND_API_KEY - Your AHAsend API key");
+    console.log("   • AHASEND_ACCOUNT_ID - Your AHAsend account ID");
     console.log("   • AHA_FROM_EMAIL - Verified sender email");
     console.log("   • AHA_FROM_NAME - Sender name (optional)");
     console.log("\n   📋 How to find your Account ID:");
@@ -61,12 +61,12 @@ async function testAhaSend() {
       // Provide specific troubleshooting based on error
       if (emailResponse.status === 401) {
         console.log("\n🔧 Troubleshooting - 401 Unauthorized:");
-        console.log("   • Check that your AHA_API_KEY is correct");
+        console.log("   • Check that your AHASEND_API_KEY is correct");
         console.log("   • Verify the API key has proper permissions");
         console.log("   • Go to: https://dash.ahasend.com/api-keys");
       } else if (emailResponse.status === 403) {
         console.log("\n🔧 Troubleshooting - 403 Forbidden:");
-        console.log("   • Check that your AHA_ACCOUNT_ID is correct");
+        console.log("   • Check that your AHASEND_ACCOUNT_ID is correct");
         console.log("   • Verify your sender domain is approved");
         console.log("   • Go to: https://dash.ahasend.com/domains");
       } else if (emailResponse.status === 400) {
@@ -84,4 +84,4 @@ async function testAhaSend() {
   }
 }
 
-testAhaSend();
+testAhaSendAPI();
