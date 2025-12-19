@@ -24,6 +24,22 @@ export const ChatWindow = ({ conversation, messages = [], currentUserId, onBack,
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Join conversation room when component mounts
+  useEffect(() => {
+    if (socket && conversation._id) {
+      console.log('Joining conversation:', conversation._id);
+      socket.emit('joinConversation', conversation._id);
+    }
+
+    // Leave conversation room when component unmounts
+    return () => {
+      if (socket && conversation._id) {
+        console.log('Leaving conversation:', conversation._id);
+        socket.emit('leaveConversation', conversation._id);
+      }
+    };
+  }, [socket, conversation._id]);
+
   return (
     <div className={styles.container}>
       {/* Chat Header */}

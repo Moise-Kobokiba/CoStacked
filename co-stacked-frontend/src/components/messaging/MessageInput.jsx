@@ -20,23 +20,25 @@ export const MessageInput = ({ socket, conversationId, currentUserId }) => {
   // Send a text message via WebSocket
   const handleSendText = (e) => {
     e.preventDefault();
-    if (!text.trim() || !socket) return;
+    if (!text.trim() || !socket) {
+      console.log('Cannot send message: text empty or no socket connection');
+      return;
+    }
 
-    // Create a temporary message object for optimistic UI update
-    const messageData = {
+    console.log('Sending message via socket:', { conversationId, currentUserId, text: text.trim() });
+
+    // Create message data for socket transmission
+    const socketData = {
       conversationId,
-      sender: { _id: currentUserId }, // Minimal sender info is enough for the socket
-      type: 'text',
-      content: text,
-      _id: `temp_${Date.now()}`, // Temporary ID
-      createdAt: new Date().toISOString(),
-      status: 'sent',
+      senderId: currentUserId,
+      content: text.trim(),
+      type: 'text'
     };
 
     // Send the message to the server via WebSocket
-    socket.emit('send_message', messageData);
-    // Immediately add the message to our own UI
-    dispatch(addMessage(messageData));
+    socket.emit('send_message', socketData);
+    console.log('Message emitted to socket');
+
     setText('');
   };
 
@@ -53,8 +55,8 @@ export const MessageInput = ({ socket, conversationId, currentUserId }) => {
     
     if (sendFileMessage.fulfilled.match(resultAction)) {
       // After a successful upload, the backend returns the final, populated message object.
-      // We broadcast this final object to the other user.
-      socket.emit('send_message', resultAction.payload);
+      // The HTTP response already saved the message, so we just need to emit it to other users
+      socket.emit('receive_message', resultAction.payload);
     } else {
       alert('File upload failed. Please try again.');
     }
