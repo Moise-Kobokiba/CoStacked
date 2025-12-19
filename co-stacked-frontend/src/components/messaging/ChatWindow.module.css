@@ -94,9 +94,14 @@
 .myTimestamp {
   text-align: right;
 }
+/* Message status container */
+.messageStatus {
+  margin-top: 0.25rem;
+  text-align: left; /* Always align to left */
+}
+
 /* Message status indicators */
 .statusIndicator {
-  margin-left: 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.25rem;

@@ -73,13 +73,15 @@ export const MessageItem = ({ msg, isMyMessage, sender }) => {
         </div>
         <div className={`${styles.timestamp} ${isMyMessage ? styles.myTimestamp : styles.theirTimestamp}`}>
           {formatTimestamp(msg.createdAt)}
-          {isMyMessage && (
+        </div>
+        {isMyMessage && (
+          <div className={styles.messageStatus}>
             <span className={`${styles.statusIndicator} ${msg.status === 'read' ? styles.readStatus : ''}`}>
               <span className={styles.statusIcon}>{getStatusIcon()}</span>
               <span className={styles.statusText}>{getStatusText()}</span>
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
