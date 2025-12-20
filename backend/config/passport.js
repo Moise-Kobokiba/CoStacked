@@ -22,12 +22,12 @@ passport.deserializeUser(async (id, done) => {
 });
 
 // GitHub OAuth Strategy (only if credentials are provided)
-if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+if (process.env.MYAPP_GITHUB_CLIENT_ID && process.env.MYAPP_GITHUB_CLIENT_SECRET) {
   passport.use(
     new GitHubStrategy(
       {
-        clientID: process.env.GITHUB_CLIENT_ID,
-        clientSecret: process.env.GITHUB_CLIENT_SECRET,
+        clientID: process.env.MYAPP_GITHUB_CLIENT_ID,
+        clientSecret: process.env.MYAPP_GITHUB_CLIENT_SECRET,
         callbackURL: `${BACKEND_URL}/api/auth/github/callback`,
         scope: ['user:email'], // Request email access
       },
