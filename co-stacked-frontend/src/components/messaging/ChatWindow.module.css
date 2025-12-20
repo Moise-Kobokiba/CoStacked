@@ -97,7 +97,9 @@
 /* Message status container */
 .messageStatus {
   margin-top: 0.25rem;
-  text-align: right; /* Align to right */
+  width: 100%; /* Take full width of message area */
+  display: flex;
+  justify-content: flex-end; /* Align content to the far right edge */
 }
 
 /* Message status indicators */
