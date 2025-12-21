@@ -106,52 +106,91 @@ const verifyEmail = async (req, res) => {
             return res.status(400).json({ message: 'Email and token are required.' });
         }
 
-        // Find temporary registration record
+        // First, check for temporary registration (regular users)
         const tempRegistration = await TempRegistration.findOne({
             email,
             verificationToken: token,
             expiresAt: { $gt: Date.now() }
         });
 
-        if (!tempRegistration) {
-            return res.status(400).json({ message: 'Invalid or expired verification token.' });
+        if (tempRegistration) {
+            // Handle regular user verification
+            // Create the actual user account
+            const user = await User.create({
+                name: tempRegistration.name,
+                email: tempRegistration.email,
+                password: tempRegistration.password, // Password is already hashed by the model pre-save hook
+                role: tempRegistration.role,
+                bio: tempRegistration.bio,
+                skills: tempRegistration.skills,
+                location: tempRegistration.location,
+                availability: tempRegistration.availability,
+                portfolioLink: tempRegistration.portfolioLink,
+                isEmailVerified: true
+            });
+
+            // Create admin notification
+            await AdminNotification.create({
+                type: 'NEW_USER_REGISTERED',
+                message: `${user.name} has just signed up as a ${user.role}.`,
+                link: `/users`,
+                refId: user._id
+            });
+
+            // Remove the temporary registration record
+            await TempRegistration.deleteOne({ _id: tempRegistration._id });
+
+            return res.json({
+                success: true,
+                message: 'Email verified successfully! Your account has been created. You can now log in.',
+                user: {
+                    _id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role
+                }
+            });
         }
 
-        // Create the actual user account
-        const user = await User.create({
-            name: tempRegistration.name,
-            email: tempRegistration.email,
-            password: tempRegistration.password, // Password is already hashed by the model pre-save hook
-            role: tempRegistration.role,
-            bio: tempRegistration.bio,
-            skills: tempRegistration.skills,
-            location: tempRegistration.location,
-            availability: tempRegistration.availability,
-            portfolioLink: tempRegistration.portfolioLink,
-            isEmailVerified: true
+        // If no temp registration found, check for admin user verification
+        const adminUser = await User.findOne({
+            email,
+            emailVerificationToken: token,
+            emailVerificationExpires: { $gt: Date.now() },
+            isAdmin: true
         });
 
-        // Create admin notification
-        await AdminNotification.create({
-            type: 'NEW_USER_REGISTERED',
-            message: `${user.name} has just signed up as a ${user.role}.`,
-            link: `/users`,
-            refId: user._id
-        });
+        if (adminUser) {
+            // Handle admin user verification
+            adminUser.isEmailVerified = true;
+            adminUser.emailVerificationToken = undefined;
+            adminUser.emailVerificationExpires = undefined;
+            await adminUser.save({ validateBeforeSave: false });
 
-        // Remove the temporary registration record
-        await TempRegistration.deleteOne({ _id: tempRegistration._id });
+            // Create admin notification for new admin
+            await AdminNotification.create({
+                type: 'NEW_ADMIN_REGISTERED',
+                message: `New admin ${adminUser.name} has joined the platform.`,
+                link: `/admin/users`,
+                refId: adminUser._id
+            });
 
-        res.json({
-            success: true,
-            message: 'Email verified successfully! Your account has been created. You can now log in.',
-            user: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
-        });
+            return res.json({
+                success: true,
+                message: 'Admin email verified successfully! You can now log in.',
+                user: {
+                    _id: adminUser._id,
+                    name: adminUser.name,
+                    email: adminUser.email,
+                    role: adminUser.role,
+                    isAdmin: adminUser.isAdmin
+                }
+            });
+        }
+
+        // If neither found, token is invalid
+        return res.status(400).json({ message: 'Invalid or expired verification token.' });
+
     } catch (error) {
         console.error(`[VERIFY EMAIL ERROR]: ${error.message}`);
         res.status(500).json({ message: 'Server error during email verification.' });
