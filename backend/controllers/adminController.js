@@ -113,7 +113,7 @@ const loginAdmin = async (req, res) => {
 };
 
 /**
- * @desc    Register a new ADMIN user and send verification email
+ * @desc    Register a new ADMIN user - send verification email first, then store temporarily
  * @route   POST /api/admin/register
  * @access  Public (but requires secret key)
  */
@@ -127,51 +127,56 @@ const registerAdmin = async (req, res) => {
     if (!name || !email || !password || !role) {
       return res.status(400).json({ message: 'Please provide all required fields.' });
     }
+
+    // Check if user already exists (both regular users and temp registrations)
     if (await User.findOne({ email })) {
-      return res.status(400).json({ message: 'An admin with this email already exists.' });
+      return res.status(400).json({ message: 'A user with this email already exists.' });
     }
-    
-    // --- 2. THIS IS THE NEW, CORRECT LOGIC ---
-    // Create the user. isEmailVerified will be false by default.
-    const user = await User.create({
-      name, email, password, role,
-      isAdmin: true,
+    if (await TempRegistration.findOne({ email })) {
+      return res.status(400).json({ message: 'A verification email has already been sent to this email address. Please check your inbox.' });
+    }
+
+    // Generate verification token
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Prepare email content
+    const textMessage = `Welcome to the CoStacked Admin team!\n\nYour verification code is: ${verificationToken}\n\nThis code will expire in 10 minutes.`;
+    const htmlMessage = `<p>Welcome to the CoStacked Admin team! Your verification code is: <strong>${verificationToken}</strong></p><p>This code will expire in 10 minutes.</p>`;
+
+    // Send verification email FIRST
+    try {
+      console.log("📧 Sending admin verification email to:", email);
+      await sendEmail({
+        to: email,
+        subject: 'CoStacked Admin - Verify Your Email',
+        text: textMessage,
+        html: htmlMessage,
+      });
+      console.log("✅ Admin verification email sent successfully to:", email);
+    } catch (emailError) {
+      console.error('❌ ADMIN EMAIL SENDING FAILED:', emailError);
+      return res.status(500).json({ message: 'Could not send verification email. Please try again later.' });
+    }
+
+    // Only create temporary registration record if email was sent successfully
+    await TempRegistration.create({
+      name,
+      email,
+      password,
+      role,
+      verificationToken,
+      isAdmin: true, // Mark as admin registration
     });
 
-    if (user) {
-      // Generate and save the verification token
-      const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
-      await User.findByIdAndUpdate(user._id, {
-        emailVerificationToken: verificationToken,
-        emailVerificationExpires: Date.now() + 10 * 60 * 1000, // 10 minutes
-      });
+    console.log("✅ Admin temp registration created for:", email);
 
-      // Prepare email content
-      const textMessage = `Welcome to the CoStacked Admin team!\n\nYour verification code is: ${verificationToken}\n\nThis code will expire in 10 minutes.`;
-      const htmlMessage = `<p>Welcome to the CoStacked Admin team! Your verification code is: <strong>${verificationToken}</strong></p><p>This code will expire in 10 minutes.</p>`;
+    res.status(201).json({
+      success: true,
+      message: 'Admin verification email sent! Please check your email and enter the verification code to complete registration.'
+    });
 
-      try {
-        // Send the verification email using the AhaSend utility
-        await sendEmail({
-          to: user.email,
-          subject: 'CoStacked Admin - Verify Your Email',
-          text: textMessage,
-          html: htmlMessage,
-        });
-
-        res.status(201).json({ 
-            success: true, 
-            message: 'Admin user registered! Please check your email for a verification code.' 
-        });
-      } catch (emailError) {
-        console.error('Admin Email Sending Error:', emailError);
-        return res.status(500).json({ message: 'Admin registered, but could not send verification email.' });
-      }
-    } else {
-      res.status(400).json({ message: 'Invalid admin data provided.' });
-    }
   } catch (error) {
-    console.error(`[REGISTER ADMIN ERROR]: ${error.message}`);
+    console.error(`[ADMIN REGISTER ERROR]: ${error.message}`);
     res.status(500).json({ message: 'Server error during admin registration.' });
   }
 };

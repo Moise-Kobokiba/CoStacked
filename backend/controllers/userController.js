@@ -115,27 +115,37 @@ const verifyEmail = async (req, res) => {
 
         if (tempRegistration) {
             // Handle regular user verification
-            // Create the actual user account
-            const user = await User.create({
-                name: tempRegistration.name,
-                email: tempRegistration.email,
-                password: tempRegistration.password, // Password is already hashed by the model pre-save hook
-                role: tempRegistration.role,
-                bio: tempRegistration.bio,
-                skills: tempRegistration.skills,
-                location: tempRegistration.location,
-                availability: tempRegistration.availability,
-                portfolioLink: tempRegistration.portfolioLink,
-                isEmailVerified: true
-            });
+        // Create the actual user account
+        const user = await User.create({
+            name: tempRegistration.name,
+            email: tempRegistration.email,
+            password: tempRegistration.password, // Password is already hashed by the model pre-save hook
+            role: tempRegistration.role,
+            bio: tempRegistration.bio,
+            skills: tempRegistration.skills,
+            location: tempRegistration.location,
+            availability: tempRegistration.availability,
+            portfolioLink: tempRegistration.portfolioLink,
+            isAdmin: tempRegistration.isAdmin || false, // Set admin flag if this was an admin registration
+            isEmailVerified: true
+        });
 
-            // Create admin notification
+        // Create admin notification
+        if (user.isAdmin) {
+            await AdminNotification.create({
+                type: 'NEW_ADMIN_REGISTERED',
+                message: `New admin ${user.name} has joined the platform.`,
+                link: `/admin/users`,
+                refId: user._id
+            });
+        } else {
             await AdminNotification.create({
                 type: 'NEW_USER_REGISTERED',
                 message: `${user.name} has just signed up as a ${user.role}.`,
                 link: `/users`,
                 refId: user._id
             });
+        }
 
             // Remove the temporary registration record
             await TempRegistration.deleteOne({ _id: tempRegistration._id });
@@ -217,10 +227,22 @@ const authUser = async (req, res) => {
           emailNotVerified: true
         });
       }
-      res.json({
-        user: { _id: user._id, name: user.name, email: user.email, role: user.role, isAdmin: user.isAdmin },
-        token: generateToken(user._id),
-      });
+        const isAdminUser = user.isAdmin;
+        const message = isAdminUser
+            ? 'Admin email verified successfully! Your admin account has been created. You can now log in.'
+            : 'Email verified successfully! Your account has been created. You can now log in.';
+
+        res.json({
+            success: true,
+            message,
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                isAdmin: isAdminUser
+            }
+        });
     } else {
       res.status(401).json({ message: 'Invalid email or password.' });
     }
