@@ -185,3 +185,61 @@
   flex-direction: column;
   gap: 0.5rem;
 }
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .settingsContainer {
+    padding: 1rem;
+    padding-bottom: 2rem; /* Extra bottom padding for mobile */
+  }
+
+  .pageTitle {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sectionHeader h2 {
+    font-size: 1.375rem;
+  }
+
+  .formGrid {
+    gap: 1rem; /* Reduce gap on mobile */
+  }
+
+  .input, .button {
+    font-size: 1rem;
+    padding: 0.875rem;
+  }
+
+  .button {
+    width: 100%; /* Full width buttons on mobile */
+    margin-top: 0.5rem;
+  }
+
+  /* Improve section spacing on mobile */
+  .section {
+    margin-bottom: 2rem;
+  }
+
+  /* Better avatar section on mobile */
+  .avatarSection {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .avatarPreview {
+    order: -1; /* Show avatar first on mobile */
+  }
+
+  /* Improve footer button on mobile */
+  .footer {
+    padding: 1.5rem 0;
+  }
+
+  .footer .button {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+  }
+}
