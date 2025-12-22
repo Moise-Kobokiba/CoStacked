@@ -164,11 +164,7 @@ passport.use(
   );
 }
 
-// LinkedIn OAuth Strategy - DISABLED due to LinkedIn API restrictions
-// LinkedIn no longer approves OAuth apps for profile access without special enterprise approval
-// Keeping the code commented for future use when/if LinkedIn policies change
-
-/*
+// LinkedIn OAuth Strategy (only if credentials are provided)
 if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
 passport.use(
   new (require('passport-linkedin-oauth2').Strategy)(
@@ -210,6 +206,5 @@ passport.use(
   )
   );
 }
-*/
 
 module.exports = passport;

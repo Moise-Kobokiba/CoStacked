@@ -40,4 +40,42 @@ router.get(
   oauthCallback
 );
 
+// Test endpoint to verify LinkedIn API access with provided token
+router.get('/linkedin/test', async (req, res) => {
+  try {
+    const accessToken = 'AQXTCgKpGrvuGU9SlZDrsTqPOyLsgf7e91Qu1Y65QnbFkv-2w9hftb_cGS873J0_zfIKni6SoEkQmhmorRfV6sdj1EVRNsir-szYNXG8aCRGU5PZrqJWkchSuHc3S98z_ywjGxLM-_3iSJh3lrEX0LBHVmqt7YUh8rQjUFDT7D7fTlk-LeOE0g5h8-QPr7fwRPDHQhdyxswiD6wSHEg3SChzxjGbRvx9DACRBFKjH3odlCWc-rN93SEpINprN5H8kYZVH4TAjj2NqJb1VPwTccwTr28xsQ1UXlIAUYEfaMd7knkQu3tU7mTHmgVqxfR0BFLKb9Tr20Q7PmBRMVsqryZE70-hgw';
+
+    // Test LinkedIn API with the provided access token
+    const profileResponse = await fetch('https://api.linkedin.com/v2/people/~:(id,firstName,lastName,profilePicture(displayImage~:playableStreams))', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'X-Restli-Protocol-Version': '2.0.0'
+      }
+    });
+
+    if (!profileResponse.ok) {
+      return res.status(profileResponse.status).json({
+        error: 'LinkedIn API Error',
+        status: profileResponse.status,
+        details: await profileResponse.text()
+      });
+    }
+
+    const profileData = await profileResponse.json();
+
+    res.json({
+      success: true,
+      message: 'LinkedIn API access successful',
+      profile: profileData
+    });
+
+  } catch (error) {
+    console.error('LinkedIn API Test Error:', error);
+    res.status(500).json({
+      error: 'Server error testing LinkedIn API',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;
