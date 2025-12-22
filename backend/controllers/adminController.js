@@ -165,25 +165,31 @@ const registerAdmin = async (req, res) => {
     console.log("   Password length:", password.length);
 
     try {
-      const tempReg = await TempRegistration.create({
+      console.log("🔧 Attempting to create TempRegistration...");
+      const tempRegData = {
         name,
         email,
         password,
         role,
         verificationToken,
         isAdmin: true, // Mark as admin registration
-      });
+      };
+      console.log("   Data to save:", tempRegData);
 
-      console.log("✅ Admin temp registration created for:", email, "ID:", tempReg._id);
-      console.log("   TempReg details:", {
-        name: tempReg.name,
-        email: tempReg.email,
-        isAdmin: tempReg.isAdmin,
-        token: tempReg.verificationToken,
-        expiresAt: tempReg.expiresAt
+      const tempReg = new TempRegistration(tempRegData);
+      console.log("   Created TempRegistration instance");
+
+      const savedTempReg = await tempReg.save();
+      console.log("✅ Admin temp registration SAVED for:", email, "ID:", savedTempReg._id);
+      console.log("   Saved TempReg details:", {
+        name: savedTempReg.name,
+        email: savedTempReg.email,
+        isAdmin: savedTempReg.isAdmin,
+        token: savedTempReg.verificationToken,
+        expiresAt: savedTempReg.expiresAt
       });
     } catch (tempRegError) {
-      console.error("❌ FAILED TO CREATE TEMP REGISTRATION:", tempRegError);
+      console.error("❌ FAILED TO SAVE TEMP REGISTRATION:", tempRegError);
       console.error("Error details:", tempRegError.message);
       console.error("Stack:", tempRegError.stack);
       return res.status(500).json({ message: 'Failed to create temporary registration record.' });
