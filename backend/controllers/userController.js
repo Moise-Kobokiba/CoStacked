@@ -142,58 +142,57 @@ const verifyEmail = async (req, res) => {
                 return res.status(400).json({ message: 'Invalid registration data. Password is required.' });
             }
 
+            // Handle regular user verification
+            // Create the actual user account
+            const userData = {
+                name: tempRegistration.name,
+                email: tempRegistration.email,
+                password: tempRegistration.password.trim(), // Ensure no extra whitespace
+                role: tempRegistration.role,
+                bio: tempRegistration.bio || '',
+                skills: tempRegistration.skills || [],
+                location: tempRegistration.location || '',
+                availability: tempRegistration.availability || '',
+                portfolioLink: tempRegistration.portfolioLink || '',
+                isAdmin: tempRegistration.isAdmin || false, // Set admin flag if this was an admin registration
+                isEmailVerified: true
+            };
+
+            console.log('verifyEmail - Creating user with data:', {
+                ...userData,
+                password: '[HIDDEN]'
+            });
+
+            const user = await User.create(userData);
+            console.log('verifyEmail - User created successfully:', user._id);
+
+            // Create admin notification
             try {
-                // Handle regular user verification
-                // Create the actual user account
-                const userData = {
-                    name: tempRegistration.name,
-                    email: tempRegistration.email,
-                    password: tempRegistration.password.trim(), // Ensure no extra whitespace
-                    role: tempRegistration.role,
-                    bio: tempRegistration.bio || '',
-                    skills: tempRegistration.skills || [],
-                    location: tempRegistration.location || '',
-                    availability: tempRegistration.availability || '',
-                    portfolioLink: tempRegistration.portfolioLink || '',
-                    isAdmin: tempRegistration.isAdmin || false, // Set admin flag if this was an admin registration
-                    isEmailVerified: true
-                };
-
-                console.log('verifyEmail - Creating user with data:', {
-                    ...userData,
-                    password: '[HIDDEN]'
-                });
-
-                const user = await User.create(userData);
-                console.log('verifyEmail - User created successfully:', user._id);
-            } catch (userCreateError) {
-                console.error('verifyEmail - Error creating user:', userCreateError);
-                console.error('verifyEmail - Error stack:', userCreateError.stack);
-                return res.status(500).json({
-                    message: 'Failed to create user account.',
-                    error: userCreateError.message
-                });
+                if (user.isAdmin) {
+                    await AdminNotification.create({
+                        type: 'NEW_ADMIN_REGISTERED',
+                        message: `New admin ${user.name} has joined the platform.`,
+                        link: `/admin/users`,
+                        refId: user._id
+                    });
+                    console.log('verifyEmail - Admin notification created');
+                } else {
+                    await AdminNotification.create({
+                        type: 'NEW_USER_REGISTERED',
+                        message: `${user.name} has just signed up as a ${user.role}.`,
+                        link: `/users`,
+                        refId: user._id
+                    });
+                    console.log('verifyEmail - User notification created');
+                }
+            } catch (notificationError) {
+                console.error('verifyEmail - Error creating notification:', notificationError);
+                // Don't fail the whole process for notification errors
             }
-
-        // Create admin notification
-        if (user.isAdmin) {
-            await AdminNotification.create({
-                type: 'NEW_ADMIN_REGISTERED',
-                message: `New admin ${user.name} has joined the platform.`,
-                link: `/admin/users`,
-                refId: user._id
-            });
-        } else {
-            await AdminNotification.create({
-                type: 'NEW_USER_REGISTERED',
-                message: `${user.name} has just signed up as a ${user.role}.`,
-                link: `/users`,
-                refId: user._id
-            });
-        }
 
             // Remove the temporary registration record
             await TempRegistration.deleteOne({ _id: tempRegistration._id });
+            console.log('verifyEmail - Temp registration cleaned up');
 
             return res.json({
                 success: true,
@@ -213,7 +212,12 @@ const verifyEmail = async (req, res) => {
 
     } catch (error) {
         console.error(`[VERIFY EMAIL ERROR]: ${error.message}`);
-        res.status(500).json({ message: 'Server error during email verification.' });
+        console.error('Error stack:', error.stack);
+        console.error('Error details:', error);
+        res.status(500).json({
+            message: 'Server error during email verification.',
+            error: error.message
+        });
     }
 };
 
