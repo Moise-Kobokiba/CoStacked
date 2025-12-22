@@ -1,0 +1,7 @@
+/* src/components/shared/Card.module.css */
+.card {
+  background: var(--card-background);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
