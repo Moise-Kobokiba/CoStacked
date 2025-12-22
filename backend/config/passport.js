@@ -164,47 +164,6 @@ passport.use(
   );
 }
 
-// LinkedIn OAuth Strategy (only if credentials are provided)
-if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
-passport.use(
-  new (require('passport-linkedin-oauth2').Strategy)(
-    {
-      clientID: process.env.LINKEDIN_CLIENT_ID,
-      clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-      callbackURL: `${BACKEND_URL}/api/auth/linkedin/callback`,
-      scope: ['r_liteprofile'],
-      state: true,
-      profileFields: ['id', 'first-name', 'last-name', 'picture-url'],
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      try {
-        // Check if user already exists with this LinkedIn ID
-        let user = await User.findOne({ linkedinId: profile.id });
-
-        if (user) {
-          // User exists, return it
-          return done(null, user);
-        }
-
-        // Create new user with LinkedIn data
-        const newUserData = {
-          name: profile.displayName || `${profile.name?.givenName || ''} ${profile.name?.familyName || ''}`.trim() || 'User',
-          email: `${profile.id}@linkedin.oauth`,
-          linkedinId: profile.id,
-          role: 'developer',
-          isEmailVerified: false,
-          avatarUrl: profile.photos && profile.photos[0] ? profile.photos[0].value : '',
-        };
-
-        user = await User.create(newUserData);
-        done(null, user);
-      } catch (error) {
-        console.error('LinkedIn OAuth Error:', error);
-        done(error, null);
-      }
-    }
-  )
-  );
-}
+// LinkedIn OAuth disabled - using custom implementation with provided access token
 
 module.exports = passport;
