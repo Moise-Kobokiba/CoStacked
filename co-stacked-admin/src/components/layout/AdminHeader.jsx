@@ -76,7 +76,7 @@ export const AdminHeader = ({ onToggleSidebar }) => {
             <span className={styles.userName}>{user?.name}</span>
             <div className={styles.userRole}>
               <span>Administrator</span>
-              <Badge text="✓ Verified" variant="verified" />
+              <Badge text="Verified" variant="verified" iconOnly />
             </div>
           </div>
           <ChevronDown size={18} className={styles.chevronIcon} />

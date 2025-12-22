@@ -82,7 +82,7 @@ export const UserTable = ({ users }) => {
                   {user.isAdmin ? (
                     <div className={styles.adminBadges}>
                       <Badge text="Admin" variant="danger" />
-                      <Badge text="✓ Verified" variant="verified" />
+                      <Badge text="Verified" variant="verified" iconOnly />
                     </div>
                   ) : 'No'}
                 </td>
