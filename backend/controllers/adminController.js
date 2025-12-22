@@ -122,22 +122,7 @@ const registerAdmin = async (req, res) => {
   try {
     const { name, email, password, role, secretKey } = req.body;
 
-    // Verify database connection and model
-    const mongoose = require('mongoose');
-    if (mongoose.connection.readyState !== 1) {
-      console.error("❌ Database not connected! Ready state:", mongoose.connection.readyState);
-      return res.status(500).json({ message: 'Database connection error.' });
-    }
-    console.log("✅ Database connected, ready state:", mongoose.connection.readyState);
 
-    // Test TempRegistration model
-    try {
-      const testCount = await TempRegistration.countDocuments();
-      console.log("✅ TempRegistration model working, current count:", testCount);
-    } catch (modelError) {
-      console.error("❌ TempRegistration model error:", modelError.message);
-      return res.status(500).json({ message: 'Model registration error.' });
-    }
 
     if (secretKey !== process.env.ADMIN_SECRET_KEY) {
         return res.status(401).json({ message: 'Invalid secret key. Not authorized.' });
@@ -177,9 +162,7 @@ const registerAdmin = async (req, res) => {
     }
 
     // Only create temporary registration record if email was sent successfully
-    console.log("🔧 Creating temp registration for:", email);
-
-    const tempReg = new TempRegistration({
+    const tempReg = await TempRegistration.create({
       name,
       email,
       password,
@@ -188,19 +171,7 @@ const registerAdmin = async (req, res) => {
       isAdmin: true, // Mark as admin registration
     });
 
-    try {
-      await tempReg.save();
-      console.log("✅ Admin temp registration saved for:", email, "ID:", tempReg._id);
-
-      // Double-check it exists
-      const exists = await TempRegistration.findById(tempReg._id);
-      if (!exists) {
-        throw new Error('Record saved but not found in database');
-      }
-    } catch (saveError) {
-      console.error("❌ Failed to save temp registration:", saveError.message);
-      return res.status(500).json({ message: 'Failed to save temporary registration: ' + saveError.message });
-    }
+    console.log("✅ Admin temp registration created for:", email, "ID:", tempReg._id);
 
     res.status(201).json({
       success: true,

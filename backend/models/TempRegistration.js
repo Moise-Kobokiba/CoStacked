@@ -53,7 +53,7 @@ tempRegistrationSchema.pre("save", async function (next) {
   next();
 });
 
-// TEMPORARILY DISABLED: Index to automatically delete expired documents
-// tempRegistrationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+// Index to automatically delete expired documents
+tempRegistrationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('TempRegistration', tempRegistrationSchema);
