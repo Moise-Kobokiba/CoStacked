@@ -31,7 +31,7 @@ router.get(
 
 router.get(
   '/linkedin',
-  passport.authenticate('linkedin', { scope: ['r_liteprofile', 'r_emailaddress'], state: true })
+  passport.authenticate('linkedin', { scope: ['r_liteprofile'], state: true })
 );
 
 router.get(

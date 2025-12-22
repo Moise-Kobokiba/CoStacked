@@ -172,9 +172,9 @@ passport.use(
       clientID: process.env.LINKEDIN_CLIENT_ID,
       clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
       callbackURL: `${BACKEND_URL}/api/auth/linkedin/callback`,
-      scope: ['r_liteprofile', 'r_emailaddress'],
+      scope: ['r_liteprofile'],
       state: true,
-      profileFields: ['id', 'first-name', 'last-name', 'email-address', 'picture-url'],
+      profileFields: ['id', 'first-name', 'last-name', 'picture-url'],
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -186,32 +186,17 @@ passport.use(
           return done(null, user);
         }
 
-        // Check if user exists with the same email
-        const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
-        
-        if (email) {
-          user = await User.findOne({ email });
-          if (user) {
-            // Link LinkedIn account to existing user and update profile data
-            user.linkedinId = profile.id;
-            
-            // Update avatar if user doesn't have one
-            if (!user.avatarUrl && profile.photos && profile.photos[0]) {
-              user.avatarUrl = profile.photos[0].value;
-            }
-            
-            await user.save();
-            return done(null, user);
-          }
-        }
+        // Note: LinkedIn OAuth no longer provides email access in basic scopes
+        // We cannot check for existing users by email or get verified emails
+        // Users will need to link their LinkedIn account to existing accounts manually
 
         // Create new user with LinkedIn data
         const newUserData = {
           name: profile.displayName || `${profile.name?.givenName || ''} ${profile.name?.familyName || ''}`.trim() || 'User',
-          email: email || `${profile.id}@linkedin.oauth`,
+          email: `${profile.id}@linkedin.oauth`, // Fallback email using LinkedIn ID
           linkedinId: profile.id,
           role: 'developer',
-          isEmailVerified: !!email, // Only mark as verified if we got a real email
+          isEmailVerified: false, // Cannot verify email without access to it
           avatarUrl: profile.photos && profile.photos[0] ? profile.photos[0].value : '',
         };
         
