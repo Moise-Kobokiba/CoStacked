@@ -278,14 +278,7 @@ const authUser = async (req, res) => {
  */
 const getUsers = async (req, res) => {
   try {
-    const allUsers = await User.find({}).select('name email isAdmin').sort({ createdAt: -1 });
-    console.log('getUsers - Total users in DB:', allUsers.length);
-    console.log('getUsers - Admin users:', allUsers.filter(u => u.isAdmin).length);
-    console.log('getUsers - Non-admin users:', allUsers.filter(u => !u.isAdmin).length);
-
     const users = await User.find({ isAdmin: { $ne: true } }).select('-password').sort({ createdAt: -1 });
-    console.log('getUsers - Users returned to frontend:', users.length);
-
     res.json(users);
   } catch (error) {
     console.error(`[GET USERS ERROR]: ${error.message}`);
