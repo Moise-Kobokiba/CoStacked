@@ -272,13 +272,13 @@ const authUser = async (req, res) => {
 };
 
 /**
- * @desc    Get all users for the public browse page
+ * @desc    Get all users for the public browse page (excludes admin users)
  * @route   GET /api/users
  * @access  Public
  */
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+    const users = await User.find({ isAdmin: { $ne: true } }).select('-password').sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
     console.error(`[GET USERS ERROR]: ${error.message}`);

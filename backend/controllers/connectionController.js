@@ -69,6 +69,15 @@ const sendRequest = async (req, res) => {
       return res.status(400).json({ message: 'You cannot connect with yourself.' });
     }
 
+    // Check if recipient exists and is not an admin
+    const recipient = await User.findById(recipientId);
+    if (!recipient) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    if (recipient.isAdmin) {
+      return res.status(403).json({ message: 'You cannot connect with this user.' });
+    }
+
     // Check if a connection already exists
     const existingConnection = await Connection.findOne({
       $or: [
@@ -169,7 +178,7 @@ const getConnections = async (req, res) => {
           : conn.requester;
         return otherUser;
       })
-      .filter(user => user !== null);
+      .filter(user => user !== null && user.isAdmin !== true); // Exclude admin users
 
     res.json(userConnections);
   } catch (error) {
@@ -185,8 +194,12 @@ const getPendingRequests = async (req, res) => {
         const requests = await Connection.find({
             recipient: req.user._id,
             status: 'pending'
-        }).populate('requester', 'name role avatarUrl bio');
-        res.json(requests);
+        }).populate('requester', 'name role avatarUrl bio isAdmin');
+
+        // Filter out requests from admin users
+        const filteredRequests = requests.filter(request => !request.requester.isAdmin);
+
+        res.json(filteredRequests);
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
     }
