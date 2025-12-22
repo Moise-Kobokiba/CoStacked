@@ -43,7 +43,7 @@ router.get('/linkedin', async (req, res) => {
     console.log('LinkedIn auth: Token found, making API call');
 
     // Fetch user profile from LinkedIn API
-    const profileResponse = await fetch('https://api.linkedin.com/v2/people/~:(id,firstName,lastName,profilePicture(displayImage~:playableStreams))', {
+    const profileResponse = await fetch('https://api.linkedin.com/v2/me', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'X-Restli-Protocol-Version': '2.0.0'
@@ -71,7 +71,7 @@ router.get('/linkedin', async (req, res) => {
       console.log('LinkedIn auth: Creating new user');
       const User = require('../models/User');
       const newUserData = {
-        name: `${profileData.firstName?.localized?.en_US || profileData.firstName?.localized?.en || 'User'} ${profileData.lastName?.localized?.en_US || profileData.lastName?.localized?.en || ''}`.trim(),
+        name: `${profileData.localizedFirstName || profileData.firstName || 'User'} ${profileData.localizedLastName || profileData.lastName || ''}`.trim(),
         email: `${profileData.id}@linkedin.oauth`,
         linkedinId: profileData.id,
         role: 'developer',
