@@ -8,6 +8,19 @@ const connectDB = require('./config/db');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
+// --- 1.5. MODEL IMPORTS (Ensure models are registered) ---
+require('./models/User');
+require('./models/Project');
+require('./models/Interest');
+require('./models/Message');
+require('./models/Conversation');
+require('./models/Notification');
+require('./models/AdminNotification');
+require('./models/Report');
+require('./models/Review');
+require('./models/Transaction');
+require('./models/TempRegistration');
+
 // Load env variables
 if (process.env.NODE_ENV !== 'production') dotenv.config();
 
