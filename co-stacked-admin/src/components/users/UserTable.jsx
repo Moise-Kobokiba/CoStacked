@@ -78,8 +78,13 @@ export const UserTable = ({ users }) => {
                 <td data-label="Role">
                   <Badge text={user.role} variant={user.role === 'founder' ? 'primary' : 'secondary'} />
                 </td>
-                <td data-label="Admin">
-                  {user.isAdmin ? <Badge text="Admin" variant="danger" /> : 'No'}
+                <td data-label="Admin" className={styles.adminCell}>
+                  {user.isAdmin ? (
+                    <div className={styles.adminBadges}>
+                      <Badge text="Admin" variant="danger" />
+                      <Badge text="✓ Verified" variant="verified" />
+                    </div>
+                  ) : 'No'}
                 </td>
                 <td data-label="Date Joined">
                   {user.createdAt ? format(new Date(user.createdAt), 'dd MMM, yyyy') : 'N/A'}

@@ -30,3 +30,8 @@
   background-color: #fee2e2; /* red 100 */
   color: #991b1b;       /* red 700 */
 }
+
+.verified {
+  background-color: #fef3c7; /* amber 100 - light gold/yellow */
+  color: #92400e;       /* amber 700 - dark gold */
+}
