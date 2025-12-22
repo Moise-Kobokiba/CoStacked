@@ -122,13 +122,22 @@ const registerAdmin = async (req, res) => {
   try {
     const { name, email, password, role, secretKey } = req.body;
 
-    // Verify database connection
+    // Verify database connection and model
     const mongoose = require('mongoose');
     if (mongoose.connection.readyState !== 1) {
       console.error("❌ Database not connected! Ready state:", mongoose.connection.readyState);
       return res.status(500).json({ message: 'Database connection error.' });
     }
     console.log("✅ Database connected, ready state:", mongoose.connection.readyState);
+
+    // Test TempRegistration model
+    try {
+      const testCount = await TempRegistration.countDocuments();
+      console.log("✅ TempRegistration model working, current count:", testCount);
+    } catch (modelError) {
+      console.error("❌ TempRegistration model error:", modelError.message);
+      return res.status(500).json({ message: 'Model registration error.' });
+    }
 
     if (secretKey !== process.env.ADMIN_SECRET_KEY) {
         return res.status(401).json({ message: 'Invalid secret key. Not authorized.' });
