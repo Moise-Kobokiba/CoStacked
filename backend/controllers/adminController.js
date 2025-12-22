@@ -160,7 +160,11 @@ const registerAdmin = async (req, res) => {
     }
 
     // Only create temporary registration record if email was sent successfully
-    await TempRegistration.create({
+    console.log("🔧 Creating temp registration for:", email);
+    console.log("   Token:", verificationToken);
+    console.log("   Password length:", password.length);
+
+    const tempReg = await TempRegistration.create({
       name,
       email,
       password,
@@ -169,7 +173,7 @@ const registerAdmin = async (req, res) => {
       isAdmin: true, // Mark as admin registration
     });
 
-    console.log("✅ Admin temp registration created for:", email);
+    console.log("✅ Admin temp registration created for:", email, "ID:", tempReg._id);
 
     res.status(201).json({
       success: true,
