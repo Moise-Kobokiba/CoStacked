@@ -122,6 +122,14 @@ const registerAdmin = async (req, res) => {
   try {
     const { name, email, password, role, secretKey } = req.body;
 
+    // Verify database connection
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState !== 1) {
+      console.error("❌ Database not connected! Ready state:", mongoose.connection.readyState);
+      return res.status(500).json({ message: 'Database connection error.' });
+    }
+    console.log("✅ Database connected, ready state:", mongoose.connection.readyState);
+
     if (secretKey !== process.env.ADMIN_SECRET_KEY) {
         return res.status(401).json({ message: 'Invalid secret key. Not authorized.' });
     }
@@ -160,6 +168,8 @@ const registerAdmin = async (req, res) => {
     }
 
     // Only create temporary registration record if email was sent successfully
+    console.log("🔧 Creating temp registration for:", email);
+
     const tempReg = await TempRegistration.create({
       name,
       email,
@@ -169,7 +179,14 @@ const registerAdmin = async (req, res) => {
       isAdmin: true, // Mark as admin registration
     });
 
-    console.log("✅ Admin temp registration created for:", email, "ID:", tempReg._id);
+    // Verify the record was actually created
+    const verifyCreated = await TempRegistration.findById(tempReg._id);
+    if (!verifyCreated) {
+      console.error("❌ TempRegistration.create() succeeded but record not found in database!");
+      return res.status(500).json({ message: 'Database error: Temporary registration not saved.' });
+    }
+
+    console.log("✅ Admin temp registration created and verified for:", email, "ID:", tempReg._id);
 
     res.status(201).json({
       success: true,
