@@ -179,7 +179,7 @@ const registerAdmin = async (req, res) => {
     // Only create temporary registration record if email was sent successfully
     console.log("🔧 Creating temp registration for:", email);
 
-    const tempReg = await TempRegistration.create({
+    const tempReg = new TempRegistration({
       name,
       email,
       password,
@@ -188,14 +188,19 @@ const registerAdmin = async (req, res) => {
       isAdmin: true, // Mark as admin registration
     });
 
-    // Verify the record was actually created
-    const verifyCreated = await TempRegistration.findById(tempReg._id);
-    if (!verifyCreated) {
-      console.error("❌ TempRegistration.create() succeeded but record not found in database!");
-      return res.status(500).json({ message: 'Database error: Temporary registration not saved.' });
-    }
+    try {
+      await tempReg.save();
+      console.log("✅ Admin temp registration saved for:", email, "ID:", tempReg._id);
 
-    console.log("✅ Admin temp registration created and verified for:", email, "ID:", tempReg._id);
+      // Double-check it exists
+      const exists = await TempRegistration.findById(tempReg._id);
+      if (!exists) {
+        throw new Error('Record saved but not found in database');
+      }
+    } catch (saveError) {
+      console.error("❌ Failed to save temp registration:", saveError.message);
+      return res.status(500).json({ message: 'Failed to save temporary registration: ' + saveError.message });
+    }
 
     res.status(201).json({
       success: true,
