@@ -144,10 +144,10 @@ const verifyEmail = async (req, res) => {
 
             // Handle regular user verification
             // Create the actual user account
-            const userData = {
+            const user = new User({
                 name: tempRegistration.name,
                 email: tempRegistration.email,
-                password: tempRegistration.password.trim(), // Ensure no extra whitespace
+                password: tempRegistration.password.trim(), // Password is already hashed from temp registration
                 role: tempRegistration.role,
                 bio: tempRegistration.bio || '',
                 skills: tempRegistration.skills || [],
@@ -156,14 +156,21 @@ const verifyEmail = async (req, res) => {
                 portfolioLink: tempRegistration.portfolioLink || '',
                 isAdmin: tempRegistration.isAdmin || false, // Set admin flag if this was an admin registration
                 isEmailVerified: true
-            };
-
-            console.log('verifyEmail - Creating user with data:', {
-                ...userData,
-                password: '[HIDDEN]'
             });
 
-            const user = await User.create(userData);
+            // Mark password as not modified to prevent double hashing
+            user.markModified('password', false);
+
+            console.log('verifyEmail - Creating user with data:', {
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                isAdmin: user.isAdmin,
+                isEmailVerified: user.isEmailVerified,
+                password: '[ALREADY_HASHED]'
+            });
+
+            await user.save();
             console.log('verifyEmail - User created successfully:', user._id);
 
             // Create admin notification
