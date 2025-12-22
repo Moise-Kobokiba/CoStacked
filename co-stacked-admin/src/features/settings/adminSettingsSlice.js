@@ -11,7 +11,7 @@ export const getAdminSettings = createAsyncThunk(
       const response = await API.get('/admin/settings');
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || { message: 'Failed to load settings' });
     }
   }
 );
