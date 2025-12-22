@@ -7,7 +7,7 @@ import styles from './AdminSidebar.module.css';
 import PropTypes from 'prop-types';
 
 // Import all necessary icons
-import { LayoutDashboard, Users, Briefcase, Flag, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Briefcase, Flag, Settings, LogOut } from 'lucide-react';
 import logoSrc from '../../assets/logo.png'; 
 
 const adminNavItems = [
@@ -15,6 +15,7 @@ const adminNavItems = [
   { title: "User Management", href: "/users", icon: Users },
   { title: "Project Management", href: "/projects", icon: Briefcase },
   { title: "Content Moderation", href: "/reports", icon: Flag },
+  { title: "Settings", href: "/settings", icon: Settings },
 ];
 
 // --- MODIFIED: Accept `isOpen` and `onClose` props for mobile behavior ---

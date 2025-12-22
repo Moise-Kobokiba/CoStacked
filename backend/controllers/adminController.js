@@ -453,6 +453,110 @@ const getAdminProfile = async (req, res) => {
 };
 
 /**
+ * @desc    Update the logged-in admin's profile
+ * @route   PUT /api/admin/profile
+ * @access  Private/Admin
+ */
+const updateAdminProfile = async (req, res) => {
+  try {
+    const { name, bio } = req.body;
+    const adminUser = await User.findById(req.user.id);
+
+    if (!adminUser) {
+      return res.status(404).json({ message: "Admin user not found" });
+    }
+
+    // Update allowed fields
+    if (name !== undefined) adminUser.name = name;
+    if (bio !== undefined) adminUser.bio = bio;
+
+    const updatedUser = await adminUser.save();
+
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      bio: updatedUser.bio,
+      role: updatedUser.role,
+      isAdmin: updatedUser.isAdmin,
+    });
+  } catch (error) {
+    console.error("Update Admin Profile Error:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+/**
+ * @desc    Change the logged-in admin's password
+ * @route   PUT /api/admin/change-password
+ * @access  Private/Admin
+ */
+const changeAdminPassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Current password and new password are required" });
+    }
+
+    const adminUser = await User.findById(req.user.id);
+
+    if (!adminUser) {
+      return res.status(404).json({ message: "Admin user not found" });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, adminUser.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    // Update password (will be hashed by pre-save middleware)
+    adminUser.password = newPassword;
+    await adminUser.save();
+
+    res.json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Change Admin Password Error:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+/**
+ * @desc    Get system settings and configuration
+ * @route   GET /api/admin/settings
+ * @access  Private/Admin
+ */
+const getAdminSettings = async (req, res) => {
+  try {
+    // Get email configuration
+    const emailConfig = {
+      hasApiKey: !!process.env.AHASEND_API_KEY,
+      hasFromEmail: !!process.env.AHASEND_FROM_EMAIL,
+      fromEmail: process.env.AHASEND_FROM_EMAIL,
+      fromName: process.env.AHASEND_FROM_NAME || 'CoStacked',
+      adminFrontendUrl: process.env.ADMIN_FRONTEND_URL,
+      frontendUrl: process.env.FRONTEND_URL,
+    };
+
+    // Get system info (safely)
+    const systemInfo = {
+      nodeVersion: process.version,
+      environment: process.env.NODE_ENV || 'development',
+      hasAdminSecret: !!process.env.ADMIN_SECRET_KEY,
+    };
+
+    res.json({
+      emailConfig,
+      systemInfo,
+    });
+  } catch (error) {
+    console.error("Get Admin Settings Error:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+/**
  * @desc    Request a password reset for admin users
  * @route   POST /api/admin/forgot-password
  * @access  Public
@@ -517,5 +621,8 @@ module.exports = {
   markAdminNotificationsAsRead,
   updateReportStatus,
   getAdminProfile,
+  updateAdminProfile,
+  changeAdminPassword,
+  getAdminSettings,
   forgotAdminPassword,
 };

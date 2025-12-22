@@ -18,6 +18,7 @@ import { ProjectManagementPage } from './pages/ProjectManagementPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { TransactionsPage } from './pages/TransactionsPage';
 import { AdminVerifyEmailPage } from './pages/AdminVerifyEmailPage';
+import { AdminSettingsPage } from './pages/AdminSettingsPage';
 
 // The router configuration is updated with all necessary routes.
 const router = createBrowserRouter([
@@ -33,10 +34,11 @@ const router = createBrowserRouter([
         element: <AdminLayout><Outlet /></AdminLayout>,
         children: [
           { index: true, element: <AdminDashboardPage /> },
-          { path: 'users', element: <UserManagementPage /> },
-          { path: 'projects', element: <ProjectManagementPage /> },
-          { path: 'reports', element: <ReportsPage /> },
-          { path: 'transactions', element: <TransactionsPage /> },
+           { path: 'users', element: <UserManagementPage /> },
+           { path: 'projects', element: <ProjectManagementPage /> },
+           { path: 'reports', element: <ReportsPage /> },
+           { path: 'transactions', element: <TransactionsPage /> },
+           { path: 'settings', element: <AdminSettingsPage /> },
         ]
       }
     ]

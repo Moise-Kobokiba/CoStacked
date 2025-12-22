@@ -20,6 +20,9 @@ const {
     markAdminNotificationsAsRead,
     updateReportStatus,
       getAdminProfile,
+    updateAdminProfile,
+    changeAdminPassword,
+    getAdminSettings,
     forgotAdminPassword
 } = require('../controllers/adminController');
 const { protect, admin } = require('../middleware/authMiddleware');
@@ -74,7 +77,12 @@ router.route('/transactions').get(protect, admin, getTransactions);
 // === Admin Notifications Routes ===
 router.route('/notifications').get(protect, admin, getAdminNotifications);
 router.route('/notifications/mark-read').put(protect, admin, markAdminNotificationsAsRead);
+
+// === Admin Profile & Settings Routes ===
 router.route('/profile').get(protect, admin, getAdminProfile);
+router.route('/profile').put(protect, admin, updateAdminProfile);
+router.route('/change-password').put(protect, admin, changeAdminPassword);
+router.route('/settings').get(protect, admin, getAdminSettings);
 
 // === User Management Routes ===
 router.route('/users').get(protect, admin, getUsersForAdmin);
