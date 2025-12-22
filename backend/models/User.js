@@ -94,9 +94,17 @@ userSchema.pre("save", async function (next) {
 
 // Validation middleware to ensure admin users have verified emails
 userSchema.pre("save", function (next) {
-  if (this.isAdmin && !this.isEmailVerified) {
-    const error = new Error("Admin users must have verified email addresses");
-    return next(error);
+  // Only validate if this is a new document or if isAdmin field is being modified
+  if (this.isNew || this.isModified('isAdmin')) {
+    if (this.isAdmin === true && this.isEmailVerified !== true) {
+      console.log('User validation - Admin user without verified email:', {
+        isAdmin: this.isAdmin,
+        isEmailVerified: this.isEmailVerified,
+        isNew: this.isNew
+      });
+      const error = new Error("Admin users must have verified email addresses");
+      return next(error);
+    }
   }
   next();
 });

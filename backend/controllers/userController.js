@@ -102,33 +102,78 @@ const registerUser = async (req, res) => {
 const verifyEmail = async (req, res) => {
     try {
         const { email, token } = req.body;
+        console.log('verifyEmail - Received request:', { email, token: token ? 'present' : 'missing' });
+
         if (!email || !token) {
             return res.status(400).json({ message: 'Email and token are required.' });
         }
 
         // First, check for temporary registration (regular users)
+        console.log('verifyEmail - Looking for temp registration...');
         const tempRegistration = await TempRegistration.findOne({
             email,
             verificationToken: token,
             expiresAt: { $gt: Date.now() }
         });
 
+        console.log('verifyEmail - Temp registration found:', !!tempRegistration);
+
         if (tempRegistration) {
-            // Handle regular user verification
-        // Create the actual user account
-        const user = await User.create({
-            name: tempRegistration.name,
-            email: tempRegistration.email,
-            password: tempRegistration.password, // Password is already hashed by the model pre-save hook
-            role: tempRegistration.role,
-            bio: tempRegistration.bio,
-            skills: tempRegistration.skills,
-            location: tempRegistration.location,
-            availability: tempRegistration.availability,
-            portfolioLink: tempRegistration.portfolioLink,
-            isAdmin: tempRegistration.isAdmin || false, // Set admin flag if this was an admin registration
-            isEmailVerified: true
-        });
+            console.log('verifyEmail - Creating user account...');
+            console.log('verifyEmail - Temp registration data:', {
+                name: tempRegistration.name,
+                email: tempRegistration.email,
+                role: tempRegistration.role,
+                isAdmin: tempRegistration.isAdmin,
+                hasPassword: !!tempRegistration.password
+            });
+
+            // Check if user already exists
+            const existingUser = await User.findOne({ email: tempRegistration.email });
+            if (existingUser) {
+                console.log('verifyEmail - User already exists, cleaning up temp registration');
+                await TempRegistration.deleteOne({ _id: tempRegistration._id });
+                return res.status(400).json({ message: 'Account already verified. Please log in instead.' });
+            }
+
+            // Validate required fields
+            if (!tempRegistration.password || tempRegistration.password.trim() === '') {
+                console.error('verifyEmail - Password is empty or invalid');
+                return res.status(400).json({ message: 'Invalid registration data. Password is required.' });
+            }
+
+            try {
+                // Handle regular user verification
+                // Create the actual user account
+                const userData = {
+                    name: tempRegistration.name,
+                    email: tempRegistration.email,
+                    password: tempRegistration.password.trim(), // Ensure no extra whitespace
+                    role: tempRegistration.role,
+                    bio: tempRegistration.bio || '',
+                    skills: tempRegistration.skills || [],
+                    location: tempRegistration.location || '',
+                    availability: tempRegistration.availability || '',
+                    portfolioLink: tempRegistration.portfolioLink || '',
+                    isAdmin: tempRegistration.isAdmin || false, // Set admin flag if this was an admin registration
+                    isEmailVerified: true
+                };
+
+                console.log('verifyEmail - Creating user with data:', {
+                    ...userData,
+                    password: '[HIDDEN]'
+                });
+
+                const user = await User.create(userData);
+                console.log('verifyEmail - User created successfully:', user._id);
+            } catch (userCreateError) {
+                console.error('verifyEmail - Error creating user:', userCreateError);
+                console.error('verifyEmail - Error stack:', userCreateError.stack);
+                return res.status(500).json({
+                    message: 'Failed to create user account.',
+                    error: userCreateError.message
+                });
+            }
 
         // Create admin notification
         if (user.isAdmin) {
