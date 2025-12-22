@@ -164,7 +164,11 @@ passport.use(
   );
 }
 
-// LinkedIn OAuth Strategy (only if credentials are provided)
+// LinkedIn OAuth Strategy - DISABLED due to LinkedIn API restrictions
+// LinkedIn no longer approves OAuth apps for profile access without special enterprise approval
+// Keeping the code commented for future use when/if LinkedIn policies change
+
+/*
 if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
 passport.use(
   new (require('passport-linkedin-oauth2').Strategy)(
@@ -186,22 +190,17 @@ passport.use(
           return done(null, user);
         }
 
-        // Note: LinkedIn OAuth no longer provides email access in basic scopes
-        // We cannot check for existing users by email or get verified emails
-        // Users will need to link their LinkedIn account to existing accounts manually
-
         // Create new user with LinkedIn data
         const newUserData = {
           name: profile.displayName || `${profile.name?.givenName || ''} ${profile.name?.familyName || ''}`.trim() || 'User',
-          email: `${profile.id}@linkedin.oauth`, // Fallback email using LinkedIn ID
+          email: `${profile.id}@linkedin.oauth`,
           linkedinId: profile.id,
           role: 'developer',
-          isEmailVerified: false, // Cannot verify email without access to it
+          isEmailVerified: false,
           avatarUrl: profile.photos && profile.photos[0] ? profile.photos[0].value : '',
         };
-        
-        user = await User.create(newUserData);
 
+        user = await User.create(newUserData);
         done(null, user);
       } catch (error) {
         console.error('LinkedIn OAuth Error:', error);
@@ -211,5 +210,6 @@ passport.use(
   )
   );
 }
+*/
 
 module.exports = passport;

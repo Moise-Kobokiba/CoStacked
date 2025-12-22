@@ -10,7 +10,7 @@ import { Card } from '../components/shared/Card';
 import { Input } from '../components/shared/Input';
 import { Label } from '../components/shared/Label';
 import { Button } from '../components/shared/Button';
-import { Loader2, Github, Linkedin } from 'lucide-react';
+import { Loader2, Github } from 'lucide-react';
 import styles from './LoginPage.module.css';
 
 export const LoginPage = () => {
@@ -129,7 +129,8 @@ export const LoginPage = () => {
               Continue with Google
             </Button>
 
-            <Button
+            {/* LinkedIn OAuth temporarily disabled - requires LinkedIn approval */}
+            {/* <Button
               type="button"
               variant="outline"
               onClick={handleLinkedInLogin}
@@ -137,7 +138,7 @@ export const LoginPage = () => {
             >
               <Linkedin size={20} />
               Continue with LinkedIn
-            </Button>
+            </Button> */}
           </div>
 
           <div className={styles.footer}>

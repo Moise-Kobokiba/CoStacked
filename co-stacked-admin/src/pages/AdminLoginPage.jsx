@@ -136,7 +136,8 @@ export const AdminLoginPage = () => {
               Continue with Google
             </Button>
 
-            <Button
+            {/* LinkedIn OAuth temporarily disabled - requires LinkedIn approval */}
+            {/* <Button
               type="button"
               variant="outline"
               onClick={handleLinkedInLogin}
@@ -144,7 +145,7 @@ export const AdminLoginPage = () => {
             >
               <Linkedin size={20} />
               Continue with LinkedIn
-            </Button>
+            </Button> */}
           </div>
 
           <div className={styles.footer}>
