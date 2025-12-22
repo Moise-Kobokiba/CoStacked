@@ -29,10 +29,15 @@ router.get(
   oauthCallback
 );
 
-// Custom LinkedIn authentication using provided access token
+// Custom LinkedIn authentication using access token from environment
 router.get('/linkedin', async (req, res) => {
   try {
-    const accessToken = 'AQXTCgKpGrvuGU9SlZDrsTqPOyLsgf7e91Qu1Y65QnbFkv-2w9hftb_cGS873J0_zfIKni6SoEkQmhmorRfV6sdj1EVRNsir-szYNXG8aCRGU5PZrqJWkchSuHc3S98z_ywjGxLM-_3iSJh3lrEX0LBHVmqt7YUh8rQjUFDT7D7fTlk-LeOE0g5h8-QPr7fwRPDHQhdyxswiD6wSHEg3SChzxjGbRvx9DACRBFKjH3odlCWc-rN93SEpINprN5H8kYZVH4TAjj2NqJb1VPwTccwTr28xsQ1UXlIAUYEfaMd7knkQu3tU7mTHmgVqxfR0BFLKb9Tr20Q7PmBRMVsqryZE70-hgw';
+    const accessToken = process.env.LINKEDIN_ACCESS_TOKEN;
+
+    if (!accessToken) {
+      console.error('LinkedIn access token not configured');
+      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=linkedin_not_configured`);
+    }
 
     // Fetch user profile from LinkedIn API
     const profileResponse = await fetch('https://api.linkedin.com/v2/people/~:(id,firstName,lastName,profilePicture(displayImage~:playableStreams))', {
