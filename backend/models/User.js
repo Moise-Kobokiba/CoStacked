@@ -92,6 +92,15 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+// Validation middleware to ensure admin users have verified emails
+userSchema.pre("save", function (next) {
+  if (this.isAdmin && !this.isEmailVerified) {
+    const error = new Error("Admin users must have verified email addresses");
+    return next(error);
+  }
+  next();
+});
+
 // Method to securely compare a provided password with the hashed password in the DB
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);

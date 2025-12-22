@@ -162,43 +162,8 @@ const verifyEmail = async (req, res) => {
             });
         }
 
-        // If no temp registration found, check for admin user verification
-        const adminUser = await User.findOne({
-            email,
-            emailVerificationToken: token,
-            emailVerificationExpires: { $gt: Date.now() },
-            isAdmin: true
-        });
-
-        if (adminUser) {
-            // Handle admin user verification
-            adminUser.isEmailVerified = true;
-            adminUser.emailVerificationToken = undefined;
-            adminUser.emailVerificationExpires = undefined;
-            await adminUser.save({ validateBeforeSave: false });
-
-            // Create admin notification for new admin
-            await AdminNotification.create({
-                type: 'NEW_ADMIN_REGISTERED',
-                message: `New admin ${adminUser.name} has joined the platform.`,
-                link: `/admin/users`,
-                refId: adminUser._id
-            });
-
-            return res.json({
-                success: true,
-                message: 'Admin email verified successfully! You can now log in.',
-                user: {
-                    _id: adminUser._id,
-                    name: adminUser.name,
-                    email: adminUser.email,
-                    role: adminUser.role,
-                    isAdmin: adminUser.isAdmin
-                }
-            });
-        }
-
-        // If neither found, token is invalid
+        // If no temp registration found, token is invalid
+        // Note: Admin users now also use TempRegistration (same as regular users)
         return res.status(400).json({ message: 'Invalid or expired verification token.' });
 
     } catch (error) {
