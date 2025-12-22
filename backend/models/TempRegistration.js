@@ -45,12 +45,21 @@ const tempRegistrationSchema = new mongoose.Schema({
 
 // Middleware to automatically hash the password before saving
 tempRegistrationSchema.pre("save", async function (next) {
+  console.log("🔐 TempRegistration pre-save hook triggered for:", this.email);
   if (!this.isModified("password")) {
+    console.log("   Password not modified, skipping hash");
     return next();
   }
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+  try {
+    console.log("   Hashing password...");
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    console.log("   Password hashed successfully");
+    next();
+  } catch (error) {
+    console.error("❌ Password hashing failed:", error.message);
+    next(error);
+  }
 });
 
 // Index to automatically delete expired documents
