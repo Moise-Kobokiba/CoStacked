@@ -136,13 +136,21 @@
     font-size: 1.25rem; /* Slightly smaller title */
   }
 
-  /* Hide the detailed user info and chevron on mobile */
-  .userInfo,
+  /* Hide only the chevron on mobile, keep user info visible */
   .chevronIcon {
     display: none;
   }
 
+  /* Adjust user info layout for mobile */
+  .userInfo {
+    margin-left: 0.75rem;
+  }
+
+  .userRole {
+    font-size: 0.75rem; /* Slightly smaller on mobile */
+  }
+
   .userMenu {
-    gap: 0.75rem; /* Reduce gap between bell and avatar */
+    gap: 1rem; /* Keep reasonable gap for better spacing */
   }
 }
