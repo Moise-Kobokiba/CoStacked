@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+    <loc>https://www.costacked.co.za/</loc>
+    <priority>1.00</priority>
+  </url>
+
+  <url>
+    <loc>https://www.costacked.co.za/login</loc>
+    <priority>0.80</priority>
+  </url>
+
+  <url>
+    <loc>https://www.costacked.co.za/register</loc>
+    <priority>0.80</priority>
+  </url>
+
+  <url>
+    <loc>https://www.costacked.co.za/projects</loc>
+    <priority>0.90</priority>
+  </url>
+
+  <url>
+    <loc>https://www.costacked.co.za/users</loc>
+    <priority>0.90</priority>
+  </url>
+
+  <url>
+    <loc>https://www.costacked.co.za/post-project</loc>
+    <priority>0.70</priority>
+  </url>
+
+  <url>
+    <loc>https://www.costacked.co.za/about</loc>
+    <priority>0.60</priority>
+  </url>
+
+  <url>
+    <loc>https://www.costacked.co.za/contact</loc>
+    <priority>0.60</priority>
+  </url>
+
+</urlset>
