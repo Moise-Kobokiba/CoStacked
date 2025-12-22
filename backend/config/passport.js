@@ -166,4 +166,52 @@ passport.use(
 
 // LinkedIn OAuth disabled - using custom implementation with provided access token
 
+// LinkedIn OAuth Strategy with OpenID Connect
+if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
+passport.use(
+  new (require('passport-linkedin-oauth2').Strategy)(
+    {
+      clientID: process.env.LINKEDIN_CLIENT_ID,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+      callbackURL: `${BACKEND_URL}/api/auth/linkedin/callback`,
+      scope: ['openid', 'profile'],
+      state: true,
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        console.log('LinkedIn OAuth: Profile received:', JSON.stringify(profile, null, 2));
+
+        // Check if user already exists with this LinkedIn ID
+        let user = await User.findOne({ linkedinId: profile.id });
+
+        if (user) {
+          console.log('LinkedIn OAuth: Existing user found');
+          return done(null, user);
+        }
+
+        console.log('LinkedIn OAuth: Creating new user');
+        // Create new user with LinkedIn data
+        const newUserData = {
+          name: profile.displayName || profile.name?.givenName + ' ' + profile.name?.familyName || 'LinkedIn User',
+          email: profile.emails && profile.emails[0] ? profile.emails[0].value : `${profile.id}@linkedin.oauth`,
+          linkedinId: profile.id,
+          role: 'developer',
+          isEmailVerified: !!(profile.emails && profile.emails[0]), // Only verified if we got a real email
+          avatarUrl: profile.photos && profile.photos[0] ? profile.photos[0].value : '',
+        };
+
+        console.log('LinkedIn OAuth: Creating user with data:', JSON.stringify(newUserData, null, 2));
+        user = await User.create(newUserData);
+        console.log('LinkedIn OAuth: User created successfully');
+
+        done(null, user);
+      } catch (error) {
+        console.error('LinkedIn OAuth Error:', error);
+        done(error, null);
+      }
+    }
+  )
+  );
+}
+
 module.exports = passport;
