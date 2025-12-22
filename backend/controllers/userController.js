@@ -222,33 +222,31 @@ const authUser = async (req, res) => {
     const user = await User.findOne({ email });
     if (user && (await user.matchPassword(password))) {
       if (!user.isEmailVerified) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           message: 'Email not verified. Please check your inbox for a verification code.',
           emailNotVerified: true
         });
       }
-        const isAdminUser = user.isAdmin;
-        const message = isAdminUser
-            ? 'Admin email verified successfully! Your admin account has been created. You can now log in.'
-            : 'Email verified successfully! Your account has been created. You can now log in.';
 
-        res.json({
-            success: true,
-            message,
-            user: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                isAdmin: isAdminUser
-            }
-        });
+      // Generate JWT token
+      const token = generateToken(user._id);
+
+      res.json({
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isAdmin: user.isAdmin
+        },
+        token
+      });
     } else {
       res.status(401).json({ message: 'Invalid email or password.' });
     }
   } catch (error) {
     console.error(`[AUTH ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server Error: Could not authenticate user.' });
+    res.status(500).json({ message: 'Server error during authentication.' });
   }
 };
 
