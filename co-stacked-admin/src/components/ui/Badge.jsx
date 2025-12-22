@@ -12,7 +12,7 @@ import { Check } from 'lucide-react';
 export const Badge = ({ text, variant = 'secondary', iconOnly = false }) => {
   return (
     <span className={`${styles.badge} ${styles[variant]} ${iconOnly ? styles.iconOnly : ''}`}>
-      {iconOnly ? <Check size={12} strokeWidth={3} /> : text}
+      {iconOnly ? <Check size={12} strokeWidth={3} className={styles.checkIcon} /> : text}
     </span>
   );
 };

@@ -20,6 +20,23 @@
   border: 2px solid transparent;
 }
 
+/* Mobile-specific badge adjustments */
+@media (max-width: 768px) {
+  .iconOnly {
+    width: 16px;
+    height: 16px;
+  }
+
+  .verified.iconOnly {
+    border-width: 1px; /* Thinner border on mobile */
+  }
+
+  .checkIcon {
+    width: 10px !important;
+    height: 10px !important;
+  }
+}
+
 /* --- Variants --- */
 .primary {
   background-color: hsla(211, 71%, 52%, 0.1);
