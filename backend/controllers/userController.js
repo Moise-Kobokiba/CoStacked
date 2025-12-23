@@ -14,7 +14,8 @@ const crypto = require('crypto');
  */
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role, bio, skills, location, availability, portfolioLink } = req.body;
+    const { name, email, password: rawPassword, role, bio, skills, location, availability, portfolioLink } = req.body;
+    const password = rawPassword.trim();
 
     if (!name || !email || !password || !role) {
       return res.status(400).json({ message: 'Name, email, password, and role are required fields.' });
@@ -147,7 +148,7 @@ const verifyEmail = async (req, res) => {
             const user = new User({
                 name: tempRegistration.name,
                 email: tempRegistration.email,
-                password: tempRegistration.password.trim(), // Password is already hashed from temp registration
+                password: tempRegistration.password, // Password is already hashed and trimmed from registration
                 role: tempRegistration.role,
                 bio: tempRegistration.bio || '',
                 skills: tempRegistration.skills || [],
@@ -241,12 +242,13 @@ const verifyEmail = async (req, res) => {
  */
 const authUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password: rawPassword } = req.body;
+    const password = rawPassword.trim();
     if (!email || !password) {
       return res.status(400).json({ message: 'Please provide both email and password.' });
     }
 
-    console.log(`[AUTH ATTEMPT]: Email: ${email}, Password provided: ${!!password}`);
+    console.log(`[AUTH ATTEMPT]: Email: ${email}, Password provided: ${!!rawPassword}, Trimmed length: ${password.length}`);
 
     const user = await User.findOne({ email });
     console.log(`[AUTH USER FOUND]: ${!!user}, Role: ${user?.role}, Email verified: ${user?.isEmailVerified}`);
@@ -364,7 +366,9 @@ const updateUserProfile = async (req, res) => {
  */
 const changeUserPassword = async (req, res) => {
   try {
-    const { currentPassword, newPassword } = req.body;
+    const { currentPassword: rawCurrent, newPassword: rawNew } = req.body;
+    const currentPassword = rawCurrent.trim();
+    const newPassword = rawNew.trim();
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ message: 'Please provide both current and new passwords.' });
     }
@@ -467,10 +471,11 @@ const resetPassword = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: 'Token is invalid or has expired.' });
     }
-    if (req.body.password.length < 12) {
+    const password = req.body.password.trim();
+    if (password.length < 12) {
       return res.status(400).json({ message: 'Password must be at least 12 characters long.' });
     }
-    user.password = req.body.password;
+    user.password = password;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save();
