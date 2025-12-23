@@ -245,7 +245,12 @@ const authUser = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ message: 'Please provide both email and password.' });
     }
+
+    console.log(`[AUTH ATTEMPT]: Email: ${email}, Password provided: ${!!password}`);
+
     const user = await User.findOne({ email });
+    console.log(`[AUTH USER FOUND]: ${!!user}, Email verified: ${user?.isEmailVerified}`);
+
     if (user && (await user.matchPassword(password))) {
       if (!user.isEmailVerified) {
         return res.status(401).json({
@@ -268,10 +273,12 @@ const authUser = async (req, res) => {
         token
       });
     } else {
+      console.log(`[AUTH FAILED]: User exists: ${!!user}, Password match: ${user ? 'checking...' : 'N/A'}`);
       res.status(401).json({ message: 'Invalid email or password.' });
     }
   } catch (error) {
     console.error(`[AUTH ERROR]: ${error.message}`);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ message: 'Server error during authentication.' });
   }
 };
