@@ -251,7 +251,13 @@ const authUser = async (req, res) => {
     const user = await User.findOne({ email });
     console.log(`[AUTH USER FOUND]: ${!!user}, Role: ${user?.role}, Email verified: ${user?.isEmailVerified}`);
 
-    if (user && (await user.matchPassword(password))) {
+    let passwordMatches = false;
+    if (user) {
+      passwordMatches = await user.matchPassword(password);
+      console.log(`[AUTH PASSWORD CHECK]: Matches: ${passwordMatches}`);
+    }
+
+    if (user && passwordMatches) {
       if (!user.isEmailVerified) {
         return res.status(401).json({
           message: 'Email not verified. Please check your inbox for a verification code.',
@@ -273,7 +279,7 @@ const authUser = async (req, res) => {
         token
       });
     } else {
-      console.log(`[AUTH FAILED]: User exists: ${!!user}, Password match: ${user ? 'checking...' : 'N/A'}`);
+      console.log(`[AUTH FAILED]: User exists: ${!!user}, Password provided: ${!!password}, Verified: ${user?.isEmailVerified}`);
       res.status(401).json({ message: 'Invalid email or password.' });
     }
   } catch (error) {
