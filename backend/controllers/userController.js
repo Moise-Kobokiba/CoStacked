@@ -249,7 +249,7 @@ const authUser = async (req, res) => {
     console.log(`[AUTH ATTEMPT]: Email: ${email}, Password provided: ${!!password}`);
 
     const user = await User.findOne({ email });
-    console.log(`[AUTH USER FOUND]: ${!!user}, Email verified: ${user?.isEmailVerified}`);
+    console.log(`[AUTH USER FOUND]: ${!!user}, Role: ${user?.role}, Email verified: ${user?.isEmailVerified}`);
 
     if (user && (await user.matchPassword(password))) {
       if (!user.isEmailVerified) {
