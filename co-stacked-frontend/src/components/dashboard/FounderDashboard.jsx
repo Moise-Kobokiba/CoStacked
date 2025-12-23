@@ -168,12 +168,13 @@ export const FounderDashboard = ({
         </>
       )}
 
-      <div className={styles.separator} />
-      <h3 className={styles.title}>Quick Actions</h3>
-      <div className={styles.grid}>
-          <Card className={styles.quickActionCard}><Link to="/post-project">Post a New Project</Link><p>Share your next big idea.</p></Card>
-          <Card className={styles.quickActionCard}><Link to="/users">Discover Developers</Link><p>Find talent for your projects.</p></Card>
-      </div>
+       <div className={styles.separator} />
+       <h3 className={styles.title}>Quick Actions</h3>
+       <div className={styles.grid}>
+           <Card className={styles.quickActionCard}><Link to="/post-project">Post a New Project</Link><p>Share your next big idea.</p></Card>
+           <Card className={styles.quickActionCard}><Link to="/profile">Update Your Profile</Link><p>Keep your bio and details fresh.</p></Card>
+           <Card className={styles.quickActionCard}><Link to="/users">Discover Developers</Link><p>Find talent for your projects.</p></Card>
+       </div>
     </>
   );
 };
