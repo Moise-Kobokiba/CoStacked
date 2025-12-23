@@ -172,11 +172,7 @@ export const uploadAvatar = createAsyncThunk(
       });
 
       // After uploading, sync the new user data with localStorage
-      const currentAuth = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY));
-      if (currentAuth) {
-        const updatedAuth = { ...currentAuth, user: response.data };
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedAuth));
-      }
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(response.data));
       
       return response.data; // The full updated user object from the backend
     } catch (error) {
@@ -277,6 +273,15 @@ const authSlice = createSlice({
         state.status = "succeeded";
         state.successMessage = action.payload.message;
         state.unverifiedEmail = null;
+        // If token is returned, auto-login the user
+        if (action.payload.token) {
+          state.isAuthenticated = true;
+          state.user = action.payload.user;
+          state.token = action.payload.token;
+          // Save to localStorage
+          localStorage.setItem(TOKEN_KEY, action.payload.token);
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(action.payload.user));
+        }
       })
       .addCase(verifyEmail.rejected, (state, action) => {
         state.status = "failed";

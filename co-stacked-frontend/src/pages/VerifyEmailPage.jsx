@@ -47,8 +47,11 @@ export const VerifyEmailPage = () => {
     );
 
     if (verifyEmail.fulfilled.match(result)) {
+      // If user is now authenticated (token returned), go to dashboard
+      // Otherwise, go to login page
+      const redirectTo = result.payload.token ? "/dashboard" : "/login";
       setTimeout(() => {
-        navigate("/login");
+        navigate(redirectTo, { replace: true });
       }, 1800);
     }
   };

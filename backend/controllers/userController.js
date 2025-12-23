@@ -201,15 +201,20 @@ const verifyEmail = async (req, res) => {
             await TempRegistration.deleteOne({ _id: tempRegistration._id });
             console.log('verifyEmail - Temp registration cleaned up');
 
+            // Generate JWT token for auto-login
+            const token = generateToken(user._id);
+
             return res.json({
                 success: true,
-                message: 'Email verified successfully! Your account has been created. You can now log in.',
+                message: 'Email verified successfully! Your account has been created and you are now logged in.',
                 user: {
                     _id: user._id,
                     name: user.name,
                     email: user.email,
-                    role: user.role
-                }
+                    role: user.role,
+                    isAdmin: user.isAdmin
+                },
+                token
             });
         }
 
