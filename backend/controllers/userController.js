@@ -250,13 +250,36 @@ const authUser = async (req, res) => {
 
     console.log(`[AUTH ATTEMPT]: Email: ${email}, Password provided: ${!!rawPassword}, Trimmed length: ${password.length}`);
 
-    const user = await User.findOne({ email });
-    console.log(`[AUTH USER FOUND]: ${!!user}, Role: ${user?.role}, Email verified: ${user?.isEmailVerified}`);
+const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password.' });
+    }
+    if (!user.password) {
+      return res.status(401).json({ message: 'Account uses OAuth login. Please log in with the linked provider or set a password.' });
+    }
+    if (user && (await user.matchPassword(password))) {
+      if (!user.isEmailVerified) {
+        return res.status(401).json({
+          message: 'Email not verified. Please check your inbox for a verification code.',
+          emailNotVerified: true
+        });
+      }
 
-    let passwordMatches = false;
-    if (user) {
-      passwordMatches = await user.matchPassword(password);
-      console.log(`[AUTH PASSWORD CHECK]: Matches: ${passwordMatches}`);
+      // Generate JWT token
+      const token = generateToken(user._id);
+
+      res.json({
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isAdmin: user.isAdmin
+        },
+        token
+      });
+    } else {
+      res.status(401).json({ message: 'Invalid email or password.' });
     }
 
     if (user && passwordMatches) {
