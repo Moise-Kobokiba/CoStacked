@@ -14,7 +14,8 @@ const crypto = require('crypto');
  */
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password: rawPassword, role, bio, skills, location, availability, portfolioLink } = req.body;
+    let { name, email, password: rawPassword, role, bio, skills, location, availability, portfolioLink } = req.body;
+    email = email.toLowerCase(); // Normalize email to lowercase
     const password = rawPassword.trim();
 
     if (!name || !email || !password || !role) {
@@ -102,7 +103,8 @@ const registerUser = async (req, res) => {
  */
 const verifyEmail = async (req, res) => {
     try {
-        const { email, token } = req.body;
+        let { email, token } = req.body;
+        if (email) email = email.toLowerCase();
         console.log('verifyEmail - Received request:', { email, token: token ? 'present' : 'missing' });
 
         if (!email || !token) {
@@ -242,7 +244,8 @@ const verifyEmail = async (req, res) => {
  */
 const authUser = async (req, res) => {
   try {
-    const { email, password: rawPassword } = req.body;
+    let { email, password: rawPassword } = req.body;
+    if (email) email = email.toLowerCase();
     const password = rawPassword.trim();
     if (!email || !password) {
       return res.status(400).json({ message: 'Please provide both email and password.' });
