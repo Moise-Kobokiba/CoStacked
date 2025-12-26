@@ -282,31 +282,7 @@ const user = await User.findOne({ email });
       res.status(401).json({ message: 'Invalid email or password.' });
     }
 
-    if (user && passwordMatches) {
-      if (!user.isEmailVerified) {
-        return res.status(401).json({
-          message: 'Email not verified. Please check your inbox for a verification code.',
-          emailNotVerified: true
-        });
-      }
 
-      // Generate JWT token
-      const token = generateToken(user._id);
-
-      res.json({
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          isAdmin: user.isAdmin
-        },
-        token
-      });
-    } else {
-      console.log(`[AUTH FAILED]: User exists: ${!!user}, Password provided: ${!!password}, Verified: ${user?.isEmailVerified}`);
-      res.status(401).json({ message: 'Invalid email or password.' });
-    }
   } catch (error) {
     console.error(`[AUTH ERROR]: ${error.message}`);
     console.error('Error stack:', error.stack);
