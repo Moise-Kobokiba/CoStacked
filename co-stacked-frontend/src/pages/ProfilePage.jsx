@@ -210,6 +210,14 @@ const formatDate = (dateString) => {
     loggedInUser?.role === "founder" &&
     userToDisplay.role === "developer"; // This logic needs to be more advanced for real reviews
 
+  const reviewableProjects = 
+    loggedInUser?.role === 'founder' && founderConnections
+      ? founderConnections.filter(c => 
+          c.senderId?._id === userToDisplay._id && 
+          c.status === 'approved'
+        )
+      : [];
+
   return (
     <>
       <ProfileBoostModal
@@ -219,7 +227,7 @@ const formatDate = (dateString) => {
       />
       <LeaveReviewModal
         developer={userToDisplay}
-        reviewableProjects={[]}
+        reviewableProjects={reviewableProjects}
         open={isReviewModalOpen}
         onClose={() => setReviewModalOpen(false)}
       />
