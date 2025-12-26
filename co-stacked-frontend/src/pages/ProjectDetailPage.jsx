@@ -5,7 +5,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 
 // Import all necessary Redux actions
-import { sendInterestRequest } from '../features/interests/interestsSlice';
+import { sendInterestRequest, fetchSentInterests } from '../features/interests/interestsSlice';
 import { fetchProjects } from '../features/projects/projectsSlice';
 import { submitReport } from '../features/reports/reportsSlice';
 
@@ -30,7 +30,7 @@ export const ProjectDetailPage = () => {
   // Get all live data from the Redux store
   const { user: currentUser } = useSelector(state => state.auth);
   const { items: projects, status: projectsStatus } = useSelector(state => state.projects);
-  const { status: interestStatus } = useSelector(state => state.interests);
+  const { status: interestStatus, sentItems } = useSelector(state => state.interests);
   
   const project = projects.find(p => p._id === projectId);
 
@@ -40,6 +40,17 @@ export const ProjectDetailPage = () => {
       dispatch(fetchProjects());
     }
   }, [projectsStatus, dispatch]);
+
+  // Effect to fetch sent interests to check connection status
+  useEffect(() => {
+    if (currentUser?.role === 'developer') {
+      dispatch(fetchSentInterests());
+    }
+  }, [currentUser, dispatch]);
+
+  const existingInterest = sentItems.find(i => 
+    (i.projectId._id || i.projectId) === projectId
+  );
 
   // --- Handlers for user actions ---
   const handleConnectClick = () => {
@@ -96,6 +107,26 @@ export const ProjectDetailPage = () => {
   const isFounderOfProject = project && currentUser && project.founderId === currentUser._id;
   const canConnect = currentUser && currentUser.role === 'developer' && !isFounderOfProject;
 
+  let connectButton = null;
+
+  if (canConnect) {
+    if (existingInterest) {
+      if (existingInterest.status === 'approved') {
+        connectButton = <Button disabled className={styles.connectedButton}>Connected</Button>; // Could link to chat
+      } else if (existingInterest.status === 'pending') {
+         connectButton = <Button disabled>Request Sent</Button>;
+      } else { // rejected
+         connectButton = <Button disabled>Not Selected</Button>;
+      }
+    } else {
+      connectButton = (
+        <Button onClick={handleConnectClick} disabled={interestStatus === 'loading'}>
+          {interestStatus === 'loading' ? 'Sending...' : 'Connect'}
+        </Button>
+      );
+    }
+  }
+
   return (
     <>
       <ConnectNDAModal open={isNdaModalOpen} onClose={() => setNdaModalOpen(false)} onConfirm={handleConfirmNda} />
@@ -115,11 +146,7 @@ export const ProjectDetailPage = () => {
           <Card className={styles.projectCard}>
             <header className={styles.header}>
               <h1>{project.title}</h1>
-              {canConnect && (
-                <Button onClick={handleConnectClick} disabled={interestStatus === 'loading'}>
-                  {interestStatus === 'loading' ? 'Sending...' : 'Connect'}
-                </Button>
-              )}
+              {connectButton}
             </header>
 
             <div className={styles.contentGrid}>
