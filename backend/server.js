@@ -8,6 +8,8 @@ const connectDB = require('./config/db');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
+const startSubscriptionCron = require('./cron/subscriptionCron'); // Import Cron
+
 // --- 1.5. MODEL IMPORTS (Ensure models are registered) ---
 require('./models/User');
 require('./models/Project');
@@ -20,6 +22,9 @@ require('./models/Report');
 require('./models/Review');
 require('./models/Transaction');
 require('./models/TempRegistration');
+
+// Start the subscription renewal cron job
+startSubscriptionCron();
 
 // Load env variables
 if (process.env.NODE_ENV !== 'production') dotenv.config();

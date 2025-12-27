@@ -93,6 +93,10 @@ const verifySubscription = async (req, res) => {
     }
 
     user.isVerified = true;
+    user.isSubscriptionAutoRenew = true;
+    const now = new Date();
+    user.subscriptionExpiresAt = new Date(new Date().setDate(now.getDate() + 30));
+    
     const updatedUser = await user.save();
 
     await Transaction.create({
@@ -183,9 +187,38 @@ const verifyProfileBoost = async (req, res) => {
     }
 };
 
+/**
+ * @desc    Cancel user's subscription auto-renewal
+ * @route   POST /api/payments/cancel-subscription
+ * @access  Private
+ */
+const cancelSubscription = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        user.isSubscriptionAutoRenew = false;
+        const updatedUser = await user.save();
+
+        res.json({ 
+            success: true, 
+            message: "Subscription auto-renewal cancelled. Your verified badge will remain until the billing period ends.",
+            user: updatedUser
+        });
+
+    } catch (error) {
+        console.error(`[CANCEL SUBSCRIPTION ERROR]: ${error.message}`);
+        res.status(500).json({ message: 'Failed to cancel subscription.' });
+    }
+};
+
 // Export all controller functions
 module.exports = { 
   verifyPaymentAndBoost, 
   verifySubscription,
-  verifyProfileBoost
+  verifyProfileBoost,
+  cancelSubscription
 };

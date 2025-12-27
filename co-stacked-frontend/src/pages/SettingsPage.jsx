@@ -269,11 +269,25 @@ export const SettingsPage = () => {
             {user.isVerified ? (
               <div className={styles.verifiedContainer}>
                 <div className={styles.verifiedBadge}>
-                  <CheckCircle size={20} /><span>Your account is verified.</span>
+                  <CheckCircle size={20} />
+                  <div>
+                    <span style={{ display: 'block', fontWeight: '500' }}>Your account is verified.</span>
+                    {user.isSubscriptionAutoRenew ? (
+                        <span style={{ fontSize: '0.85rem', color: '#4caf50', marginTop: '4px', display: 'block' }}>
+                            Renews on {new Date(user.subscriptionExpiresAt).toLocaleDateString()}
+                        </span>
+                    ) : user.subscriptionExpiresAt ? (
+                        <span style={{ fontSize: '0.85rem', color: '#f44336', marginTop: '4px', display: 'block' }}>
+                            Expires on {new Date(user.subscriptionExpiresAt).toLocaleDateString()}
+                        </span>
+                    ) : null}
+                  </div>
                 </div>
-                <Button variant="destructive" onClick={() => setCancelModalOpen(true)} disabled={paymentStatus === 'loading'}>
-                  {paymentStatus === 'loading' ? 'Canceling...' : 'Cancel Subscription'}
-                </Button>
+                {user.isSubscriptionAutoRenew && (
+                    <Button variant="destructive" onClick={() => setCancelModalOpen(true)} disabled={paymentStatus === 'loading'}>
+                    {paymentStatus === 'loading' ? 'Canceling...' : 'Cancel Subscription'}
+                    </Button>
+                )}
               </div>
             ) : (
               <div className={styles.verificationContent}>

@@ -47,6 +47,10 @@ const userSchema = mongoose.Schema(
     passwordResetToken: { type: String },
     passwordResetExpires: { type: Date },
 
+    // --- Subscription Fields ---
+    subscriptionExpiresAt: { type: Date },
+    isSubscriptionAutoRenew: { type: Boolean, default: false },
+
     // --- Optional Profile Fields ---
     bio: { type: String, default: "" },
     skills: { type: [String], default: [] },

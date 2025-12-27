@@ -6,7 +6,8 @@ const router = express.Router();
 const { 
   verifyPaymentAndBoost, 
   verifySubscription,
-  verifyProfileBoost // <-- Import the new function
+  verifyProfileBoost, // <-- Import the new function
+  cancelSubscription
 } = require('../controllers/paymentController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -30,5 +31,12 @@ router.route('/verify-subscription').post(protect, verifySubscription);
  * @access  Private
  */
 router.route('/verify-profile-boost').post(protect, verifyProfileBoost); // <-- 2. ADD THIS ROUTE
+
+/**
+ * @route   POST /api/payments/cancel-subscription
+ * @desc    Cancel user's subscription auto-renewal
+ * @access  Private
+ */
+router.route('/cancel-subscription').post(protect, cancelSubscription);
 
 module.exports = router;
