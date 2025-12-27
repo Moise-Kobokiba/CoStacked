@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Loader2 } from 'lucide-react';
-import { useYoco } from '../../hooks/useYoco'; // <-- 1. IMPORT the new hook
+import { useYoco } from '../../hooks/useYoco'; // Verified path imports the new file
 import styles from './YocoPayment.module.css';
 
 export const YocoPayment = ({ publicKey, amountInCents, currency = 'ZAR', name, description, onPaymentResult }) => {
