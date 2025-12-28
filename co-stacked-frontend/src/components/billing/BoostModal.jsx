@@ -37,6 +37,7 @@ export const BoostModal = ({ project, open, onClose }) => {
         metadata: {
           projectId: project._id,
           tierId: selectedTier,
+          type: 'project_boost', // Explicit type for backend verification
           successPath: '/dashboard', // Where to redirect after a successful payment
           failurePath: '/dashboard'  // Where to redirect after a failed/canceled payment
         },

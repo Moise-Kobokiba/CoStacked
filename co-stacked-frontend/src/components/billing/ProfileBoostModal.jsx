@@ -38,6 +38,7 @@ export const ProfileBoostModal = ({ user, open, onClose }) => {
         // Metadata our backend needs to verify the payment correctly
         metadata: {
           tierId: selectedTier,
+          type: 'profile_boost', // Explicit type for backend verification
           successPath: '/profile', // Where to redirect after a successful payment
           failurePath: '/profile'  // Where to redirect after a failed/canceled payment
         },

@@ -349,9 +349,77 @@ const verifyCheckout = async (req, res) => {
         });
 
         res.json({ success: true, message: 'Subscription verified and active.', user });
+    } else if (type === 'project_boost') {
+        const projectId = metadata.projectId;
+        const tierId = metadata.tierId; // '3d', '5d', '7d'
+
+        // Constants matching BoostModal.jsx
+        // In a real app, these should be shared or in DB
+        const BOOST_DURATIONS = { '3d': 3, '5d': 5, '7d': 7 };
+        const durationDays = BOOST_DURATIONS[tierId];
+
+        if (!projectId || !durationDays) {
+           return res.status(400).json({ message: "Invalid project or boost tier." });
+        }
+
+        const project = await Project.findById(projectId);
+        if (!project) return res.status(404).json({ message: "Project to boost not found." });
+
+        project.isBoosted = true;
+        const now = new Date();
+        project.boostExpiresAt = new Date(new Date().setDate(now.getDate() + durationDays));
+        await project.save();
+
+        await Transaction.create({
+            user: userId,
+            amount: amount,
+            currency: currency,
+            status: 'completed',
+            type: 'project_boost',
+            paymentMethod: 'yoco_checkout',
+            reference: checkoutId,
+            description: metadata?.description || `Boost Project: ${project.title}`
+        });
+
+        res.json({ success: true, message: `Project boosted for ${durationDays} days!`, user });
+
+    } else if (type === 'profile_boost') {
+        const tierId = metadata.tierId;
+        const BOOST_DURATIONS = { '3d': 3, '5d': 5, '7d': 7 };
+        const durationDays = BOOST_DURATIONS[tierId];
+
+        if (!durationDays) {
+            return res.status(400).json({ message: "Invalid boost tier provided." });
+        }
+
+        user.isBoosted = true;
+        const now = new Date();
+        user.boostExpiresAt = new Date(new Date().setDate(now.getDate() + durationDays));
+        const updatedUser = await user.save();
+
+        await Transaction.create({
+            user: userId,
+            amount: amount,
+            currency: currency,
+            status: 'completed',
+            type: 'profile_boost',
+            paymentMethod: 'yoco_checkout',
+            reference: checkoutId,
+            description: metadata?.description || 'Profile Boost'
+        });
+
+        await Notification.create({
+            recipient: user._id,
+            type: 'system',
+            content: `Your profile is boosted for ${durationDays} days!`,
+            relatedId: checkoutId,
+            relatedModel: 'Transaction' 
+        });
+
+        res.json({ success: true, message: `Profile boosted for ${durationDays} days!`, user: updatedUser });
+
     } else {
-        // Handle other types if needed (boosts etc) in future
-        // For now just return success
+        // Fallback
         res.json({ success: true, message: 'Payment verified.', user });
     }
 

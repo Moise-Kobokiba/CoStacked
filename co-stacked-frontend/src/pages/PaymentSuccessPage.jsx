@@ -81,8 +81,14 @@ export const PaymentSuccessPage = () => {
                         Your verification badge is now active.
                     </p>
                 )}
-                <Button onClick={() => navigate('/settings')}>
-                    Return to Settings
+                <Button onClick={() => {
+                    if (type === 'project_boost') navigate('/dashboard');
+                    else if (type === 'profile_boost') navigate('/profile');
+                    else navigate('/settings');
+                }}>
+                    {type === 'project_boost' ? 'Return to Dashboard' : 
+                     type === 'profile_boost' ? 'Return to Profile' : 
+                     'Return to Settings'}
                 </Button>
             </>
         )}
