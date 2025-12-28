@@ -90,7 +90,7 @@ export const PrivacyPolicyPage = () => {
             <li><strong>Deletion:</strong> You can request deletion of your account and associated data.</li>
             <li><strong>Data Portability:</strong> You can request a copy of your data in a machine-readable format.</li>
           </ul>
-          <p>To exercise these rights, please contact us at privacy@costacked.com</p>
+          <p>To exercise these rights, please contact us at info@costacked.com</p>
         </section>
 
         <section>
