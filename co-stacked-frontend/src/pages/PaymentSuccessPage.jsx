@@ -5,11 +5,7 @@ import { useDispatch } from 'react-redux';
 import { CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '../components/shared/Button';
 import API from '../api/axios';
-import { verifySubscription } from '../features/payments/paymentSlice'; // Import action if needed, or dispatch manual update
-// Ideally we dispatch an action that updates the user in redux. 
-// For now, let's fetch the updated profile or just manually update if the slice supports it.
-// Assuming we need to refresh the user profile to get the new 'isVerified' status.
-
+import { setUser } from '../features/auth/authSlice';
 import styles from './PaymentSuccessPage.module.css';
 
 export const PaymentSuccessPage = () => {
@@ -26,9 +22,7 @@ export const PaymentSuccessPage = () => {
       const checkoutId = localStorage.getItem('pendingCheckoutId');
       
       if (!checkoutId) {
-        // If no ID, maybe they refreshed or came here directly. 
-        // We can't verify, but if they are here from Yoco, it might be fine.
-        // But to be safe, show a generic success or warning.
+        // If no ID, but user is here, assume success (or they refreshed after success)
         setStatus('success'); 
         setMessage('Payment Completed.');
         return;
@@ -44,12 +38,10 @@ export const PaymentSuccessPage = () => {
             // Clear the ID
             localStorage.removeItem('pendingCheckoutId');
             
-            // Dispatch/Update User State here if needed. 
-            // Since the backend updated the user, we should probably reload the user profile
-            // to ensure the frontend has the latest 'isVerified' flag.
-            window.location.reload(); // Simple way to force refresh of user data on next app load, 
-            // OR ideally: dispatch(fetchUserProfile()); 
-            // For now, next time they navigate or refresh, it updates.
+            // Update Redux state directly with the fresh user data from backend
+            if (response.data.user) {
+                dispatch(setUser(response.data.user));
+            }
         } else {
             throw new Error(response.data.message || 'Verification failed');
         }

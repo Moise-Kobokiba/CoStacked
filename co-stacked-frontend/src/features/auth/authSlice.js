@@ -211,14 +211,18 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      state.status = "idle";
-      state.error = null;
       state.successMessage = null;
       state.unverifiedEmail = null;
     },
     clearAuthMessages: (state) => {
       state.error = null;
       state.successMessage = null;
+    },
+    // NEW: Manually update user state (e.g., after external payment verification)
+    setUser: (state, action) => {
+      state.user = action.payload;
+      state.isAuthenticated = true;
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(action.payload));
     },
   },
   extraReducers: (builder) => {
@@ -418,6 +422,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearAuthMessages } = authSlice.actions;
+export const { logout, clearAuthMessages, setUser } = authSlice.actions;
 
 export default authSlice.reducer;
