@@ -11,6 +11,16 @@
   height: 100%;
 }
 
+/* Specific Dark Mode Background Override */
+html[data-theme='dark'] .card {
+  background-color: rgb(32, 41, 56);
+}
+
+/* Specific Light Mode Background Override */
+html[data-theme='light'] .card, :root .card {
+   background-color: rgb(255, 255, 255);
+}
+
 .boostedCard {
   border: 2px solid var(--primary);
   box-shadow: 0 4px 12px rgba(var(--primary-rgb, 33, 150, 243), 0.15);
