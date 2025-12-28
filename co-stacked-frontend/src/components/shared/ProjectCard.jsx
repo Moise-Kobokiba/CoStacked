@@ -70,11 +70,13 @@ export const ProjectCard = ({ project, connection }) => {
             <div className={styles.detailsList}>
               <p className={styles.detailItem}><span className={styles.detailLabel}>Compensation:</span> {project.compensation || 'N/A'}</p>
               <p className={styles.detailItem}><span className={styles.detailLabel}>Stage:</span> {project.stage || 'N/A'}</p>
-              <p className={styles.detailItem}>
+              <div className={styles.detailItem}>
                 <span className={styles.detailLabel}>Founder:</span> 
-                {project.founder || 'N/A'}
-                {project.founderId?.isVerified && <VerificationBadge size={14} />}
-              </p>
+                <span className={styles.detailValue}>
+                  {project.founder || 'N/A'}
+                  {project.founderId?.isVerified && <VerificationBadge size={14} />}
+                </span>
+              </div>
             </div>
         
             {/* --- REFACTORED FOOTER LOGIC --- */}

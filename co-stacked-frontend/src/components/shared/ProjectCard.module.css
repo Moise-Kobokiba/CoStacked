@@ -127,6 +127,12 @@ html[data-theme='light'] .card, :root .card {
   color: var(--muted-foreground);
 }
 
+.detailValue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 /* --- Footer --- */
 .footer {
   margin-top: auto; 
