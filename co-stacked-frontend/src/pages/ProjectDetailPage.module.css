@@ -1,4 +1,181 @@
-.badge {
-    margin-left: 6px;
-    display: inline-flex;
+/* src/pages/ProjectDetailPage.module.css */
+
+.pageContainer {
+  padding: 1.5rem 1rem;
+  background-color: var(--background);
+  min-height: 100vh;
+}
+
+.contentWrapper {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.loader {
+  text-align: center;
+  padding: 4rem 0;
+  color: var(--muted-foreground);
+}
+
+.actions {
+  margin-bottom: 1rem;
+}
+
+.actions a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.actions a:hover {
+  text-decoration: underline;
+}
+
+.projectCard {
+  padding: 0; /* Remove base padding to let internal sections handle it */
+  overflow: hidden; /* Ensures content respects border-radius */
+}
+
+/* --- Card Header --- */
+.header {
+  display: flex;
+  flex-direction: column; /* Stack on mobile */
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.header h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+/* --- Main Content Layout --- */
+.contentGrid {
+  display: flex;
+  flex-direction: column; /* Stack on mobile */
+}
+
+.mainContent {
+  padding: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  margin-bottom: 1rem;
+}
+
+.mainContent p {
+  line-height: 1.7;
+  color: var(--foreground);
+  margin-bottom: 2rem;
+}
+
+.skillsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+
+/* --- Details Sidebar --- */
+.detailsSidebar {
+  padding: 1.5rem;
+  background-color: var(--background);
+  border-top: 1px solid var(--border); /* Use top border on mobile */
+}
+
+.detailsSidebar ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.detailItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.detailItem strong {
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.detailItem span {
+  font-weight: 600;
+  color: var(--foreground);
+  text-align: right;
+}
+
+
+/* --- Card Footer --- */
+.footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.reportButton {
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.reportButton:hover {
+  color: var(--destructive);
+}
+
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
+/* --- Medium Screens / Tablets (768px and up) --- */
+@media (min-width: 768px) {
+  .pageContainer {
+    padding: 3rem 1.5rem;
+  }
+  
+  .header {
+    flex-direction: row; /* Place title and button side-by-side */
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .header h1 {
+    font-size: 2.25rem;
+  }
+
+  .contentGrid {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* 2/3 for main, 1/3 for sidebar */
+  }
+  
+  .mainContent {
+    padding: 2rem;
+  }
+
+  .detailsSidebar {
+    padding: 2rem;
+    border-top: none; /* Remove top border */
+    border-left: 1px solid var(--border); /* Add left border for desktop */
+  }
+
+  .footer {
+    text-align: right;
+  }
 }
