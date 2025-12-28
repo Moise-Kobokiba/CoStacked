@@ -48,8 +48,9 @@ export const PaymentSuccessPage = () => {
       } catch (err) {
         console.error('Verification error:', err);
         setStatus('error');
-        // Show the actual error message from backend if possible
-        setMessage(err.message || 'Could not verify payment status automatically.');
+        // Extract the specific message from the backend response if available
+        const errorMsg = err.response?.data?.message || err.message || 'Could not verify payment status automatically.';
+        setMessage(errorMsg);
       }
     };
 
