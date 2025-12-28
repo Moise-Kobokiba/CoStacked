@@ -55,45 +55,26 @@ export const ProjectCard = ({ project, connection }) => {
         )}
 
         <div className={styles.contentWrapper}>
-            <div className={styles.contentGrid}>
-              
-              {/* Main Content Area */}
-              <div className={styles.mainContent}>
-                <h3 className={styles.title}>{project.title || 'Untitled Project'}</h3>
-                <p className={styles.description}>{project.description || 'No description provided.'}</p>
-                <div>
-                  <h4 className={styles.skillsTitle}>Skills Needed</h4>
-                  <div className={styles.tagsContainer}>
-                    {skills.length > 0 ? (
-                        skills.map((skill) => <Tag key={skill}>{skill}</Tag>)
-                    ) : (
-                        <p className={styles.noSkills}>No specific skills listed.</p>
-                    )}
-                  </div>
-                </div>
+            <h3 className={styles.title}>{project.title || 'Untitled Project'}</h3>
+            <p className={styles.description}>{project.description || 'No description provided.'}</p>
+            <div>
+              <h4 className={styles.skillsTitle}>Skills Needed</h4>
+              <div className={styles.tagsContainer}>
+                {skills.length > 0 ? (
+                    skills.map((skill) => <Tag key={skill}>{skill}</Tag>)
+                ) : (
+                    <p className={styles.noSkills}>No specific skills listed.</p>
+                )}
               </div>
-
-              {/* Sidebar Details Area */}
-              <aside className={styles.detailsSidebar}>
-                <ul>
-                  <li className={styles.detailItem}>
-                    <strong>Compensation</strong>
-                    <span>{project.compensation || 'N/A'}</span>
-                  </li>
-                  <li className={styles.detailItem}>
-                    <strong>Stage</strong>
-                    <span>{project.stage || 'N/A'}</span>
-                  </li>
-                  <li className={styles.detailItem}>
-                    <strong>Founder</strong>
-                    <span>
-                      {project.founder || 'N/A'}
-                      {project.founderId?.isVerified && <VerificationBadge size={14} />}
-                    </span>
-                  </li>
-                </ul>
-              </aside>
-
+            </div>
+            <div className={styles.detailsList}>
+              <p className={styles.detailItem}><span className={styles.detailLabel}>Compensation:</span> {project.compensation || 'N/A'}</p>
+              <p className={styles.detailItem}><span className={styles.detailLabel}>Stage:</span> {project.stage || 'N/A'}</p>
+              <p className={styles.detailItem}>
+                <span className={styles.detailLabel}>Founder:</span> 
+                {project.founder || 'N/A'}
+                {project.founderId?.isVerified && <VerificationBadge size={14} />}
+              </p>
             </div>
         
             {/* --- REFACTORED FOOTER LOGIC --- */}
