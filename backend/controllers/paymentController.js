@@ -291,6 +291,7 @@ const verifyCheckout = async (req, res) => {
     });
 
     const checkoutData = await response.json();
+    console.log('[VERIFY_CHECKOUT] Yoco Response:', JSON.stringify(checkoutData, null, 2));
 
     if (!response.ok) {
         console.error('Yoco Verification Error:', checkoutData);
@@ -298,8 +299,11 @@ const verifyCheckout = async (req, res) => {
     }
 
     // Check if payment was successful
-    if (checkoutData.status !== 'succeeded') {
-        return res.status(400).json({ message: `Payment status is ${checkoutData.status}, not succeeded.` });
+    // Allow 'succeeded' or 'successful' just in case, though API says 'succeeded'
+    const status = checkoutData.status?.toLowerCase();
+    if (status !== 'succeeded' && status !== 'successful') {
+        console.warn(`[VERIFY_CHECKOUT] Failed: Status is ${checkoutData.status}`);
+        return res.status(400).json({ message: `Payment status is '${checkoutData.status}', expected 'succeeded'.` });
     }
 
     const { metadata, amount, currency } = checkoutData;

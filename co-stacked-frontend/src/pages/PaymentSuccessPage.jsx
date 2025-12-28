@@ -35,21 +35,21 @@ export const PaymentSuccessPage = () => {
         if (response.data.success) {
             setStatus('success');
             setMessage(response.data.message);
-            // Clear the ID
             localStorage.removeItem('pendingCheckoutId');
             
-            // Update Redux state directly with the fresh user data from backend
             if (response.data.user) {
                 dispatch(setUser(response.data.user));
             }
         } else {
+            // Throw with the backend's message so it's caught below
             throw new Error(response.data.message || 'Verification failed');
         }
 
       } catch (err) {
         console.error('Verification error:', err);
         setStatus('error');
-        setMessage('Could not verify payment status automatically. Please check your settings.');
+        // Show the actual error message from backend if possible
+        setMessage(err.message || 'Could not verify payment status automatically.');
       }
     };
 
