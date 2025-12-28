@@ -10,7 +10,6 @@ import { fetchProjects } from '../features/projects/projectsSlice';
 import { submitReport } from '../features/reports/reportsSlice';
 
 // Import all necessary UI Components
-import { Card } from '../components/shared/Card';
 import { Button } from '../components/shared/Button';
 import { Tag } from '../components/shared/Tag';
 import { ConnectNDAModal } from '../components/connect/ConnectNDAModal';
@@ -59,11 +58,7 @@ export const ProjectDetailPage = () => {
   };
 
   const handleSubmitReport = async (reportData) => {
-    const payload = {
-      type: 'project',
-      reportedId: projectId,
-      ...reportData
-    };
+    const payload = { type: 'project', reportedId: projectId, ...reportData };
     const resultAction = await dispatch(submitReport(payload));
     
     setReportModalOpen(false);
@@ -74,20 +69,19 @@ export const ProjectDetailPage = () => {
       alert(`Error submitting report: ${resultAction.payload}`);
     }
   };
-  
-  if (projectsStatus === 'loading' || projectsStatus === 'idle') {
+
+  if (projectsStatus === 'loading' || (projectsStatus === 'idle' && !project)) {
     return <div className={styles.pageContainer}><LoadingSpinner /></div>;
   }
-
-  if (projectsStatus === 'succeeded' && !project) {
+  
+  if (!project) {
     return (
       <div className={styles.pageContainer}>
         <div className={styles.contentWrapper}>
           <h1>Project Not Found</h1>
-          <p>This project may have been removed or the URL is incorrect.</p>
-          <Link to="/projects" className={styles.actions}>
-            <ArrowLeft size={16} />
-            Back to all projects
+          <p>This project may no longer exist.</p>
+          <Link to="/projects" className={styles.backLink}>
+            <ArrowLeft size={16} /> Back to Projects
           </Link>
         </div>
       </div>
@@ -110,15 +104,15 @@ export const ProjectDetailPage = () => {
 
       <div className={styles.pageContainer}>
         <div className={styles.contentWrapper}>
-          <div className={styles.actions}>
-             <Link to="/projects">
-              <ArrowLeft size={16} />
-              Back to Projects
-             </Link>
-          </div>
-          <Card className={styles.projectCard}>
+          <Link to="/projects" className={styles.backLink}>
+            <ArrowLeft size={16} />
+            Back to Projects
+          </Link>
+          
+          <div className={styles.projectCard}>
+            
             <header className={styles.header}>
-              <h1>{project.title}</h1>
+              <h1 className={styles.title}>{project.title}</h1>
               {canConnect && (
                 <Button onClick={handleConnectClick} disabled={interestStatus === 'loading'}>
                   {interestStatus === 'loading' ? 'Sending...' : 'Connect'}
@@ -126,22 +120,38 @@ export const ProjectDetailPage = () => {
               )}
             </header>
 
+            <hr className={styles.separator} />
+            
             <div className={styles.contentGrid}>
               <div className={styles.mainContent}>
-                <h2 className={styles.sectionTitle}>Project Description</h2>
-                <p>{project.description}</p>
-                <h2 className={styles.sectionTitle}>Skills Needed</h2>
-                <div className={styles.skillsContainer}>
-                  {project.skillsNeeded.map(skill => <Tag key={skill}>{skill}</Tag>)}
+                <div className={styles.section}>
+                  <h2 className={styles.sectionTitle}>Project Description</h2>
+                  <p>{project.description}</p>
+                </div>
+                <div className={styles.section}>
+                  <h2 className={styles.sectionTitle}>Skills Needed</h2>
+                  <div className={styles.skillsContainer}>
+                    {project.skillsNeeded.map(skill => <Tag key={skill}>{skill}</Tag>)}
+                  </div>
                 </div>
               </div>
               <aside className={styles.detailsSidebar}>
-                <ul>
-                  <li className={styles.detailItem}><strong>Compensation</strong><span>{project.compensation}</span></li>
-                  <li className={styles.detailItem}><strong>Stage</strong><span>{project.stage}</span></li>
-                  <li className={styles.detailItem}><strong>Founder</strong><span>{project.founder}</span></li>
-                  <li className={styles.detailItem}><strong>Location</strong><span>{project.location}</span></li>
-                </ul>
+                <div className={styles.detailItem}>
+                  <strong>Compensation</strong>
+                  <span>{project.compensation}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <strong>Stage</strong>
+                  <span>{project.stage}</span>
+                </div>
+                 <div className={styles.detailItem}>
+                  <strong>Founder</strong>
+                  <span>{project.founder}</span>
+                </div>
+                 <div className={styles.detailItem}>
+                  <strong>Location</strong>
+                  <span>{project.location}</span>
+                </div>
               </aside>
             </div>
             
@@ -152,7 +162,7 @@ export const ProjectDetailPage = () => {
                 </button>
               )}
             </footer>
-          </Card>
+          </div>
         </div>
       </div>
     </>
