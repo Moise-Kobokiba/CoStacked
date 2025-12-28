@@ -3,7 +3,7 @@
 import { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Button } from '../../shared/Button';
-import { User, Bell, Menu, X } from 'lucide-react'; // 1. Import the X icon
+import { User, Bell, Menu, X, CheckCircle } from 'lucide-react'; // 1. Import the X icon and CheckCircle
 import styles from '../Header.module.css';
 import { VerificationBadge } from '../../shared/VerificationBadge'; // Import Badge
 import PropTypes from 'prop-types';
