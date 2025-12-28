@@ -50,7 +50,7 @@ export const ProjectDetailPage = () => {
   }, [currentUser, dispatch]);
 
   const existingInterest = sentItems.find(i => 
-    (i.projectId._id || i.projectId) === projectId
+    (i.projectId?._id || i.projectId) === projectId
   );
 
   // --- Handlers for user actions ---
