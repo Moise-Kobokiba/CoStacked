@@ -106,11 +106,20 @@ html[data-theme='light'] .card, :root .card {
 .detailItem {
   font-size: 0.875rem;
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.5rem;
+  flex-direction: column; /* Mobile: Stack Label top, Value bottom */
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.25rem;
   color: var(--foreground);
   font-weight: 700;
+}
+
+@media (min-width: 640px) {
+  .detailItem {
+    flex-direction: row; /* Desktop: Label left, Value right */
+    align-items: center;
+    gap: 0.5rem;
+  }
 }
 
 .detailLabel {
