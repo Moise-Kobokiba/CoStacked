@@ -2,7 +2,8 @@
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
 import styles from './VerificationBadge.module.css';
-import badgeImage from '../../assets/verification_badge.png';
+import badgeImage from '../../assets/verification-badge.png';
+
 
 /**
  * Renders a verification badge (usually a blue checkmark or similar).
