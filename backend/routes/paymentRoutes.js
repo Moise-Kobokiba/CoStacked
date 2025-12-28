@@ -8,7 +8,8 @@ const {
   verifySubscription,
   verifyProfileBoost, // <-- Import the new function
   cancelSubscription,
-  createCheckoutSession
+  createCheckoutSession,
+  verifyCheckout
 } = require('../controllers/paymentController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -55,4 +56,3 @@ router.route('/checkout').post(protect, createCheckoutSession);
 router.route('/verify-checkout').post(protect, verifyCheckout);
 
 module.exports = router;
-```
