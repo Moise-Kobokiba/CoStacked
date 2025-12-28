@@ -79,7 +79,6 @@ export const ProjectDetailPage = () => {
       <div className={styles.pageContainer}>
         <div className={styles.contentWrapper}>
           <h1>Project Not Found</h1>
-          <p>This project may no longer exist.</p>
           <Link to="/projects" className={styles.backLink}>
             <ArrowLeft size={16} /> Back to Projects
           </Link>
@@ -135,6 +134,8 @@ export const ProjectDetailPage = () => {
                   </div>
                 </div>
               </div>
+
+              {/* --- THIS IS THE UPDATED JSX STRUCTURE --- */}
               <aside className={styles.detailsSidebar}>
                 <div className={styles.detailItem}>
                   <strong>Compensation</strong>
