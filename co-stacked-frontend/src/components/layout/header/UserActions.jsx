@@ -5,6 +5,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Button } from '../../shared/Button';
 import { User, Bell, Menu, X } from 'lucide-react'; // 1. Import the X icon
 import styles from '../Header.module.css';
+import { VerificationBadge } from '../../shared/VerificationBadge'; // Import Badge
 import PropTypes from 'prop-types';
 
 const NotificationDropdown = lazy(() => import('../../notifications/NotificationDropdown'));
@@ -51,7 +52,23 @@ export const UserActions = ({
           <AnimatePresence>
             {isDropdownOpen && (
               <Suspense fallback={<div className={styles.dropdownLoading}>Loading...</div>}>
-                <DropdownMenu onLogout={handleLogout} />
+                <DropdownMenu 
+                  onLogout={handleLogout}
+                  userHeader={
+                    <div className={styles.userMenuHeader}>
+                      <span className={styles.userName}>
+                        {user?.name}
+                        {user?.isVerified && <VerificationBadge size={14} />}
+                      </span>
+                      <span className={styles.userEmail}>{user?.email}</span>
+                      {user?.isVerified && (
+                        <span className={styles.verifiedTag}>
+                          <CheckCircle size={10} /> Verified
+                        </span>
+                      )}
+                    </div>
+                  }
+                />
               </Suspense>
             )}
           </AnimatePresence>
