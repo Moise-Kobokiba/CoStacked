@@ -15,6 +15,7 @@ import { Button } from '../components/shared/Button';
 import { Tag } from '../components/shared/Tag';
 import { ConnectNDAModal } from '../components/connect/ConnectNDAModal';
 import { ReportModal } from '../components/reports/ReportModal';
+import { VerificationBadge } from '../components/shared/VerificationBadge';
 import styles from './ProjectDetailPage.module.css';
 
 const LoadingSpinner = () => <div className={styles.loader}>Loading project details...</div>;
@@ -162,7 +163,13 @@ export const ProjectDetailPage = () => {
                 <ul>
                   <li className={styles.detailItem}><strong>Compensation</strong><span>{project.compensation}</span></li>
                   <li className={styles.detailItem}><strong>Stage</strong><span>{project.stage}</span></li>
-                  <li className={styles.detailItem}><strong>Founder</strong><span>{project.founder}</span></li>
+                  <li className={styles.detailItem}>
+                    <strong>Founder</strong>
+                    <span>
+                      {project.founder}
+                      {project.founderId?.isVerified && <VerificationBadge size={14} className={styles.badge} />}
+                    </span>
+                  </li>
                   <li className={styles.detailItem}><strong>Location</strong><span>{project.location}</span></li>
                 </ul>
               </aside>

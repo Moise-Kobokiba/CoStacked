@@ -37,9 +37,12 @@ export const PaymentPage = () => {
         }
       });
 
-      const { redirectUrl } = response.data;
+      const { redirectUrl, checkoutId } = response.data;
 
-      if (redirectUrl) {
+      if (redirectUrl && checkoutId) {
+        // Save the checkout ID to localStorage so we can verify it upon return
+        localStorage.setItem('pendingCheckoutId', checkoutId);
+        
         // Redirect the user to Yoco's secure checkout page
         window.location.href = redirectUrl;
       } else {

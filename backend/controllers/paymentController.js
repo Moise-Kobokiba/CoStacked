@@ -269,11 +269,98 @@ const createCheckoutSession = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Verify a Yoco Checkout and update user status
+ * @route   POST /api/payments/verify-checkout
+ * @access  Private
+ */
+const verifyCheckout = async (req, res) => {
+  try {
+    const { checkoutId } = req.body;
+
+    if (!checkoutId) {
+      return res.status(400).json({ message: 'Checkout ID is required.' });
+    }
+
+    // Verify status with Yoco
+    const response = await fetch(`https://payments.yoco.com/api/checkouts/${checkoutId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${process.env.YOCO_SECRET_KEY}`,
+      }
+    });
+
+    const checkoutData = await response.json();
+
+    if (!response.ok) {
+        console.error('Yoco Verification Error:', checkoutData);
+        return res.status(response.status).json({ message: 'Failed to verify payment with provider.' });
+    }
+
+    // Check if payment was successful
+    if (checkoutData.status !== 'succeeded') {
+        return res.status(400).json({ message: `Payment status is ${checkoutData.status}, not succeeded.` });
+    }
+
+    const { metadata, amount, currency } = checkoutData;
+    const userId = req.user._id;
+
+    // Based on metadata type, perform actions
+    // Note: In createCheckoutSession, we stored type in metadata
+    const type = metadata?.type || 'unknown';
+
+    const user = await User.findById(userId);
+
+    if (type === 'subscription') {
+        user.isVerified = true;
+        user.isSubscriptionAutoRenew = true;
+        
+        // simple 30 day logic
+        const now = new Date();
+        const expiresAt = new Date(now.setDate(now.getDate() + 30));
+        user.subscriptionExpiresAt = expiresAt;
+
+        await user.save();
+
+        // Create notification
+        await Notification.create({
+            recipient: user._id,
+            type: 'system',
+            content: 'Your verified subscription is now active!',
+            relatedId: checkoutId,
+            relatedModel: 'Transaction' 
+        });
+
+         // Record Transaction (Simplified)
+         await Transaction.create({
+            user: user._id,
+            amount: amount, // amount is in cents from Yoco
+            currency: currency,
+            status: 'completed',
+            paymentMethod: 'yoco_checkout',
+            reference: checkoutId,
+            description: metadata?.description || 'Subscription Payment'
+        });
+
+        res.json({ success: true, message: 'Subscription verified and active.', user });
+    } else {
+        // Handle other types if needed (boosts etc) in future
+        // For now just return success
+        res.json({ success: true, message: 'Payment verified.', user });
+    }
+
+  } catch (error) {
+    console.error(`[VERIFY CHECKOUT ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server error during verification.' });
+  }
+};
+
 // Export all controller functions
 module.exports = { 
   verifyPaymentAndBoost, 
   verifySubscription,
   verifyProfileBoost,
   cancelSubscription,
-  createCheckoutSession
+  createCheckoutSession,
+  verifyCheckout
 };

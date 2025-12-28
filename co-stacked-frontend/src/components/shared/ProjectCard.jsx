@@ -11,6 +11,7 @@ import { ConfirmationModal } from './ConfirmationModal';
 import styles from './ProjectCard.module.css';
 // --- 1. IMPORT ICONS ---
 import { MessageSquare, XCircle, Rocket } from 'lucide-react';
+import { VerificationBadge } from './VerificationBadge';
 
 export const ProjectCard = ({ project, connection }) => {
   const dispatch = useDispatch();
@@ -69,7 +70,11 @@ export const ProjectCard = ({ project, connection }) => {
             <div className={styles.detailsList}>
               <p className={styles.detailItem}><span className={styles.detailLabel}>Compensation:</span> {project.compensation || 'N/A'}</p>
               <p className={styles.detailItem}><span className={styles.detailLabel}>Stage:</span> {project.stage || 'N/A'}</p>
-              <p className={styles.detailItem}><span className={styles.detailLabel}>Founder:</span> {project.founder || 'N/A'}</p>
+              <p className={styles.detailItem}>
+                <span className={styles.detailLabel}>Founder:</span> 
+                {project.founder || 'N/A'}
+                {project.founderId?.isVerified && <VerificationBadge size={14} />}
+              </p>
             </div>
         
             {/* --- REFACTORED FOOTER LOGIC --- */}

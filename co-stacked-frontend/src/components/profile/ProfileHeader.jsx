@@ -3,9 +3,9 @@
 import { Button } from '../shared/Button';
 import { StarRating } from '../shared/StarRating';
 import { Avatar } from '../shared/Avatar';
-import { ConnectionButtons } from './ConnectionButtons'; // 1. Import the new component
+import { ConnectionButtons } from './ConnectionButtons';
+import { VerificationBadge } from '../shared/VerificationBadge'; // Import the new component
 import styles from '../../pages/ProfilePage.module.css';
-import verificationBadge from '../../assets/verification-badge.png';
 import PropTypes from 'prop-types';
 import { Edit, Share2 } from 'lucide-react';
 
@@ -21,13 +21,13 @@ export const ProfileHeader = ({
   onAvatarClick,
   onShare,
   copySuccess,
-  // --- 2. Accept new connection-related props ---
+  // --- Accept new connection-related props ---
   connectionStatus,
   connectionHandlers,
   isConnectionLoading,
 
   onMessage,
-  connectionCount, // New Prop
+  connectionCount,
 }) => (
   <div className={styles.header}>
     {/* The main content (avatar, name, etc.) remains unchanged */}
@@ -47,12 +47,7 @@ export const ProfileHeader = ({
       <div className={styles.infoWrapper}>
         <div className={styles.nameWrapper}>
           <h1 className={styles.title}>{user.name}</h1>
-          {user.isVerified && (
-            <div className={styles.verifiedBadge} title="Verified User">
-              <img src={verificationBadge} alt="Verification Badge" className={styles.badgeIcon} />
-              <span>Verified</span>
-            </div>
-          )}
+          {user.isVerified && <VerificationBadge size={20} />}
         </div>
         {user.role === 'developer' && reviewCount > 0 && (
           <div className={styles.aggregateRating}>
@@ -75,7 +70,7 @@ export const ProfileHeader = ({
         <span>{copySuccess ? 'Copied!' : 'Share'}</span>
       </Button>
       
-      {/* --- 3. RENDER the correct set of buttons based on context --- */}
+      {/* --- RENDER the correct set of buttons based on context --- */}
       {!isOwnProfile ? (
         // If viewing someone else's profile, show the connection buttons
         <ConnectionButtons 
@@ -102,7 +97,6 @@ export const ProfileHeader = ({
   </div>
 );
 
-// --- 4. UPDATE PropTypes to include all new props ---
 ProfileHeader.propTypes = {
   user: PropTypes.object.isRequired,
   isOwnProfile: PropTypes.bool.isRequired,

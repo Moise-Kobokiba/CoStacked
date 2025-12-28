@@ -47,4 +47,12 @@ router.route('/cancel-subscription').post(protect, cancelSubscription);
  */
 router.route('/checkout').post(protect, createCheckoutSession);
 
+/**
+ * @route   POST /api/payments/verify-checkout
+ * @desc    Verify a Yoco checkout session
+ * @access  Private
+ */
+router.route('/verify-checkout').post(protect, verifyCheckout);
+
 module.exports = router;
+```

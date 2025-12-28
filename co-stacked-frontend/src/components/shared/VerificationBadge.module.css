@@ -1,0 +1,11 @@
+.badgeWrapper {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+.icon {
+    /* Optional: drop shadow or specific colors */
+    display: block;
+}
