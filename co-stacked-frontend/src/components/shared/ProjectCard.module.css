@@ -110,10 +110,11 @@ html[data-theme='light'] .card, :root .card {
   justify-content: flex-start;
   gap: 0.5rem;
   color: var(--foreground);
+  font-weight: 700;
 }
 
 .detailLabel {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--muted-foreground);
 }
 
