@@ -66,14 +66,7 @@ html[data-theme='light'] .card, :root .card {
   font-size: 0.9375rem; 
   line-height: 1.6;
   
-  /* Limit description length visually */
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-
-  /* Push details down if short description */
+  /* Full description shown */
   flex-grow: 1; 
 }
 
