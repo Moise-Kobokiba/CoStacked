@@ -143,10 +143,7 @@
 
 /* --- Responsive Tweak --- */
 @media (min-width: 768px) {
-  .detailsList {
-     /* On desktop, maybe row makes sense? User asked for original functional UI */
-     /* Original was vertical list. Keeping vertical list for consistency. */
-  }
+
   
   .footer {
     flex-direction: row;
