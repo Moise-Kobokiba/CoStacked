@@ -4,6 +4,7 @@ const User = require('../models/User'); // Corrected casing
 const Transaction = require('../models/Transaction');
 const Notification = require('../models/Notification');
 const AdminNotification = require('../models/AdminNotification'); // For admin panel notifications
+const fetch = require('node-fetch');
 
 // Maps for boost durations
 const PROFILE_BOOST_DURATIONS = { '3d': 3, '5d': 5, '7d': 7 };
@@ -215,10 +216,64 @@ const cancelSubscription = async (req, res) => {
     }
 };
 
+/**
+ * @desc    Create a Yoco Checkout Session
+ * @route   POST /api/payments/checkout
+ * @access  Private
+ */
+const createCheckoutSession = async (req, res) => {
+  try {
+    const { amountInCents, currency, metadata } = req.body; // metadata contains: type, userId, etc.
+
+    // Construct the success/cancel URLs
+    // Assuming FRONTEND_URL is set, otherwise default to localhost for dev
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    
+    // We append metadata to the success URL so the frontend knows what to verify/show
+    // In a production app, verify this via webhook or backend query using checkout ID.
+    const successUrl = `${frontendUrl}/payment/success?type=${metadata?.type || 'unknown'}&ref=${metadata?.projectId || ''}`;
+    const cancelUrl = `${frontendUrl}/payment/cancel`;
+
+    const response = await fetch('https://payments.yoco.com/api/checkouts', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.YOCO_SECRET_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        amount: amountInCents,
+        currency: currency || 'ZAR',
+        metadata: {
+            ...metadata,
+            userId: req.user._id.toString()
+        },
+        successUrl: successUrl,
+        cancelUrl: cancelUrl,
+        failUrl: cancelUrl // Yoco might use failUrl
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Yoco Checkout Error:', data);
+      return res.status(response.status).json({ message: 'Failed to initiate payment provider.', error: data });
+    }
+
+    // Yoco returns { id, redirectUrl, ... }
+    res.json({ redirectUrl: data.redirectUrl, checkoutId: data.id });
+
+  } catch (error) {
+    console.error(`[YOCO CHECKOUT ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Failed to create checkout session.' });
+  }
+};
+
 // Export all controller functions
 module.exports = { 
   verifyPaymentAndBoost, 
   verifySubscription,
   verifyProfileBoost,
-  cancelSubscription
+  cancelSubscription,
+  createCheckoutSession
 };

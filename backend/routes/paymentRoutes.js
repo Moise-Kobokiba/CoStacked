@@ -7,7 +7,8 @@ const {
   verifyPaymentAndBoost, 
   verifySubscription,
   verifyProfileBoost, // <-- Import the new function
-  cancelSubscription
+  cancelSubscription,
+  createCheckoutSession
 } = require('../controllers/paymentController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -38,5 +39,12 @@ router.route('/verify-profile-boost').post(protect, verifyProfileBoost); // <-- 
  * @access  Private
  */
 router.route('/cancel-subscription').post(protect, cancelSubscription);
+
+/**
+ * @route   POST /api/payments/checkout
+ * @desc    Create a Yoco checkout session
+ * @access  Private
+ */
+router.route('/checkout').post(protect, createCheckoutSession);
 
 module.exports = router;

@@ -25,11 +25,11 @@ export const SubscriptionModal = ({ open, onClose }) => {
         description: 'Monthly subscription for a verified user badge.',
         // Metadata for our backend to know what's being paid for.
         metadata: {
-          // No extra metadata needed for a simple subscription
           successPath: '/settings', // Redirect back to settings on success
-          failurePath: '/settings'  // Redirect back to settings on failure
+          failurePath: '/settings',  // Redirect back to settings on failure
+          type: 'subscription' // Added type here for backend (Yoco metadata)
         },
-        // A string to tell our PaymentPage which Redux action to dispatch
+        // A string to tell our PaymentPage which Redux action to dispatch (Legacy - kept for safety if needed later)
         action: 'subscription'
       }
     });

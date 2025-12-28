@@ -32,6 +32,8 @@ import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 import { PaymentPage } from "./pages/PaymentPage"; 
 import { MyNetworkPage } from './pages/MyNetworkPage';
 import { OAuthCallback } from './pages/OAuthCallback';
+import { PaymentSuccessPage } from "./pages/PaymentSuccessPage";
+import { PaymentCancelPage } from "./pages/PaymentCancelPage";
 
 export const router = createBrowserRouter([
   {
@@ -69,6 +71,8 @@ export const router = createBrowserRouter([
           { path: "settings", element: <SettingsPage /> },
           { path: "post-project", element: <PostProjectPage /> },
           { path: "payment", element: <PaymentPage /> }, 
+          { path: "payment/success", element: <PaymentSuccessPage /> },
+          { path: "payment/cancel", element: <PaymentCancelPage /> },
           { path: "my-network", element: <MyNetworkPage /> },
         ]
       }
