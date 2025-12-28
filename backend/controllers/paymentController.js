@@ -299,11 +299,13 @@ const verifyCheckout = async (req, res) => {
     }
 
     // Check if payment was successful
-    // Allow 'succeeded' or 'successful' just in case, though API says 'succeeded'
+    // Allow 'succeeded', 'successful', or 'completed' (Yoco seems to return 'completed')
     const status = checkoutData.status?.toLowerCase();
-    if (status !== 'succeeded' && status !== 'successful') {
+    const validStatuses = ['succeeded', 'successful', 'completed'];
+    
+    if (!validStatuses.includes(status)) {
         console.warn(`[VERIFY_CHECKOUT] Failed: Status is ${checkoutData.status}`);
-        return res.status(400).json({ message: `Payment status is '${checkoutData.status}', expected 'succeeded'.` });
+        return res.status(400).json({ message: `Payment status is '${checkoutData.status}', expected 'completed' or 'succeeded'.` });
     }
 
     const { metadata, amount, currency } = checkoutData;
