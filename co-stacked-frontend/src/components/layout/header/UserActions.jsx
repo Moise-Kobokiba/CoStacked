@@ -46,7 +46,10 @@ export const UserActions = ({
         
         <div ref={dropdownRef}>
           <button className={styles.profileLink} onClick={() => setDropdownOpen(prev => !prev)} aria-label="Toggle user menu">
-            <span className={styles.userName}>{user?.name}</span>
+            <span className={styles.userName}>
+              {user?.name}
+              {user?.isVerified && <VerificationBadge size={14} />}
+            </span>
             <User size={24} />
           </button>
           <AnimatePresence>
