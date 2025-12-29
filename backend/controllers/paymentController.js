@@ -339,13 +339,12 @@ const verifyCheckout = async (req, res) => {
 
          // Record Transaction (Simplified)
          await Transaction.create({
-            user: user._id,
-            amount: amount, // amount is in cents from Yoco
+            userId: user._id,
+            type: 'subscription',
+            amountInCents: amount, // amount is in cents from Yoco
             currency: currency,
-            status: 'completed',
-            paymentMethod: 'yoco_checkout',
-            reference: checkoutId,
-            description: metadata?.description || 'Subscription Payment'
+            yocoChargeId: checkoutId,
+            status: 'succeeded'
         });
 
         res.json({ success: true, message: 'Subscription verified and active.', user });
@@ -371,14 +370,13 @@ const verifyCheckout = async (req, res) => {
         await project.save();
 
         await Transaction.create({
-            user: userId,
-            amount: amount,
-            currency: currency,
-            status: 'completed',
+            userId: userId,
             type: 'project_boost',
-            paymentMethod: 'yoco_checkout',
-            reference: checkoutId,
-            description: metadata?.description || `Boost Project: ${project.title}`
+            amountInCents: amount,
+            currency: currency,
+            yocoChargeId: checkoutId,
+            status: 'succeeded',
+            metadata: { projectId: projectId, projectTitle: project.title }
         });
 
         res.json({ success: true, message: `Project boosted for ${durationDays} days!`, user });
@@ -398,14 +396,12 @@ const verifyCheckout = async (req, res) => {
         const updatedUser = await user.save();
 
         await Transaction.create({
-            user: userId,
-            amount: amount,
-            currency: currency,
-            status: 'completed',
+            userId: userId,
             type: 'profile_boost',
-            paymentMethod: 'yoco_checkout',
-            reference: checkoutId,
-            description: metadata?.description || 'Profile Boost'
+            amountInCents: amount,
+            currency: currency,
+            yocoChargeId: checkoutId,
+            status: 'succeeded'
         });
 
         await Notification.create({
