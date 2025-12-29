@@ -331,21 +331,23 @@ const verifyCheckout = async (req, res) => {
         // Create notification
         await Notification.create({
             recipient: user._id,
-            type: 'system',
-            content: 'Your verified subscription is now active!',
+            type: 'SUBSCRIPTION_SUCCESS',
             relatedId: checkoutId,
             relatedModel: 'Transaction' 
         });
 
-         // Record Transaction (Simplified)
-         await Transaction.create({
-            userId: user._id,
-            type: 'subscription',
-            amountInCents: amount, // amount is in cents from Yoco
-            currency: currency,
-            yocoChargeId: checkoutId,
-            status: 'succeeded'
-        });
+         // Record Transaction (check for duplicates first)
+         const existingTransaction = await Transaction.findOne({ yocoChargeId: checkoutId });
+         if (!existingTransaction) {
+             await Transaction.create({
+                userId: user._id,
+                type: 'subscription',
+                amountInCents: amount, // amount is in cents from Yoco
+                currency: currency,
+                yocoChargeId: checkoutId,
+                status: 'succeeded'
+            });
+         }
 
         res.json({ success: true, message: 'Subscription verified and active.', user });
     } else if (type === 'project_boost') {
@@ -369,15 +371,19 @@ const verifyCheckout = async (req, res) => {
         project.boostExpiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
         await project.save();
 
-        await Transaction.create({
-            userId: userId,
-            type: 'project_boost',
-            amountInCents: amount,
-            currency: currency,
-            yocoChargeId: checkoutId,
-            status: 'succeeded',
-            metadata: { projectId: projectId, projectTitle: project.title }
-        });
+        // Check if transaction already exists to prevent duplicates
+        const existingTransaction = await Transaction.findOne({ yocoChargeId: checkoutId });
+        if (!existingTransaction) {
+            await Transaction.create({
+                userId: userId,
+                type: 'project_boost',
+                amountInCents: amount,
+                currency: currency,
+                yocoChargeId: checkoutId,
+                status: 'succeeded',
+                metadata: { projectId: projectId, projectTitle: project.title }
+            });
+        }
 
         res.json({ success: true, message: `Project boosted for ${durationDays} days!`, user });
 
@@ -395,22 +401,33 @@ const verifyCheckout = async (req, res) => {
         user.boostExpiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
         const updatedUser = await user.save();
 
-        await Transaction.create({
-            userId: userId,
-            type: 'profile_boost',
-            amountInCents: amount,
-            currency: currency,
-            yocoChargeId: checkoutId,
-            status: 'succeeded'
-        });
+        // Check if transaction already exists to prevent duplicates
+        const existingTransaction = await Transaction.findOne({ yocoChargeId: checkoutId });
+        if (!existingTransaction) {
+            await Transaction.create({
+                userId: userId,
+                type: 'profile_boost',
+                amountInCents: amount,
+                currency: currency,
+                yocoChargeId: checkoutId,
+                status: 'succeeded'
+            });
+        }
 
-        await Notification.create({
+        // Only create notification if it doesn't already exist
+        const existingNotif = await Notification.findOne({ 
             recipient: user._id,
-            type: 'system',
-            content: `Your profile is boosted for ${durationDays} days!`,
-            relatedId: checkoutId,
-            relatedModel: 'Transaction' 
+            relatedId: checkoutId 
         });
+        
+        if (!existingNotif) {
+            await Notification.create({
+                recipient: user._id,
+                type: 'BOOST_SUCCESS',
+                relatedId: checkoutId,
+                relatedModel: 'Transaction' 
+            });
+        }
 
         res.json({ success: true, message: `Profile boosted for ${durationDays} days!`, user: updatedUser });
 
