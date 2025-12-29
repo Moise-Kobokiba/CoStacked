@@ -71,7 +71,7 @@ export const getAdminProfile = createAsyncThunk(
   'auth/getAdminProfile',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await API.get('/users/profile');
+      const response = await API.get('/admin/profile');
       if (!response.data?.isAdmin) {
         return rejectWithValue({ message: 'Access Denied: Not an administrator.' });
       }
