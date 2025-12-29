@@ -367,7 +367,7 @@ const verifyCheckout = async (req, res) => {
 
         project.isBoosted = true;
         const now = new Date();
-        project.boostExpiresAt = new Date(new Date().setDate(now.getDate() + durationDays));
+        project.boostExpiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
         await project.save();
 
         await Transaction.create({
@@ -394,7 +394,7 @@ const verifyCheckout = async (req, res) => {
 
         user.isBoosted = true;
         const now = new Date();
-        user.boostExpiresAt = new Date(new Date().setDate(now.getDate() + durationDays));
+        user.boostExpiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
         const updatedUser = await user.save();
 
         await Transaction.create({
