@@ -5,6 +5,7 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden; /* Prevents child content from breaking the card's border-radius */
+  box-sizing: border-box;
 }
 
 .header {
@@ -111,7 +112,8 @@
 
 
 .boostedCard {
-  border: 2px solid var(--primary);
+  border: 1px solid var(--primary);
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb, 33, 150, 243), 0.12);
   position: relative;
 }
 

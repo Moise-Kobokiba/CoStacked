@@ -3,7 +3,7 @@
 .carouselContainer {
   display: grid;
   grid-auto-flow: column; /* This is the key to laying out items horizontally */
-  grid-auto-columns: 80%; /* Each item will be 80% of the container's width */
+  grid-auto-columns: minmax(280px, 80%); /* Minimum 280px prevents squishing */
   gap: 1rem;
   
   /* Enable scrolling */
@@ -28,18 +28,18 @@
 /* --- Responsive Adjustments --- */
 @media (min-width: 640px) {
   .carouselContainer {
-    grid-auto-columns: 45%;
+    grid-auto-columns: minmax(320px, 45%);
   }
 }
 
 @media (min-width: 768px) {
   .carouselContainer {
-    grid-auto-columns: 30%;
+    grid-auto-columns: minmax(350px, 30%);
   }
 }
 
 @media (min-width: 1024px) {
   .carouselContainer {
-    grid-auto-columns: 23%;
+    grid-auto-columns: minmax(350px, 23%);
   }
 }
