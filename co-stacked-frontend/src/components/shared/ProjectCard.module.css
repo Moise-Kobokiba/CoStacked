@@ -24,7 +24,6 @@ html[data-theme='light'] .card, :root .card {
 
 .boostedCard {
   border: 1px solid var(--primary);
-  box-shadow: 0 2px 8px rgba(var(--primary-rgb, 33, 150, 243), 0.12);
 }
 
 .boostBadge {
