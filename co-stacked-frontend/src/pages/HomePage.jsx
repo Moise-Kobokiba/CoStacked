@@ -22,9 +22,9 @@ import styles from './HomePage.module.css';
 
 // Data can remain outside the component
 const features = [
-  { icon: Lightbulb, title: '1. Share Your Vision', description: 'Founders post their project ideas, detailing the skills needed and their collaboration style.' },
-  { icon: Users, title: '2. Discover Your Match', description: 'Developers browse projects, and founders can search for talent based on specific skills.' },
-  { icon: ShieldCheck, title: '3. Collaborate & Build', description: 'Connect with your ideal partner and start building amazing things together securely.' },
+  { icon: Lightbulb, title: '1. Share Your Vision', description: 'Founders post structured project listings that include required skills, expected commitment, compensation type, and project stage.' },
+  { icon: Users, title: '2. Discover Your Match', description: 'Developers browse open projects and apply directly, while founders filter collaborators by skills, availability, and experience.' },
+  { icon: ShieldCheck, title: '3. Collaborate & Build', description: 'Once connected, teams collaborate independently using their own tools, with CoStacked acting as the discovery and trust layer.' },
 ];
 
 export const HomePage = () => {
