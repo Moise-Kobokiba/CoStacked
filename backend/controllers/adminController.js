@@ -61,9 +61,11 @@ const getPlatformStats = async (req, res) => {
  * @access  Public
  */
 const loginAdmin = async (req, res) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
+  email = email.toLowerCase();
+  password = password.trim();
 
-  console.log(`[ADMIN LOGIN ATTEMPT]: Email: ${email}, Password provided: ${!!password}`);
+  console.log(`[ADMIN LOGIN ATTEMPT]: Email: ${email}, Password provided: ${!!password}, trimmed length: ${password.length}`);
 
   if (!email || !password) {
     return res
