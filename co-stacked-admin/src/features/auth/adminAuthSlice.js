@@ -29,11 +29,8 @@ export const loginAdmin = createAsyncThunk(
   'auth/loginAdmin',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await API.post('/users/login', credentials);
+      const response = await API.post('/admin/login', credentials);
       const { user, token } = response.data;
-      if (!user?.isAdmin) {
-        return rejectWithValue({ message: 'Access Denied: Not an administrator.' });
-      }
       // Store the entire auth object on successful login
       localStorage.setItem(TOKEN_NAME, JSON.stringify({ user, token }));
       return { user, token };
