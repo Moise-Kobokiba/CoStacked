@@ -78,7 +78,7 @@ const loginAdmin = async (req, res) => {
 
     console.log(`[ADMIN LOGIN]: User found: ${!!user}`);
     if (user) {
-      console.log(`[ADMIN LOGIN]: User isAdmin: ${user.isAdmin}, hasPassword: ${!!user.password}, isEmailVerified: ${user.isEmailVerified}`);
+      console.log(`[ADMIN LOGIN]: User isAdmin: ${user.isAdmin}, hasPassword: ${!!user.password}, isEmailVerified: ${user.isEmailVerified}, password length: ${user.password ? user.password.length : 0}`);
     }
 
     if (!user) {
@@ -133,7 +133,9 @@ const loginAdmin = async (req, res) => {
  */
 const registerAdmin = async (req, res) => {
   try {
-    const { name, email, password, role, secretKey } = req.body;
+    let { name, email, password, role, secretKey } = req.body;
+    email = email.toLowerCase();
+    password = password.trim();
 
 
 
