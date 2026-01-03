@@ -63,6 +63,8 @@ const getPlatformStats = async (req, res) => {
 const loginAdmin = async (req, res) => {
   const { email, password } = req.body;
 
+  console.log(`[ADMIN LOGIN ATTEMPT]: Email: ${email}, Password provided: ${!!password}`);
+
   if (!email || !password) {
     return res
       .status(400)
@@ -72,19 +74,28 @@ const loginAdmin = async (req, res) => {
   try {
     const user = await User.findOne({ email });
 
+    console.log(`[ADMIN LOGIN]: User found: ${!!user}`);
+    if (user) {
+      console.log(`[ADMIN LOGIN]: User isAdmin: ${user.isAdmin}, hasPassword: ${!!user.password}, isEmailVerified: ${user.isEmailVerified}`);
+    }
+
     if (!user) {
+      console.log(`[ADMIN LOGIN]: User not found for email: ${email}`);
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     if (!user.isAdmin) {
+      console.log(`[ADMIN LOGIN]: User is not admin: ${email}`);
       return res
         .status(403)
         .json({ message: "Access Denied. User is not an administrator." });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log(`[ADMIN LOGIN]: Password match: ${isMatch}`);
 
     if (!isMatch) {
+      console.log(`[ADMIN LOGIN]: Password mismatch for user: ${email}`);
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
