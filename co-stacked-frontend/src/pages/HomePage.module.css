@@ -73,6 +73,18 @@
   max-width: 280px;
 }
 
+.joinCommunityBtn {
+  background-color: #ffffff !important; 
+  color: #0f172a !important; /* Dark slate color for good readability */
+  border-color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.joinCommunityBtn:hover {
+  background-color: #f1f5f9 !important; /* Slightly off-white for hover */
+  border-color: #f1f5f9 !important;
+}
+
 
 /* ======================================== */
 /*        FEATURES & TESTIMONIALS           */

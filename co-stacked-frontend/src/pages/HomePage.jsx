@@ -91,7 +91,7 @@ export const HomePage = () => {
           </p>
           <div className={styles.heroActions}>
             <Button to="/projects" variant="primary">Discover Projects</Button>
-            {!isLoggedIn && <Button to="/signup" variant="outline">Join the Community</Button>}
+            {!isLoggedIn && <Button to="/signup" variant="outline" className={styles.joinCommunityBtn}>Join the Community</Button>}
           </div>
         </div>
       </section>
