@@ -35,13 +35,29 @@ export const RegistrationForm = () => {
     location: "",
     availability: "",
     portfolioLink: "",
+    socials: {
+      twitter: "",
+      linkedin: "",
+      instagram: "",
+      facebook: "",
+      tiktok: "",
+    },
   });
 
     const [validationError, setValidationError] = useState("");
   const [isPasswordValid, setIsPasswordValid] = useState(false);
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    if (name.startsWith('socials.')) {
+      const key = name.split('.')[1];
+      setFormData((prev) => ({
+        ...prev,
+        socials: { ...prev.socials, [key]: value }
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
     // Clear validation error on change
     if (validationError) setValidationError("");
   };
@@ -205,6 +221,70 @@ export const RegistrationForm = () => {
                 value={formData.portfolioLink}
                 onChange={handleChange}
               />
+            </div>
+          </div>
+
+          <div className={styles.separator} />
+
+          {/* === Social Media Links === */}
+          <div className={styles.formGroup}>
+            <Label>Social Media Profiles (Optional)</Label>
+            <div className={styles.formGrid}>
+              <div className={styles.formGroup}>
+                <Label htmlFor="socials.twitter">Twitter</Label>
+                <Input
+                  id="socials.twitter"
+                  name="socials.twitter"
+                  type="url"
+                  value={formData.socials.twitter}
+                  onChange={handleChange}
+                  placeholder="https://twitter.com/username"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <Label htmlFor="socials.linkedin">LinkedIn</Label>
+                <Input
+                  id="socials.linkedin"
+                  name="socials.linkedin"
+                  type="url"
+                  value={formData.socials.linkedin}
+                  onChange={handleChange}
+                  placeholder="https://linkedin.com/in/username"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <Label htmlFor="socials.instagram">Instagram</Label>
+                <Input
+                  id="socials.instagram"
+                  name="socials.instagram"
+                  type="url"
+                  value={formData.socials.instagram}
+                  onChange={handleChange}
+                  placeholder="https://instagram.com/username"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <Label htmlFor="socials.facebook">Facebook</Label>
+                <Input
+                  id="socials.facebook"
+                  name="socials.facebook"
+                  type="url"
+                  value={formData.socials.facebook}
+                  onChange={handleChange}
+                  placeholder="https://facebook.com/username"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <Label htmlFor="socials.tiktok">TikTok</Label>
+                <Input
+                  id="socials.tiktok"
+                  name="socials.tiktok"
+                  type="url"
+                  value={formData.socials.tiktok}
+                  onChange={handleChange}
+                  placeholder="https://tiktok.com/@username"
+                />
+              </div>
             </div>
           </div>
 

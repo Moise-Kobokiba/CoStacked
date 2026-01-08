@@ -31,16 +31,23 @@ export const SettingsPage = () => {
   const { user, status: authStatus } = useSelector(state => state.auth);
   const { status: paymentStatus } = useSelector(state => state.payment);
   
-  const [formData, setFormData] = useState({
-    name: '',
-    bio: '',
-    skills: '',
-    location: '',
-    availability: '',
-    portfolioLink: '',
-    profileVisibility: '',
-    notificationEmails: '',
-  });
+   const [formData, setFormData] = useState({
+     name: '',
+     bio: '',
+     skills: '',
+     location: '',
+     availability: '',
+     portfolioLink: '',
+     socials: {
+       twitter: '',
+       linkedin: '',
+       instagram: '',
+       facebook: '',
+       tiktok: '',
+     },
+     profileVisibility: '',
+     notificationEmails: '',
+   });
 
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -54,22 +61,38 @@ export const SettingsPage = () => {
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name || '',
-        bio: user.bio || '',
-        skills: user.skills ? user.skills.join(', ') : '',
-        location: user.location || '',
-        availability: user.availability || '',
-        portfolioLink: user.portfolioLink || '',
-        profileVisibility: user.profileVisibility || 'public', 
-        notificationEmails: user.notificationEmails || 'essential',
-      });
+         name: user.name || '',
+         bio: user.bio || '',
+         skills: user.skills ? user.skills.join(', ') : '',
+         location: user.location || '',
+         availability: user.availability || '',
+         portfolioLink: user.portfolioLink || '',
+         socials: user.socials || {
+           twitter: '',
+           linkedin: '',
+           instagram: '',
+           facebook: '',
+           tiktok: '',
+         },
+         profileVisibility: user.profileVisibility || 'public',
+         notificationEmails: user.notificationEmails || 'essential',
+       });
       setAvatarPreview(user.avatarUrl);
     }
   }, [user]);
 
-  const handleChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+   const handleChange = (e) => {
+     const { name, value } = e.target;
+     if (name.startsWith('socials.')) {
+       const key = name.split('.')[1];
+       setFormData((prev) => ({
+         ...prev,
+         socials: { ...prev.socials, [key]: value }
+       }));
+     } else {
+       setFormData(prev => ({ ...prev, [name]: value }));
+     }
+   };
   
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
@@ -253,11 +276,33 @@ export const SettingsPage = () => {
                     <Label htmlFor="bio">Bio</Label>
                     <Textarea id="bio" name="bio" value={formData.bio} onChange={handleChange} rows={3} placeholder="Tell us about yourself..." />
                 </div>
-                 <div className={styles.formGroupSpan2}>
-                    <Label htmlFor="skills">Skills (comma separated)</Label>
-                    <Input id="skills" name="skills" value={formData.skills} onChange={handleChange} placeholder="React, Node.js, Design..." />
-                </div>
-             </div>
+                  <div className={styles.formGroupSpan2}>
+                     <Label htmlFor="skills">Skills (comma separated)</Label>
+                     <Input id="skills" name="skills" value={formData.skills} onChange={handleChange} placeholder="React, Node.js, Design..." />
+                 </div>
+              </div>
+              <div className={styles.formGrid}>
+                 <div className={styles.formGroup}>
+                     <Label htmlFor="socials.twitter">Twitter</Label>
+                     <Input id="socials.twitter" name="socials.twitter" type="url" value={formData.socials.twitter} onChange={handleChange} placeholder="https://twitter.com/username" />
+                 </div>
+                 <div className={styles.formGroup}>
+                     <Label htmlFor="socials.linkedin">LinkedIn</Label>
+                     <Input id="socials.linkedin" name="socials.linkedin" type="url" value={formData.socials.linkedin} onChange={handleChange} placeholder="https://linkedin.com/in/username" />
+                 </div>
+                 <div className={styles.formGroup}>
+                     <Label htmlFor="socials.instagram">Instagram</Label>
+                     <Input id="socials.instagram" name="socials.instagram" type="url" value={formData.socials.instagram} onChange={handleChange} placeholder="https://instagram.com/username" />
+                 </div>
+                 <div className={styles.formGroup}>
+                     <Label htmlFor="socials.facebook">Facebook</Label>
+                     <Input id="socials.facebook" name="socials.facebook" type="url" value={formData.socials.facebook} onChange={handleChange} placeholder="https://facebook.com/username" />
+                 </div>
+                 <div className={styles.formGroup}>
+                     <Label htmlFor="socials.tiktok">TikTok</Label>
+                     <Input id="socials.tiktok" name="socials.tiktok" type="url" value={formData.socials.tiktok} onChange={handleChange} placeholder="https://tiktok.com/@username" />
+                 </div>
+              </div>
           </SettingsSection>
 
           <SettingsSection title="Profile Visibility" description="Control who sees your profile.">
