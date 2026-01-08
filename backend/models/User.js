@@ -80,6 +80,15 @@ const userSchema = mongoose.Schema(
       ref: "User" 
     }],
 
+    // --- NEW: Social Media Links Object ---
+    socials: {
+      twitter: { type: String, default: '' },
+      linkedin: { type: String, default: '' },
+      instagram: { type: String, default: '' },
+      facebook: { type: String, default: '' },
+      tiktok: { type: String, default: '' },
+    },
+
   },
   {
     timestamps: true,

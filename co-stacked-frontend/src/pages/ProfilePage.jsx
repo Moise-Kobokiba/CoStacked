@@ -1,27 +1,22 @@
 // src/pages/ProfilePage.jsx
 
 import { useState, useEffect, useCallback } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import styles from "./ProfilePage.module.css";
-import API from "../api/axios";
 
 // Import Redux Actions
 import { fetchUsers, recordProfileView } from "../features/users/usersSlice";
 import { fetchProjects } from "../features/projects/projectsSlice";
 import { fetchReviewsForUser } from "../features/reviews/reviewsSlice";
 import { fetchReceivedInterests } from "../features/interests/interestsSlice";
-import {
-  sendConnectionRequest,
-  acceptConnectionRequest,
-  removeOrCancelConnection,
-} from "../features/connections/connectionsSlice";
 
 // Import All UI Components
 import { Card } from "../components/shared/Card";
 import { Tag } from "../components/shared/Tag";
 import { ProjectCard } from "../components/shared/ProjectCard";
 import { ReviewCard } from "../components/reviews/ReviewCard";
+import { SocialLinks } from "../components/shared/SocialLinks";
 import { ProfileEditor } from "../components/profile/ProfileEditor";
 import { ProfileHeader } from "../components/profile/ProfileHeader";
 import { AvatarUploadModal } from "../components/profile/AvatarUploadModal";
@@ -29,9 +24,7 @@ import { LeaveReviewModal } from "../components/reviews/LeaveReviewModal";
 import { ProfileBoostModal } from "../components/billing/ProfileBoostModal";
 import { MapPin, Link as LinkIcon } from "lucide-react";
 
-const LoadingSpinner = () => (
-  <div className={styles.loader}>Loading profile...</div>
-);
+const LoadingSpinner = () => <div className={styles.loader}>Loading profile...</div>;
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
@@ -42,12 +35,9 @@ const formatDate = (dateString) => {
   });
 };
 
-
-
-  export const ProfilePage = () => {
+export const ProfilePage = () => {
   const dispatch = useDispatch();
   const { userId } = useParams();
-  const navigate = useNavigate();
 
   // State for UI and Modals
   const [isEditing, setIsEditing] = useState(false);
@@ -55,70 +45,16 @@ const formatDate = (dateString) => {
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState("");
-  const [connectionStatus, setConnectionStatus] = useState("loading");
-  const [connectionCount, setConnectionCount] = useState(0);
 
   // State from Redux
-  const { actionStatus: connectionActionStatus } = useSelector(
-    (state) => state.connections || {}
-  );
   const { user: loggedInUser } = useSelector((state) => state.auth);
-  const { items: allUsers, status: usersStatus } = useSelector(
-    (state) => state.users || {}
-  );
-  const { items: allProjects, status: projectsStatus } = useSelector(
-    (state) => state.projects || {}
-  );
-  const { reviewsByUser, status: reviewsStatus } = useSelector(
-    (state) => state.reviews || {}
-  );
-  const { receivedItems: founderConnections } = useSelector(
-    (state) => state.interests || {}
-  );
+  const { items: allUsers, status: usersStatus } = useSelector((state) => state.users);
+  const { items: allProjects, status: projectsStatus } = useSelector((state) => state.projects);
+  const { reviewsByUser, status: reviewsStatus } = useSelector((state) => state.reviews);
+  const { receivedItems: founderConnections } = useSelector((state) => state.interests);
 
-  const userToDisplay = userId
-    ? allUsers.find((u) => u._id === userId)
-    : loggedInUser;
-  const isOwnProfile =
-    userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
-
-  // Handlers for connection actions, wrapped in useCallback
-  const connectionHandlers = {
-    send: useCallback(() => {
-      if (!userToDisplay) return;
-      dispatch(sendConnectionRequest(userToDisplay._id))
-        .unwrap()
-        .then(() => setConnectionStatus("pending_sent"));
-    }, [dispatch, userToDisplay]),
-    accept: useCallback(() => {
-      if (!userToDisplay) return;
-      dispatch(acceptConnectionRequest(userToDisplay._id))
-        .unwrap()
-        .then(() => setConnectionStatus("connected"));
-    }, [dispatch, userToDisplay]),
-    decline: useCallback(() => {
-      if (!userToDisplay) return;
-      dispatch(removeOrCancelConnection(userToDisplay._id))
-        .unwrap()
-        .then(() => setConnectionStatus("not_connected"));
-    }, [dispatch, userToDisplay]),
-    cancel: useCallback(() => {
-      if (!userToDisplay) return;
-      dispatch(removeOrCancelConnection(userToDisplay._id))
-        .unwrap()
-        .then(() => setConnectionStatus("not_connected"));
-    }, [dispatch, userToDisplay]),
-    remove: useCallback(() => {
-      if (
-        !userToDisplay ||
-        !window.confirm("Are you sure you want to remove this connection?")
-      )
-        return;
-      dispatch(removeOrCancelConnection(userToDisplay._id))
-        .unwrap()
-        .then(() => setConnectionStatus("not_connected"));
-    }, [dispatch, userToDisplay]),
-  };
+  const userToDisplay = userId ? allUsers.find((u) => u._id === userId) : loggedInUser;
+  const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
 
   const handleShare = useCallback(async () => {
     if (!userToDisplay) return;
@@ -154,36 +90,10 @@ const formatDate = (dateString) => {
   }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, dispatch]);
 
   useEffect(() => {
-    if (userToDisplay) {
-      // Fetch connection count for the displayed user
-      API.get(`/connections/count/${userToDisplay._id}`)
-        .then((res) => setConnectionCount(res.data.count))
-        .catch((err) => console.error("Error fetching connection count:", err));
-    }
-
-    if (!isOwnProfile && loggedInUser && userToDisplay) {
-      setConnectionStatus("loading");
-      API.get(`/connections/status/${userToDisplay._id}`)
-        .then((response) => setConnectionStatus(response.data.status))
-        .catch(() => setConnectionStatus("not_connected"));
-    }
-  }, [isOwnProfile, loggedInUser, userToDisplay]);
-
-  useEffect(() => {
     if (userId && loggedInUser && userId !== loggedInUser._id) {
       dispatch(recordProfileView(userId));
     }
   }, [userId, loggedInUser, dispatch]);
-
-  const handleMessage = async () => {
-    if (!userToDisplay) return;
-    try {
-      const { data } = await API.post("/messages/access", { userId: userToDisplay._id });
-      navigate('/messages', { state: { conversationId: data._id } });
-    } catch (error) {
-      console.error("Error accessing chat:", error);
-    }
-  };
 
   // Loading state guard clause
   if (usersStatus === "loading" || !userToDisplay) {
@@ -203,38 +113,29 @@ const formatDate = (dateString) => {
   const averageRating =
     developerReviews.length > 0
       ? developerReviews.reduce((acc, r) => acc + r.rating, 0) /
-        developerReviews.length
+      developerReviews.length
       : 0;
+
+  const reviewableProjects =
+    founderConnections && Array.isArray(founderConnections)
+      ? founderConnections.filter(c =>
+        c.senderId?._id === userToDisplay._id &&
+        c.status === 'approved' &&
+        !developerReviews.some(review => review.projectId?._id === c.projectId?._id)
+      )
+      : [];
+
   const canLeaveReview =
     !isOwnProfile &&
     loggedInUser?.role === "founder" &&
-    userToDisplay.role === "developer"; // This logic needs to be more advanced for real reviews
-
-  const reviewableProjects = 
-    loggedInUser?.role === 'founder' && founderConnections
-      ? founderConnections.filter(c => 
-          c.senderId?._id === userToDisplay._id && 
-          c.status === 'approved'
-        )
-      : [];
+    userToDisplay.role === "developer" &&
+    reviewableProjects.length > 0;
 
   return (
     <>
-      <ProfileBoostModal
-        user={userToDisplay}
-        open={isBoostModalOpen}
-        onClose={() => setBoostModalOpen(false)}
-      />
-      <LeaveReviewModal
-        developer={userToDisplay}
-        reviewableProjects={reviewableProjects}
-        open={isReviewModalOpen}
-        onClose={() => setReviewModalOpen(false)}
-      />
-      <AvatarUploadModal
-        open={isAvatarModalOpen}
-        onClose={() => setAvatarModalOpen(false)}
-      />
+      <ProfileBoostModal user={userToDisplay} open={isBoostModalOpen} onClose={() => setBoostModalOpen(false)} />
+      <LeaveReviewModal developer={userToDisplay} reviewableProjects={reviewableProjects} open={isReviewModalOpen} onClose={() => setReviewModalOpen(false)} />
+      <AvatarUploadModal open={isAvatarModalOpen} onClose={() => setAvatarModalOpen(false)} />
 
       <div className={styles.pageContainer}>
         <div className={styles.contentWrapper}>
@@ -267,41 +168,39 @@ const formatDate = (dateString) => {
                 onAvatarClick={() => setAvatarModalOpen(true)}
                 onShare={handleShare}
                 copySuccess={copySuccess}
-                connectionStatus={connectionStatus}
-                connectionHandlers={connectionHandlers}
-                isConnectionLoading={connectionActionStatus === "loading"}
-                onMessage={handleMessage}
-                connectionCount={connectionCount}
               />
 
               <div className={styles.content}>
                 <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>About Me:</h3>
+                  <h3 className={styles.sectionTitle}>Socials</h3>
+                  <SocialLinks socials={userToDisplay.socials} />
+                </div>
+
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>About Me</h3>
                   <p>{userToDisplay.bio || "No bio provided."}</p>
                 </div>
+
                 <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Skills:</h3>
+                  <h3 className={styles.sectionTitle}>Skills</h3>
                   <div className={styles.skillsContainer}>
                     {Array.isArray(userToDisplay.skills) &&
-                    userToDisplay.skills.length > 0 ? (
+                      userToDisplay.skills.length > 0 ? (
                       userToDisplay.skills.map((s) => <Tag key={s}>{s}</Tag>)
                     ) : (
                       <p>No skills listed.</p>
                     )}
                   </div>
                 </div>
-                  <div className={styles.infoGrid}>
+
+                <div className={styles.infoGrid}>
                   <div className={styles.infoItem}>
                     <MapPin size={18} />
                     <span>{userToDisplay.location || "N/A"}</span>
                   </div>
                   <div className={styles.infoItem}>
                     <LinkIcon size={18} />
-                    <a
-                      href={userToDisplay.portfolioLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    <a href={userToDisplay.portfolioLink} target="_blank" rel="noopener noreferrer">
                       Portfolio
                     </a>
                   </div>
@@ -322,6 +221,7 @@ const formatDate = (dateString) => {
                     </div>
                   </>
                 )}
+
                 {developerReviews.length > 0 && (
                   <>
                     <div className={styles.separator} />

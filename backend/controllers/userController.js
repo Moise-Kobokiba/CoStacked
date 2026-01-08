@@ -14,7 +14,7 @@ const crypto = require('crypto');
  */
 const registerUser = async (req, res) => {
   try {
-    let { name, email, password: rawPassword, role, bio, skills, location, availability, portfolioLink } = req.body;
+    let { name, email, password: rawPassword, role, bio, skills, location, availability, portfolioLink, socials } = req.body;
     email = email.toLowerCase(); // Normalize email to lowercase
     const password = rawPassword.trim();
 
@@ -82,6 +82,7 @@ const registerUser = async (req, res) => {
       location,
       availability,
       portfolioLink,
+      socials: socials || {},
       verificationToken,
     });
 
@@ -157,6 +158,7 @@ const verifyEmail = async (req, res) => {
                 location: tempRegistration.location || '',
                 availability: tempRegistration.availability || '',
                 portfolioLink: tempRegistration.portfolioLink || '',
+                socials: tempRegistration.socials || {},
                 isAdmin: tempRegistration.isAdmin || false, // Set admin flag if this was an admin registration
                 isEmailVerified: true
             });
@@ -349,6 +351,11 @@ const updateUserProfile = async (req, res) => {
       }
       if (req.body.notificationEmails) {
         user.notificationEmails = req.body.notificationEmails;
+      }
+      // --- NEW: Update socials object ---
+      // This ensures we can update one link at a time without erasing the others.
+      if (req.body.socials) {
+        user.socials = { ...user.socials, ...req.body.socials };
       }
       const updatedUser = await user.save();
       res.json(updatedUser);

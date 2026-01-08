@@ -25,8 +25,15 @@ const tempRegistrationSchema = new mongoose.Schema({
   skills: [String],
   location: String,
   availability: String,
-  portfolioLink: String,
-  verificationToken: {
+   portfolioLink: String,
+   socials: {
+     twitter: { type: String, default: '' },
+     linkedin: { type: String, default: '' },
+     instagram: { type: String, default: '' },
+     facebook: { type: String, default: '' },
+     tiktok: { type: String, default: '' },
+   },
+   verificationToken: {
     type: String,
     required: true,
   },
