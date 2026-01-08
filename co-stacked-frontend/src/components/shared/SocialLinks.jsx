@@ -4,13 +4,13 @@ import { Twitter, Linkedin, Instagram, Facebook, Link as LinkIcon } from 'lucide
 import styles from './SocialLinks.module.css';
 import PropTypes from 'prop-types';
 
-// Map keys from our database to the icon component and a base URL
+// Map keys from our database to the icon component
 const socialPlatforms = {
-  twitter: { icon: Twitter, baseUrl: 'https://twitter.com/' },
-  linkedin: { icon: Linkedin, baseUrl: 'https://linkedin.com/in/' },
-  instagram: { icon: Instagram, baseUrl: 'https://instagram.com/' },
-  facebook: { icon: Facebook, baseUrl: 'https://facebook.com/' },
-  tiktok: { icon: LinkIcon, baseUrl: 'https://tiktok.com/@' }, // Lucide doesn't have a TikTok icon, so we use a generic link
+  twitter: { icon: Twitter },
+  linkedin: { icon: Linkedin },
+  instagram: { icon: Instagram },
+  facebook: { icon: Facebook },
+  tiktok: { icon: LinkIcon }, // Lucide doesn't have a TikTok icon, so we use a generic link
 };
 
 export const SocialLinks = ({ socials }) => {
@@ -22,9 +22,9 @@ export const SocialLinks = ({ socials }) => {
   const availableLinks = Object.entries(socials)
     .filter(([platform, value]) => value && socialPlatforms[platform])
     .map(([platform, value]) => {
-      const { icon: Icon, baseUrl } = socialPlatforms[platform];
-      // Construct the full URL. Handle cases where user might have pasted the full URL already.
-      const fullUrl = value.startsWith('http') ? value : `${baseUrl}${value}`;
+      const { icon: Icon } = socialPlatforms[platform];
+      // Use the URL directly as provided by the user
+      const fullUrl = value;
       return { platform, Icon, url: fullUrl };
     });
 
@@ -35,7 +35,7 @@ export const SocialLinks = ({ socials }) => {
   return (
     <div className={styles.container}>
       {availableLinks.map(({ platform, Icon, url }) => (
-        <a 
+        <a
           key={platform}
           href={url}
           target="_blank"

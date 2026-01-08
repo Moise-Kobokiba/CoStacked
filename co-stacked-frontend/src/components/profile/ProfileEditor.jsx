@@ -116,23 +116,23 @@ export const ProfileEditor = ({ user, onSave, onCancel }) => {
                 <div className={styles.separator} />
 
                 {/* --- 3. ADD the Social Media Links Section --- */}
-                <h3 className={styles.subtitle}>Social Links (Usernames only)</h3>
+                <h3 className={styles.subtitle}>Profile Links</h3>
                 <div className={styles.socialsGrid}>
                     <div className={styles.socialInputGroup}>
                         <Linkedin size={20} className={styles.socialIcon} />
-                        <Input name="linkedin" value={formData.socials.linkedin} onChange={handleSocialsChange} placeholder="linkedin-username" />
+                        <Input name="linkedin" value={formData.socials.linkedin} onChange={handleSocialsChange} placeholder="https://linkedin.com/in/your-profile" />
                     </div>
                     <div className={styles.socialInputGroup}>
                         <Twitter size={20} className={styles.socialIcon} />
-                        <Input name="twitter" value={formData.socials.twitter} onChange={handleSocialsChange} placeholder="twitter-handle" />
+                        <Input name="twitter" value={formData.socials.twitter} onChange={handleSocialsChange} placeholder="https://twitter.com/yourhandle" />
                     </div>
                     <div className={styles.socialInputGroup}>
                         <Instagram size={20} className={styles.socialIcon} />
-                        <Input name="instagram" value={formData.socials.instagram} onChange={handleSocialsChange} placeholder="instagram-username" />
+                        <Input name="instagram" value={formData.socials.instagram} onChange={handleSocialsChange} placeholder="https://instagram.com/yourprofile" />
                     </div>
                     <div className={styles.socialInputGroup}>
                         <Facebook size={20} className={styles.socialIcon} />
-                        <Input name="facebook" value={formData.socials.facebook} onChange={handleSocialsChange} placeholder="facebook-username" />
+                        <Input name="facebook" value={formData.socials.facebook} onChange={handleSocialsChange} placeholder="https://facebook.com/yourprofile" />
                     </div>
                 </div>
 
