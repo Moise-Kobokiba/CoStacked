@@ -1,7 +1,7 @@
 // src/pages/ProfilePage.jsx
 
 import { useState, useEffect, useCallback } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import styles from "./ProfilePage.module.css";
 
@@ -10,6 +10,7 @@ import { fetchUsers, recordProfileView } from "../features/users/usersSlice";
 import { fetchProjects } from "../features/projects/projectsSlice";
 import { fetchReviewsForUser } from "../features/reviews/reviewsSlice";
 import { fetchReceivedInterests } from "../features/interests/interestsSlice";
+import { sendConnectionRequest, acceptConnectionRequest, removeOrCancelConnection, fetchConnections, fetchPendingRequests } from "../features/connections/connectionsSlice";
 
 // Import All UI Components
 import { Card } from "../components/shared/Card";
@@ -38,6 +39,7 @@ const formatDate = (dateString) => {
 export const ProfilePage = () => {
   const dispatch = useDispatch();
   const { userId } = useParams();
+  const navigate = useNavigate();
 
   // State for UI and Modals
   const [isEditing, setIsEditing] = useState(false);
@@ -52,9 +54,29 @@ export const ProfilePage = () => {
   const { items: allProjects, status: projectsStatus } = useSelector((state) => state.projects);
   const { reviewsByUser, status: reviewsStatus } = useSelector((state) => state.reviews);
   const { receivedItems: founderConnections } = useSelector((state) => state.interests);
+  const { connections, pendingRequests, actionStatus } = useSelector((state) => state.connections);
 
   const userToDisplay = userId ? allUsers.find((u) => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
+
+  // Determine connection status
+  const getConnectionStatus = () => {
+    if (!loggedInUser || !userToDisplay || isOwnProfile) return null;
+
+    const isConnected = connections?.some(conn => conn._id === userToDisplay._id);
+    if (isConnected) return 'connected';
+
+    const sentRequest = pendingRequests?.find(req => req.recipient?._id === userToDisplay._id);
+    if (sentRequest) return 'pending_sent';
+
+    const receivedRequest = pendingRequests?.find(req => req.requester?._id === userToDisplay._id);
+    if (receivedRequest) return 'pending_received';
+
+    return 'not_connected';
+  };
+
+  const connectionStatus = getConnectionStatus();
+  const isConnectionLoading = actionStatus === 'loading';
 
   const handleShare = useCallback(async () => {
     if (!userToDisplay) return;
@@ -81,13 +103,53 @@ export const ProfilePage = () => {
     }
   }, [userToDisplay]);
 
+  // Connection handlers
+  const connectionHandlers = {
+    send: () => {
+      if (userToDisplay?._id) {
+        dispatch(sendConnectionRequest(userToDisplay._id));
+      }
+    },
+    cancel: () => {
+      if (userToDisplay?._id) {
+        dispatch(removeOrCancelConnection(userToDisplay._id));
+      }
+    },
+    remove: () => {
+      if (userToDisplay?._id) {
+        dispatch(removeOrCancelConnection(userToDisplay._id));
+      }
+    },
+    accept: () => {
+      if (userToDisplay?._id) {
+        dispatch(acceptConnectionRequest(userToDisplay._id));
+      }
+    },
+    decline: () => {
+      if (userToDisplay?._id) {
+        dispatch(removeOrCancelConnection(userToDisplay._id));
+      }
+    },
+  };
+
+  const handleMessage = () => {
+    if (userToDisplay?._id) {
+      navigate(`/messages/${userToDisplay._id}`);
+    }
+  };
+
   // Data fetching effects
   useEffect(() => {
     if (usersStatus === "idle") dispatch(fetchUsers());
     if (projectsStatus === "idle") dispatch(fetchProjects());
     if (userToDisplay?._id) dispatch(fetchReviewsForUser(userToDisplay._id));
     if (loggedInUser?.role === "founder") dispatch(fetchReceivedInterests());
-  }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, dispatch]);
+    // Fetch connections data for connection status
+    if (loggedInUser && !isOwnProfile) {
+      dispatch(fetchConnections());
+      dispatch(fetchPendingRequests());
+    }
+  }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, isOwnProfile, dispatch]);
 
   useEffect(() => {
     if (userId && loggedInUser && userId !== loggedInUser._id) {
@@ -168,6 +230,11 @@ export const ProfilePage = () => {
                 onAvatarClick={() => setAvatarModalOpen(true)}
                 onShare={handleShare}
                 copySuccess={copySuccess}
+                connectionStatus={connectionStatus}
+                connectionHandlers={connectionHandlers}
+                isConnectionLoading={isConnectionLoading}
+                onMessage={handleMessage}
+                connectionCount={connections?.length || 0}
               />
 
               <div className={styles.content}>
