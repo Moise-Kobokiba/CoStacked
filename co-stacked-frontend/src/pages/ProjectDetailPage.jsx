@@ -5,7 +5,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 
 // Import all necessary Redux actions
-import { sendInterestRequest } from '../features/interests/interestsSlice';
+import { sendInterestRequest, fetchSentInterests } from '../features/interests/interestsSlice';
 import { fetchProjects } from '../features/projects/projectsSlice';
 import { submitReport } from '../features/reports/reportsSlice';
 
@@ -28,7 +28,7 @@ export const ProjectDetailPage = () => {
 
   const { user: currentUser } = useSelector(state => state.auth);
   const { items: projects, status: projectsStatus } = useSelector(state => state.projects);
-  const { status: interestStatus } = useSelector(state => state.interests);
+  const { sentItems, status: interestStatus } = useSelector(state => state.interests);
   
   const project = projects.find(p => p._id === projectId);
 
@@ -36,7 +36,11 @@ export const ProjectDetailPage = () => {
     if (projectsStatus === 'idle') {
       dispatch(fetchProjects());
     }
-  }, [projectsStatus, dispatch]);
+    // Fetch sent interests for developers to check connection status
+    if (currentUser?.role === 'developer') {
+      dispatch(fetchSentInterests());
+    }
+  }, [projectsStatus, currentUser?.role, dispatch]);
 
   const handleConnectClick = () => {
     if (!currentUser) {
@@ -90,6 +94,10 @@ export const ProjectDetailPage = () => {
   const isFounderOfProject = project && currentUser && project.founderId === currentUser._id;
   const canConnect = currentUser && currentUser.role === 'developer' && !isFounderOfProject;
 
+  // Check if developer has already sent an interest for this project
+  const existingInterest = sentItems.find(interest => interest.projectId === projectId);
+  const interestStatusText = existingInterest ? existingInterest.status : null;
+
   return (
     <>
       <ConnectNDAModal open={isNdaModalOpen} onClose={() => setNdaModalOpen(false)} onConfirm={handleConfirmNda} />
@@ -110,14 +118,20 @@ export const ProjectDetailPage = () => {
           
           <div className={styles.projectCard}>
             
-            <header className={styles.header}>
-              <h1 className={styles.title}>{project.title}</h1>
-              {canConnect && (
-                <Button onClick={handleConnectClick} disabled={interestStatus === 'loading'}>
-                  {interestStatus === 'loading' ? 'Sending...' : 'Connect'}
-                </Button>
-              )}
-            </header>
+             <header className={styles.header}>
+               <h1 className={styles.title}>{project.title}</h1>
+               {canConnect && (
+                 <Button
+                   onClick={handleConnectClick}
+                   disabled={interestStatus === 'loading' || interestStatusText === 'pending' || interestStatusText === 'approved'}
+                 >
+                   {interestStatus === 'loading' ? 'Sending...' :
+                    interestStatusText === 'pending' ? 'Request Sent' :
+                    interestStatusText === 'approved' ? 'Connected' :
+                    'Connect'}
+                 </Button>
+               )}
+             </header>
 
             <hr className={styles.separator} />
             
