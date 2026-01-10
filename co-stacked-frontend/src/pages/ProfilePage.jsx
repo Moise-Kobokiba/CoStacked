@@ -114,7 +114,10 @@ export const ProfilePage = () => {
           })
           .catch((error) => {
             console.error('Failed to send connection request:', error);
-            alert('Failed to send connection request. Please try again.');
+            console.error('Error response:', error.response);
+            console.error('Error data:', error.response?.data);
+            const errorMessage = error.response?.data?.message || error.message || 'Unknown error occurred';
+            alert(`Failed to send connection request: ${errorMessage}`);
           });
       }
     },
