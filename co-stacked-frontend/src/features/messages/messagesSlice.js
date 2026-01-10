@@ -51,6 +51,18 @@ export const sendFileMessage = createAsyncThunk(
   }
 );
 
+export const accessChat = createAsyncThunk(
+  'messages/accessChat',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await API.post('/messages/access', { userId });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data?.message || 'Failed to access chat.');
+    }
+  }
+);
+
 // ===================================================================
 // THE MESSAGES SLICE
 // ===================================================================
@@ -148,7 +160,19 @@ const messagesSlice = createSlice({
         // This keeps the logic consistent for all new messages (socket or HTTP)
         messagesSlice.caseReducers.addMessage(state, action);
       })
-      .addCase(sendFileMessage.rejected, (state, action) => { state.sendState = 'failed'; state.error = action.payload; })
+.addCase(sendFileMessage.rejected, (state, action) => { state.sendState = 'failed'; state.error = action.payload; })
+
+      // Cases for accessing/creating chat
+      .addCase(accessChat.pending, (state) => { state.status = 'loading'; })
+      .addCase(accessChat.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        // Add new conversation to the list if not already present
+        const exists = state.conversations.some(conv => conv._id === action.payload._id);
+        if (!exists) {
+          state.conversations.unshift(action.payload);
+        }
+      })
+      .addCase(accessChat.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload; })
 
       // Inter-slice reducer for new conversations
       .addCase(respondToInterest.fulfilled, (state, action) => {

@@ -2,6 +2,8 @@
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const Notification = require('../models/Notification');
+const Connection = require('../models/Connection');
+const Interest = require('../models/Interest');
 
 /**
  * @desc    Get or create a direct conversation between the logged-in user and a target user
@@ -14,6 +16,29 @@ const accessChat = async (req, res) => {
 
     if (!userId) {
       return res.status(400).json({ message: 'UserId param not sent with request' });
+    }
+
+    if (userId.toString() === req.user._id.toString()) {
+      return res.status(400).json({ message: 'You cannot start a conversation with yourself' });
+    }
+
+    // Check if users are connected (accepted connection or approved collaboration)
+    const connection = await Connection.findOne({
+      $or: [
+        { requester: req.user._id, recipient: userId, status: 'accepted' },
+        { requester: userId, recipient: req.user._id, status: 'accepted' },
+      ],
+    });
+
+    const collaboration = await Interest.findOne({
+      $or: [
+        { senderId: req.user._id, receiverId: userId, status: 'approved' },
+        { senderId: userId, receiverId: req.user._id, status: 'approved' },
+      ],
+    });
+
+    if (!connection && !collaboration) {
+      return res.status(403).json({ message: 'You can only message users you are connected with' });
     }
 
     // Check if a direct conversation already exists

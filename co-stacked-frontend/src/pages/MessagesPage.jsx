@@ -9,7 +9,7 @@ import { ChatWindow } from '../components/messaging/ChatWindow';
 
 // Import hooks and actions
 import { useSocket } from '../hooks/useSocket';
-import { fetchConversations, fetchMessages } from '../features/messages/messagesSlice';
+import { fetchConversations, fetchMessages, accessChat } from '../features/messages/messagesSlice';
 
 const LoadingSpinner = () => <div className={styles.placeholder}><p>Loading conversations...</p></div>;
 
@@ -55,15 +55,25 @@ export const MessagesPage = () => {
     // If no location state but we have a userId param, find or create conversation
     else if (userId && conversations.length > 0) {
       // Find existing conversation with this user
-      const existingConversation = conversations.find(conv => 
+      const existingConversation = conversations.find(conv =>
         conv.participants.some(p => p._id === userId)
       );
       if (existingConversation) {
         setSelectedConversationId(existingConversation._id);
+      } else {
+        // No existing conversation found, try to create/access one
+        dispatch(accessChat(userId))
+          .unwrap()
+          .then((conversation) => {
+            setSelectedConversationId(conversation._id);
+          })
+          .catch((error) => {
+            console.error('Failed to access chat:', error);
+            // Could show an error message to the user here
+          });
       }
-      // Note: You might want to add logic to create a new conversation if none exists
     }
-  }, [location.state, userId, conversations]);
+  }, [location.state, userId, conversations, dispatch]);
 
   useEffect(() => {
     if (messagesStatus === 'idle') {
