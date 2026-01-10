@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocation } from 'react-router-dom'; // Import useLocation
+import { useLocation, useParams } from 'react-router-dom'; // Import useLocation and useParams
 import styles from './MessagesPage.module.css';
 import { ConversationList } from '../components/messaging/ConversationList';
 import { ChatWindow } from '../components/messaging/ChatWindow';
@@ -27,6 +27,7 @@ const useMediaQuery = (query) => {
 export const MessagesPage = () => {
   const dispatch = useDispatch();
   const location = useLocation(); // Use location hook
+  const { userId } = useParams(); // Get userId from URL params
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const { user: currentUser } = useSelector(state => state.auth);
@@ -45,13 +46,24 @@ export const MessagesPage = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Set initial selected conversation from location state if exists
+  // Set initial selected conversation from location state or URL params
   useEffect(() => {
+    // First try to get conversationId from location state
     if (location.state?.conversationId) {
       setSelectedConversationId(location.state.conversationId);
-      // Clear state so refresh doesn't stick? Or leave it. Leaving it is fine.
     }
-  }, [location.state]);
+    // If no location state but we have a userId param, find or create conversation
+    else if (userId && conversations.length > 0) {
+      // Find existing conversation with this user
+      const existingConversation = conversations.find(conv => 
+        conv.participants.some(p => p._id === userId)
+      );
+      if (existingConversation) {
+        setSelectedConversationId(existingConversation._id);
+      }
+      // Note: You might want to add logic to create a new conversation if none exists
+    }
+  }, [location.state, userId, conversations]);
 
   useEffect(() => {
     if (messagesStatus === 'idle') {

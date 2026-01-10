@@ -68,6 +68,7 @@ export const router = createBrowserRouter([
           { path: "requests", element: <RequestsPage /> },
           { path: "my-applications", element: <SentRequestsPage /> },
           { path: "messages", element: <MessagesPage /> },
+          { path: "messages/:userId", element: <MessagesPage /> },
           { path: "settings", element: <SettingsPage /> },
           { path: "post-project", element: <PostProjectPage /> },
           { path: "payment", element: <PaymentPage /> }, 
