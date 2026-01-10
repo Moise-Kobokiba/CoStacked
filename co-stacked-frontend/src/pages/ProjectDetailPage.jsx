@@ -42,6 +42,18 @@ export const ProjectDetailPage = () => {
     }
   }, [projectsStatus, currentUser?.role, dispatch]);
 
+  // Refetch sent interests when the page becomes visible (in case interest status changed)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && currentUser?.role === 'developer') {
+        dispatch(fetchSentInterests());
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [currentUser?.role, dispatch]);
+
   const handleConnectClick = () => {
     if (!currentUser) {
       alert("Please log in or sign up to connect with projects.");
@@ -95,7 +107,7 @@ export const ProjectDetailPage = () => {
   const canConnect = currentUser && currentUser.role === 'developer' && !isFounderOfProject;
 
   // Check if developer has already sent an interest for this project
-  const existingInterest = sentItems.find(interest => interest.projectId === projectId);
+  const existingInterest = sentItems.find(interest => interest.projectId?._id === projectId);
   const interestStatusText = existingInterest ? existingInterest.status : null;
 
   return (

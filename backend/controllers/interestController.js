@@ -2,6 +2,14 @@
 
 // Ensure the casing of the model import matches your actual filenames
 const Interest = require('../models/Interest');
+
+// Access to io for socket emissions
+let io;
+const setSocketIO = (socketIO) => {
+  io = socketIO;
+};
+
+module.exports = { setSocketIO };
 const Project = require('../models/Project');
 const Conversation = require('../models/Conversation');
 const Notification = require('../models/Notification'); // <-- 1. IMPORT Notification model

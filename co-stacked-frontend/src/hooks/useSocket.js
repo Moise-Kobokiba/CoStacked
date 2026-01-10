@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { io } from 'socket.io-client';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addMessage, updateMessageStatus, updateMessagesStatus } from '../features/messages/messagesSlice';
 import { fetchNotifications } from '../features/notifications/notificationsSlice';
+import { fetchSentInterests } from '../features/interests/interestsSlice';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
