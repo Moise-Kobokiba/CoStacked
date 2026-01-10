@@ -10,7 +10,7 @@ import { fetchUsers, recordProfileView } from "../features/users/usersSlice";
 import { fetchProjects } from "../features/projects/projectsSlice";
 import { fetchReviewsForUser } from "../features/reviews/reviewsSlice";
 import { fetchReceivedInterests } from "../features/interests/interestsSlice";
-import { sendConnectionRequest, acceptConnectionRequest, removeOrCancelConnection, fetchConnections, fetchPendingRequests } from "../features/connections/connectionsSlice";
+import { sendConnectionRequest, acceptConnectionRequest, removeOrCancelConnection, fetchConnections, fetchPendingRequests, fetchConnectionCount } from "../features/connections/connectionsSlice";
 
 // Import All UI Components
 import { Card } from "../components/shared/Card";
@@ -54,7 +54,7 @@ export const ProfilePage = () => {
   const { items: allProjects, status: projectsStatus } = useSelector((state) => state.projects);
   const { reviewsByUser, status: reviewsStatus } = useSelector((state) => state.reviews);
   const { receivedItems: founderConnections } = useSelector((state) => state.interests);
-  const { connections, pendingRequests, actionStatus } = useSelector((state) => state.connections);
+   const { connections, pendingRequests, actionStatus, connectionCounts } = useSelector((state) => state.connections);
 
   const userToDisplay = userId ? allUsers.find((u) => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
@@ -181,18 +181,22 @@ export const ProfilePage = () => {
     }
   };
 
-  // Data fetching effects
-  useEffect(() => {
-    if (usersStatus === "idle") dispatch(fetchUsers());
-    if (projectsStatus === "idle") dispatch(fetchProjects());
-    if (userToDisplay?._id) dispatch(fetchReviewsForUser(userToDisplay._id));
-    if (loggedInUser?.role === "founder") dispatch(fetchReceivedInterests());
-    // Fetch connections data for connection status
-    if (loggedInUser && !isOwnProfile) {
-      dispatch(fetchConnections());
-      dispatch(fetchPendingRequests());
-    }
-  }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, isOwnProfile, dispatch]);
+   // Data fetching effects
+   useEffect(() => {
+     if (usersStatus === "idle") dispatch(fetchUsers());
+     if (projectsStatus === "idle") dispatch(fetchProjects());
+     if (userToDisplay?._id) dispatch(fetchReviewsForUser(userToDisplay._id));
+     if (loggedInUser?.role === "founder") dispatch(fetchReceivedInterests());
+     // Fetch connections data for connection status
+     if (loggedInUser && !isOwnProfile) {
+       dispatch(fetchConnections());
+       dispatch(fetchPendingRequests());
+     }
+     // Fetch connection count for the displayed user
+     if (userToDisplay?._id && !connectionCounts[userToDisplay._id]) {
+       dispatch(fetchConnectionCount(userToDisplay._id));
+     }
+   }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, isOwnProfile, dispatch, connectionCounts]);
 
   useEffect(() => {
     if (userId && loggedInUser && userId !== loggedInUser._id) {
@@ -277,7 +281,7 @@ export const ProfilePage = () => {
                 connectionHandlers={connectionHandlers}
                 isConnectionLoading={isConnectionLoading}
                 onMessage={handleMessage}
-                connectionCount={connections?.length || 0}
+                 connectionCount={connectionCounts[userToDisplay._id] || 0}
               />
 
               <div className={styles.content}>
