@@ -107,27 +107,67 @@ export const ProfilePage = () => {
   const connectionHandlers = {
     send: () => {
       if (userToDisplay?._id) {
-        dispatch(sendConnectionRequest(userToDisplay._id));
+        dispatch(sendConnectionRequest(userToDisplay._id))
+          .unwrap()
+          .then(() => {
+            alert(`Connection request sent to ${userToDisplay.name}!`);
+          })
+          .catch((error) => {
+            console.error('Failed to send connection request:', error);
+            alert('Failed to send connection request. Please try again.');
+          });
       }
     },
     cancel: () => {
       if (userToDisplay?._id) {
-        dispatch(removeOrCancelConnection(userToDisplay._id));
+        dispatch(removeOrCancelConnection(userToDisplay._id))
+          .unwrap()
+          .then(() => {
+            alert('Connection request cancelled.');
+          })
+          .catch((error) => {
+            console.error('Failed to cancel connection request:', error);
+            alert('Failed to cancel connection request. Please try again.');
+          });
       }
     },
     remove: () => {
       if (userToDisplay?._id) {
-        dispatch(removeOrCancelConnection(userToDisplay._id));
+        dispatch(removeOrCancelConnection(userToDisplay._id))
+          .unwrap()
+          .then(() => {
+            alert('Connection removed.');
+          })
+          .catch((error) => {
+            console.error('Failed to remove connection:', error);
+            alert('Failed to remove connection. Please try again.');
+          });
       }
     },
     accept: () => {
       if (userToDisplay?._id) {
-        dispatch(acceptConnectionRequest(userToDisplay._id));
+        dispatch(acceptConnectionRequest(userToDisplay._id))
+          .unwrap()
+          .then(() => {
+            alert(`Connection request from ${userToDisplay.name} accepted!`);
+          })
+          .catch((error) => {
+            console.error('Failed to accept connection request:', error);
+            alert('Failed to accept connection request. Please try again.');
+          });
       }
     },
     decline: () => {
       if (userToDisplay?._id) {
-        dispatch(removeOrCancelConnection(userToDisplay._id));
+        dispatch(removeOrCancelConnection(userToDisplay._id))
+          .unwrap()
+          .then(() => {
+            alert(`Connection request from ${userToDisplay.name} declined.`);
+          })
+          .catch((error) => {
+            console.error('Failed to decline connection request:', error);
+            alert('Failed to decline connection request. Please try again.');
+          });
       }
     },
   };
