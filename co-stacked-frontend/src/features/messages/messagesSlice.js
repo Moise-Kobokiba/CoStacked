@@ -51,14 +51,14 @@ export const sendFileMessage = createAsyncThunk(
   }
 );
 
-export const accessChat = createAsyncThunk(
-  'messages/accessChat',
+export const accessConversation = createAsyncThunk(
+  'messages/accessConversation',
   async (userId, { rejectWithValue }) => {
     try {
-      const response = await API.post('/messages/access', { userId });
+      const response = await API.post('/conversations/access', { userId });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data?.message || 'Failed to access chat.');
+      return rejectWithValue(error.response.data?.message || 'Failed to access conversation.');
     }
   }
 );
@@ -162,9 +162,9 @@ const messagesSlice = createSlice({
       })
 .addCase(sendFileMessage.rejected, (state, action) => { state.sendState = 'failed'; state.error = action.payload; })
 
-      // Cases for accessing/creating chat
-      .addCase(accessChat.pending, (state) => { state.status = 'loading'; })
-      .addCase(accessChat.fulfilled, (state, action) => {
+      // Cases for accessing/creating conversation
+      .addCase(accessConversation.pending, (state) => { state.status = 'loading'; })
+      .addCase(accessConversation.fulfilled, (state, action) => {
         state.status = 'succeeded';
         // Add new conversation to the list if not already present
         const exists = state.conversations.some(conv => conv._id === action.payload._id);
@@ -172,7 +172,7 @@ const messagesSlice = createSlice({
           state.conversations.unshift(action.payload);
         }
       })
-      .addCase(accessChat.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload; })
+      .addCase(accessConversation.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload; })
 
       // Inter-slice reducer for new conversations
       .addCase(respondToInterest.fulfilled, (state, action) => {

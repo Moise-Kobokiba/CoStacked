@@ -79,6 +79,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const connectionRoutes = require('./routes/connectionRoutes');
+const conversationRoutes = require('./routes/conversationRoutes'); // <-- IMPORT NEW ROUTE
 const authRoutes = require('./routes/authRoutes');
 const emailRoutes = require('./routes/emailRoutes');
 
@@ -94,6 +95,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/connections', connectionRoutes);
+app.use('/api/conversations', conversationRoutes); // <-- MOUNT NEW ROUTE
 app.use('/api/auth', authRoutes);
 
 // --- 6. DEFAULT ROUTE ---

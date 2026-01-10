@@ -9,7 +9,7 @@ import { ChatWindow } from '../components/messaging/ChatWindow';
 
 // Import hooks and actions
 import { useSocket } from '../hooks/useSocket';
-import { fetchConversations, fetchMessages, accessChat } from '../features/messages/messagesSlice';
+import { fetchConversations, fetchMessages, accessConversation } from '../features/messages/messagesSlice';
 
 const LoadingSpinner = () => <div className={styles.placeholder}><p>Loading conversations...</p></div>;
 
@@ -62,13 +62,13 @@ export const MessagesPage = () => {
         setSelectedConversationId(existingConversation._id);
       } else {
         // No existing conversation found, try to create/access one
-        dispatch(accessChat(userId))
+        dispatch(accessConversation(userId))
           .unwrap()
           .then((conversation) => {
             setSelectedConversationId(conversation._id);
           })
           .catch((error) => {
-            console.error('Failed to access chat:', error);
+            console.error('Failed to access conversation:', error);
             // Could show an error message to the user here
           });
       }

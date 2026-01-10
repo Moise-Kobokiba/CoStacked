@@ -3,7 +3,7 @@
 import { Button } from '../shared/Button';
 import { StarRating } from '../shared/StarRating';
 import { Avatar } from '../shared/Avatar';
-import { ConnectionButtons } from './ConnectionButtons';
+import { ConnectionButton } from './ConnectionButton';
 import { VerificationBadge } from '../shared/VerificationBadge'; // Import the new component
 import styles from '../../pages/ProfilePage.module.css';
 import PropTypes from 'prop-types';
@@ -73,15 +73,15 @@ export const ProfileHeader = ({
       {/* --- RENDER the correct set of buttons based on context --- */}
       {!isOwnProfile ? (
         // If viewing someone else's profile, show the connection buttons
-        <ConnectionButtons 
+        <ConnectionButton
           status={connectionStatus}
+          targetUserId={user._id}
           onConnect={connectionHandlers.send}
           onCancel={connectionHandlers.cancel}
           onRemove={connectionHandlers.remove}
           onAccept={connectionHandlers.accept}
           onDecline={connectionHandlers.decline}
           isLoading={isConnectionLoading}
-          onMessage={onMessage} // Pass it down
         />
       ) : (
         // If viewing your own profile, show the management buttons

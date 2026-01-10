@@ -23,8 +23,8 @@ const conversationSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-// Ensure a unique conversation per pair of users for DMs
-conversationSchema.index({ participants: 1, isDirectMessage: true }, { unique: true, partialFilterExpression: { isDirectMessage: true } });
+// This index helps MongoDB quickly find a conversation given the two participants.
+conversationSchema.index({ participants: 1 });
 
 const Conversation = mongoose.model('Conversation', conversationSchema);
 module.exports = Conversation;
