@@ -70,7 +70,7 @@ export const Footer = () => {
 
       {/* === Bottom Bar: Copyright === */}
       <div className={styles.bottomBar}>
-        <p>&copy; {currentYear} CoStacked. All Rights Reserved.</p>
+        <p>&copy; {currentYear} CoStacked. All Rights Reserved. (2025/880389/07)</p>
       </div>
     </footer>
   );
