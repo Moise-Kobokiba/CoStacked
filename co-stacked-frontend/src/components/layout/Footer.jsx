@@ -4,9 +4,13 @@ import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext'; // 1. Import the theme hook
 
 // 2. Import BOTH logos using the correct, case-sensitive paths
-import logoLight from '../../assets/logo-light.png'; 
+import logoLight from '../../assets/logo-light.png';
 import logoDark from '../../assets/logo-dark.png';
 import styles from "./Footer.module.css";
+
+import { SocialLinks } from '../shared/SocialLinks'; // Import SocialLinks
+
+// ... existing imports ...
 
 export const Footer = () => {
   const { theme } = useTheme(); // 3. Get the current theme from the context
@@ -15,6 +19,15 @@ export const Footer = () => {
   const logoSrc = theme === 'light' ? logoLight : logoDark;
 
   const currentYear = new Date().getFullYear();
+
+  // Social media links
+  const socialLinks = {
+    instagram: "https://www.instagram.com/costacked",
+    twitter: "https://x.com/costacked",
+    linkedin: "https://www.linkedin.com/company/costacked/",
+    tiktok: "https://www.tiktok.com/@costacked_official",
+    youtube: "https://youtube.com/@costacked",
+  };
 
   return (
     <footer className={styles.footer}>
@@ -25,10 +38,13 @@ export const Footer = () => {
             {/* 5. Use the dynamic logoSrc variable here */}
             <img src={logoSrc} alt="CoStacked Logo" className={styles.logoImage} />
             <span className={styles.logoText}>CoStacked</span>
-           </Link>
+          </Link>
           <p className={styles.tagline}>
             Where great ideas meet great developers.
           </p>
+          <div style={{ marginTop: '1rem' }}>
+            <SocialLinks socials={socialLinks} />
+          </div>
         </div>
 
         {/* === Right Side: Link Columns === */}

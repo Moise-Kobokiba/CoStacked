@@ -1,6 +1,6 @@
 // src/components/shared/SocialLinks.jsx
 
-import { Twitter, Linkedin, Instagram, Facebook, Link as LinkIcon } from 'lucide-react';
+import { Twitter, Linkedin, Instagram, Facebook, Youtube, Link as LinkIcon } from 'lucide-react';
 import styles from './SocialLinks.module.css';
 import PropTypes from 'prop-types';
 
@@ -10,6 +10,7 @@ const socialPlatforms = {
   linkedin: { icon: Linkedin },
   instagram: { icon: Instagram },
   facebook: { icon: Facebook },
+  youtube: { icon: Youtube },
   tiktok: { icon: LinkIcon }, // Lucide doesn't have a TikTok icon, so we use a generic link
 };
 
@@ -56,6 +57,7 @@ SocialLinks.propTypes = {
     linkedin: PropTypes.string,
     instagram: PropTypes.string,
     facebook: PropTypes.string,
+    youtube: PropTypes.string,
     tiktok: PropTypes.string,
   }),
 };
