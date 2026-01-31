@@ -29,7 +29,8 @@ export const ArticleManagementPage = () => {
             setError(null);
         } catch (err) {
             console.error('Error fetching articles:', err);
-            setError(err.message || 'Failed to fetch articles');
+            const errorMessage = err.message || err.error || 'Failed to fetch articles';
+            setError(`Error: ${errorMessage}. Check console for details.`);
         } finally {
             setLoading(false);
         }
