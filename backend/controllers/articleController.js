@@ -123,6 +123,19 @@ const createArticle = async (req, res) => {
       coverImage = req.body.coverImage;
     }
 
+    // Parse content if it's a JSON string (from FormData)
+    let parsedContent = content;
+    if (content && typeof content === 'string') {
+      try {
+        parsedContent = JSON.parse(content);
+      } catch (e) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid content format",
+        });
+      }
+    }
+
     const article = await Article.create({
       title,
       slug,
@@ -130,7 +143,7 @@ const createArticle = async (req, res) => {
       category,
       icon,
       readTime,
-      content,
+      content: parsedContent,
       coverImage,
       author: req.user._id,
     });
@@ -182,6 +195,18 @@ const updateArticle = async (req, res) => {
     }
     // If no file uploaded but body has coverImage, it will be used as-is
     // If neither, the existing coverImage remains unchanged
+
+    // Parse content if it's a JSON string (from FormData)
+    if (req.body.content && typeof req.body.content === 'string') {
+      try {
+        req.body.content = JSON.parse(req.body.content);
+      } catch (e) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid content format",
+        });
+      }
+    }
 
     const updatedArticle = await Article.findByIdAndUpdate(
       req.params.id,
