@@ -58,4 +58,7 @@ const admin = (req, res, next) => {
     }
 };
 
-module.exports = { protect, admin };
+// Alias for clarity
+const requireAdmin = admin;
+
+module.exports = { protect, admin, requireAdmin };

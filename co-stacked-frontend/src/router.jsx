@@ -29,11 +29,13 @@ import { SentRequestsPage } from "./pages/SentRequestsPage";
 import { AboutPage } from "./pages/AboutPage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage";
-import { PaymentPage } from "./pages/PaymentPage"; 
+import { PaymentPage } from "./pages/PaymentPage";
 import { MyNetworkPage } from './pages/MyNetworkPage';
 import { OAuthCallback } from './pages/OAuthCallback';
 import { PaymentSuccessPage } from "./pages/PaymentSuccessPage";
 import { PaymentCancelPage } from "./pages/PaymentCancelPage";
+import { InfoHubPage } from "./pages/InfoHubPage";
+import { ArticleDetailPage } from "./pages/ArticleDetailPage";
 
 export const router = createBrowserRouter([
   {
@@ -55,10 +57,12 @@ export const router = createBrowserRouter([
       { path: "about", element: <AboutPage /> },
       { path: "privacy", element: <PrivacyPolicyPage /> },
       { path: "terms", element: <TermsOfServicePage /> },
+      { path: "info-hub", element: <InfoHubPage /> },
+      { path: "info-hub/:slug", element: <ArticleDetailPage /> },
       { path: "auth/callback", element: <OAuthCallback /> }, // OAuth callback route
 
       // --- PROTECTED CHILDREN ROUTES ---
-      { 
+      {
         element: <ProtectedRoute />,
         children: [
           { path: "dashboard", element: <DashboardPage /> },
@@ -71,7 +75,7 @@ export const router = createBrowserRouter([
           { path: "messages/:userId", element: <MessagesPage /> },
           { path: "settings", element: <SettingsPage /> },
           { path: "post-project", element: <PostProjectPage /> },
-          { path: "payment", element: <PaymentPage /> }, 
+          { path: "payment", element: <PaymentPage /> },
           { path: "payment/success", element: <PaymentSuccessPage /> },
           { path: "payment/cancel", element: <PaymentCancelPage /> },
           { path: "my-network", element: <MyNetworkPage /> },

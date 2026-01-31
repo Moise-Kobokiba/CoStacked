@@ -58,6 +58,7 @@ export const Footer = () => {
           <div className={styles.linkColumn}>
             <h4 className={styles.columnTitle}>Company</h4>
             <Link to="/about" className={styles.link}>About Us</Link>
+            <Link to="/info-hub" className={styles.link}>Info Hub</Link>
             <Link to="/support" className={styles.link}>Support</Link>
           </div>
           <div className={styles.linkColumn}>
