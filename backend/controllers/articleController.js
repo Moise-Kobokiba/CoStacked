@@ -94,7 +94,7 @@ const getArticleBySlug = async (req, res) => {
 // @access  Private/Admin
 const createArticle = async (req, res) => {
   try {
-    const { title, slug, description, category, icon, readTime, content, coverImage } = req.body;
+    const { title, slug, description, category, icon, readTime, content } = req.body;
 
     // Validate required fields
     if (!title || !description || !category || !content) {
@@ -111,6 +111,16 @@ const createArticle = async (req, res) => {
         success: false,
         message: "An article with this slug already exists",
       });
+    }
+
+    // Handle cover image - use uploaded file or URL from body
+    let coverImage = '';
+    if (req.file) {
+      // File was uploaded via multer/cloudinary
+      coverImage = req.file.path;
+    } else if (req.body.coverImage) {
+      // URL was provided directly
+      coverImage = req.body.coverImage;
     }
 
     const article = await Article.create({
@@ -164,6 +174,14 @@ const updateArticle = async (req, res) => {
         });
       }
     }
+
+    // Handle cover image update
+    if (req.file) {
+      // New file uploaded
+      req.body.coverImage = req.file.path;
+    }
+    // If no file uploaded but body has coverImage, it will be used as-is
+    // If neither, the existing coverImage remains unchanged
 
     const updatedArticle = await Article.findByIdAndUpdate(
       req.params.id,

@@ -6,31 +6,52 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 const TOKEN_NAME = 'costacked-admin-token';
 
 // Helper function to get auth headers
-const getAuthHeaders = () => {
+const getAuthHeaders = (isFormData = false) => {
   try {
     const serializedAuth = localStorage.getItem(TOKEN_NAME);
     if (!serializedAuth) {
       return {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: isFormData ? {} : { 'Content-Type': 'application/json' },
       };
     }
     const { token } = JSON.parse(serializedAuth);
     return {
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       },
     };
   } catch (e) {
     console.error('Error getting auth token:', e);
     return {
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: isFormData ? {} : { 'Content-Type': 'application/json' },
     };
   }
+};
+
+// Helper function to create FormData from article data
+const createArticleFormData = (articleData) => {
+  const formData = new FormData();
+  
+  // Add text fields
+  formData.append('title', articleData.title);
+  formData.append('slug', articleData.slug);
+  formData.append('description', articleData.description);
+  formData.append('category', articleData.category);
+  formData.append('icon', articleData.icon || 'book-open');
+  formData.append('readTime', articleData.readTime || '5 min read');
+  formData.append('isPublished', articleData.isPublished || false);
+  formData.append('content', JSON.stringify(articleData.content));
+  
+  // Add cover image if it's a File object
+  if (articleData.coverImage instanceof File) {
+    formData.append('coverImage', articleData.coverImage);
+  } else if (articleData.coverImage && typeof articleData.coverImage === 'string') {
+    // If it's a URL string, send it as a regular field
+    formData.append('coverImage', articleData.coverImage);
+  }
+  
+  return formData;
 };
 
 // Get all articles (admin - includes drafts)
@@ -69,10 +90,21 @@ export const getArticleBySlug = async (slug) => {
 // Create article
 export const createArticle = async (articleData) => {
   try {
+    // Check if we need to send as FormData (if there's a File object)
+    const hasFile = articleData.coverImage instanceof File;
+    
+    let data = articleData;
+    let headers = getAuthHeaders(false);
+    
+    if (hasFile) {
+      data = createArticleFormData(articleData);
+      headers = getAuthHeaders(true);
+    }
+    
     const response = await axios.post(
       `${API_URL}/api/articles`,
-      articleData,
-      getAuthHeaders()
+      data,
+      headers
     );
     return response.data;
   } catch (error) {
@@ -83,10 +115,21 @@ export const createArticle = async (articleData) => {
 // Update article
 export const updateArticle = async (id, articleData) => {
   try {
+    // Check if we need to send as FormData (if there's a File object)
+    const hasFile = articleData.coverImage instanceof File;
+    
+    let data = articleData;
+    let headers = getAuthHeaders(false);
+    
+    if (hasFile) {
+      data = createArticleFormData(articleData);
+      headers = getAuthHeaders(true);
+    }
+    
     const response = await axios.put(
       `${API_URL}/api/articles/${id}`,
-      articleData,
-      getAuthHeaders()
+      data,
+      headers
     );
     return response.data;
   } catch (error) {

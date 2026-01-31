@@ -63,7 +63,9 @@ export const ArticleEditorPage = () => {
         readTime: '5 min read',
         content: [],
         coverImage: '',
+        coverImageFile: null,
     });
+    const [imagePreview, setImagePreview] = useState(null);
 
     useEffect(() => {
         setTitle(isEditMode ? 'Edit Article' : 'Create New Article');
@@ -77,18 +79,22 @@ export const ArticleEditorPage = () => {
             setLoading(true);
             const response = await getAllArticles();
             const article = response.data.find(a => a._id === id);
-            if (article) {
-                setFormData({
-                    title: article.title,
-                    slug: article.slug,
-                    description: article.description,
-                    category: article.category,
-                    icon: article.icon || 'book-open',
-                    readTime: article.readTime,
-                    content: article.content || [],
-                    coverImage: article.coverImage || '',
-                });
-            }
+                if (article) {
+                    setFormData({
+                        title: article.title,
+                        slug: article.slug,
+                        description: article.description,
+                        category: article.category,
+                        icon: article.icon || 'book-open',
+                        readTime: article.readTime,
+                        content: article.content || [],
+                        coverImage: article.coverImage || '',
+                        coverImageFile: null,
+                    });
+                    if (article.coverImage) {
+                        setImagePreview(article.coverImage);
+                    }
+                }
         } catch (err) {
             console.error('Error fetching article:', err);
             alert('Failed to load article');
@@ -114,6 +120,53 @@ export const ArticleEditorPage = () => {
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                return;
+            }
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image size should be less than 5MB');
+                return;
+            }
+            
+            setFormData(prev => ({
+                ...prev,
+                coverImageFile: file,
+                coverImage: '', // Clear URL when file is selected
+            }));
+            
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleImageUrlChange = (url) => {
+        setFormData(prev => ({
+            ...prev,
+            coverImage: url,
+            coverImageFile: null,
+        }));
+        setImagePreview(url);
+    };
+
+    const clearImage = () => {
+        setFormData(prev => ({
+            ...prev,
+            coverImage: '',
+            coverImageFile: null,
+        }));
+        setImagePreview(null);
     };
 
     const addContentBlock = (type) => {
@@ -206,9 +259,18 @@ export const ArticleEditorPage = () => {
 
         try {
             setSaving(true);
+            // Prepare article data - use coverImageFile if present
             const articleData = {
-                ...formData,
+                title: formData.title,
+                slug: formData.slug,
+                description: formData.description,
+                category: formData.category,
+                icon: formData.icon,
+                readTime: formData.readTime,
+                content: formData.content,
                 isPublished: publish,
+                // Use File object if present, otherwise use URL string
+                coverImage: formData.coverImageFile || formData.coverImage,
             };
 
             if (isEditMode) {
@@ -470,14 +532,48 @@ export const ArticleEditorPage = () => {
                         </div>
 
                         <div className={styles.formGroup}>
-                            <label>Cover Image URL</label>
-                            <input
-                                type="text"
-                                value={formData.coverImage}
-                                onChange={(e) => handleInputChange('coverImage', e.target.value)}
-                                placeholder="https://..."
-                            />
-                            <small>Optional</small>
+                            <label>Cover Image</label>
+                            
+                            {/* Image Preview */}
+                            {imagePreview && (
+                                <div className={styles.imagePreview}>
+                                    <img src={imagePreview} alt="Cover preview" />
+                                    <button 
+                                        type="button" 
+                                        className={styles.removeImage}
+                                        onClick={clearImage}
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            )}
+                            
+                            {/* File Upload */}
+                            <div className={styles.fileUpload}>
+                                <input
+                                    type="file"
+                                    id="coverImageUpload"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    style={{ display: 'none' }}
+                                />
+                                <label htmlFor="coverImageUpload" className={styles.uploadButton}>
+                                    <Plus size={16} />
+                                    Upload Image
+                                </label>
+                                <small>Max 5MB (JPEG, PNG, WebP)</small>
+                            </div>
+                            
+                            {/* Or use URL */}
+                            <div className={styles.urlInput}>
+                                <small>Or enter image URL:</small>
+                                <input
+                                    type="text"
+                                    value={formData.coverImage}
+                                    onChange={(e) => handleImageUrlChange(e.target.value)}
+                                    placeholder="https://..."
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
