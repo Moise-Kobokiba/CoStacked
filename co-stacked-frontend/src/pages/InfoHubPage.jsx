@@ -113,6 +113,15 @@ export const InfoHubPage = () => {
                                     className={styles.articleCard}
                                     onClick={() => handleArticleClick(article.slug)}
                                 >
+                                    {article.coverImage && (
+                                        <div className={styles.coverImageWrapper}>
+                                            <img 
+                                                src={article.coverImage} 
+                                                alt={article.title}
+                                                className={styles.coverImage}
+                                            />
+                                        </div>
+                                    )}
                                     <div className={styles.articleHeader}>
                                         <div className={styles.articleIcon}>
                                             <IconComponent size={20} />
