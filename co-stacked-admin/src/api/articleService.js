@@ -4,9 +4,6 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
-// Debug: Log the API URL being used
-console.log('API_URL configured as:', API_URL);
-
 // Helper function to get auth headers
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
@@ -21,16 +18,12 @@ const getAuthHeaders = () => {
 // Get all articles (admin - includes drafts)
 export const getAllArticles = async () => {
   try {
-    const url = `${API_URL}/articles/admin/all`;
-    console.log('Fetching articles from:', url);
-    const response = await axios.get(url, getAuthHeaders());
+    const response = await axios.get(
+      `${API_URL}/articles/admin/all`,
+      getAuthHeaders()
+    );
     return response.data;
   } catch (error) {
-    console.error('Error in getAllArticles:', error.message);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
-    }
     throw error.response?.data || error;
   }
 };
