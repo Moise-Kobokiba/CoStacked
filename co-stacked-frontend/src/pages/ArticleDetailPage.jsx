@@ -89,6 +89,15 @@ export const ArticleDetailPage = () => {
                 </button>
 
                 <article className={styles.article}>
+                    {article.coverImage && (
+                        <div className={styles.coverImageContainer}>
+                            <img 
+                                src={article.coverImage} 
+                                alt={article.title}
+                                className={styles.coverImage}
+                            />
+                        </div>
+                    )}
                     <header className={styles.articleHeader}>
                         <div className={styles.articleMeta}>
                             <span className={styles.category}>
