@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
@@ -19,7 +19,7 @@ const getAuthHeaders = () => {
 export const getAllArticles = async () => {
   try {
     const response = await axios.get(
-      `${API_URL}/articles/admin/all`,
+      `${API_URL}/api/articles/admin/all`,
       getAuthHeaders()
     );
     return response.data;
@@ -31,7 +31,7 @@ export const getAllArticles = async () => {
 // Get published articles (public)
 export const getPublishedArticles = async () => {
   try {
-    const response = await axios.get(`${API_URL}/articles`);
+    const response = await axios.get(`${API_URL}/api/articles`);
     return response.data;
   } catch (error) {
     throw error.response?.data || error;
@@ -41,7 +41,7 @@ export const getPublishedArticles = async () => {
 // Get article by slug
 export const getArticleBySlug = async (slug) => {
   try {
-    const response = await axios.get(`${API_URL}/articles/${slug}`);
+    const response = await axios.get(`${API_URL}/api/articles/${slug}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || error;
@@ -52,7 +52,7 @@ export const getArticleBySlug = async (slug) => {
 export const createArticle = async (articleData) => {
   try {
     const response = await axios.post(
-      `${API_URL}/articles`,
+      `${API_URL}/api/articles`,
       articleData,
       getAuthHeaders()
     );
@@ -66,7 +66,7 @@ export const createArticle = async (articleData) => {
 export const updateArticle = async (id, articleData) => {
   try {
     const response = await axios.put(
-      `${API_URL}/articles/${id}`,
+      `${API_URL}/api/articles/${id}`,
       articleData,
       getAuthHeaders()
     );
@@ -80,7 +80,7 @@ export const updateArticle = async (id, articleData) => {
 export const deleteArticle = async (id) => {
   try {
     const response = await axios.delete(
-      `${API_URL}/articles/${id}`,
+      `${API_URL}/api/articles/${id}`,
       getAuthHeaders()
     );
     return response.data;
@@ -93,7 +93,7 @@ export const deleteArticle = async (id) => {
 export const togglePublishStatus = async (id) => {
   try {
     const response = await axios.post(
-      `${API_URL}/articles/${id}/publish`,
+      `${API_URL}/api/articles/${id}/publish`,
       {},
       getAuthHeaders()
     );
