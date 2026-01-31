@@ -3,16 +3,34 @@
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+const TOKEN_NAME = 'costacked-admin-token';
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  };
+  try {
+    const serializedAuth = localStorage.getItem(TOKEN_NAME);
+    if (!serializedAuth) {
+      return {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+    }
+    const { token } = JSON.parse(serializedAuth);
+    return {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    };
+  } catch (e) {
+    console.error('Error getting auth token:', e);
+    return {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+  }
 };
 
 // Get all articles (admin - includes drafts)
