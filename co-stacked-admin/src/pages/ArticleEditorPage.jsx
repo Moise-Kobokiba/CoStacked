@@ -79,22 +79,22 @@ export const ArticleEditorPage = () => {
             setLoading(true);
             const response = await getAllArticles();
             const article = response.data.find(a => a._id === id);
-                if (article) {
-                    setFormData({
-                        title: article.title,
-                        slug: article.slug,
-                        description: article.description,
-                        category: article.category,
-                        icon: article.icon || 'book-open',
-                        readTime: article.readTime,
-                        content: article.content || [],
-                        coverImage: article.coverImage || '',
-                        coverImageFile: null,
-                    });
-                    if (article.coverImage) {
-                        setImagePreview(article.coverImage);
-                    }
+            if (article) {
+                setFormData({
+                    title: article.title,
+                    slug: article.slug,
+                    description: article.description,
+                    category: article.category,
+                    icon: article.icon || 'book-open',
+                    readTime: article.readTime,
+                    content: article.content || [],
+                    coverImage: article.coverImage || '',
+                    coverImageFile: null,
+                });
+                if (article.coverImage) {
+                    setImagePreview(article.coverImage);
                 }
+            }
         } catch (err) {
             console.error('Error fetching article:', err);
             alert('Failed to load article');
@@ -135,13 +135,13 @@ export const ArticleEditorPage = () => {
                 alert('Image size should be less than 5MB');
                 return;
             }
-            
+
             setFormData(prev => ({
                 ...prev,
                 coverImageFile: file,
                 coverImage: '', // Clear URL when file is selected
             }));
-            
+
             // Create preview
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -533,13 +533,13 @@ export const ArticleEditorPage = () => {
 
                         <div className={styles.formGroup}>
                             <label>Cover Image</label>
-                            
+
                             {/* Image Preview */}
                             {imagePreview && (
                                 <div className={styles.imagePreview}>
                                     <img src={imagePreview} alt="Cover preview" />
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         className={styles.removeImage}
                                         onClick={clearImage}
                                     >
@@ -547,7 +547,7 @@ export const ArticleEditorPage = () => {
                                     </button>
                                 </div>
                             )}
-                            
+
                             {/* File Upload */}
                             <div className={styles.fileUpload}>
                                 <input
@@ -563,17 +563,8 @@ export const ArticleEditorPage = () => {
                                 </label>
                                 <small>Max 5MB (JPEG, PNG, WebP)</small>
                             </div>
-                            
-                            {/* Or use URL */}
-                            <div className={styles.urlInput}>
-                                <small>Or enter image URL:</small>
-                                <input
-                                    type="text"
-                                    value={formData.coverImage}
-                                    onChange={(e) => handleImageUrlChange(e.target.value)}
-                                    placeholder="https://..."
-                                />
-                            </div>
+
+
                         </div>
                     </div>
                 </div>
