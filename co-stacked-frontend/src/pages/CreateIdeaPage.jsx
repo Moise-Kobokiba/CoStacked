@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useSelector } from 'react-redux';
 import { createIdea } from '../api/ideasApi';
 import styles from './CreateIdeaPage.module.css';
 
 export const CreateIdeaPage = () => {
-    const { user, token } = useAuth();
+    const { user, token } = useSelector((state) => state.auth);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
