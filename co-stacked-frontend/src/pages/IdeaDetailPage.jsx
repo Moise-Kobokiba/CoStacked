@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { getIdeaById, voteIdea, convertIdeaToProject } from '../api/ideasApi';
-import { formatDate } from '../utils/dateUtils'; // Assuming this utility exists or I'll genericize it
+
 import styles from './IdeaDetailPage.module.css';
 
 export const IdeaDetailPage = () => {
