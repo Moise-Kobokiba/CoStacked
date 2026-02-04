@@ -63,9 +63,21 @@ export const Header = () => {
     if (notifications.length > 0) dispatch(markNotificationsAsRead());
     setNotifOpen(false);
   };
+  const navigationLinks = [
+    { label: 'Discover', path: '/projects' },
+    { label: 'Validation Board', path: '/validation-board' },
+    { label: 'Find Talent', path: '/users' },
+    ...(isAuthenticated ? [{ label: 'Messages', path: '/messages' }] : [])
+  ];
+
+  const logoSrc = theme === 'light' ? logoLight : logoDark;
+
+  return (
+    <>
+      <header className={styles.header}>
         <HeaderLogo logoSrc={logoSrc} />
         <DesktopNav links={navigationLinks} />
-        <UserActions 
+        <UserActions
           isAuthenticated={isAuthenticated}
           user={user}
           notifications={notifications}
@@ -83,16 +95,16 @@ export const Header = () => {
         />
       </header >
 
-  <AnimatePresence>
-    {isMobileMenuOpen && (
-      <MobileMenu
-        onClose={() => setMobileMenuOpen(false)}
-        links={navigationLinks}
-        isAuthenticated={isAuthenticated}
-        onLogout={handleLogout}
-      />
-    )}
-  </AnimatePresence>
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <MobileMenu
+            onClose={() => setMobileMenuOpen(false)}
+            links={navigationLinks}
+            isAuthenticated={isAuthenticated}
+            onLogout={handleLogout}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 };
