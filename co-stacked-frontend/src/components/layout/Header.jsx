@@ -32,7 +32,7 @@ export const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme } = useTheme();
-  
+
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const { items: notifications } = useSelector(state => state.notifications);
 
@@ -42,38 +42,27 @@ export const Header = () => {
 
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
-  
+
   useClickOutside(dropdownRef, () => setDropdownOpen(false));
   useClickOutside(notifRef, () => setNotifOpen(false));
 
-   useEffect(() => {
-     if (isAuthenticated) {
-       console.log('Header: User authenticated, fetching notifications...');
-       console.log('Header: Current user:', user);
-       dispatch(fetchNotifications());
-     }
-   }, [isAuthenticated, dispatch, user]);
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('Header: User authenticated, fetching notifications...');
+      console.log('Header: Current user:', user);
+      dispatch(fetchNotifications());
+    }
+  }, [isAuthenticated, dispatch, user]);
   useEffect(() => { setMobileMenuOpen(false); setDropdownOpen(false); setNotifOpen(false); }, [location.pathname]);
   useEffect(() => { document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'auto'; return () => { document.body.style.overflow = 'auto'; }; }, [isMobileMenuOpen]);
 
   const handleLogout = () => { dispatch(logout()); navigate('/login'); };
   const handleCloseNotifications = () => setNotifOpen(false);
-   const handleMarkAsRead = () => {
-     console.log('Marking notifications as read, current count:', notifications.length);
-     if (notifications.length > 0) dispatch(markNotificationsAsRead());
-     setNotifOpen(false);
-   };
-  
-  const navigationLinks = [
-    { label: 'Discover', path: '/projects' },
-    { label: 'Find Talent', path: '/users' },
-    ...(isAuthenticated ? [{ label: 'Messages', path: '/messages' }] : [])
-  ];
-  const logoSrc = theme === 'light' ? logoLight : logoDark;
-
-  return (
-    <>
-      <header className={styles.header}>
+  const handleMarkAsRead = () => {
+    console.log('Marking notifications as read, current count:', notifications.length);
+    if (notifications.length > 0) dispatch(markNotificationsAsRead());
+    setNotifOpen(false);
+  };
         <HeaderLogo logoSrc={logoSrc} />
         <DesktopNav links={navigationLinks} />
         <UserActions 
@@ -92,18 +81,18 @@ export const Header = () => {
           setMobileMenuOpen={setMobileMenuOpen}
           isMobileMenuOpen={isMobileMenuOpen}
         />
-      </header>
-      
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <MobileMenu 
-            onClose={() => setMobileMenuOpen(false)}
-            links={navigationLinks}
-            isAuthenticated={isAuthenticated}
-            onLogout={handleLogout}
-          />
-        )}
-      </AnimatePresence>
+      </header >
+
+  <AnimatePresence>
+    {isMobileMenuOpen && (
+      <MobileMenu
+        onClose={() => setMobileMenuOpen(false)}
+        links={navigationLinks}
+        isAuthenticated={isAuthenticated}
+        onLogout={handleLogout}
+      />
+    )}
+  </AnimatePresence>
     </>
   );
 };

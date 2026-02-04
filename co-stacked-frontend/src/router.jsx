@@ -36,6 +36,9 @@ import { PaymentSuccessPage } from "./pages/PaymentSuccessPage";
 import { PaymentCancelPage } from "./pages/PaymentCancelPage";
 import { InfoHubPage } from "./pages/InfoHubPage";
 import { ArticleDetailPage } from "./pages/ArticleDetailPage";
+import { ValidationBoardPage } from "./pages/ValidationBoardPage";
+import { IdeaDetailPage } from "./pages/IdeaDetailPage";
+import { CreateIdeaPage } from "./pages/CreateIdeaPage";
 
 export const router = createBrowserRouter([
   {
@@ -60,6 +63,8 @@ export const router = createBrowserRouter([
       { path: "info-hub", element: <InfoHubPage /> },
       { path: "info-hub/:slug", element: <ArticleDetailPage /> },
       { path: "auth/callback", element: <OAuthCallback /> }, // OAuth callback route
+      { path: "validation-board", element: <ValidationBoardPage /> },
+      { path: "validation-board/:id", element: <IdeaDetailPage /> },
 
       // --- PROTECTED CHILDREN ROUTES ---
       {
@@ -75,6 +80,7 @@ export const router = createBrowserRouter([
           { path: "messages/:userId", element: <MessagesPage /> },
           { path: "settings", element: <SettingsPage /> },
           { path: "post-project", element: <PostProjectPage /> },
+          { path: "validation-board/create", element: <CreateIdeaPage /> },
           { path: "payment", element: <PaymentPage /> },
           { path: "payment/success", element: <PaymentSuccessPage /> },
           { path: "payment/cancel", element: <PaymentCancelPage /> },

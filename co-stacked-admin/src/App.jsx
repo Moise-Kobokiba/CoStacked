@@ -20,7 +20,9 @@ import { TransactionsPage } from './pages/TransactionsPage';
 import { AdminVerifyEmailPage } from './pages/AdminVerifyEmailPage';
 import { AdminSettingsPage } from './pages/AdminSettingsPage';
 import { ArticleManagementPage } from './pages/ArticleManagementPage';
+
 import { ArticleEditorPage } from './pages/ArticleEditorPage';
+import { ValidationDashboardPage } from './pages/ValidationDashboardPage';
 
 // The router configuration is updated with all necessary routes.
 const router = createBrowserRouter([
@@ -43,6 +45,7 @@ const router = createBrowserRouter([
           { path: 'articles/edit/:id', element: <ArticleEditorPage /> },
           { path: 'reports', element: <ReportsPage /> },
           { path: 'transactions', element: <TransactionsPage /> },
+          { path: 'validation', element: <ValidationDashboardPage /> },
           { path: 'settings', element: <AdminSettingsPage /> },
         ]
       }

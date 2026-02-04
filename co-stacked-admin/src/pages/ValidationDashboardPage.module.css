@@ -1,0 +1,132 @@
+.container {
+    padding: 24px;
+}
+
+.header {
+    margin-bottom: 24px;
+}
+
+.header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.header p {
+    color: #6b7280;
+}
+
+.tableContainer {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    text-align: left;
+    padding: 16px;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.table td {
+    padding: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.ideaTitle {
+    font-weight: 600;
+    color: #111827;
+}
+
+.ideaIndustry {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.userCell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.scoreBadge {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: #edf7ed; /* Light green */
+    color: #14532d;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.statusBadge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.statusBadge.active {
+    background-color: #ecfccb;
+    color: #3f6212;
+}
+
+.statusBadge.validated {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.statusBadge.archived {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.actionBtn {
+    padding: 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    color: #4b5563;
+    transition: all 0.2s;
+}
+
+.actionBtn:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+
+.deleteBtn:hover {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}

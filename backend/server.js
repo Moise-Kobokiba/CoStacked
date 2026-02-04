@@ -23,6 +23,7 @@ require('./models/Review');
 require('./models/Transaction');
 require('./models/TempRegistration');
 require('./models/Article');
+require('./models/Idea');
 
 // Start the subscription renewal cron job
 startSubscriptionCron();
@@ -84,6 +85,7 @@ const conversationRoutes = require('./routes/conversationRoutes'); // <-- IMPORT
 const authRoutes = require('./routes/authRoutes');
 const emailRoutes = require('./routes/emailRoutes');
 const articleRoutes = require('./routes/articleRoutes');
+const ideaRoutes = require('./routes/ideaRoutes');
 
 // Mount API routes
 app.use('/api/email', emailRoutes);
@@ -100,6 +102,7 @@ app.use('/api/connections', connectionRoutes);
 app.use('/api/conversations', conversationRoutes); // <-- MOUNT NEW ROUTE
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
+app.use('/api/ideas', ideaRoutes);
 
 // --- 6. DEFAULT ROUTE ---
 app.get('/', (req, res) => res.send('API is running successfully...'));

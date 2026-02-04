@@ -7,7 +7,7 @@ import styles from './AdminSidebar.module.css';
 import PropTypes from 'prop-types';
 
 // Import all necessary icons
-import { LayoutDashboard, Users, Briefcase, Flag, Settings, LogOut, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Users, Briefcase, Flag, Settings, LogOut, BookOpen, Lightbulb } from 'lucide-react';
 import logoSrc from '../../assets/logo.png';
 
 const adminNavItems = [
@@ -15,6 +15,7 @@ const adminNavItems = [
   { title: "User Management", href: "/users", icon: Users },
   { title: "Project Management", href: "/projects", icon: Briefcase },
   { title: "Articles", href: "/articles", icon: BookOpen },
+  { title: "Validation Board", href: "/validation", icon: Lightbulb },
   { title: "Content Moderation", href: "/reports", icon: Flag },
   { title: "Settings", href: "/settings", icon: Settings },
 ];

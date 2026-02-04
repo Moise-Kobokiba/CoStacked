@@ -1,0 +1,67 @@
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5001/api/ideas';
+
+// Create a new idea
+export const createIdea = async (ideaData, token) => {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  const response = await axios.post(API_URL, ideaData, config);
+  return response.data;
+};
+
+// Get all ideas (can accept query params like ?visibility=public or ?sort=popular)
+export const getIdeas = async (filters = {}) => {
+  const queryString = new URLSearchParams(filters).toString();
+  const response = await axios.get(`${API_URL}?${queryString}`);
+  return response.data;
+};
+
+// Get single idea by ID
+export const getIdeaById = async (id, token) => {
+    // Token is optional depending on if we need to check private access, 
+    // but usually helpful to pass if user is logged in
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+    const response = await axios.get(`${API_URL}/${id}`, token ? config : {});
+    return response.data;
+};
+
+// Vote for an idea
+export const voteIdea = async (id, token) => {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  const response = await axios.post(`${API_URL}/${id}/vote`, {}, config);
+  return response.data;
+};
+
+// Convert idea to project
+export const convertIdeaToProject = async (id, token) => {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  const response = await axios.post(`${API_URL}/${id}/convert`, {}, config);
+  return response.data;
+};
+
+// Delete idea 
+export const deleteIdea = async (id, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+    const response = await axios.delete(`${API_URL}/${id}`, config);
+    return response.data;
+};
