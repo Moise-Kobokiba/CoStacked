@@ -2,6 +2,8 @@
     max-width: 1200px;
     margin: 40px auto;
     padding: 0 20px;
+    background-color: var(--background);
+    min-height: 100vh;
 }
 
 .header {
@@ -14,12 +16,12 @@
 .header h1 {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--foreground);
     margin-bottom: 5px;
 }
 
 .header p {
-    color: #6b7280;
+    color: var(--muted-foreground);
     font-size: 1.1rem;
 }
 
@@ -49,7 +51,7 @@
     border: none;
     padding: 8px 16px;
     font-size: 1rem;
-    color: #6b7280;
+    color: var(--muted-foreground);
     cursor: pointer;
     border-radius: 20px;
     font-weight: 500;
@@ -57,13 +59,13 @@
 }
 
 .filterBtn:hover {
-    background-color: #f3f4f6;
-    color: #374151;
+    background-color: var(--input-background);
+    color: var(--foreground);
 }
 
 .filterBtn.active {
-    background-color: #e0e7ff;
-    color: #4f46e5;
+    background-color: var(--primary-light);
+    color: var(--primary);
 }
 
 .grid {
@@ -73,13 +75,13 @@
 }
 
 .card {
-    background: white;
+    background: var(--card-background);
     border-radius: 16px;
     padding: 24px;
     text-decoration: none;
     color: inherit;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border);
     transition: all 0.2s;
     display: flex;
     flex-direction: column;
@@ -88,7 +90,15 @@
 .card:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    border-color: #c7d2fe;
+    border-color: var(--primary-light);
+}
+
+html[data-theme='dark'] .card {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+html[data-theme='dark'] .card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }
 
 .cardHeader {
@@ -98,29 +108,29 @@
 }
 
 .industry {
-    background-color: #f3f4f6;
+    background-color: var(--input-background);
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 0.8rem;
-    color: #4b5563;
+    color: var(--foreground);
     font-weight: 500;
 }
 
 .score {
     font-weight: 700;
-    color: #ea580c; /* Orange/Fire color */
+    color: #ea580c; /* Orange/Fire color - keeps contrast in both modes */
 }
 
 .card h3 {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #1f2937;
+    color: var(--foreground);
     margin-bottom: 10px;
     line-height: 1.4;
 }
 
 .problem {
-    color: #4b5563;
+    color: var(--muted-foreground);
     font-size: 0.95rem;
     line-height: 1.5;
     margin-bottom: 20px;
@@ -131,7 +141,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid #f3f4f6;
+    border-top: 1px solid var(--border);
     padding-top: 16px;
 }
 
@@ -152,7 +162,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background-color: #6366f1;
+    background-color: var(--primary);
     color: white;
     display: flex;
     align-items: center;
@@ -163,17 +173,17 @@
 
 .author span {
     font-size: 0.9rem;
-    color: #6b7280;
+    color: var(--muted-foreground);
 }
 
 .stats {
     font-size: 0.9rem;
-    color: #6b7280;
+    color: var(--muted-foreground);
 }
 
 .loading, .empty {
     text-align: center;
     padding: 60px;
-    color: #6b7280;
+    color: var(--muted-foreground);
     font-size: 1.2rem;
 }
