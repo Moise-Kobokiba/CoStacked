@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import API from '../api/axios'; // Use the configured axios instance
 import styles from './ValidationDashboardPage.module.css'; // Reusing existing dashboard styles if possible or creating new
 import { Eye, Trash2, ArrowUpRight } from 'lucide-react';
 
@@ -8,18 +8,11 @@ export const ValidationDashboardPage = () => {
     const [loading, setLoading] = useState(true);
 
     // Fetch ideas directly from backend 
-    // In a real app we'd have a specific admin endpoint or use the public one with admin token
-    // For now assuming public endpoint relies on token for visibility, but allow admin to see all if implemented
+    // Using the configured API instance which handles baseURL and auth automatically
     const fetchIdeas = async () => {
         try {
-            // Using the same endpoint as frontend but maybe we filter differently?
-            // Assuming admin token is attached by interceptor if configured, or we pass it manually
-            // For MVP, just fetching all active/public ideas
-            const token = localStorage.getItem('adminToken'); // Assuming admin uses a token stored here
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-
-            const response = await axios.get('http://localhost:5001/api/ideas', config);
-            setIdeas(response.data);
+            const response = await API.get('/ideas');
+            setIdeas(response.data.data || response.data);
         } catch (error) {
             console.error('Error fetching ideas:', error);
         } finally {
@@ -34,10 +27,7 @@ export const ValidationDashboardPage = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this idea?')) return;
         try {
-            const token = localStorage.getItem('adminToken');
-            await axios.delete(`http://localhost:5001/api/ideas/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await API.delete(`/ideas/${id}`);
             setIdeas(ideas.filter(idea => idea._id !== id));
         } catch (error) {
             console.error('Error deleting idea:', error);
@@ -94,7 +84,7 @@ export const ValidationDashboardPage = () => {
                                     <td>
                                         <div className={styles.actions}>
                                             <button
-                                                onClick={() => window.open(`http://localhost:5173/validation-board/${idea._id}`, '_blank')}
+                                                onClick={() => window.open(`${window.location.origin}/validation-board/${idea._id}`, '_blank')}
                                                 title="View Public Page"
                                                 className={styles.actionBtn}
                                             >
