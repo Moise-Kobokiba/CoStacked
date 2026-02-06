@@ -65,3 +65,31 @@ export const deleteIdea = async (id, token) => {
     const response = await axios.delete(`${API_URL}/${id}`, config);
     return response.data;
 };
+
+// Get comments for an idea
+export const getIdeaComments = async (ideaId) => {
+    const response = await axios.get(`${API_URL}/${ideaId}/comments`);
+    return response.data;
+};
+
+// Add comment to an idea
+export const addIdeaComment = async (ideaId, content, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+    const response = await axios.post(`${API_URL}/${ideaId}/comments`, { content }, config);
+    return response.data;
+};
+
+// Delete comment
+export const deleteIdeaComment = async (ideaId, commentId, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+    const response = await axios.delete(`${API_URL}/${ideaId}/comments/${commentId}`, config);
+    return response.data;
+};

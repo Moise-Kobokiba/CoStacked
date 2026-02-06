@@ -28,8 +28,9 @@ const notificationSchema = mongoose.Schema(
         'NEW_REVIEW',
         'NEW_CONNECTION_REQUEST',
         'CONNECTION_ACCEPTED',
-        // Idea validation
-        'IDEA_VOTE'
+         // Idea validation
+        'IDEA_VOTE',
+        'IDEA_COMMENT'
       ],
     },
     isRead: {

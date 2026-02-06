@@ -1,5 +1,6 @@
 const Idea = require('../models/Idea');
 const Project = require('../models/Project');
+const Comment = require('../models/Comment');
 const Notification = require('../models/Notification'); // If you want to notify on votes
 
 // @desc    Get all ideas
@@ -230,6 +231,105 @@ const deleteIdea = async (req, res) => {
 }
 
 
+// @desc    Get comments for an idea
+// @route   GET /api/ideas/:id/comments
+// @access  Public
+const getIdeaComments = async (req, res) => {
+    try {
+        const comments = await Comment.find({ idea: req.params.id, isDeleted: false })
+            .populate('author', 'name avatarUrl')
+            .sort({ createdAt: -1 });
+        
+        res.status(200).json(comments);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Add comment to idea
+// @route   POST /api/ideas/:id/comments
+// @access  Private
+const addIdeaComment = async (req, res) => {
+    try {
+        const { content } = req.body;
+        
+        if (!content || content.trim().length === 0) {
+            return res.status(400).json({ message: 'Comment content is required' });
+        }
+
+        const idea = await Idea.findById(req.params.id);
+        
+        if (!idea) {
+            return res.status(404).json({ message: 'Idea not found' });
+        }
+
+        const comment = await Comment.create({
+            idea: req.params.id,
+            author: req.user._id,
+            content: content.trim(),
+        });
+
+        // Populate author info for response
+        await comment.populate('author', 'name avatarUrl');
+
+        // Update engagement count
+        const commentCount = await Comment.countDocuments({ idea: req.params.id, isDeleted: false });
+        idea.engagementCount = idea.voteCount + commentCount;
+        await idea.save();
+
+        // Create notification for idea founder
+        if (idea.founder.toString() !== req.user._id.toString()) {
+            await Notification.create({
+                recipient: idea.founder,
+                sender: req.user._id,
+                type: 'IDEA_COMMENT',
+                message: `commented on your idea: ${idea.title}`,
+                read: false,
+                relatedId: idea._id,
+                onModel: 'Idea'
+            });
+        }
+
+        res.status(201).json(comment);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Delete comment
+// @route   DELETE /api/ideas/:id/comments/:commentId
+// @access  Private (Comment author or Admin)
+const deleteIdeaComment = async (req, res) => {
+    try {
+        const comment = await Comment.findById(req.params.commentId);
+        
+        if (!comment) {
+            return res.status(404).json({ message: 'Comment not found' });
+        }
+
+        // Check if user is comment author or admin
+        if (comment.author.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            return res.status(401).json({ message: 'Not authorized to delete this comment' });
+        }
+
+        // Soft delete
+        comment.isDeleted = true;
+        await comment.save();
+
+        // Update engagement count
+        const idea = await Idea.findById(req.params.id);
+        if (idea) {
+            const commentCount = await Comment.countDocuments({ idea: req.params.id, isDeleted: false });
+            idea.engagementCount = idea.voteCount + commentCount;
+            await idea.save();
+        }
+
+        res.status(200).json({ message: 'Comment deleted' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
   getIdeas,
   getIdeaById,
@@ -237,5 +337,8 @@ module.exports = {
   updateIdea,
   voteIdea,
   convertIdeaToProject,
-  deleteIdea
+  deleteIdea,
+  getIdeaComments,
+  addIdeaComment,
+  deleteIdeaComment
 };

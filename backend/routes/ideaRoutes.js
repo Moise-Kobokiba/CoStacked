@@ -7,7 +7,10 @@ const {
   updateIdea,
   voteIdea,
   convertIdeaToProject,
-  deleteIdea
+  deleteIdea,
+  getIdeaComments,
+  addIdeaComment,
+  deleteIdeaComment
 } = require('../controllers/ideaController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -22,5 +25,13 @@ router.route('/:id')
 
 router.route('/:id/vote').post(protect, voteIdea);
 router.route('/:id/convert').post(protect, convertIdeaToProject);
+
+// Comment routes
+router.route('/:id/comments')
+    .get(getIdeaComments)
+    .post(protect, addIdeaComment);
+
+router.route('/:id/comments/:commentId')
+    .delete(protect, deleteIdeaComment);
 
 module.exports = router;
