@@ -181,6 +181,207 @@
     box-shadow: none;
 }
 
+.shareBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+}
+
+.shareBtn:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* Share Modal Styles */
+.shareModalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.shareModal {
+    background: var(--card-background);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.shareModalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.shareModalHeader h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--foreground);
+}
+
+.closeShareModal {
+    background: none;
+    border: none;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.closeShareModal:hover {
+    background: var(--input-background);
+    color: var(--foreground);
+}
+
+.shareModalContent {
+    padding: 24px;
+}
+
+.shareDescription {
+    text-align: center;
+    color: var(--muted-foreground);
+    margin-bottom: 24px;
+    font-size: 1rem;
+}
+
+.copyLinkSection {
+    margin-bottom: 24px;
+}
+
+.linkDisplay {
+    display: flex;
+    gap: 12px;
+}
+
+.linkDisplay input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: var(--input-background);
+    color: var(--foreground);
+}
+
+.copyBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.copyBtn:hover {
+    background: var(--primary-hover);
+}
+
+.socialShareButtons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.socialBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.socialBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.twitterBtn {
+    background: #000000;
+    color: white;
+}
+
+.twitterBtn:hover {
+    background: #1a1a1a;
+}
+
+.linkedinBtn {
+    background: #0077b5;
+    color: white;
+}
+
+.linkedinBtn:hover {
+    background: #0088cc;
+}
+
+.facebookBtn {
+    background: #1877f2;
+    color: white;
+}
+
+.facebookBtn:hover {
+    background: #166fe5;
+}
+
+.emailBtn {
+    background: var(--input-background);
+    color: var(--foreground);
+    border: 2px solid var(--border);
+}
+
+.emailBtn:hover {
+    background: var(--card-background);
+    border-color: var(--primary);
+}
+
 .tabs {
     display: flex;
     gap: 24px;
