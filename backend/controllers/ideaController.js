@@ -257,11 +257,36 @@ const deleteIdea = async (req, res) => {
 // @access  Public
 const getIdeaComments = async (req, res) => {
     try {
-        const comments = await Comment.find({ idea: req.params.id, isDeleted: false })
+        // Get top-level comments (no parent)
+        const comments = await Comment.find({ 
+            idea: req.params.id, 
+            isDeleted: false,
+            parentComment: null
+        })
             .populate('author', 'name avatarUrl')
             .sort({ createdAt: -1 });
         
-        res.status(200).json(comments);
+        // Get all replies for this idea
+        const replies = await Comment.find({ 
+            idea: req.params.id, 
+            isDeleted: false,
+            parentComment: { $ne: null }
+        })
+            .populate('author', 'name avatarUrl')
+            .sort({ createdAt: 1 });
+        
+        // Organize replies by parent comment
+        const commentsWithReplies = comments.map(comment => {
+            const commentReplies = replies.filter(reply => 
+                reply.parentComment.toString() === comment._id.toString()
+            );
+            return {
+                ...comment.toObject(),
+                replies: commentReplies
+            };
+        });
+        
+        res.status(200).json(commentsWithReplies);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -272,7 +297,7 @@ const getIdeaComments = async (req, res) => {
 // @access  Private
 const addIdeaComment = async (req, res) => {
     try {
-        const { content } = req.body;
+        const { content, parentCommentId } = req.body;
         
         if (!content || content.trim().length === 0) {
             return res.status(400).json({ message: 'Comment content is required' });
@@ -284,10 +309,19 @@ const addIdeaComment = async (req, res) => {
             return res.status(404).json({ message: 'Idea not found' });
         }
 
+        // If it's a reply, verify parent comment exists
+        if (parentCommentId) {
+            const parentComment = await Comment.findById(parentCommentId);
+            if (!parentComment || parentComment.idea.toString() !== req.params.id) {
+                return res.status(404).json({ message: 'Parent comment not found' });
+            }
+        }
+
         const comment = await Comment.create({
             idea: req.params.id,
             author: req.user._id,
             content: content.trim(),
+            parentComment: parentCommentId || null,
         });
 
         // Populate author info for response
@@ -298,8 +332,23 @@ const addIdeaComment = async (req, res) => {
         idea.engagementCount = idea.voteCount + commentCount;
         await idea.save();
 
-        // Create notification for idea founder
-        if (idea.founder.toString() !== req.user._id.toString()) {
+        // Create notification
+        if (parentCommentId) {
+            // Notify parent comment author about reply
+            const parentComment = await Comment.findById(parentCommentId).populate('author');
+            if (parentComment && parentComment.author._id.toString() !== req.user._id.toString()) {
+                await Notification.create({
+                    recipient: parentComment.author._id,
+                    sender: req.user._id,
+                    type: 'IDEA_COMMENT',
+                    message: `replied to your comment on: ${idea.title}`,
+                    read: false,
+                    relatedId: idea._id,
+                    onModel: 'Idea'
+                });
+            }
+        } else if (idea.founder.toString() !== req.user._id.toString()) {
+            // Notify idea founder about new comment
             await Notification.create({
                 recipient: idea.founder,
                 sender: req.user._id,

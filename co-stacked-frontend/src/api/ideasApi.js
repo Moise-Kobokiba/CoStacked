@@ -72,14 +72,18 @@ export const getIdeaComments = async (ideaId) => {
     return response.data;
 };
 
-// Add comment to an idea
-export const addIdeaComment = async (ideaId, content, token) => {
+// Add comment to an idea (optional parentCommentId for replies)
+export const addIdeaComment = async (ideaId, content, token, parentCommentId = null) => {
     const config = {
         headers: {
             Authorization: `Bearer ${token}`,
         },
     };
-    const response = await axios.post(`${API_URL}/${ideaId}/comments`, { content }, config);
+    const body = { content };
+    if (parentCommentId) {
+        body.parentCommentId = parentCommentId;
+    }
+    const response = await axios.post(`${API_URL}/${ideaId}/comments`, body, config);
     return response.data;
 };
 

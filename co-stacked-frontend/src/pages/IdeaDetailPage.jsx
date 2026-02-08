@@ -9,7 +9,7 @@ import {
     addIdeaComment,
     deleteIdeaComment
 } from '../api/ideasApi';
-import { MessageCircle, Trash2, Send } from 'lucide-react';
+import { MessageCircle, Trash2, Send, Reply } from 'lucide-react';
 
 import styles from './IdeaDetailPage.module.css';
 
@@ -31,6 +31,11 @@ export const IdeaDetailPage = () => {
     const [commentsLoading, setCommentsLoading] = useState(false);
     const [newComment, setNewComment] = useState('');
     const [postingComment, setPostingComment] = useState(false);
+    
+    // Reply state
+    const [replyingTo, setReplyingTo] = useState(null);
+    const [replyContent, setReplyContent] = useState('');
+    const [postingReply, setPostingReply] = useState(false);
 
     useEffect(() => {
         const fetchIdea = async () => {
@@ -108,7 +113,8 @@ export const IdeaDetailPage = () => {
         setPostingComment(true);
         try {
             const comment = await addIdeaComment(id, newComment, token);
-            setComments([comment, ...comments]);
+            const commentWithReplies = { ...comment, replies: [] };
+            setComments([commentWithReplies, ...comments]);
             setNewComment('');
             // Update engagement count in idea
             setIdea(prev => ({ ...prev, engagementCount: prev.engagementCount + 1 }));
@@ -120,17 +126,77 @@ export const IdeaDetailPage = () => {
         }
     };
 
-    const handleDeleteComment = async (commentId) => {
+    const handlePostReply = async (parentCommentId) => {
+        if (!user) {
+            alert('Please login to reply');
+            return;
+        }
+        if (!replyContent.trim()) return;
+
+        setPostingReply(true);
+        try {
+            const reply = await addIdeaComment(id, replyContent, token, parentCommentId);
+            
+            // Update comments state with new reply
+            setComments(comments.map(comment => {
+                if (comment._id === parentCommentId) {
+                    return {
+                        ...comment,
+                        replies: [...(comment.replies || []), reply]
+                    };
+                }
+                return comment;
+            }));
+            
+            setReplyContent('');
+            setReplyingTo(null);
+            // Update engagement count in idea
+            setIdea(prev => ({ ...prev, engagementCount: prev.engagementCount + 1 }));
+        } catch (err) {
+            console.error('Failed to post reply:', err);
+            alert('Failed to post reply');
+        } finally {
+            setPostingReply(false);
+        }
+    };
+
+    const handleDeleteComment = async (commentId, parentCommentId = null) => {
         if (!window.confirm('Are you sure you want to delete this comment?')) return;
         
         try {
             await deleteIdeaComment(id, commentId, token);
-            setComments(comments.filter(c => c._id !== commentId));
+            
+            if (parentCommentId) {
+                // Delete a reply
+                setComments(comments.map(comment => {
+                    if (comment._id === parentCommentId) {
+                        return {
+                            ...comment,
+                            replies: comment.replies.filter(r => r._id !== commentId)
+                        };
+                    }
+                    return comment;
+                }));
+            } else {
+                // Delete a top-level comment
+                setComments(comments.filter(c => c._id !== commentId));
+            }
+            
             // Update engagement count in idea
             setIdea(prev => ({ ...prev, engagementCount: prev.engagementCount - 1 }));
         } catch (err) {
             console.error('Failed to delete comment:', err);
             alert('Failed to delete comment');
+        }
+    };
+
+    const toggleReplyForm = (commentId) => {
+        if (replyingTo === commentId) {
+            setReplyingTo(null);
+            setReplyContent('');
+        } else {
+            setReplyingTo(commentId);
+            setReplyContent('');
         }
     };
 
@@ -314,17 +380,106 @@ export const IdeaDetailPage = () => {
                                                         </span>
                                                     </div>
                                                 </div>
-                                                {(user?._id === comment.author?._id || user?.role === 'admin') && (
-                                                    <button 
-                                                        onClick={() => handleDeleteComment(comment._id)}
-                                                        className={styles.deleteCommentBtn}
-                                                        title="Delete comment"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                )}
+                                                <div className={styles.commentActions}>
+                                                    {user && (
+                                                        <button 
+                                                            onClick={() => toggleReplyForm(comment._id)}
+                                                            className={`${styles.replyBtn} ${replyingTo === comment._id ? styles.replying : ''}`}
+                                                            title="Reply to this comment"
+                                                        >
+                                                            <Reply size={16} />
+                                                            Reply
+                                                        </button>
+                                                    )}
+                                                    {(user?._id === comment.author?._id || user?.role === 'admin') && (
+                                                        <button 
+                                                            onClick={() => handleDeleteComment(comment._id)}
+                                                            className={styles.deleteCommentBtn}
+                                                            title="Delete comment"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                             <p className={styles.commentContent}>{comment.content}</p>
+                                            
+                                            {/* Reply Form */}
+                                            {replyingTo === comment._id && (
+                                                <div className={styles.replyForm}>
+                                                    <textarea
+                                                        value={replyContent}
+                                                        onChange={(e) => setReplyContent(e.target.value)}
+                                                        placeholder={`Reply to ${comment.author?.name || 'Unknown'}...`}
+                                                        rows={2}
+                                                        maxLength={1000}
+                                                        disabled={postingReply}
+                                                        autoFocus
+                                                    />
+                                                    <div className={styles.replyFormFooter}>
+                                                        <span className={styles.charCount}>{replyContent.length}/1000</span>
+                                                        <div className={styles.replyFormButtons}>
+                                                            <button 
+                                                                onClick={() => toggleReplyForm(comment._id)}
+                                                                className={styles.cancelReplyBtn}
+                                                                disabled={postingReply}
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handlePostReply(comment._id)}
+                                                                disabled={!replyContent.trim() || postingReply}
+                                                                className={styles.postReplyBtn}
+                                                            >
+                                                                {postingReply ? 'Posting...' : <><Send size={14} /> Post Reply</>}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            
+                                            {/* Replies */}
+                                            {comment.replies && comment.replies.length > 0 && (
+                                                <div className={styles.repliesContainer}>
+                                                    {comment.replies.map((reply) => (
+                                                        <div key={reply._id} className={styles.reply}>
+                                                            <div className={styles.commentHeader}>
+                                                                <div className={styles.commentAuthor}>
+                                                                    {reply.author?.avatarUrl ? (
+                                                                        <img 
+                                                                            src={reply.author.avatarUrl} 
+                                                                            alt={reply.author.name}
+                                                                            className={styles.replyAvatar}
+                                                                        />
+                                                                    ) : (
+                                                                        <div className={styles.replyAvatarPlaceholder}>
+                                                                            {reply.author?.name?.charAt(0) || 'U'}
+                                                                        </div>
+                                                                    )}
+                                                                    <div className={styles.commentMeta}>
+                                                                        <span className={styles.commentAuthorName}>
+                                                                            {reply.author?.name || 'Unknown'}
+                                                                        </span>
+                                                                        <span className={styles.commentDate}>
+                                                                            {formatDate(reply.createdAt)}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                {(user?._id === reply.author?._id || user?.role === 'admin') && (
+                                                                    <button 
+                                                                        onClick={() => handleDeleteComment(reply._id, comment._id)}
+                                                                        className={styles.deleteCommentBtn}
+                                                                        title="Delete reply"
+                                                                    >
+                                                                        <Trash2 size={14} />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            <p className={styles.replyContent}>{reply.content}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     ))
                                 )}

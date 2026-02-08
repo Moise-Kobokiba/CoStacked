@@ -514,6 +514,167 @@
     background: var(--destructive-foreground);
 }
 
+/* Comment Actions */
+.commentActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.replyBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.replyBtn:hover {
+    color: var(--primary);
+    background: var(--primary-light);
+}
+
+.replyBtn.replying {
+    color: var(--primary);
+    background: var(--primary-light);
+}
+
+/* Reply Form */
+.replyForm {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--input-background);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.replyForm textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    resize: vertical;
+    min-height: 80px;
+    background: var(--card-background);
+    color: var(--foreground);
+    font-family: inherit;
+}
+
+.replyForm textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.replyFormFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.replyFormButtons {
+    display: flex;
+    gap: 10px;
+}
+
+.cancelReplyBtn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted-foreground);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancelReplyBtn:hover:not(:disabled) {
+    background: var(--card-background);
+    color: var(--foreground);
+}
+
+.postReplyBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.postReplyBtn:hover:not(:disabled) {
+    background: var(--primary-hover);
+}
+
+.postReplyBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Replies Container */
+.repliesContainer {
+    margin-top: 16px;
+    margin-left: 20px;
+    padding-left: 20px;
+    border-left: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.reply {
+    background: var(--input-background);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.reply:hover {
+    border-color: var(--primary-light);
+}
+
+.replyAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.replyAvatarPlaceholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.replyContent {
+    color: var(--foreground);
+    line-height: 1.5;
+    margin: 8px 0 0 0;
+    font-size: 0.95rem;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
     .commentFormFooter {
@@ -527,6 +688,21 @@
     }
     
     .postCommentBtn {
+        justify-content: center;
+    }
+    
+    .repliesContainer {
+        margin-left: 10px;
+        padding-left: 10px;
+    }
+    
+    .replyFormButtons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .cancelReplyBtn,
+    .postReplyBtn {
         justify-content: center;
     }
 }
