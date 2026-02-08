@@ -33,14 +33,14 @@ export const getIdeaById = async (id, token) => {
     return response.data;
 };
 
-// Vote for an idea
-export const voteIdea = async (id, token) => {
+// Vote for an idea (voteType: 'up' or 'down')
+export const voteIdea = async (id, voteType, token) => {
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   };
-  const response = await axios.post(`${API_URL}/${id}/vote`, {}, config);
+  const response = await axios.post(`${API_URL}/${id}/vote`, { voteType }, config);
   return response.data;
 };
 

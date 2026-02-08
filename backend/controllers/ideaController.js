@@ -113,45 +113,66 @@ const updateIdea = async (req, res) => {
     }
 };
 
-// @desc    Vote / Validate Idea
+// @desc    Upvote / Downvote Idea
 // @route   POST /api/ideas/:id/vote
 // @access  Private
 const voteIdea = async (req, res) => {
     try {
+        const { voteType } = req.body; // 'up' or 'down'
         const idea = await Idea.findById(req.params.id);
 
         if (!idea) {
             return res.status(404).json({ message: 'Idea not found' });
         }
 
-        // Check if already voted
-        if (idea.votes.includes(req.user._id)) {
-             // Undo vote? Or just return? Let's toggle.
-             idea.votes = idea.votes.filter(id => id.toString() !== req.user._id.toString());
-        } else {
-            idea.votes.push(req.user._id);
-            
-            // Create notification for founder
-            if (idea.founder.toString() !== req.user._id.toString()) {
-                // Assuming Notification model exists
-                 await Notification.create({
-                    recipient: idea.founder,
-                    sender: req.user._id,
-                    type: 'IDEA_VOTE', // Make sure to handle this type in frontend
-                    message: `voted on your idea: ${idea.title}`,
-                    read: false,
-                    // valid data needed for link
-                    relatedId: idea._id, 
-                    onModel: 'Idea'
-                 });
+        const userId = req.user._id.toString();
+        const hasUpvoted = idea.upvotes.includes(req.user._id);
+        const hasDownvoted = idea.downvotes.includes(req.user._id);
+
+        if (voteType === 'up') {
+            if (hasUpvoted) {
+                // Remove upvote (toggle off)
+                idea.upvotes = idea.upvotes.filter(id => id.toString() !== userId);
+            } else {
+                // Add upvote and remove downvote if exists
+                idea.upvotes.push(req.user._id);
+                idea.downvotes = idea.downvotes.filter(id => id.toString() !== userId);
+                
+                // Create notification for founder (only on new upvote)
+                if (idea.founder.toString() !== userId) {
+                    await Notification.create({
+                        recipient: idea.founder,
+                        sender: req.user._id,
+                        type: 'IDEA_VOTE',
+                        message: `upvoted your idea: ${idea.title}`,
+                        read: false,
+                        relatedId: idea._id,
+                        onModel: 'Idea'
+                    });
+                }
+            }
+        } else if (voteType === 'down') {
+            if (hasDownvoted) {
+                // Remove downvote (toggle off)
+                idea.downvotes = idea.downvotes.filter(id => id.toString() !== userId);
+            } else {
+                // Add downvote and remove upvote if exists
+                idea.downvotes.push(req.user._id);
+                idea.upvotes = idea.upvotes.filter(id => id.toString() !== userId);
             }
         }
 
-        idea.voteCount = idea.votes.length;
-        // Simple score: votes * 10 
-        idea.validationScore = idea.voteCount * 10;
-        // engagement could include comment count too
-        idea.engagementCount = idea.voteCount; // + comments count if we had it
+        // Calculate totals
+        const upvoteCount = idea.upvotes.length;
+        const downvoteCount = idea.downvotes.length;
+        idea.voteCount = upvoteCount + downvoteCount;
+        
+        // Score: upvotes * 10 - downvotes * 5
+        idea.validationScore = (upvoteCount * 10) - (downvoteCount * 5);
+        
+        // Update engagement
+        const commentCount = await Comment.countDocuments({ idea: req.params.id, isDeleted: false });
+        idea.engagementCount = idea.voteCount + commentCount;
 
         await idea.save();
 

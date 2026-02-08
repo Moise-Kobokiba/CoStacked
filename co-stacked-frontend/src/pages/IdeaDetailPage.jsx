@@ -66,13 +66,13 @@ export const IdeaDetailPage = () => {
         }
     };
 
-    const handleVote = async () => {
+    const handleVote = async (voteType) => {
         if (!user) {
             alert('Please login to vote');
             return;
         }
         try {
-            const updatedIdea = await voteIdea(id, token);
+            const updatedIdea = await voteIdea(id, voteType, token);
             setIdea(updatedIdea); // Update the local state with new vote count
         } catch (err) {
             console.error('Vote failed', err);
@@ -151,7 +151,10 @@ export const IdeaDetailPage = () => {
 
     const isFounder = user?._id === idea.founder?._id;
     // Check if user has already voted
-    const hasVoted = user && idea.votes && idea.votes.includes(user._id);
+    const hasUpvoted = user && idea.upvotes && idea.upvotes.includes(user._id);
+    const hasDownvoted = user && idea.downvotes && idea.downvotes.includes(user._id);
+    const upvoteCount = idea.upvotes?.length || 0;
+    const downvoteCount = idea.downvotes?.length || 0;
 
     return (
         <div className={styles.container}>
@@ -166,18 +169,32 @@ export const IdeaDetailPage = () => {
                 </div>
 
                 <div className={styles.actionSection}>
+                    <div className={styles.voteContainer}>
+                        <button
+                            className={`${styles.voteBtn} ${styles.upvoteBtn} ${hasUpvoted ? styles.voted : ''}`}
+                            onClick={() => handleVote('up')}
+                            disabled={!user}
+                            title="Upvote this idea"
+                        >
+                            ▲
+                            <span className={styles.voteCount}>{upvoteCount}</span>
+                        </button>
+                        
+                        <button
+                            className={`${styles.voteBtn} ${styles.downvoteBtn} ${hasDownvoted ? styles.voted : ''}`}
+                            onClick={() => handleVote('down')}
+                            disabled={!user}
+                            title="Downvote this idea"
+                        >
+                            ▼
+                            <span className={styles.voteCount}>{downvoteCount}</span>
+                        </button>
+                    </div>
+
                     <div className={styles.scoreBadge}>
                         <span className={styles.scoreLabel}>Validation Score</span>
                         <span className={styles.scoreValue}>{idea.validationScore}</span>
                     </div>
-
-                    <button
-                        className={`${styles.voteBtn} ${hasVoted ? styles.voted : ''}`}
-                        onClick={handleVote}
-                        disabled={!user}
-                    >
-                        {hasVoted ? '✓ Supported' : '▲ Upvote Idea'}
-                    </button>
 
                     {isFounder && idea.status !== 'converted' && (
                         <button

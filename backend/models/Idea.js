@@ -47,7 +47,11 @@ const ideaSchema = mongoose.Schema(
       default: 'active',
     },
     // --- Metrics & Validation ---
-    votes: [{
+    upvotes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    downvotes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],

@@ -71,25 +71,74 @@
     color: #ea580c;
 }
 
+.voteContainer {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
 .voteBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
     background-color: var(--card-background);
-    border: 2px solid #ea580c;
-    color: #ea580c;
-    padding: 10px 24px;
+    border: 2px solid var(--border);
+    color: var(--muted-foreground);
+    padding: 12px 20px;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.2rem;
     transition: all 0.2s;
+    min-width: 70px;
 }
 
 .voteBtn:hover:not(:disabled) {
-    background-color: rgba(234, 88, 12, 0.1);
+    background-color: var(--input-background);
+    transform: translateY(-2px);
 }
 
-.voteBtn.voted {
-    background-color: #ea580c;
+.voteBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.voteCount {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.upvoteBtn {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.upvoteBtn:hover:not(:disabled) {
+    background-color: rgba(16, 185, 129, 0.1);
+    border-color: #10b981;
+}
+
+.upvoteBtn.voted {
+    background-color: #10b981;
     color: white;
+    border-color: #10b981;
+}
+
+.downvoteBtn {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.downvoteBtn:hover:not(:disabled) {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+}
+
+.downvoteBtn.voted {
+    background-color: #ef4444;
+    color: white;
+    border-color: #ef4444;
 }
 
 .convertBtn {
