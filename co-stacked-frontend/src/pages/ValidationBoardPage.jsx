@@ -30,12 +30,21 @@ export const ValidationBoardPage = () => {
     return (
         <div className={styles.container}>
             <div className={styles.header}>
-                <div>
-                    <h1>Validation Board</h1>
-                    <p>Validate your startup ideas before building.</p>
+                <div className={styles.headerContent}>
+                    <div className={styles.headerBadge}>
+                        <span className={styles.badgeDot}></span>
+                        Community Driven
+                    </div>
+                    <h1 className={styles.title}>Validation Board</h1>
+                    <p className={styles.subtitle}>
+                        Get real feedback from founders and entrepreneurs before you build.
+                    </p>
                 </div>
                 <Link to="/validation-board/create" className={styles.createBtn}>
-                    + Post New Idea
+                    <svg className={styles.createIcon} width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                    Post an Idea
                 </Link>
             </div>
 
