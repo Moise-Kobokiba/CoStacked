@@ -176,7 +176,8 @@ export const IdeaDetailPage = () => {
                             disabled={!user}
                             title="Upvote this idea"
                         >
-                            ▲
+                            <span className={styles.voteArrow}>▲</span>
+                            <span className={styles.voteLabel}>Upvote</span>
                             <span className={styles.voteCount}>{upvoteCount}</span>
                         </button>
                         
@@ -186,7 +187,8 @@ export const IdeaDetailPage = () => {
                             disabled={!user}
                             title="Downvote this idea"
                         >
-                            ▼
+                            <span className={styles.voteArrow}>▼</span>
+                            <span className={styles.voteLabel}>Downvote</span>
                             <span className={styles.voteCount}>{downvoteCount}</span>
                         </button>
                     </div>
