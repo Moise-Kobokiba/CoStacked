@@ -9,19 +9,11 @@
 
 .header {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 40px;
     border-bottom: 1px solid var(--border);
     padding-bottom: 30px;
-    gap: 24px;
-}
-
-.titleSection {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
 .titleSection h1 {
@@ -46,19 +38,18 @@
     color: var(--muted-foreground);
     font-size: 1rem;
     display: flex;
-    justify-content: center;
     gap: 16px;
 }
 
 .actionSection {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
     gap: 16px;
 }
 
 .scoreBadge {
-    text-align: center;
+    text-align: right;
     background: var(--card-background);
     padding: 10px 20px;
     border-radius: 12px;
