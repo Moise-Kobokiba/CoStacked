@@ -14,6 +14,43 @@
     margin-bottom: 40px;
     border-bottom: 1px solid var(--border);
     padding-bottom: 30px;
+    gap: 24px;
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 24px;
+    }
+    
+    .titleSection {
+        width: 100%;
+    }
+    
+    .titleSection h1 {
+        font-size: 1.75rem;
+    }
+    
+    .meta {
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+    }
+    
+    .actionSection {
+        width: 100%;
+        align-items: center;
+    }
+    
+    .voteContainer {
+        justify-content: center;
+    }
+    
+    .scoreBadge {
+        text-align: center;
+    }
 }
 
 .titleSection h1 {
@@ -378,6 +415,20 @@
     gap: 24px;
     border-bottom: 2px solid var(--border);
     margin-bottom: 30px;
+}
+
+@media (max-width: 640px) {
+    .tabs {
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+    
+    .tabBtn {
+        font-size: 0.95rem;
+        white-space: nowrap;
+        padding: 12px 4px;
+    }
 }
 
 .tabBtn {
