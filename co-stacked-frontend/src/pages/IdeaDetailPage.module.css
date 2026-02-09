@@ -322,10 +322,12 @@
 .linkDisplay {
     display: flex;
     gap: 12px;
+    flex-wrap: wrap;
 }
 
 .linkDisplay input {
     flex: 1;
+    min-width: 200px;
     padding: 12px 16px;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -337,6 +339,7 @@
 .copyBtn {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     background: var(--primary);
     color: white;
@@ -347,6 +350,23 @@
     cursor: pointer;
     transition: all 0.2s;
     white-space: nowrap;
+    flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+    .linkDisplay {
+        flex-direction: column;
+    }
+    
+    .linkDisplay input {
+        min-width: 100%;
+        font-size: 0.8rem;
+    }
+    
+    .copyBtn {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 .copyBtn:hover {
