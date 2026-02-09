@@ -14,6 +14,25 @@
     gap: 32px;
 }
 
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 24px;
+    }
+    
+    .title {
+        font-size: 2rem;
+    }
+    
+    .createBtn {
+        width: 100%;
+        justify-content: center;
+        padding: 15px 24px;
+        font-size: 1rem;
+    }
+}
+
 .headerContent {
     flex: 1;
     max-width: 720px;
