@@ -41,11 +41,18 @@
     
     .actionSection {
         width: 100%;
-        align-items: center;
+        align-items: center !important;
+        justify-content: center;
     }
     
     .voteContainer {
         justify-content: center;
+        width: 100%;
+    }
+    
+    .voteBtn {
+        flex: 1;
+        max-width: 120px;
     }
     
     .scoreBadge {
