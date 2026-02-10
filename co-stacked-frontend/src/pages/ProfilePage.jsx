@@ -284,7 +284,6 @@ export const ProfilePage = () => {
                  connectionCount={connectionCounts[userToDisplay._id] || 0}
               />
 
-              <div className={styles.content}>
                 <div className={styles.section}>
                   <h3 className={styles.sectionTitle}>Socials</h3>
                   <SocialLinks socials={userToDisplay.socials} />
@@ -348,7 +347,6 @@ export const ProfilePage = () => {
                     </div>
                   </div>
                 )}
-              </div>
             </Card>
           )}
         </div>

@@ -130,15 +130,6 @@
 }
 
 
-/* --- Main Content Body --- */
-.content {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  background-color: var(--background);
-}
-
 .section {
   display: flex;
   flex-direction: column;
@@ -148,6 +139,7 @@
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin: 1rem 0;
 }
 
 .section p {
