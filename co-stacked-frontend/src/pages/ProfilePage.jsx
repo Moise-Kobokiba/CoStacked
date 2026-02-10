@@ -1,7 +1,7 @@
 // src/pages/ProfilePage.jsx
 
 import { useState, useEffect, useCallback } from "react";
-import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import styles from "./ProfilePage.module.css";
 
@@ -24,7 +24,6 @@ import { AvatarUploadModal } from "../components/profile/AvatarUploadModal";
 import { LeaveReviewModal } from "../components/reviews/LeaveReviewModal";
 import { ProfileBoostModal } from "../components/billing/ProfileBoostModal";
 import { MapPin, Link as LinkIcon, X } from "lucide-react";
-import { useToast } from "../context/ToastContext";
 
 const LoadingSpinner = () => <div className={styles.loader}>Loading profile...</div>;
 
@@ -57,21 +56,6 @@ export const ProfilePage = () => {
   const { reviewsByUser, status: reviewsStatus } = useSelector((state) => state.reviews);
   const { receivedItems: founderConnections } = useSelector((state) => state.interests);
   const { connections, pendingRequests, actionStatus, connectionCounts } = useSelector((state) => state.connections);
-  const [searchParams] = useSearchParams();
-  const { showToast } = useToast();
-
-  // Check for onboarding/edit mode from URL
-  useEffect(() => {
-    const isEditMode = searchParams.get('edit') === 'true';
-    const isOnboarding = searchParams.get('onboarding') === 'true';
-
-    if (isEditMode && isOwnProfile) {
-      setIsEditing(true);
-      if (isOnboarding) {
-        showToast("Welcome to CoStacked! Please complete your profile to get started.", "info", 6000);
-      }
-    }
-  }, [searchParams, isOwnProfile, showToast]);
 
   const userToDisplay = userId ? allUsers.find((u) => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
@@ -127,14 +111,14 @@ export const ProfilePage = () => {
         dispatch(sendConnectionRequest(userToDisplay._id))
           .unwrap()
           .then(() => {
-            showToast(`Connection request sent to ${userToDisplay.name}!`, 'success');
+            alert(`Connection request sent to ${userToDisplay.name}!`);
           })
           .catch((error) => {
             console.error('Failed to send connection request:', error);
             console.error('Error response:', error.response);
             console.error('Error data:', error.response?.data);
             const errorMessage = error.response?.data?.message || error.message || 'Unknown error occurred';
-            showToast(`Failed to send connection request: ${errorMessage}`, 'error');
+            alert(`Failed to send connection request: ${errorMessage}`);
           });
       }
     },
@@ -143,11 +127,11 @@ export const ProfilePage = () => {
         dispatch(removeOrCancelConnection(userToDisplay._id))
           .unwrap()
           .then(() => {
-            showToast('Connection request cancelled.', 'info');
+            alert('Connection request cancelled.');
           })
           .catch((error) => {
             console.error('Failed to cancel connection request:', error);
-            showToast('Failed to cancel connection request. Please try again.', 'error');
+            alert('Failed to cancel connection request. Please try again.');
           });
       }
     },
@@ -156,11 +140,11 @@ export const ProfilePage = () => {
         dispatch(removeOrCancelConnection(userToDisplay._id))
           .unwrap()
           .then(() => {
-            showToast('Connection removed.', 'info');
+            alert('Connection removed.');
           })
           .catch((error) => {
             console.error('Failed to remove connection:', error);
-            showToast('Failed to remove connection. Please try again.', 'error');
+            alert('Failed to remove connection. Please try again.');
           });
       }
     },
@@ -169,11 +153,11 @@ export const ProfilePage = () => {
         dispatch(acceptConnectionRequest(userToDisplay._id))
           .unwrap()
           .then(() => {
-            showToast(`Connection request from ${userToDisplay.name} accepted!`, 'success');
+            alert(`Connection request from ${userToDisplay.name} accepted!`);
           })
           .catch((error) => {
             console.error('Failed to accept connection request:', error);
-            showToast('Failed to accept connection request. Please try again.', 'error');
+            alert('Failed to accept connection request. Please try again.');
           });
       }
     },
@@ -182,11 +166,11 @@ export const ProfilePage = () => {
         dispatch(removeOrCancelConnection(userToDisplay._id))
           .unwrap()
           .then(() => {
-            showToast(`Connection request from ${userToDisplay.name} declined.`, 'info');
+            alert(`Connection request from ${userToDisplay.name} declined.`);
           })
           .catch((error) => {
             console.error('Failed to decline connection request:', error);
-            showToast('Failed to decline connection request. Please try again.', 'error');
+            alert('Failed to decline connection request. Please try again.');
           });
       }
     },
@@ -280,19 +264,8 @@ export const ProfilePage = () => {
           {isEditing && isOwnProfile ? (
             <ProfileEditor
               user={userToDisplay}
-              onSave={() => {
-                setIsEditing(false);
-                // If onboarding, we might want to trigger a redirect here, but better handled inside Editor or via callback
-                if (searchParams.get('onboarding') === 'true') {
-                  navigate('/dashboard');
-                }
-              }}
-              onCancel={() => {
-                setIsEditing(false);
-                if (searchParams.get('onboarding') === 'true') {
-                  navigate('/dashboard');
-                }
-              }}
+              onSave={() => setIsEditing(false)}
+              onCancel={() => setIsEditing(false)}
             />
           ) : (
             <>
