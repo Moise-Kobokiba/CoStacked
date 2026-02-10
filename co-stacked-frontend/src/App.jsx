@@ -10,6 +10,10 @@ import { getUserProfile } from './features/auth/authSlice';
  * The root component of the application.
  * It handles app-wide logic like session verification and renders the router.
  */
+import { ToastProvider } from './context/ToastContext';
+
+// ... (existing imports)
+
 function App() {
   const dispatch = useDispatch();
   const token = useSelector(state => state.auth.token);
@@ -24,7 +28,11 @@ function App() {
   }, [token, dispatch]);
 
   // 2. Render the RouterProvider directly, passing it the router object.
-  return <RouterProvider router={router} />;
+  return (
+    <ToastProvider>
+      <RouterProvider router={router} />
+    </ToastProvider>
+  );
 }
 
 export default App;

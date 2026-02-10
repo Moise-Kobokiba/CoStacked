@@ -1,7 +1,7 @@
 // src/pages/ProfilePage.jsx
 
 import { useState, useEffect, useCallback } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import styles from "./ProfilePage.module.css";
 
@@ -24,6 +24,7 @@ import { AvatarUploadModal } from "../components/profile/AvatarUploadModal";
 import { LeaveReviewModal } from "../components/reviews/LeaveReviewModal";
 import { ProfileBoostModal } from "../components/billing/ProfileBoostModal";
 import { MapPin, Link as LinkIcon, X } from "lucide-react";
+import { useToast } from "../context/ToastContext";
 
 const LoadingSpinner = () => <div className={styles.loader}>Loading profile...</div>;
 
@@ -56,7 +57,8 @@ export const ProfilePage = () => {
   const { reviewsByUser, status: reviewsStatus } = useSelector((state) => state.reviews);
   const { receivedItems: founderConnections } = useSelector((state) => state.interests);
   const { connections, pendingRequests, actionStatus, connectionCounts } = useSelector((state) => state.connections);
-  const [searchParams] = useSearchParams(); // Add this hook
+  const [searchParams] = useSearchParams();
+  const { showToast } = useToast();
 
   // Check for onboarding/edit mode from URL
   useEffect(() => {
@@ -66,12 +68,10 @@ export const ProfilePage = () => {
     if (isEditMode && isOwnProfile) {
       setIsEditing(true);
       if (isOnboarding) {
-        // You could show a toast here using your preferred library (e.g. react-hot-toast or sonner)
-        // For now we'll just rely on the UI context or adding a specific banner
-        alert("Welcome to CoStacked! Please complete your profile to get started.");
+        showToast("Welcome to CoStacked! Please complete your profile to get started.", "info", 6000);
       }
     }
-  }, [searchParams, isOwnProfile]);
+  }, [searchParams, isOwnProfile, showToast]);
 
   const userToDisplay = userId ? allUsers.find((u) => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
@@ -127,14 +127,14 @@ export const ProfilePage = () => {
         dispatch(sendConnectionRequest(userToDisplay._id))
           .unwrap()
           .then(() => {
-            alert(`Connection request sent to ${userToDisplay.name}!`);
+            showToast(`Connection request sent to ${userToDisplay.name}!`, 'success');
           })
           .catch((error) => {
             console.error('Failed to send connection request:', error);
             console.error('Error response:', error.response);
             console.error('Error data:', error.response?.data);
             const errorMessage = error.response?.data?.message || error.message || 'Unknown error occurred';
-            alert(`Failed to send connection request: ${errorMessage}`);
+            showToast(`Failed to send connection request: ${errorMessage}`, 'error');
           });
       }
     },
@@ -143,11 +143,11 @@ export const ProfilePage = () => {
         dispatch(removeOrCancelConnection(userToDisplay._id))
           .unwrap()
           .then(() => {
-            alert('Connection request cancelled.');
+            showToast('Connection request cancelled.', 'info');
           })
           .catch((error) => {
             console.error('Failed to cancel connection request:', error);
-            alert('Failed to cancel connection request. Please try again.');
+            showToast('Failed to cancel connection request. Please try again.', 'error');
           });
       }
     },
@@ -156,11 +156,11 @@ export const ProfilePage = () => {
         dispatch(removeOrCancelConnection(userToDisplay._id))
           .unwrap()
           .then(() => {
-            alert('Connection removed.');
+            showToast('Connection removed.', 'info');
           })
           .catch((error) => {
             console.error('Failed to remove connection:', error);
-            alert('Failed to remove connection. Please try again.');
+            showToast('Failed to remove connection. Please try again.', 'error');
           });
       }
     },
@@ -169,11 +169,11 @@ export const ProfilePage = () => {
         dispatch(acceptConnectionRequest(userToDisplay._id))
           .unwrap()
           .then(() => {
-            alert(`Connection request from ${userToDisplay.name} accepted!`);
+            showToast(`Connection request from ${userToDisplay.name} accepted!`, 'success');
           })
           .catch((error) => {
             console.error('Failed to accept connection request:', error);
-            alert('Failed to accept connection request. Please try again.');
+            showToast('Failed to accept connection request. Please try again.', 'error');
           });
       }
     },
@@ -182,11 +182,11 @@ export const ProfilePage = () => {
         dispatch(removeOrCancelConnection(userToDisplay._id))
           .unwrap()
           .then(() => {
-            alert(`Connection request from ${userToDisplay.name} declined.`);
+            showToast(`Connection request from ${userToDisplay.name} declined.`, 'info');
           })
           .catch((error) => {
             console.error('Failed to decline connection request:', error);
-            alert('Failed to decline connection request. Please try again.');
+            showToast('Failed to decline connection request. Please try again.', 'error');
           });
       }
     },
