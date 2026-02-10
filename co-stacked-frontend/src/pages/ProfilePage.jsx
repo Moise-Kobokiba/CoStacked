@@ -307,45 +307,46 @@ export const ProfilePage = () => {
                   </div>
                 </div>
 
-                <div className={styles.infoGrid}>
-                  <div className={styles.infoItem}>
-                    <MapPin size={18} />
-                    <span>{userToDisplay.location || "N/A"}</span>
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Details</h3>
+                  <div className={styles.infoGrid}>
+                    <div className={styles.infoItem}>
+                      <MapPin size={18} />
+                      <span>{userToDisplay.location || "N/A"}</span>
+                    </div>
+                    <div className={styles.infoItem}>
+                      <LinkIcon size={18} />
+                      <a href={userToDisplay.portfolioLink} target="_blank" rel="noopener noreferrer">
+                        Portfolio
+                      </a>
+                    </div>
+                    <p>
+                      <strong>Availability:</strong>{" "}
+                      {userToDisplay.availability || "N/A"}
+                    </p>
                   </div>
-                  <div className={styles.infoItem}>
-                    <LinkIcon size={18} />
-                    <a href={userToDisplay.portfolioLink} target="_blank" rel="noopener noreferrer">
-                      Portfolio
-                    </a>
-                  </div>
-                  <p>
-                    <strong>Availability:</strong>{" "}
-                    {userToDisplay.availability || "N/A"}
-                  </p>
                 </div>
 
                 {userProjects.length > 0 && (
-                  <>
-                    <div className={styles.separator} />
-                    <h2 className={styles.title}>Posted Projects</h2>
+                  <div className={styles.section}>
+                    <h3 className={styles.sectionTitle}>Posted Projects</h3>
                     <div className={styles.projectsGrid}>
                       {userProjects.map((p) => (
                         <ProjectCard key={p._id} project={p} />
                       ))}
                     </div>
-                  </>
+                  </div>
                 )}
 
                 {developerReviews.length > 0 && (
-                  <>
-                    <div className={styles.separator} />
-                    <h2 className={styles.title}>Reviews</h2>
+                  <div className={styles.section}>
+                    <h3 className={styles.sectionTitle}>Reviews</h3>
                     <div className={styles.reviewsGrid}>
                       {developerReviews.map((r) => (
                         <ReviewCard key={r._id} review={r} />
                       ))}
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </Card>
