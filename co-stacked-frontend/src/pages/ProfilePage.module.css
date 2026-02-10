@@ -130,16 +130,23 @@
 }
 
 
-.section {
+.profileCard {
+  margin-bottom: 1.5rem;
+}
+
+.sectionsContainer {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  background-color: var(--card-background);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  gap: 1.5rem;
+}
+
+.sectionCard {
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  margin: 1rem 0;
+}
+
+.sectionCard > div,
+.sectionCard > p {
+  margin-top: 0.75rem;
 }
 
 .section p {

@@ -255,7 +255,7 @@ export const ProfilePage = () => {
               onCancel={() => setIsEditing(false)}
             />
           ) : (
-            <Card>
+            <>
               {isOwnProfile &&
                 userToDisplay.isBoosted &&
                 new Date(userToDisplay.boostExpiresAt) > new Date() && (
@@ -265,36 +265,39 @@ export const ProfilePage = () => {
                   </div>
                 )}
 
-              <ProfileHeader
-                user={userToDisplay}
-                isOwnProfile={isOwnProfile}
-                averageRating={averageRating}
-                reviewCount={developerReviews.length}
-                canLeaveReview={canLeaveReview}
-                onEdit={() => setIsEditing(true)}
-                onBoost={() => setBoostModalOpen(true)}
-                onReview={() => setReviewModalOpen(true)}
-                onAvatarClick={() => setAvatarModalOpen(true)}
-                onShare={handleShare}
-                copySuccess={copySuccess}
-                connectionStatus={connectionStatus}
-                connectionHandlers={connectionHandlers}
-                isConnectionLoading={isConnectionLoading}
-                onMessage={handleMessage}
-                 connectionCount={connectionCounts[userToDisplay._id] || 0}
-              />
+              <Card className={styles.profileCard}>
+                <ProfileHeader
+                  user={userToDisplay}
+                  isOwnProfile={isOwnProfile}
+                  averageRating={averageRating}
+                  reviewCount={developerReviews.length}
+                  canLeaveReview={canLeaveReview}
+                  onEdit={() => setIsEditing(true)}
+                  onBoost={() => setBoostModalOpen(true)}
+                  onReview={() => setReviewModalOpen(true)}
+                  onAvatarClick={() => setAvatarModalOpen(true)}
+                  onShare={handleShare}
+                  copySuccess={copySuccess}
+                  connectionStatus={connectionStatus}
+                  connectionHandlers={connectionHandlers}
+                  isConnectionLoading={isConnectionLoading}
+                  onMessage={handleMessage}
+                   connectionCount={connectionCounts[userToDisplay._id] || 0}
+                />
+              </Card>
 
-                <div className={styles.section}>
+              <div className={styles.sectionsContainer}>
+                <Card className={styles.sectionCard}>
                   <h3 className={styles.sectionTitle}>Socials</h3>
                   <SocialLinks socials={userToDisplay.socials} />
-                </div>
+                </Card>
 
-                <div className={styles.section}>
+                <Card className={styles.sectionCard}>
                   <h3 className={styles.sectionTitle}>About Me</h3>
                   <p>{userToDisplay.bio || "No bio provided."}</p>
-                </div>
+                </Card>
 
-                <div className={styles.section}>
+                <Card className={styles.sectionCard}>
                   <h3 className={styles.sectionTitle}>Skills</h3>
                   <div className={styles.skillsContainer}>
                     {Array.isArray(userToDisplay.skills) &&
@@ -304,9 +307,9 @@ export const ProfilePage = () => {
                       <p>No skills listed.</p>
                     )}
                   </div>
-                </div>
+                </Card>
 
-                <div className={styles.section}>
+                <Card className={styles.sectionCard}>
                   <h3 className={styles.sectionTitle}>Details</h3>
                   <div className={styles.infoGrid}>
                     <div className={styles.infoItem}>
@@ -324,30 +327,31 @@ export const ProfilePage = () => {
                       {userToDisplay.availability || "N/A"}
                     </p>
                   </div>
-                </div>
+                </Card>
 
                 {userProjects.length > 0 && (
-                  <div className={styles.section}>
+                  <Card className={styles.sectionCard}>
                     <h3 className={styles.sectionTitle}>Posted Projects</h3>
                     <div className={styles.projectsGrid}>
                       {userProjects.map((p) => (
                         <ProjectCard key={p._id} project={p} />
                       ))}
                     </div>
-                  </div>
+                  </Card>
                 )}
 
                 {developerReviews.length > 0 && (
-                  <div className={styles.section}>
+                  <Card className={styles.sectionCard}>
                     <h3 className={styles.sectionTitle}>Reviews</h3>
                     <div className={styles.reviewsGrid}>
                       {developerReviews.map((r) => (
                         <ReviewCard key={r._id} review={r} />
                       ))}
                     </div>
-                  </div>
+                  </Card>
                 )}
-            </Card>
+              </div>
+            </>
           )}
         </div>
       </div>
