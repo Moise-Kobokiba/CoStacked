@@ -55,7 +55,23 @@ export const ProfilePage = () => {
   const { items: allProjects, status: projectsStatus } = useSelector((state) => state.projects);
   const { reviewsByUser, status: reviewsStatus } = useSelector((state) => state.reviews);
   const { receivedItems: founderConnections } = useSelector((state) => state.interests);
-   const { connections, pendingRequests, actionStatus, connectionCounts } = useSelector((state) => state.connections);
+  const { connections, pendingRequests, actionStatus, connectionCounts } = useSelector((state) => state.connections);
+  const [searchParams] = useSearchParams(); // Add this hook
+
+  // Check for onboarding/edit mode from URL
+  useEffect(() => {
+    const isEditMode = searchParams.get('edit') === 'true';
+    const isOnboarding = searchParams.get('onboarding') === 'true';
+
+    if (isEditMode && isOwnProfile) {
+      setIsEditing(true);
+      if (isOnboarding) {
+        // You could show a toast here using your preferred library (e.g. react-hot-toast or sonner)
+        // For now we'll just rely on the UI context or adding a specific banner
+        alert("Welcome to CoStacked! Please complete your profile to get started.");
+      }
+    }
+  }, [searchParams, isOwnProfile]);
 
   const userToDisplay = userId ? allUsers.find((u) => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
@@ -182,22 +198,22 @@ export const ProfilePage = () => {
     }
   };
 
-   // Data fetching effects
-   useEffect(() => {
-     if (usersStatus === "idle") dispatch(fetchUsers());
-     if (projectsStatus === "idle") dispatch(fetchProjects());
-     if (userToDisplay?._id) dispatch(fetchReviewsForUser(userToDisplay._id));
-     if (loggedInUser?.role === "founder") dispatch(fetchReceivedInterests());
-     // Fetch connections data for connection status
-     if (loggedInUser && !isOwnProfile) {
-       dispatch(fetchConnections());
-       dispatch(fetchPendingRequests());
-     }
-     // Fetch connection count for the displayed user
-     if (userToDisplay?._id && !connectionCounts[userToDisplay._id]) {
-       dispatch(fetchConnectionCount(userToDisplay._id));
-     }
-   }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, isOwnProfile, dispatch, connectionCounts]);
+  // Data fetching effects
+  useEffect(() => {
+    if (usersStatus === "idle") dispatch(fetchUsers());
+    if (projectsStatus === "idle") dispatch(fetchProjects());
+    if (userToDisplay?._id) dispatch(fetchReviewsForUser(userToDisplay._id));
+    if (loggedInUser?.role === "founder") dispatch(fetchReceivedInterests());
+    // Fetch connections data for connection status
+    if (loggedInUser && !isOwnProfile) {
+      dispatch(fetchConnections());
+      dispatch(fetchPendingRequests());
+    }
+    // Fetch connection count for the displayed user
+    if (userToDisplay?._id && !connectionCounts[userToDisplay._id]) {
+      dispatch(fetchConnectionCount(userToDisplay._id));
+    }
+  }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, isOwnProfile, dispatch, connectionCounts]);
 
   useEffect(() => {
     if (userId && loggedInUser && userId !== loggedInUser._id) {
@@ -264,8 +280,19 @@ export const ProfilePage = () => {
           {isEditing && isOwnProfile ? (
             <ProfileEditor
               user={userToDisplay}
-              onSave={() => setIsEditing(false)}
-              onCancel={() => setIsEditing(false)}
+              onSave={() => {
+                setIsEditing(false);
+                // If onboarding, we might want to trigger a redirect here, but better handled inside Editor or via callback
+                if (searchParams.get('onboarding') === 'true') {
+                  navigate('/dashboard');
+                }
+              }}
+              onCancel={() => {
+                setIsEditing(false);
+                if (searchParams.get('onboarding') === 'true') {
+                  navigate('/dashboard');
+                }
+              }}
             />
           ) : (
             <>
@@ -296,7 +323,7 @@ export const ProfilePage = () => {
                   connectionHandlers={connectionHandlers}
                   isConnectionLoading={isConnectionLoading}
                   onMessage={handleMessage}
-                   connectionCount={connectionCounts[userToDisplay._id] || 0}
+                  connectionCount={connectionCounts[userToDisplay._id] || 0}
                 />
               </Card>
 

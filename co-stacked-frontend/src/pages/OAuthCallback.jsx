@@ -80,8 +80,17 @@ export const OAuthCallback = () => {
           payload: { user, token, projects },
         });
 
+        // Check for new user flag
+        const isNewUser = searchParams.get('isNewUser') === 'true';
+
         hasProcessed.current = true;
-        navigate('/dashboard', { replace: true });
+
+        if (isNewUser) {
+          // Redirect to profile page in edit mode with onboarding flag
+          navigate(`/profile/${user._id}?edit=true&onboarding=true`, { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
 
       } catch (err) {
         console.error('OAuth callback error:', err);
