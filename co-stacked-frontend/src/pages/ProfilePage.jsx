@@ -23,7 +23,7 @@ import { ProfileHeader } from "../components/profile/ProfileHeader";
 import { AvatarUploadModal } from "../components/profile/AvatarUploadModal";
 import { LeaveReviewModal } from "../components/reviews/LeaveReviewModal";
 import { ProfileBoostModal } from "../components/billing/ProfileBoostModal";
-import { MapPin, Link as LinkIcon } from "lucide-react";
+import { MapPin, Link as LinkIcon, X } from "lucide-react";
 
 const LoadingSpinner = () => <div className={styles.loader}>Loading profile...</div>;
 
@@ -46,6 +46,7 @@ export const ProfilePage = () => {
   const [isBoostModalOpen, setBoostModalOpen] = useState(false);
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [isImageViewerOpen, setImageViewerOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState("");
 
   // State from Redux
@@ -246,6 +247,18 @@ export const ProfilePage = () => {
       <LeaveReviewModal developer={userToDisplay} reviewableProjects={reviewableProjects} open={isReviewModalOpen} onClose={() => setReviewModalOpen(false)} />
       <AvatarUploadModal open={isAvatarModalOpen} onClose={() => setAvatarModalOpen(false)} />
 
+      {/* Image Viewer Modal */}
+      {isImageViewerOpen && userToDisplay.avatarUrl && (
+        <div className={styles.imageViewerOverlay} onClick={() => setImageViewerOpen(false)}>
+          <div className={styles.imageViewerContent} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.imageViewerClose} onClick={() => setImageViewerOpen(false)}>
+              <X size={32} />
+            </button>
+            <img src={userToDisplay.avatarUrl} alt={userToDisplay.name} className={styles.imageViewerImage} />
+          </div>
+        </div>
+      )}
+
       <div className={styles.pageContainer}>
         <div className={styles.contentWrapper}>
           {isEditing && isOwnProfile ? (
@@ -276,6 +289,7 @@ export const ProfilePage = () => {
                   onBoost={() => setBoostModalOpen(true)}
                   onReview={() => setReviewModalOpen(true)}
                   onAvatarClick={() => setAvatarModalOpen(true)}
+                  onAvatarView={() => setImageViewerOpen(true)}
                   onShare={handleShare}
                   copySuccess={copySuccess}
                   connectionStatus={connectionStatus}

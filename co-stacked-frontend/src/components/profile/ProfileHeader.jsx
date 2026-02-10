@@ -19,6 +19,7 @@ export const ProfileHeader = ({
   onBoost, 
   onReview,
   onAvatarClick,
+  onAvatarView,
   onShare,
   copySuccess,
   // --- Accept new connection-related props ---
@@ -36,7 +37,8 @@ export const ProfileHeader = ({
         <Avatar 
           src={user.avatarUrl} 
           fallback={(user.name || '?').charAt(0)}
-          size="large"
+          size="xlarge"
+          onClick={isOwnProfile ? onAvatarClick : onAvatarView}
         />
         {isOwnProfile && (
           <button className={styles.avatarEditButton} onClick={onAvatarClick} aria-label="Change profile picture">

@@ -6,11 +6,30 @@
   vertical-align: middle;
   overflow: hidden;
   user-select: none;
-  width: 32px; /* Smaller size for chat */
-  height: 32px;
   border-radius: 50%;
   background-color: var(--secondary-button-hover);
   flex-shrink: 0; /* Prevent squeezing */
+}
+
+/* Size variants */
+.default {
+  width: 32px;
+  height: 32px;
+}
+
+.medium {
+  width: 48px;
+  height: 48px;
+}
+
+.large {
+  width: 80px;
+  height: 80px;
+}
+
+.xlarge {
+  width: 120px;
+  height: 120px;
 }
 .image {
   width: 100%;
@@ -26,7 +45,23 @@
   justify-content: center;
   background-color: var(--primary);
   color: var(--primary-foreground);
-  font-size: 0.875rem; /* Smaller font for smaller avatar */
   font-weight: 600;
   line-height: 1;
+}
+
+/* Fallback font sizes for different avatar sizes */
+.default .fallback {
+  font-size: 0.875rem;
+}
+
+.medium .fallback {
+  font-size: 1.25rem;
+}
+
+.large .fallback {
+  font-size: 2rem;
+}
+
+.xlarge .fallback {
+  font-size: 3rem;
 }
