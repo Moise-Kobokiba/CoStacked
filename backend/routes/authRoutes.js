@@ -25,7 +25,30 @@ router.get(
 
 router.get(
   '/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login', session: false }),
+  (req, res, next) => {
+    const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+    
+    passport.authenticate('google', { session: false }, (err, user, info) => {
+      if (err) {
+        console.error('Google OAuth Error:', err);
+        return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
+      }
+      
+      // Check if user doesn't exist (account_not_found)
+      if (!user && info && info.message === 'account_not_found') {
+        console.log('Google OAuth: Account not found, redirecting to signup');
+        return res.redirect(`${FRONTEND_URL}/signup?error=account_not_found&provider=google`);
+      }
+      
+      if (!user) {
+        return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
+      }
+      
+      // Attach user to request for oauthCallback
+      req.user = user;
+      next();
+    })(req, res, next);
+  },
   oauthCallback
 );
 

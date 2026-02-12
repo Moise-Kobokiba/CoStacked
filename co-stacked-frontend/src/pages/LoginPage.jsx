@@ -1,7 +1,7 @@
 // src/pages/LoginPage.jsx
 
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearAuthMessages } from '../features/auth/authSlice';
 
@@ -17,6 +17,8 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation(); // 1. Get the current location
+  const [searchParams] = useSearchParams();
+  const urlError = searchParams.get('error');
 
   const { status, error } = useSelector((state) => state.auth);
 
@@ -31,6 +33,18 @@ export const LoginPage = () => {
   useEffect(() => {
     dispatch(clearAuthMessages());
   }, [dispatch]);
+  
+  // Render OAuth error messages
+  const renderOAuthError = () => {
+    if (urlError === 'oauth_failed') {
+      return (
+        <p className={styles.oauthError}>
+          Login failed. Please try again or use a different login method.
+        </p>
+      );
+    }
+    return null;
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -93,6 +107,8 @@ export const LoginPage = () => {
             </div>
 
             {status === 'failed' && error && <p className={styles.error}>{error}</p>}
+            
+            {renderOAuthError()}
             
             <Button type="submit" variant="primary" disabled={status === 'loading'}>
               {status === 'loading' ? (<><Loader2 className="animate-spin mr-2" /> Logging in...</>) : ( "Login" )}

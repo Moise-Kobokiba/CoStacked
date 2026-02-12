@@ -142,20 +142,13 @@ passport.use(
           }
         }
 
-        // Create new user with Google data
-        const newUserData = {
-          name: profile.displayName || profile.name?.givenName || 'User',
-          email: email || `${profile.id}@google.oauth`,
-          googleId: profile.id,
-          role: 'developer',
-          isEmailVerified: !!email, // Only mark as verified if we got a real email
-          avatarUrl: profile.photos && profile.photos[0] ? profile.photos[0].value : '',
-          profileCompleted: false, // Require onboarding to complete profile
-        };
-        
-        user = await User.create(newUserData);
-
-        done(null, user);
+        // User doesn't exist - DO NOT create ghost account
+        // Return error to redirect to signup page
+        return done(null, false, { 
+          message: 'account_not_found',
+          email: email,
+          name: profile.displayName || profile.name?.givenName || 'User'
+        });
       } catch (error) {
         console.error('Google OAuth Error:', error);
         done(error, null);

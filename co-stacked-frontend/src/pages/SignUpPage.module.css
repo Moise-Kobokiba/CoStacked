@@ -1,9 +1,35 @@
 /* src/pages/SignUpPage.module.css */
 .pageContainer {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
   min-height: calc(100vh - 65px);
   background: var(--background);
+}
+
+.oauthMessage {
+  max-width: 540px;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  color: white;
+  text-align: center;
+}
+
+.oauthMessage h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.oauthMessage p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  opacity: 0.95;
 }
