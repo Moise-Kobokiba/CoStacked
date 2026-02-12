@@ -572,6 +572,46 @@ const deleteUserAccount = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Complete OAuth user profile (onboarding)
+ * @route   PUT /api/users/complete-profile
+ * @access  Private
+ */
+const completeProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Update all profile fields from onboarding
+    if (req.body.role) user.role = req.body.role;
+    if (req.body.bio !== undefined) user.bio = req.body.bio;
+    if (req.body.location !== undefined) user.location = req.body.location;
+    if (req.body.availability !== undefined) user.availability = req.body.availability;
+    if (req.body.portfolioLink !== undefined) user.portfolioLink = req.body.portfolioLink;
+    if (typeof req.body.skills === 'string') {
+      user.skills = req.body.skills.split(',').map(skill => skill.trim()).filter(Boolean);
+    }
+    if (req.body.socials) {
+      user.socials = { ...user.socials, ...req.body.socials };
+    }
+    
+    // Mark profile as completed
+    user.profileCompleted = true;
+
+    const updatedUser = await user.save();
+    res.json({
+      success: true,
+      message: 'Profile completed successfully!',
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error(`[COMPLETE PROFILE ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server Error: Could not complete profile.' });
+  }
+};
+
 module.exports = {
   registerUser,
   authUser,
@@ -586,4 +626,5 @@ module.exports = {
   cancelSubscription,
   updateUserAvatar,
   deleteUserAccount,
+  completeProfile,
 };

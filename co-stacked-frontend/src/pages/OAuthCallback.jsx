@@ -81,7 +81,15 @@ export const OAuthCallback = () => {
         });
 
         hasProcessed.current = true;
-        navigate('/dashboard', { replace: true });
+        
+        // Redirect based on profile completion status
+        if (!user.profileCompleted) {
+          // New OAuth user - redirect to onboarding
+          navigate('/onboarding', { replace: true });
+        } else {
+          // Existing user with completed profile
+          navigate('/dashboard', { replace: true });
+        }
 
       } catch (err) {
         console.error('OAuth callback error:', err);

@@ -32,6 +32,7 @@ import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 import { PaymentPage } from "./pages/PaymentPage";
 import { MyNetworkPage } from './pages/MyNetworkPage';
 import { OAuthCallback } from './pages/OAuthCallback';
+import { OnboardingPage } from './pages/OnboardingPage';
 import { PaymentSuccessPage } from "./pages/PaymentSuccessPage";
 import { PaymentCancelPage } from "./pages/PaymentCancelPage";
 import { InfoHubPage } from "./pages/InfoHubPage";
@@ -63,6 +64,7 @@ export const router = createBrowserRouter([
       { path: "info-hub", element: <InfoHubPage /> },
       { path: "info-hub/:slug", element: <ArticleDetailPage /> },
       { path: "auth/callback", element: <OAuthCallback /> }, // OAuth callback route
+      { path: "onboarding", element: <OnboardingPage /> }, // Onboarding for OAuth users
       { path: "validation-board", element: <ValidationBoardPage /> },
       { path: "validation-board/:id", element: <IdeaDetailPage /> },
 

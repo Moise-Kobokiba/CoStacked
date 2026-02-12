@@ -150,6 +150,7 @@ passport.use(
           role: 'developer',
           isEmailVerified: !!email, // Only mark as verified if we got a real email
           avatarUrl: profile.photos && profile.photos[0] ? profile.photos[0].value : '',
+          profileCompleted: false, // Require onboarding to complete profile
         };
         
         user = await User.create(newUserData);
@@ -198,6 +199,7 @@ passport.use(
           role: 'developer',
           isEmailVerified: !!(profile.emails && profile.emails[0]), // Only verified if we got a real email
           avatarUrl: profile.photos && profile.photos[0] ? profile.photos[0].value : '',
+          profileCompleted: false, // Require onboarding to complete profile
         };
 
         console.log('LinkedIn OAuth: Creating user with data:', JSON.stringify(newUserData, null, 2));

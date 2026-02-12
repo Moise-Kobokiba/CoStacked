@@ -18,7 +18,8 @@ const {
   resetPassword,
   cancelSubscription,
   updateUserAvatar,
-   deleteUserAccount
+  deleteUserAccount,
+  completeProfile
 } = require('../controllers/userController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -45,6 +46,7 @@ router
   .delete(protect, deleteUserAccount);
 
 router.route('/profile/change-password').put(protect, changeUserPassword);
+router.route('/complete-profile').put(protect, completeProfile);
 
 // Dynamic routes like ':id' should be placed last to avoid conflicts
 // with static routes like '/profile'.

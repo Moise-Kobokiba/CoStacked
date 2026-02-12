@@ -89,6 +89,9 @@ const userSchema = mongoose.Schema(
       tiktok: { type: String, default: '' },
     },
 
+    // --- Profile Completion Tracking ---
+    profileCompleted: { type: Boolean, default: false },
+
   },
   {
     timestamps: true,
