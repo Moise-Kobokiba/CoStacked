@@ -18,7 +18,6 @@ export const OAuthCallback = () => {
         const token = searchParams.get('token');
         const error = searchParams.get('error');
         const API_URL = import.meta.env.VITE_API_URL;
-        const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
 
         if (error) {
           hasProcessed.current = true;
@@ -37,52 +36,22 @@ export const OAuthCallback = () => {
         const userRes = await fetch(`${API_URL}/api/users/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!userRes.ok) throw new Error(`Could not fetch users: ${userRes.status}`);
+        if (!userRes.ok) throw new Error(`Could not fetch user: ${userRes.status}`);
         const user = await userRes.json();
 
-        // Fetch projects
-        const projectsRes = await fetch(`${API_URL}/api/projects`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!projectsRes.ok) throw new Error(`Could not fetch projects: ${projectsRes.status}`);
-        const projects = await projectsRes.json();
-
-        // Send email verification if user not verified
-        if (!user.isVerified) {
-          const verificationRes = await fetch(`${API_URL}/api/users/${user._id}/verify`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ isVerified: true }),
-          });
-          if (!verificationRes.ok) console.warn('Failed to mark user verified');
-
-          // Trigger backend to send verification email
-          await fetch(`${API_URL}/api/email`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ userId: user._id }),
-          });
-        }
-
-        // Store data locally
+        // Store user data
         localStorage.setItem('userProfile', JSON.stringify(user));
-        localStorage.setItem('userProjects', JSON.stringify(projects));
 
-        // Update Redux
+        // Update Redux store
         dispatch({
           type: 'auth/loginUser/fulfilled',
-          payload: { user, token, projects },
+          payload: { user, token },
         });
 
         hasProcessed.current = true;
         
         // Redirect based on profile completion status
+        // OAuth users (especially GitHub/LinkedIn) may need role selection
         if (!user.profileCompleted) {
           // New OAuth user - redirect to onboarding
           navigate('/onboarding', { replace: true });
@@ -102,9 +71,20 @@ export const OAuthCallback = () => {
   }, [searchParams, navigate, dispatch]);
 
   return (
-    <div style={{ textAlign: 'center', padding: '4rem' }}>
-      <Loader2 className="animate-spin" size={48} style={{ margin: '0 auto 1rem' }} />
-      <p>Completing sign in...</p>
+    <div style={{ 
+      textAlign: 'center', 
+      padding: '4rem',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '1rem',
+      minHeight: '100vh',
+      justifyContent: 'center'
+    }}>
+      <Loader2 className="animate-spin" size={48} style={{ color: '#3b82f6' }} />
+      <p style={{ color: '#6b7280', fontSize: '1.125rem' }}>Completing sign in...</p>
     </div>
   );
 };
+
+export default OAuthCallback;

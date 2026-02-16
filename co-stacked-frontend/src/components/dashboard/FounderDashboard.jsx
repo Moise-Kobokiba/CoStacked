@@ -16,6 +16,7 @@ import { BoostModal } from '../billing/BoostModal';
 import { ConfirmationModal } from '../shared/ConfirmationModal';
 import { ConnectionCard } from './ConnectionCard';
 import { Bell, Briefcase, MessageSquare, Search, Rocket, UserPlus } from 'lucide-react';
+import { ProfileCompletionBadge } from "../profile/ProfileCompletionBadge";
 import PropTypes from 'prop-types';
 
 const StatCard = ({ title, value, description, Icon, to }) => {
@@ -90,7 +91,10 @@ export const FounderDashboard = ({
         isDestructive={true}
       />
       
-      <h2 className={styles.title}>Founder Dashboard</h2>
+      <div className={styles.dashboardHeader}>
+        <h2 className={styles.title}>Founder Dashboard</h2>
+        <ProfileCompletionBadge />
+      </div>
       
       <div className={styles.grid}>
         <StatCard to="/requests" title="Project Interests" value={`${incomingInterests.length} New`} Icon={Bell} />

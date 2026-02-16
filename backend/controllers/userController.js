@@ -590,6 +590,7 @@ const completeProfile = async (req, res) => {
     if (req.body.location !== undefined) user.location = req.body.location;
     if (req.body.availability !== undefined) user.availability = req.body.availability;
     if (req.body.portfolioLink !== undefined) user.portfolioLink = req.body.portfolioLink;
+    if (req.body.phoneNumber !== undefined) user.phoneNumber = req.body.phoneNumber;
     if (typeof req.body.skills === 'string') {
       user.skills = req.body.skills.split(',').map(skill => skill.trim()).filter(Boolean);
     }
@@ -612,11 +613,76 @@ const completeProfile = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Resend verification email
+ * @route   POST /api/users/resend-verification
+ * @access  Public
+ */
+const resendVerificationEmail = async (req, res) => {
+  try {
+    let { email } = req.body;
+    if (email) email = email.toLowerCase();
+    
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required.' });
+    }
+
+    // Check if user already exists and is verified
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      if (existingUser.isEmailVerified) {
+        return res.status(400).json({ message: 'This email is already verified. Please log in.' });
+      }
+      // User exists but not verified - they should use the verify endpoint
+      return res.status(400).json({ message: 'Account exists but is not verified. Please check your email or request a new verification code.' });
+    }
+
+    // Find temporary registration
+    const tempRegistration = await TempRegistration.findOne({ email });
+    if (!tempRegistration) {
+      return res.status(404).json({ message: 'No pending registration found for this email. Please sign up again.' });
+    }
+
+    // Generate new verification token
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Update temp registration with new token and reset expiration
+    tempRegistration.verificationToken = verificationToken;
+    tempRegistration.expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await tempRegistration.save();
+
+    // Send new verification email
+    const textMessage = `Welcome to CoStacked! Your new verification code is: ${verificationToken}\n\nThis code will expire in 10 minutes.`;
+    const htmlMessage = `<p>Welcome to CoStacked! Your new verification code is: <strong>${verificationToken}</strong></p><p>This code will expire in 10 minutes.</p>`;
+
+    try {
+      await sendEmail({
+        to: email,
+        subject: 'CoStacked - New Verification Code',
+        text: textMessage,
+        html: htmlMessage,
+      });
+
+      res.json({
+        success: true,
+        message: 'New verification code sent! Please check your email.'
+      });
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError);
+      res.status(500).json({ message: 'Failed to send verification email. Please try again.' });
+    }
+  } catch (error) {
+    console.error(`[RESEND VERIFICATION ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server error while resending verification email.' });
+  }
+};
+
 module.exports = {
   registerUser,
   authUser,
   getUsers,
   verifyEmail,
+  resendVerificationEmail,
   getUserProfile,
   updateUserProfile,
   changeUserPassword,

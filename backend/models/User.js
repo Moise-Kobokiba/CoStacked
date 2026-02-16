@@ -58,6 +58,7 @@ const userSchema = mongoose.Schema(
     location: { type: String, default: "" },
     portfolioLink: { type: String, default: "" },
     avatarUrl: { type: String, default: "" },
+    phoneNumber: { type: String, default: "" },
 
     // --- User Preference Fields ---
     profileVisibility: { type: String, enum: ["public", "connections-only"], default: "public" },

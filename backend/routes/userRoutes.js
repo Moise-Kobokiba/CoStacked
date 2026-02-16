@@ -8,6 +8,7 @@ const upload = require('../config/cloudinary');
 const { 
   registerUser, 
   verifyEmail,
+  resendVerificationEmail,
   authUser, 
   getUsers,
   getUserProfile,
@@ -31,6 +32,7 @@ router.route('/').get(getUsers);
 router.post('/register', registerUser);
 router.post('/login', authUser);
 router.post('/verify-email', verifyEmail);
+router.post('/resend-verification', resendVerificationEmail);
 router.post('/forgot-password', forgotPassword); // <-- ADD
 router.put('/reset-password/:token', resetPassword);
 router.route('/cancel-subscription').put(protect, cancelSubscription); 

@@ -6,31 +6,52 @@ import PropTypes from 'prop-types';
 
 /**
  * A robust wrapper for protecting routes, designed for nested routing.
- * It handles the initial authentication check gracefully.
+ * It handles the initial authentication check and enforces profile completion.
  */
 export const ProtectedRoute = () => {
-  const { isAuthenticated, status } = useSelector((state) => state.auth);
+  const { isAuthenticated, user, status } = useSelector((state) => state.auth);
   const location = useLocation();
 
   // 1. If we are actively checking for a token (on app load), show a loading state.
-  // This is the key to preventing flickers for already logged-in users.
   if (status === 'loading') {
-    // For a better user experience, replace this with a full-page spinner component.
-    return <div style={{ textAlign: 'center', padding: '5rem' }}>Authenticating...</div>;
+    return (
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '5rem',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1rem'
+      }}>
+        <div className="animate-spin" style={{
+          width: '40px',
+          height: '40px',
+          border: '3px solid #e5e7eb',
+          borderTop: '3px solid #3b82f6',
+          borderRadius: '50%'
+        }} />
+        <p style={{ color: '#6b7280' }}>Authenticating...</p>
+      </div>
+    );
   }
 
-  // 2. If we are done checking ('succeeded', 'failed', or 'idle') AND the user is authenticated...
-  if (isAuthenticated) {
-    // ...render the child route that this component is protecting (e.g., DashboardPage).
-    // The <Outlet /> component is used for nested routing as defined in router.jsx
-    return <Outlet />;
+  // 2. If user is not authenticated, redirect to login
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 3. If we are done checking AND the user is NOT authenticated...
-  // ...redirect them to the login page.
-  // We pass the location they were trying to access, so we can send them back after login.
-  return <Navigate to="/login" state={{ from: location }} replace />;
+  // 3. Check if user needs to complete onboarding
+  // Skip onboarding check for onboarding page itself and auth callback
+  const currentPath = location.pathname;
+  const skipOnboardingPaths = ['/onboarding', '/auth/callback', '/verify-email'];
+  
+  if (!skipOnboardingPaths.includes(currentPath) && user && !user.profileCompleted) {
+    // Redirect to onboarding if profile is not complete
+    return <Navigate to="/onboarding" state={{ from: location }} replace />;
+  }
+
+  // 4. User is authenticated and profile is complete (or on allowed pages)
+  return <Outlet />;
 };
 
-// This component no longer accepts a `children` prop in a nested routing setup.
 ProtectedRoute.propTypes = {};

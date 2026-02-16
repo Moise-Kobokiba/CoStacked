@@ -11,6 +11,7 @@ import { ProjectCard } from "../shared/ProjectCard";
 import { ConnectionRequestCard } from "../connections/ConnectionRequestCard";
 import { ConfirmationModal } from "../shared/ConfirmationModal";
 import { Search, Send, UserPlus, Star } from "lucide-react";
+import { ProfileCompletionBadge } from "../profile/ProfileCompletionBadge";
 import PropTypes from "prop-types";
 
 const StatCard = ({ title, value, description, Icon, to }) => {
@@ -78,7 +79,10 @@ export const DeveloperDashboard = ({
         isDestructive={true}
       />
 
-      <h2 className={styles.title}>Developer Dashboard</h2>
+      <div className={styles.dashboardHeader}>
+        <h2 className={styles.title}>Developer Dashboard</h2>
+        <ProfileCompletionBadge />
+      </div>
 
       <div className={styles.grid}>
         <StatCard to="/projects" title="Discover Projects" value="Browse Latest" Icon={Search} />
