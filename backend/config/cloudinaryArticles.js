@@ -23,4 +23,21 @@ const storage = new CloudinaryStorage({
 
 const uploadArticleImage = multer({ storage: storage });
 
+// Configure storage for resource files (PDFs, DOCs, etc.)
+const resourceStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'costacked_resources', // Separate folder for resources
+    resource_type: 'auto', // Allow any file type
+  },
+});
+
+const uploadResourceFile = multer({ 
+  storage: resourceStorage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  }
+});
+
 module.exports = uploadArticleImage;
+module.exports.uploadResourceFile = uploadResourceFile;

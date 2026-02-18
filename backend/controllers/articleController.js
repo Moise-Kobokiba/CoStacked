@@ -94,7 +94,7 @@ const getArticleBySlug = async (req, res) => {
 // @access  Private/Admin
 const createArticle = async (req, res) => {
   try {
-    const { title, slug, description, category, icon, readTime, content } = req.body;
+    const { title, slug, description, category, icon, readTime, content, resources } = req.body;
 
     // Validate required fields
     if (!title || !description || !category || !content) {
@@ -115,12 +115,22 @@ const createArticle = async (req, res) => {
 
     // Handle cover image - use uploaded file or URL from body
     let coverImage = '';
-    if (req.file) {
+    if (req.files && req.files.coverImage && req.files.coverImage[0]) {
       // File was uploaded via multer/cloudinary
-      coverImage = req.file.path;
+      coverImage = req.files.coverImage[0].path;
     } else if (req.body.coverImage) {
       // URL was provided directly
       coverImage = req.body.coverImage;
+    }
+
+    // Collect all resource files from req.files
+    const resourceFiles = [];
+    if (req.files) {
+      Object.keys(req.files).forEach(key => {
+        if (key.startsWith('resourceFile_') && req.files[key][0]) {
+          resourceFiles.push(req.files[key][0]);
+        }
+      });
     }
 
     // Parse content if it's a JSON string (from FormData)
@@ -136,6 +146,38 @@ const createArticle = async (req, res) => {
       }
     }
 
+    // Parse resources if it's a JSON string
+    let parsedResources = [];
+    if (resources) {
+      if (typeof resources === 'string') {
+        try {
+          parsedResources = JSON.parse(resources);
+        } catch (e) {
+          console.warn("Invalid resources format, using empty array");
+        }
+      } else if (Array.isArray(resources)) {
+        parsedResources = resources;
+      }
+    }
+
+    // Handle resource files - look for files with names starting with 'resourceFile_'
+    const resourceFiles = req.files || [];
+    if (resourceFiles.length > 0) {
+      // Match uploaded files with resource entries
+      let fileIndex = 0;
+      parsedResources = parsedResources.map(resource => {
+        if (resource.type === 'file' && !resource.fileUrl && resourceFiles[fileIndex]) {
+          const uploadedFile = resourceFiles[fileIndex];
+          fileIndex++;
+          return {
+            ...resource,
+            fileUrl: uploadedFile.path,
+          };
+        }
+        return resource;
+      });
+    }
+
     const article = await Article.create({
       title,
       slug,
@@ -145,6 +187,7 @@ const createArticle = async (req, res) => {
       readTime,
       content: parsedContent,
       coverImage,
+      resources: parsedResources,
       author: req.user._id,
     });
 
@@ -189,9 +232,9 @@ const updateArticle = async (req, res) => {
     }
 
     // Handle cover image update
-    if (req.file) {
+    if (req.files && req.files.coverImage && req.files.coverImage[0]) {
       // New file uploaded
-      req.body.coverImage = req.file.path;
+      req.body.coverImage = req.files.coverImage[0].path;
     }
     // If no file uploaded but body has coverImage, it will be used as-is
     // If neither, the existing coverImage remains unchanged
@@ -206,6 +249,47 @@ const updateArticle = async (req, res) => {
           message: "Invalid content format",
         });
       }
+    }
+
+    // Parse resources if it's a JSON string
+    let parsedResources = [];
+    if (req.body.resources) {
+      if (typeof req.body.resources === 'string') {
+        try {
+          parsedResources = JSON.parse(req.body.resources);
+        } catch (e) {
+          console.warn("Invalid resources format, using existing");
+          delete req.body.resources;
+        }
+      } else if (Array.isArray(req.body.resources)) {
+        parsedResources = req.body.resources;
+      }
+    }
+
+    // Collect all resource files from req.files and match with resources
+    if (req.files && parsedResources.length > 0) {
+      const resourceFiles = [];
+      Object.keys(req.files).forEach(key => {
+        if (key.startsWith('resourceFile_') && req.files[key][0]) {
+          resourceFiles.push(req.files[key][0]);
+        }
+      });
+
+      // Match uploaded files with resource entries that don't have fileUrl yet
+      let fileIndex = 0;
+      parsedResources = parsedResources.map(resource => {
+        if (resource.type === 'file' && !resource.fileUrl && resourceFiles[fileIndex]) {
+          const uploadedFile = resourceFiles[fileIndex];
+          fileIndex++;
+          return {
+            ...resource,
+            fileUrl: uploadedFile.path,
+          };
+        }
+        return resource;
+      });
+
+      req.body.resources = parsedResources;
     }
 
     const updatedArticle = await Article.findByIdAndUpdate(

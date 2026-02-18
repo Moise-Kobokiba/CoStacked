@@ -23,6 +23,50 @@ const contentBlockSchema = mongoose.Schema({
   },
 });
 
+const resourceSchema = mongoose.Schema({
+  type: {
+    type: String,
+    required: true,
+    enum: ["file", "link"],
+  },
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  description: {
+    type: String,
+    trim: true,
+    default: "",
+  },
+  url: {
+    type: String,
+    required: function() {
+      return this.type === "link";
+    },
+  },
+  fileUrl: {
+    type: String,
+    required: function() {
+      return this.type === "file";
+    },
+  },
+  fileName: {
+    type: String,
+    required: function() {
+      return this.type === "file";
+    },
+  },
+  fileSize: {
+    type: Number,
+    default: 0,
+  },
+  fileType: {
+    type: String,
+    default: "",
+  },
+});
+
 const articleSchema = mongoose.Schema(
   {
     title: {
@@ -71,6 +115,10 @@ const articleSchema = mongoose.Schema(
     coverImage: {
       type: String,
       default: "",
+    },
+    resources: {
+      type: [resourceSchema],
+      default: [],
     },
   },
   {

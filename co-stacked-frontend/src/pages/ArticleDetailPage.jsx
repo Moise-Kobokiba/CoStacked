@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getArticleBySlug } from '../api/articlesApi';
-import { ArrowLeft, Clock, Tag } from 'lucide-react';
+import { ArrowLeft, Clock, Tag, FileText, Link, ExternalLink, Download } from 'lucide-react';
 import styles from './ArticleDetailPage.module.css';
 
 export const ArticleDetailPage = () => {
@@ -28,6 +28,14 @@ export const ArticleDetailPage = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const formatFileSize = (bytes) => {
+        if (!bytes || bytes === 0) return '';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
     };
 
     const renderContentBlock = (block, index) => {
@@ -117,6 +125,60 @@ export const ArticleDetailPage = () => {
                         {article.content?.map((block, index) => renderContentBlock(block, index))}
                     </div>
                 </article>
+
+                {/* Resources Section */}
+                {article.resources && article.resources.length > 0 && (
+                    <div className={styles.resourcesSection}>
+                        <h2 className={styles.resourcesTitle}>
+                            <FileText size={24} />
+                            Resources & References
+                        </h2>
+                        <div className={styles.resourcesList}>
+                            {article.resources.map((resource, index) => (
+                                <div key={index} className={styles.resourceCard}>
+                                    <div className={styles.resourceIcon}>
+                                        {resource.type === 'link' ? (
+                                            <Link size={20} />
+                                        ) : (
+                                            <FileText size={20} />
+                                        )}
+                                    </div>
+                                    <div className={styles.resourceContent}>
+                                        <h3 className={styles.resourceName}>{resource.title}</h3>
+                                        {resource.description && (
+                                            <p className={styles.resourceDesc}>{resource.description}</p>
+                                        )}
+                                        {resource.type === 'file' && resource.fileSize && (
+                                            <span className={styles.resourceSize}>
+                                                {formatFileSize(resource.fileSize)}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {resource.type === 'link' ? (
+                                        <a
+                                            href={resource.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={styles.resourceAction}
+                                        >
+                                            <ExternalLink size={18} />
+                                            Open
+                                        </a>
+                                    ) : (
+                                        <a
+                                            href={resource.fileUrl}
+                                            download={resource.fileName}
+                                            className={styles.resourceAction}
+                                        >
+                                            <Download size={18} />
+                                            Download
+                                        </a>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 <div className={styles.ctaBox}>
                     <h3>Ready to start your project?</h3>

@@ -18,7 +18,11 @@ import {
     Type,
     List,
     Heading,
-    AlertCircle
+    AlertCircle,
+    FileText,
+    Link,
+    ExternalLink,
+    Download
 } from 'lucide-react';
 import styles from './ArticleEditorPage.module.css';
 
@@ -64,8 +68,11 @@ export const ArticleEditorPage = () => {
         content: [],
         coverImage: '',
         coverImageFile: null,
+        resources: [],
     });
     const [imagePreview, setImagePreview] = useState(null);
+    const [newResource, setNewResource] = useState({ type: 'link', title: '', description: '', url: '' });
+    const [resourceFile, setResourceFile] = useState(null);
 
     useEffect(() => {
         setTitle(isEditMode ? 'Edit Article' : 'Create New Article');
@@ -90,6 +97,7 @@ export const ArticleEditorPage = () => {
                     content: article.content || [],
                     coverImage: article.coverImage || '',
                     coverImageFile: null,
+                    resources: article.resources || [],
                 });
                 if (article.coverImage) {
                     setImagePreview(article.coverImage);
@@ -167,6 +175,76 @@ export const ArticleEditorPage = () => {
             coverImageFile: null,
         }));
         setImagePreview(null);
+    };
+
+    // Resource management functions
+    const handleAddResource = () => {
+        if (!newResource.title) {
+            alert('Please enter a resource title');
+            return;
+        }
+
+        if (newResource.type === 'link' && !newResource.url) {
+            alert('Please enter a URL for the link');
+            return;
+        }
+
+        if (newResource.type === 'file' && !resourceFile) {
+            alert('Please select a file to upload');
+            return;
+        }
+
+        let resourceData = {
+            type: newResource.type,
+            title: newResource.title,
+            description: newResource.description,
+        };
+
+        if (newResource.type === 'link') {
+            resourceData.url = newResource.url;
+        } else if (newResource.type === 'file' && resourceFile) {
+            resourceData.fileName = resourceFile.name;
+            resourceData.fileType = resourceFile.type;
+            resourceData.fileSize = resourceFile.size;
+            // We'll store the actual file separately and upload it
+            resourceData._file = resourceFile; // Temporary property for upload
+        }
+
+        setFormData(prev => ({
+            ...prev,
+            resources: [...prev.resources, resourceData],
+        }));
+
+        // Reset form
+        setNewResource({ type: 'link', title: '', description: '', url: '' });
+        setResourceFile(null);
+    };
+
+    const handleRemoveResource = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            resources: prev.resources.filter((_, i) => i !== index),
+        }));
+    };
+
+    const handleResourceFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size should be less than 10MB');
+                return;
+            }
+            setResourceFile(file);
+        }
+    };
+
+    const formatFileSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
     };
 
     const addContentBlock = (type) => {
@@ -260,6 +338,18 @@ export const ArticleEditorPage = () => {
         try {
             setSaving(true);
             // Prepare article data - use coverImageFile if present
+            // Separate resource files from resource metadata
+            const resourceFiles = [];
+            const resourcesData = formData.resources.map(resource => {
+                if (resource._file) {
+                    resourceFiles.push(resource._file);
+                    // Return resource without the _file property
+                    const { _file, ...resourceWithoutFile } = resource;
+                    return resourceWithoutFile;
+                }
+                return resource;
+            });
+
             const articleData = {
                 title: formData.title,
                 slug: formData.slug,
@@ -268,6 +358,8 @@ export const ArticleEditorPage = () => {
                 icon: formData.icon,
                 readTime: formData.readTime,
                 content: formData.content,
+                resources: resourcesData,
+                resourceFiles: resourceFiles,
                 isPublished: publish,
                 // Use File object if present, otherwise use URL string
                 coverImage: formData.coverImageFile || formData.coverImage,
@@ -491,6 +583,117 @@ export const ArticleEditorPage = () => {
                                 ))}
                             </div>
                         )}
+                    </div>
+
+                    {/* Resources Section */}
+                    <div className={styles.section}>
+                        <div className={styles.sectionHeader}>
+                            <h2>Resources</h2>
+                            <span className={styles.sectionSubtitle}>Links, references, and downloadable files</span>
+                        </div>
+
+                        {/* Existing Resources List */}
+                        {formData.resources.length > 0 && (
+                            <div className={styles.resourcesList}>
+                                {formData.resources.map((resource, index) => (
+                                    <div key={index} className={styles.resourceItem}>
+                                        <div className={styles.resourceIcon}>
+                                            {resource.type === 'link' ? <Link size={18} /> : <FileText size={18} />}
+                                        </div>
+                                        <div className={styles.resourceInfo}>
+                                            <p className={styles.resourceTitle}>{resource.title}</p>
+                                            {resource.description && (
+                                                <p className={styles.resourceDescription}>{resource.description}</p>
+                                            )}
+                                            {resource.type === 'file' && resource.fileSize && (
+                                                <span className={styles.resourceMeta}>{formatFileSize(resource.fileSize)}</span>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => handleRemoveResource(index)}
+                                            className={styles.removeResource}
+                                            title="Remove resource"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Add New Resource Form */}
+                        <div className={styles.addResourceForm}>
+                            <div className={styles.resourceTypeToggle}>
+                                <button
+                                    className={newResource.type === 'link' ? styles.active : ''}
+                                    onClick={() => setNewResource(prev => ({ ...prev, type: 'link' }))}
+                                >
+                                    <Link size={16} />
+                                    Link
+                                </button>
+                                <button
+                                    className={newResource.type === 'file' ? styles.active : ''}
+                                    onClick={() => setNewResource(prev => ({ ...prev, type: 'file' }))}
+                                >
+                                    <FileText size={16} />
+                                    File
+                                </button>
+                            </div>
+
+                            <input
+                                type="text"
+                                placeholder="Resource title *"
+                                value={newResource.title}
+                                onChange={(e) => setNewResource(prev => ({ ...prev, title: e.target.value }))}
+                            />
+
+                            <textarea
+                                placeholder="Description (optional)"
+                                value={newResource.description}
+                                onChange={(e) => setNewResource(prev => ({ ...prev, description: e.target.value }))}
+                                rows={2}
+                            />
+
+                            {newResource.type === 'link' ? (
+                                <input
+                                    type="url"
+                                    placeholder="URL *"
+                                    value={newResource.url}
+                                    onChange={(e) => setNewResource(prev => ({ ...prev, url: e.target.value }))}
+                                />
+                            ) : (
+                                <div className={styles.fileUploadWrapper}>
+                                    <input
+                                        type="file"
+                                        id="resourceFile"
+                                        onChange={handleResourceFileChange}
+                                        style={{ display: 'none' }}
+                                    />
+                                    <label htmlFor="resourceFile" className={styles.fileUploadLabel}>
+                                        {resourceFile ? (
+                                            <>
+                                                <FileText size={16} />
+                                                {resourceFile.name} ({formatFileSize(resourceFile.size)})
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Plus size={16} />
+                                                Choose file to upload
+                                            </>
+                                        )}
+                                    </label>
+                                    <small>Max 10MB</small>
+                                </div>
+                            )}
+
+                            <button
+                                className={styles.addResourceButton}
+                                onClick={handleAddResource}
+                            >
+                                <Plus size={16} />
+                                Add Resource
+                            </button>
+                        </div>
                     </div>
                 </div>
 

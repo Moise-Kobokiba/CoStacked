@@ -43,12 +43,26 @@ const createArticleFormData = (articleData) => {
   formData.append('isPublished', articleData.isPublished || false);
   formData.append('content', JSON.stringify(articleData.content));
   
+  // Add resources if they exist
+  if (articleData.resources && articleData.resources.length > 0) {
+    formData.append('resources', JSON.stringify(articleData.resources));
+  }
+  
   // Add cover image if it's a File object
   if (articleData.coverImage instanceof File) {
     formData.append('coverImage', articleData.coverImage);
   } else if (articleData.coverImage && typeof articleData.coverImage === 'string') {
     // If it's a URL string, send it as a regular field
     formData.append('coverImage', articleData.coverImage);
+  }
+  
+  // Add resource files
+  if (articleData.resourceFiles && articleData.resourceFiles.length > 0) {
+    articleData.resourceFiles.forEach((file, index) => {
+      if (file instanceof File) {
+        formData.append(`resourceFile_${index}`, file);
+      }
+    });
   }
   
   return formData;
@@ -91,7 +105,8 @@ export const getArticleBySlug = async (slug) => {
 export const createArticle = async (articleData) => {
   try {
     // Check if we need to send as FormData (if there's a File object)
-    const hasFile = articleData.coverImage instanceof File;
+    const hasFile = articleData.coverImage instanceof File || 
+                    (articleData.resourceFiles && articleData.resourceFiles.some(f => f instanceof File));
     
     let data = articleData;
     let headers = getAuthHeaders(false);
@@ -99,6 +114,14 @@ export const createArticle = async (articleData) => {
     if (hasFile) {
       data = createArticleFormData(articleData);
       headers = getAuthHeaders(true);
+    } else {
+      // If no files, still stringify resources if they exist
+      if (articleData.resources) {
+        data = {
+          ...articleData,
+          resources: JSON.stringify(articleData.resources)
+        };
+      }
     }
     
     const response = await axios.post(
@@ -116,7 +139,8 @@ export const createArticle = async (articleData) => {
 export const updateArticle = async (id, articleData) => {
   try {
     // Check if we need to send as FormData (if there's a File object)
-    const hasFile = articleData.coverImage instanceof File;
+    const hasFile = articleData.coverImage instanceof File || 
+                    (articleData.resourceFiles && articleData.resourceFiles.some(f => f instanceof File));
     
     let data = articleData;
     let headers = getAuthHeaders(false);
@@ -124,6 +148,14 @@ export const updateArticle = async (id, articleData) => {
     if (hasFile) {
       data = createArticleFormData(articleData);
       headers = getAuthHeaders(true);
+    } else {
+      // If no files, still stringify resources if they exist
+      if (articleData.resources) {
+        data = {
+          ...articleData,
+          resources: JSON.stringify(articleData.resources)
+        };
+      }
     }
     
     const response = await axios.put(
