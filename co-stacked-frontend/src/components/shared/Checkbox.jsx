@@ -10,32 +10,30 @@ export const Checkbox = ({
   className = '' 
 }) => {
   return (
-    <div className={`${styles.checkboxWrapper} ${className}`}>
+    <div className={`${styles.checkboxContainer} ${className}`}>
       <input
         type="checkbox"
         id={id}
         checked={checked}
         onChange={onChange}
         disabled={disabled}
-        className={styles.checkbox}
+        className={styles.nativeCheckbox}
       />
-      <label htmlFor={id} className={styles.checkboxLabel}>
-        <span className={styles.checkmark}>
-          <svg 
-            viewBox="0 0 14 14" 
-            fill="none" 
-            className={checked ? styles.checked : ''}
-          >
-            <path
-              d="M3 8L6 11L11 3.5"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
-      </label>
+      <span className={styles.customCheckbox}>
+        <svg 
+          viewBox="0 0 14 14" 
+          fill="none"
+          className={checked ? styles.checkIconVisible : styles.checkIconHidden}
+        >
+          <path
+            d="M3 8L6 11L11 3.5"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
     </div>
   );
 };

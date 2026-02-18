@@ -16,7 +16,17 @@ export const NDAModal = ({ onAccept }) => {
 
   const allAccepted = agreements.nda && agreements.terms && agreements.privacy;
 
+  const handleCheckboxChange = (key, checked) => {
+    console.log(`Checkbox ${key} changed to:`, checked);
+    setAgreements(prev => {
+      const newState = { ...prev, [key]: checked };
+      console.log('New agreements state:', newState);
+      return newState;
+    });
+  };
+
   const handleAccept = () => {
+    console.log('Accept button clicked. allAccepted:', allAccepted);
     if (allAccepted) {
       // Store acceptance timestamps
       localStorage.setItem('ndaAccepted', 'true');
@@ -28,7 +38,7 @@ export const NDAModal = ({ onAccept }) => {
   };
 
   return (
-    <Dialog open={true} className={styles.dialog}>
+    <Dialog open={true} onClose={() => {}} className={styles.dialog}>
       <header className={styles.header}>
         <div className={styles.iconWrapper}>
           <Shield size={32} />
@@ -50,16 +60,16 @@ export const NDAModal = ({ onAccept }) => {
             By using CoStacked, you agree to our Terms of Service which outline your rights 
             and responsibilities when using the platform.
           </p>
-          <div className={styles.checkboxWrapper}>
+          <label htmlFor="terms" className={styles.checkboxRow}>
             <Checkbox
               id="terms"
               checked={agreements.terms}
-              onChange={(e) => setAgreements(prev => ({ ...prev, terms: e.target.checked }))}
+              onChange={(e) => handleCheckboxChange('terms', e.target.checked)}
             />
-            <label htmlFor="terms" className={styles.checkboxLabel}>
-              I agree to the <Link to="/terms" target="_blank" className={styles.link}>Terms of Service</Link>
-            </label>
-          </div>
+            <span className={styles.checkboxText}>
+              I agree to the <Link to="/terms" target="_blank" className={styles.link} onClick={(e) => e.stopPropagation()}>Terms of Service</Link>
+            </span>
+          </label>
         </div>
 
         {/* Privacy Policy */}
@@ -72,16 +82,16 @@ export const NDAModal = ({ onAccept }) => {
             We take your privacy seriously. Our Privacy Policy explains how we collect, 
             use, and protect your personal information.
           </p>
-          <div className={styles.checkboxWrapper}>
+          <label htmlFor="privacy" className={styles.checkboxRow}>
             <Checkbox
               id="privacy"
               checked={agreements.privacy}
-              onChange={(e) => setAgreements(prev => ({ ...prev, privacy: e.target.checked }))}
+              onChange={(e) => handleCheckboxChange('privacy', e.target.checked)}
             />
-            <label htmlFor="privacy" className={styles.checkboxLabel}>
-              I agree to the <Link to="/privacy" target="_blank" className={styles.link}>Privacy Policy</Link>
-            </label>
-          </div>
+            <span className={styles.checkboxText}>
+              I agree to the <Link to="/privacy" target="_blank" className={styles.link} onClick={(e) => e.stopPropagation()}>Privacy Policy</Link>
+            </span>
+          </label>
         </div>
 
         {/* NDA Agreement */}
@@ -111,16 +121,16 @@ export const NDAModal = ({ onAccept }) => {
               platform and for 2 years thereafter.
             </p>
           </div>
-          <div className={styles.checkboxWrapper}>
+          <label htmlFor="nda" className={styles.checkboxRow}>
             <Checkbox
               id="nda"
               checked={agreements.nda}
-              onChange={(e) => setAgreements(prev => ({ ...prev, nda: e.target.checked }))}
+              onChange={(e) => handleCheckboxChange('nda', e.target.checked)}
             />
-            <label htmlFor="nda" className={styles.checkboxLabel}>
+            <span className={styles.checkboxText}>
               I agree to the Non-Disclosure Agreement
-            </label>
-          </div>
+            </span>
+          </label>
         </div>
       </div>
 

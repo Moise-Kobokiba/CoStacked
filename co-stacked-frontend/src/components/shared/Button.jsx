@@ -14,10 +14,11 @@ export const Button = ({
   type = 'button',
   variant = 'primary',
   className = '',
-  to = null, // If a 'to' string is passed, it becomes a Link
+  to = null,
+  disabled = false,
 }) => {
   // Combine the base class, the variant class, and any custom classes
-  const buttonClasses = `${styles.button} ${styles[variant] || ''} ${className}`;
+  const buttonClasses = `${styles.button} ${styles[variant] || ''} ${disabled ? styles.disabled : ''} ${className}`;
 
   // If the 'to' prop exists, render the button as a navigational Link
   if (to) {
@@ -34,6 +35,7 @@ export const Button = ({
       type={type}
       className={buttonClasses}
       onClick={onClick}
+      disabled={disabled}
     >
       {children}
     </button>
@@ -52,4 +54,5 @@ Button.propTypes = {
 
   className: PropTypes.string,
   to: PropTypes.string,
+  disabled: PropTypes.bool,
 };

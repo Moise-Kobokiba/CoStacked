@@ -57,3 +57,13 @@
 .destructive:hover {
   opacity: 0.9;
 }
+
+/* --- Disabled state --- */
+.disabled,
+.disabled:hover {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--muted);
+  border-color: var(--muted);
+  color: var(--muted-foreground);
+}
