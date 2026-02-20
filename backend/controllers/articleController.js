@@ -160,8 +160,7 @@ const createArticle = async (req, res) => {
       }
     }
 
-    // Handle resource files - look for files with names starting with 'resourceFile_'
-    const resourceFiles = req.files || [];
+    // Handle resource files - match uploaded files with resource entries
     if (resourceFiles.length > 0) {
       // Match uploaded files with resource entries
       let fileIndex = 0;
