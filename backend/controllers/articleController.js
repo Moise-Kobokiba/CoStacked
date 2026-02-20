@@ -256,6 +256,7 @@ const updateArticle = async (req, res) => {
       if (typeof req.body.resources === 'string') {
         try {
           parsedResources = JSON.parse(req.body.resources);
+          req.body.resources = parsedResources;
         } catch (e) {
           console.warn("Invalid resources format, using existing");
           delete req.body.resources;
