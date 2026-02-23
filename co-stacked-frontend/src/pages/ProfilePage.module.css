@@ -6,6 +6,26 @@
   padding: 1rem 1rem;
 }
 
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 1.5rem;
+}
+
+.backButton:hover {
+  background: var(--input-background);
+  border-color: var(--border);
+}
+
 .loader {
   text-align: center;
   font-size: 1.2rem;

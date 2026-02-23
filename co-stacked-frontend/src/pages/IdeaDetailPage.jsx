@@ -9,7 +9,7 @@ import {
     addIdeaComment,
     deleteIdeaComment
 } from '../api/ideasApi';
-import { MessageCircle, Trash2, Send, Reply, Share2, Copy, Check, X } from 'lucide-react';
+import { MessageCircle, Trash2, Send, Reply, Share2, Copy, Check, X, ArrowLeft } from 'lucide-react';
 
 import styles from './IdeaDetailPage.module.css';
 
@@ -228,6 +228,10 @@ export const IdeaDetailPage = () => {
 
     return (
         <div className={styles.container}>
+            <button className={styles.backButton} onClick={() => navigate('/validation-board')}>
+                <ArrowLeft size={18} />
+                Back to Validation Board
+            </button>
             <div className={styles.header}>
                 <div className={styles.titleSection}>
                     <span className={styles.stageTag}>{idea.stage}</span>

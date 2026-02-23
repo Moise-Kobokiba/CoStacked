@@ -230,24 +230,44 @@ const updateUserByAdmin = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    user.name = req.body.name || user.name;
-    user.role = req.body.role || user.role;
+    // Basic fields
+    user.name = req.body.name ?? user.name;
+    user.role = req.body.role ?? user.role;
     user.isAdmin = req.body.isAdmin ?? user.isAdmin;
+
+    // Profile fields
+    user.bio = req.body.bio ?? user.bio;
+    user.skills = req.body.skills ?? user.skills;
+    user.availability = req.body.availability ?? user.availability;
+    user.location = req.body.location ?? user.location;
+    user.portfolioLink = req.body.portfolioLink ?? user.portfolioLink;
+    user.avatarUrl = req.body.avatarUrl ?? user.avatarUrl;
+    user.phoneNumber = req.body.phoneNumber ?? user.phoneNumber;
+
+    // Social links
+    if (req.body.socials) {
+      user.socials = {
+        twitter: req.body.socials.twitter ?? user.socials?.twitter ?? '',
+        linkedin: req.body.socials.linkedin ?? user.socials?.linkedin ?? '',
+        instagram: req.body.socials.instagram ?? user.socials?.instagram ?? '',
+        facebook: req.body.socials.facebook ?? user.socials?.facebook ?? '',
+        tiktok: req.body.socials.tiktok ?? user.socials?.tiktok ?? '',
+      };
+    }
+
+    // Preferences
+    user.profileVisibility = req.body.profileVisibility ?? user.profileVisibility;
+    user.notificationEmails = req.body.notificationEmails ?? user.notificationEmails;
+
+    // Admin-only flags
+    user.isVerified = req.body.isVerified ?? user.isVerified;
+    user.isBoosted = req.body.isBoosted ?? user.isBoosted;
+    user.boostExpiresAt = req.body.boostExpiresAt ?? user.boostExpiresAt;
+    user.isEmailVerified = req.body.isEmailVerified ?? user.isEmailVerified;
 
     const updatedUser = await user.save();
 
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      role: updatedUser.role,
-      isAdmin: updatedUser.isAdmin,
-      createdAt: updatedUser.createdAt,
-      bio: updatedUser.bio,
-      skills: updatedUser.skills,
-      availability: updatedUser.availability,
-      location: updatedUser.location,
-    });
+    res.json(updatedUser.toObject());
   } catch (error) {
     console.error(`[ADMIN UPDATE USER ERROR]: ${error.message}`);
     res.status(500).json({ message: "Server error while updating user." });

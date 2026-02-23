@@ -23,7 +23,7 @@ import { ProfileHeader } from "../components/profile/ProfileHeader";
 import { AvatarUploadModal } from "../components/profile/AvatarUploadModal";
 import { LeaveReviewModal } from "../components/reviews/LeaveReviewModal";
 import { ProfileBoostModal } from "../components/billing/ProfileBoostModal";
-import { MapPin, Link as LinkIcon, X } from "lucide-react";
+import { MapPin, Link as LinkIcon, X, ArrowLeft } from "lucide-react";
 
 const LoadingSpinner = () => <div className={styles.loader}>Loading profile...</div>;
 
@@ -261,6 +261,12 @@ export const ProfilePage = () => {
 
       <div className={styles.pageContainer}>
         <div className={styles.contentWrapper}>
+          {userId && (
+            <button className={styles.backButton} onClick={() => navigate('/users')}>
+              <ArrowLeft size={18} />
+              Back to Talents
+            </button>
+          )}
           {isEditing && isOwnProfile ? (
             <ProfileEditor
               user={userToDisplay}
