@@ -3,7 +3,7 @@
   --background: #ffffff;
   --foreground: #0f172a;
   --card-background: #ffffff;
-  --muted-foreground: #64748b;
+  --muted-foreground: #64748b;      /* darker in light mode */
   --border: #e2e8f0;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
@@ -18,7 +18,7 @@
     --background: #0b1120;
     --foreground: #f8fafc;
     --card-background: #111827;
-    --muted-foreground: #94a3b8;
+    --muted-foreground: #94a3b8;    /* lighter in dark mode */
     --border: #1e293b;
     --sidebar-bg: #0f172a;
     --glow: rgba(59, 130, 246, 0.3);
@@ -74,9 +74,8 @@
   font-size: 2.75rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  background: linear-gradient(135deg, var(--accent), #7c3aed);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--foreground);          /* now respects light/dark */
+  margin: 0;
 }
 
 .pageSubtitle {
@@ -265,6 +264,7 @@
   margin: 0 0 0.5rem;
   line-height: 1.4;
   font-weight: 700;
+  color: var(--foreground);
 }
 
 .cardMetaPrimary {
@@ -359,13 +359,14 @@
   margin: 0 0 0.5rem;
   line-height: 1.4;
   font-weight: 600;
+  color: var(--foreground);
 }
 
 .sideMeta {
   display: flex;
   gap: 1.25rem;
   font-size: 0.8rem;
-  color: #94a3b8; /* fixed muted for readability */
+  color: var(--muted-foreground);    /* now adapts to mode */
 }
 
 .sideMeta span {
@@ -407,6 +408,7 @@
 .popItem p {
   margin: 0;
   font-weight: 500;
+  color: var(--foreground);
 }
 
 /* Newsletter card */
@@ -430,6 +432,7 @@
 .newsletterCard h4 {
   font-size: 1.3rem;
   margin: 0;
+  color: white;
 }
 
 .newsletterCard p {
