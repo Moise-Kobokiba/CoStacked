@@ -73,18 +73,75 @@
 }
 
 /* WORKFLOW */
+/* src/pages/HomePage.module.css */
+
 .workflowSection {
-  padding: 6rem 1.5rem;
+  /* Increased padding to separate from the Dashboard/Hero above */
+  padding: 5rem 1.25rem; 
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Ensures the label and title are centered */
 }
 
-.featuresGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 4rem auto 0;
+.workflowLabel {
+  display: inline-block;
+  color: #2563eb;
+  background: #eff6ff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.5rem 1rem; /* More "pill-like" padding */
+  border-radius: 20px;
+  
+  /* Adds space below the label so it doesn't touch the "How CoStacked Works" title */
+  margin-bottom: 1.25rem; 
 }
+
+.sectionTitle {
+  font-size: 1.85rem; /* Scaled for mobile */
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+  margin-bottom: 3rem; /* Space between the title and the first card */
+  max-width: 90%;
+}
+
+/* Fix for the Cards on Mobile */
+.featuresGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 400px; /* Prevents cards from getting too wide on phablets */
+}
+
+/* Media query to restore desktop spacing */
+@media (min-width: 768px) {
+  .workflowSection {
+    padding: 8rem 1.5rem;
+  }
+  .sectionTitle {
+    font-size: 2.5rem;
+    margin-bottom: 4rem;
+  }
+  .featuresGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1200px;
+  }
+}
+
+
+/* src/components/shared/FeatureCard.module.css */
+.card {
+  padding: 2.5rem 1.5rem; /* generous vertical padding, safe horizontal padding */
+  text-align: center;
+  border-radius: 16px;
+  /* ... rest of your styles ... */
+}
+
 
 /* CTA */
 .ctaSection {
