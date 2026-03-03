@@ -1,13 +1,14 @@
-/* Light/Dark variables */
+/* Light/Dark variables – now properly separated */
 :root {
+  /* Light mode (default) */
   --background: #ffffff;
-  --foreground: #0f172a;
+  --foreground: #0f172a;           /* dark text */
   --card-background: #ffffff;
-  --muted-foreground: #4b5563;      /* darker for light mode – easier to read */
+  --muted-foreground: #4b5563;     /* darker grey for metadata */
   --border: #e2e8f0;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
-  --sidebar-bg: #f1f5f9;
+  --sidebar-bg: #f1f5f9;           /* light grey sidebar */
   --glow: rgba(37, 99, 235, 0.15);
   --toast-bg: #0f172a;
   --toast-text: #ffffff;
@@ -15,14 +16,15 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    /* Dark mode overrides */
     --background: #0b1120;
-    --foreground: #f8fafc;
+    --foreground: #f8fafc;          /* light text */
     --card-background: #111827;
-    --muted-foreground: #94a3b8;     /* stays as before – good contrast on dark */
+    --muted-foreground: #94a3b8;
     --border: #1e293b;
     --accent: #2563eb;
     --accent-hover: #1d4ed8;
-    --sidebar-bg: #1e293b;
+    --sidebar-bg: #1e293b;          /* dark sidebar */
     --glow: rgba(59, 130, 246, 0.3);
     --toast-bg: #1e293b;
     --toast-text: #f8fafc;
@@ -38,8 +40,6 @@
   transition: background-color 0.3s ease;
   position: relative;
 }
-
-/* ... rest of the CSS remains exactly as before ... */
 
 /* Toast notification */
 .toast {
@@ -313,7 +313,7 @@
 }
 
 .sideSection {
-  background: var(--sidebar-bg);    /* now matches card background */
+  background: var(--sidebar-bg);
   border-radius: 20px;
   padding: 1.5rem;
   border: 1px solid var(--border);
@@ -415,7 +415,7 @@
   color: var(--foreground);
 }
 
-/* Newsletter card (kept distinct) */
+/* Newsletter card (intentionally dark) */
 .newsletterCard {
   background: #0f172a;
   color: white;
