@@ -31,6 +31,13 @@ export const InfoHubPage = () => {
         fetchArticles();
     }, []);
 
+    // NEW: Function to handle resource submission
+    const handleSubmitResource = () => {
+        const subject = encodeURIComponent("Resource Submission - CoStacked Info Hub");
+        const body = encodeURIComponent("Hi CoStacked Team,\n\nI would like to suggest a resource for the Info Hub.\n\nResource Title:\nLink/Details:\nCategory:");
+        window.location.href = `mailto:hello@costacked.co.za?subject=${subject}&body=${body}`;
+    };
+
     const filteredArticles = useMemo(() => {
         return articles.filter(article => {
             const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -46,7 +53,8 @@ export const InfoHubPage = () => {
             <header className={styles.header}>
                 <div className={styles.headerTop}>
                     <h1 className={styles.pageTitle}>Info Hub</h1>
-                    <button className={styles.submitBtn}>
+                    {/* Fixed: onClick handler added */}
+                    <button className={styles.submitBtn} onClick={handleSubmitResource}>
                         <Plus size={18} /> Submit Resource
                     </button>
                 </div>
@@ -91,8 +99,9 @@ export const InfoHubPage = () => {
                                 </div>
                                 <div className={styles.cardBody}>
                                     <h3>{article.title}</h3>
+                                    {/* Added: Date and Views for main grid */}
                                     <div className={styles.cardMetaPrimary}>
-                                        <span><Calendar size={14} /> {new Date(article.createdAt).toLocaleDateString()}</span>
+                                        <span><Calendar size={14} /> {new Date(article.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                                         <span><Eye size={14} /> {article.views || '0'} views</span>
                                     </div>
                                     <p>{article.description}</p>
@@ -115,6 +124,7 @@ export const InfoHubPage = () => {
                             <div key={guide._id} className={styles.sideArticle} onClick={() => navigate(`/info-hub/${guide.slug}`)}>
                                 <span className={styles.sideCategory}>{guide.category}</span>
                                 <h5>{guide.title}</h5>
+                                {/* Sidebar Meta: Views and Read Time */}
                                 <div className={styles.sideMeta}>
                                     <span><Clock size={14} /> {guide.readTime}</span>
                                     <span><Eye size={14} /> {guide.views || '1.2k'} views</span>
