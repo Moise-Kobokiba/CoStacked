@@ -1,103 +1,102 @@
-/* Theme Variables - Place these in your global CSS or at the top of this module */
+/* --- Light/Dark Theme Variables --- */
 :root {
   --hub-bg: #ffffff;
-  --hub-card: #f8fafc;
-  --hub-text: #0f172a;
-  --hub-muted: #64748b;
+  --hub-card: #ffffff;
+  --hub-text-main: #0f172a;
+  --hub-text-muted: #64748b;
   --hub-border: #e2e8f0;
   --hub-accent: #2563eb;
+  --hub-search-bg: #f8fafc;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --hub-bg: #0b1120;
     --hub-card: #111827;
-    --hub-text: #ffffff;
-    --hub-muted: #94a3b8;
+    --hub-text-main: #ffffff;
+    --hub-text-muted: #94a3b8;
     --hub-border: #1f2937;
     --hub-accent: #3b82f6;
+    --hub-search-bg: #1e293b;
   }
 }
 
+/* --- Container --- */
 .container {
-  max-width: 1440px; /* Prevents cramped look on monitors */
+  max-width: 1440px;
   margin: 0 auto;
-  padding: clamp(2rem, 5vw, 5rem) 2rem;
+  padding: 4rem 2rem;
   background-color: var(--hub-bg);
-  color: var(--hub-text);
+  color: var(--hub-text-main);
+  min-height: 100vh;
   transition: all 0.3s ease;
 }
 
-.headerTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+.header {
   margin-bottom: 3rem;
-  gap: 2rem;
 }
 
 .pageTitle {
-  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
   font-weight: 800;
-  letter-spacing: -0.05em;
-  margin: 0;
+  margin: 0 0 1rem 0;
+  letter-spacing: -0.04em;
+}
+
+.submitBtn {
+  background-color: var(--hub-accent);
+  color: #ffffff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
 }
 
 .pageSubtitle {
-  color: var(--hub-muted);
-  font-size: 1.2rem;
-  max-width: 650px;
+  color: var(--hub-text-muted);
+  font-size: 1.15rem;
+  max-width: 600px;
   line-height: 1.6;
 }
 
-/* Submit Button with hover glow */
-.submitBtn {
-  background: var(--hub-accent);
-  color: white;
-  padding: 0.8rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);
+/* --- Controls --- */
+.searchWrapper {
+  position: relative;
+  margin-bottom: 2rem;
+  max-width: 100%;
 }
 
-.submitBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+.searchIcon {
+  position: absolute; left: 1.5rem; top: 50%;
+  transform: translateY(-50%); color: var(--hub-text-muted);
 }
 
-/* Search & Filters */
 .searchInput {
   width: 100%;
-  max-width: 800px;
-  padding: 1.25rem 1.25rem 1.25rem 4rem;
-  border-radius: 16px;
-  background: var(--hub-card);
+  padding: 1.1rem 1.1rem 1.1rem 3.5rem;
+  border-radius: 12px;
+  background: var(--hub-search-bg);
   border: 1px solid var(--hub-border);
-  color: var(--hub-text);
-  font-size: 1.1rem;
+  color: var(--hub-text-main);
+  font-size: 1rem;
 }
 
 .categoryBar {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-  overflow-x: auto;
-  padding-bottom: 10px;
-  scrollbar-width: none;
+  display: flex; gap: 0.75rem; margin-bottom: 4rem;
+  overflow-x: auto; padding-bottom: 10px;
 }
 
 .categoryBtn {
-  background: var(--hub-card);
+  background: var(--hub-search-bg);
   border: 1px solid var(--hub-border);
-  color: var(--hub-muted);
-  padding: 0.7rem 1.4rem;
-  border-radius: 10px;
+  color: var(--hub-text-muted);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -105,76 +104,78 @@
 
 .categoryBtn.active {
   background: var(--hub-accent);
-  color: white;
-  border-color: var(--hub-accent);
+  color: #fff; border-color: var(--hub-accent);
 }
 
-/* Layout Grid - Fixed for Large Screens */
+/* --- Layout Grid --- */
 .mainContent {
   display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 5rem; /* Wide gap for monitor breathing room */
-  margin-top: 4rem;
+  grid-template-columns: 1fr 350px;
+  gap: 5rem;
 }
 
 .articlesGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 3rem;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 2.5rem;
 }
 
-/* Cards */
+/* --- Card Styles (Matches image) --- */
 .articleCard {
   background: var(--hub-card);
   border: 1px solid var(--hub-border);
-  border-radius: 24px;
+  border-radius: 16px;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
-.articleCard:hover {
-  transform: translateY(-12px);
-  border-color: var(--hub-accent);
-}
+.articleCard:hover { transform: translateY(-5px); }
 
-.cardBody { padding: 2rem; }
+.imageContainer { height: 220px; width: 100%; }
+.imageContainer img { width: 100%; height: 100%; object-fit: cover; }
 
-.articleCategoryLabel {
+.cardBody { padding: 1.75rem; }
+
+.articleSubLabel {
   color: var(--hub-accent);
   font-size: 0.75rem;
-  font-weight: 900;
+  font-weight: 800;
   text-transform: uppercase;
-  margin-bottom: 1rem;
+  margin-bottom: 0.6rem;
   display: block;
 }
 
-.cardMetaPrimary {
-  display: flex;
-  gap: 1.5rem;
-  color: var(--hub-muted);
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
+.cardMeta {
+  display: flex; gap: 1rem;
+  color: var(--hub-text-muted); font-size: 0.85rem; margin-bottom: 1rem;
 }
 
-.cardBody h3 { font-size: 1.75rem; margin-bottom: 1rem; line-height: 1.2; }
-.cardBody p { color: var(--hub-muted); line-height: 1.6; margin-bottom: 2rem; }
+.cardMeta span { display: flex; align-items: center; gap: 0.4rem; }
 
-/* Sidebar discovered from images */
-.sidebar { position: sticky; top: 2rem; display: flex; flex-direction: column; gap: 4rem; }
+.cardBody h3 { font-size: 1.6rem; margin-bottom: 0.8rem; line-height: 1.25; }
+.cardBody p { color: var(--hub-text-muted); font-size: 1rem; line-height: 1.5; margin-bottom: 1.5rem; }
 
-.sideArticle { padding: 1.5rem 0; border-bottom: 1px solid var(--hub-border); }
-.sideArticle h5 { font-size: 1.2rem; margin: 0.5rem 0; }
-.sideMeta { color: var(--hub-muted); font-size: 0.85rem; display: flex; gap: 1rem; }
+.cardLink { color: var(--hub-accent); font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
 
-/* Mobile Adjustments */
-@media (max-width: 1200px) {
+/* --- Sidebar --- */
+.sidebar { display: flex; flex-direction: column; gap: 4rem; }
+.sideHeading { font-size: 1.2rem; font-weight: 800; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.7rem; }
+.sideArticle { padding: 1.5rem 0; border-bottom: 1px solid var(--hub-border); cursor: pointer; }
+.sideArticle h5 { font-size: 1.15rem; margin: 0.5rem 0; line-height: 1.4; }
+.sideMeta { display: flex; gap: 1.2rem; color: var(--hub-text-muted); font-size: 0.85rem; }
+
+.popItem { display: flex; gap: 1.2rem; padding: 1rem 0; cursor: pointer; }
+.popIndex { color: var(--hub-accent); font-weight: 900; font-style: italic; font-size: 1.2rem; opacity: 0.6; }
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 1024px) {
   .mainContent { grid-template-columns: 1fr; gap: 4rem; }
-  .sidebar { position: static; }
 }
 
 @media (max-width: 768px) {
-  .headerTop { flex-direction: column; align-items: flex-start; }
-  .submitBtn span { display: none; } /* Show icon only on mobile */
+  .container { padding: 2rem 1rem; }
+  .btnText { display: none; }
   .submitBtn { padding: 0.8rem; border-radius: 50%; }
-  .articlesGrid { grid-template-columns: 1fr; gap: 2rem; }
+  .articlesGrid { grid-template-columns: 1fr; }
 }
