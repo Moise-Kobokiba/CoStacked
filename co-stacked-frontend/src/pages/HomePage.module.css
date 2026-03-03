@@ -2,113 +2,114 @@
 
 .pageContainer {
   width: 100%;
+  background-color: #f6f6f8; /* Matches the mockup background */
+  min-height: 100vh;
 }
 
 /* ======================================== */
-/*               HERO SECTION               */
+/* HERO SECTION               */
 /* ======================================== */
 .hero {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  padding: 4rem 1.5rem;
+  padding: 5rem 1.25rem; /* Increased padding for mobile breathing room */
   text-align: center;
-  
-  /* --- KEY IMPLEMENTATION --- */
-  /* This uses the CSS variable passed from the HomePage component */
-  background-image: var(--hero-bg-image);
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  transition: background-image 0.3s ease-in-out; /* Smooth transition for the image swap */
+  overflow: hidden;
 }
 
-.heroOverlay {
+/* Abstract Blue Glow from the mockup */
+.hero::before {
   content: "";
   position: absolute;
-  inset: 0; /* Covers the entire hero section */
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay for text readability */
-  z-index: 1;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  width: 500px;
+  height: 500px;
+  background: rgba(36, 99, 235, 0.05);
+  filter: blur(100px);
+  border-radius: 50%;
+  z-index: 0;
 }
 
 .heroContent {
   position: relative;
-  z-index: 2; /* Ensures content is above the overlay */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 800px;
+  z-index: 1;
+  max-width: 900px;
 }
 
 .heroTitle {
-  color: #ffffff; /* White text looks good on a dark overlay */
-  font-size: 2.5rem;
-  font-weight: 800;
+  color: #0f172a; /* Dark slate text */
+  font-size: 2.25rem; /* Scaled for mobile first */
+  font-weight: 900; /* "Black" weight for high impact */
   letter-spacing: -0.05em;
-  line-height: 1.2;
-  margin-bottom: 1rem;
+  line-height: 1.1; /* Fixes the overlapping text issue */
+  margin-bottom: 1.5rem;
+}
+
+.heroTitle span {
+  color: #2463eb; /* Primary blue for the accent phrase */
 }
 
 .heroSubtitle {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1.1rem;
+  color: #475569;
+  font-size: 1rem;
   max-width: 600px;
   line-height: 1.6;
-  margin-bottom: 2rem;
+  margin: 0 auto 2.5rem auto;
 }
 
 .heroActions {
   display: flex;
-  flex-direction: column; /* Stack buttons vertically on mobile */
+  flex-direction: column; 
   align-items: center;
   gap: 1rem;
   width: 100%;
 }
 
-.heroActions > * {
+/* Button override to match rounded-xl style */
+.heroActions :global(.btn) {
   width: 100%;
   max-width: 280px;
+  border-radius: 0.75rem !important; /* xl rounded */
+  height: 3.5rem;
+  font-weight: 700;
 }
-
-.joinCommunityBtn {
-  background-color: #ffffff !important; 
-  color: #0f172a !important; /* Dark slate color for good readability */
-  border-color: #ffffff !important;
-  font-weight: 700 !important;
-}
-
-.joinCommunityBtn:hover {
-  background-color: #f1f5f9 !important; /* Slightly off-white for hover */
-  border-color: #f1f5f9 !important;
-}
-
 
 /* ======================================== */
-/*        FEATURES & TESTIMONIALS           */
+/* HOW IT WORKS SECTION          */
 /* ======================================== */
-.howItWorksSection, .testimonialsSection {
-  width: 100%;
-  padding: 4rem 1.5rem;
+.howItWorksSection {
+  background-color: #ffffff; /* White section to contrast the light gray page */
+  padding: 5rem 1.25rem;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.testimonialsSection {
-  background-color: var(--card-background); /* Adapts to theme */
+.sectionLabel {
+  display: inline-block;
+  background-color: rgba(36, 99, 235, 0.1);
+  color: #2463eb;
+  padding: 0.375rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
 }
 
 .sectionTitle {
   text-align: center;
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  color: var(--foreground);
-  margin: 0 auto 3rem auto;
-  max-width: 600px;
+  font-size: 1.875rem;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 3rem;
 }
 
-.featuresGrid, .testimonialsGrid {
+.featuresGrid {
   max-width: 1200px;
   margin: 0 auto;
   display: grid;
@@ -116,95 +117,42 @@
   gap: 1.5rem;
 }
 
-
 /* ======================================== */
-/*            RESPONSIVE QUERIES            */
+/* RESPONSIVE QUERIES            */
 /* ======================================== */
 
-/* --- Medium Screens / Tablets (768px and up) --- */
 @media (min-width: 768px) {
   .hero {
-    min-height: 70vh;
+    padding: 8rem 2rem;
   }
   .heroTitle {
-    font-size: 3.5rem;
+    font-size: 4.5rem;
   }
   .heroSubtitle {
     font-size: 1.25rem;
   }
   .heroActions {
-    flex-direction: row; /* Place buttons side-by-side */
+    flex-direction: row;
     justify-content: center;
-    gap: 1.25rem;
-  }
-  .heroActions > * {
-    width: auto; /* Allow buttons to size to their content */
-    max-width: none;
   }
   .featuresGrid {
     grid-template-columns: repeat(3, 1fr);
   }
-  .testimonialsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
   .sectionTitle {
-    font-size: 2.5rem;
-  }
-}
-
-/* --- Large Screens / Desktops (1024px and up) --- */
-@media (min-width: 1024px) {
-  .howItWorksSection, .testimonialsSection {
-    padding: 6rem 2rem;
-  }
-  .heroTitle {
-    font-size: 4rem;
+    font-size: 3rem;
   }
 }
 
 /* ======================================== */
-/*           LOGGED IN CONTENT              */
+/* LOGGED IN CONTENT              */
 /* ======================================== */
 .loggedInContent {
-  width: 100%;
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 4rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 3rem;
-}
-
-.contentSection {
-  width: 100%;
-}
-
-.sectionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.sectionHeader .sectionTitle {
-  margin: 0;
-  text-align: left;
-  font-size: 1.75rem;
-}
-
-.seeAllLink {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--primary);
-  font-weight: 600;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.seeAllLink:hover {
-  color: var(--primary-hover);
-  text-decoration: underline;
+  gap: 5rem;
 }
 
 .grid {
