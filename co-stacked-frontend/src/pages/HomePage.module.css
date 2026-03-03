@@ -2,21 +2,30 @@
 
 .pageContainer {
   width: 100%;
-  background-color: #ffffff;
+  background-color: var(--background, #ffffff); /* Fallback to white if variable not set */
 }
 
+/* ======================================== */
+/* HERO SECTION               */
+/* ======================================== */
 .hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 5rem 1.5rem 0;
+  padding: 6rem 1.5rem 0; /* No bottom padding here to let illustration touch the next section */
   text-align: center;
 }
 
+.heroContent {
+  max-width: 900px;
+  margin-bottom: 3rem;
+}
+
 .heroTitle {
-  font-size: 3.5rem;
+  color: #1e293b; 
+  font-size: 3rem;
   font-weight: 800;
-  color: #0f172a;
+  letter-spacing: -0.02em;
   line-height: 1.1;
   margin-bottom: 1.5rem;
 }
@@ -27,30 +36,33 @@
 
 .heroSubtitle {
   color: #64748b;
-  font-size: 1.1rem;
-  max-width: 600px;
+  font-size: 1.15rem;
+  max-width: 650px;
+  line-height: 1.6;
   margin: 0 auto 2.5rem;
 }
 
 .heroActions {
   display: flex;
-  gap: 1rem;
   justify-content: center;
+  gap: 1.25rem;
 }
 
-.secondaryBtn {
-  background: white !important;
+.joinCommunityBtn {
+  background-color: #ffffff !important; 
   color: #0f172a !important;
   border: 1px solid #e2e8f0 !important;
+  font-weight: 700 !important;
 }
 
 .heroIllustration {
-  margin-top: 4rem;
-  max-width: 1100px;
-  width: 90%;
-  border-radius: 20px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 1050px;
+  margin-top: 2rem;
+  border-radius: 20px 20px 0 0;
   overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+  border: 1px solid #f1f5f9;
 }
 
 .heroIllustration img {
@@ -58,32 +70,90 @@
   display: block;
 }
 
-/* Workflow */
-.workflowSection {
+/* ======================================== */
+/* LOGGED IN CONTENT              */
+/* ======================================== */
+.loggedInContent {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4.5rem;
+}
+
+.contentSection {
+  width: 100%;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+/* Override general sectionTitle for the logged-in headers */
+.sectionHeader .sectionTitle {
+  margin: 0;
+  text-align: left;
+  font-size: 1.75rem;
+}
+
+.seeAllLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.seeAllLink:hover {
+  color: #1d4ed8;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ======================================== */
+/* HOW IT WORKS / WORKFLOW           */
+/* ======================================== */
+.howItWorksSection {
   padding: 8rem 1.5rem;
+  background-color: #fdfdfd;
   text-align: center;
+  border-top: 1px solid #f1f5f9;
 }
 
 .workflowLabel {
-  background: #eff6ff;
+  display: inline-block;
   color: #2563eb;
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.7rem;
+  background: #eff6ff;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  margin-bottom: 1.25rem;
 }
 
 .sectionTitle {
   font-size: 2.5rem;
   font-weight: 800;
-  margin: 1.5rem 0 1rem;
   color: #0f172a;
+  margin-bottom: 1rem;
 }
 
 .sectionSubtitle {
   color: #64748b;
+  font-size: 1.1rem;
   max-width: 600px;
   margin: 0 auto 4rem;
 }
@@ -92,42 +162,49 @@
   max-width: 1200px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: 1fr;
   gap: 2rem;
 }
 
-/* CTA Card */
+/* ======================================== */
+/* READY TO BUILD CTA            */
+/* ======================================== */
 .ctaSection {
-  padding: 0 1.5rem 8rem;
+  padding: 2rem 1.5rem 8rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .ctaCard {
-  max-width: 1100px;
-  margin: 0 auto;
-  background: radial-gradient(circle at top left, #1e293b, #0f172a);
-  padding: 5rem 2rem;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   border-radius: 24px;
+  padding: 6rem 2rem;
   text-align: center;
   color: white;
 }
 
-.ctaTitle {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+.ctaCard h2 {
+  font-size: 2.75rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
 }
 
-.ctaSubtitle {
-  color: #94a3b8;
-  margin-bottom: 2.5rem;
+.ctaCard p {
+  color: #cbd5e1;
+  font-size: 1.1rem;
+  max-width: 550px;
+  margin: 0 auto 2.5rem;
 }
 
-.ctaBtn {
-  padding: 1rem 2.5rem !important;
-  font-weight: 700 !important;
-}
+/* ======================================== */
+/* RESPONSIVE QUERIES            */
+/* ======================================== */
 
-@media (max-width: 768px) {
-  .heroTitle { font-size: 2.5rem; }
-  .heroActions { flex-direction: column; }
-  .ctaTitle { font-size: 1.8rem; }
+@media (min-width: 768px) {
+  .heroTitle {
+    font-size: 4.5rem;
+  }
+  .featuresGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
