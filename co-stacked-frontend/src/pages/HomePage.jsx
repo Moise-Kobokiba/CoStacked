@@ -6,7 +6,6 @@ import { useTheme } from '../context/ThemeContext';
 import { fetchProjects } from '../features/projects/projectsSlice';
 import { fetchUsers } from '../features/users/usersSlice';
 
-// Import components
 import { Button } from '../components/shared/Button';
 import { FeatureCard } from '../components/shared/FeatureCard';
 import { ProjectCard } from '../components/shared/ProjectCard';
@@ -14,12 +13,10 @@ import { UserCard } from '../components/shared/UserCard';
 import { Carousel } from '../components/shared/Carousel';
 import { Lightbulb, Users, ShieldCheck, ArrowRight } from 'lucide-react';
 
-// Import assets and styles
 import heroLight from '../assets/hero-light.jpg';
 import heroDark from '../assets/hero-dark.png';
 import styles from './HomePage.module.css';
 
-// Data preserved from original
 const features = [
   { icon: Lightbulb, title: '1. Share Your Vision', description: 'Founders post structured project listings that include required skills, expected commitment, compensation type, and project stage.' },
   { icon: Users, title: '2. Discover Your Match', description: 'Developers browse open projects and apply directly, while founders filter collaborators by skills, availability, and experience.' },
@@ -28,17 +25,14 @@ const features = [
 
 export const HomePage = () => {
   const dispatch = useDispatch();
-  const { theme } = useTheme();
+  const { theme } = useTheme(); // This is critical for Dark Mode
   
-  // Auth state preserved
   const { token } = useSelector((state) => state.auth);
   const isLoggedIn = !!token;
 
-  // Data state preserved
   const { items: allProjects = [] } = useSelector((state) => state.projects || {});
   const { items: allUsers = [] } = useSelector((state) => state.users || {});
 
-  // Fetch data if logged in - logic preserved
   useEffect(() => {
     if (isLoggedIn) {
       dispatch(fetchProjects());
@@ -46,36 +40,28 @@ export const HomePage = () => {
     }
   }, [dispatch, isLoggedIn]);
 
-  // Filter and sort logic - logic preserved exactly
   const { featuredProjects, latestProjects, featuredUsers, latestUsers } = useMemo(() => {
     if (!isLoggedIn) return { featuredProjects: [], latestProjects: [], featuredUsers: [], latestUsers: [] };
-
     const now = new Date();
 
-    // Projects
     const sortedProjects = [...allProjects].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     const fProjects = sortedProjects.filter(p => p.isBoosted && new Date(p.boostExpiresAt) > now);
     const lProjects = sortedProjects.filter(p => !p.isBoosted || new Date(p.boostExpiresAt) <= now).slice(0, 4);
 
-    // Users
     const sortedUsers = [...allUsers].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     const fUsers = sortedUsers.filter(u => u.isBoosted && new Date(u.boostExpiresAt) > now);
     const lUsers = sortedUsers.filter(u => !u.isBoosted || new Date(u.boostExpiresAt) <= now).slice(0, 4);
 
-    return { 
-      featuredProjects: fProjects, 
-      latestProjects: lProjects, 
-      featuredUsers: fUsers, 
-      latestUsers: lUsers 
-    };
+    return { featuredProjects: fProjects, latestProjects: lProjects, featuredUsers: fUsers, latestUsers: lUsers };
   }, [allProjects, allUsers, isLoggedIn]);
 
-  // Dark mode image swap logic preserved
   const heroBgImage = theme === 'light' ? heroLight : heroDark;
 
   return (
-    <div className={styles.pageContainer}>
-      {/* 1. HERO SECTION - Updated to match image style */}
+    /* We add a data-theme attribute here so CSS can react to Dark Mode */
+    <div className={styles.pageContainer} data-theme={theme}>
+      
+      {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>
@@ -83,106 +69,79 @@ export const HomePage = () => {
             <span>Your Next Project Starts Here.</span>
           </h1>
           <p className={styles.heroSubtitle}>
-            CoStacked is the platform where ambitious founders and talented developers unite to build the future. Find your perfect match and bring your ideas to life.
+            CoStacked is the platform where ambitious founders and talented developers unite to build the future.
           </p>
           <div className={styles.heroActions}>
             <Button to="/projects" variant="primary">Discover Projects</Button>
-            {!isLoggedIn && (
-              <Button to="/signup" variant="outline" className={styles.joinCommunityBtn}>
-                Join the Community
-              </Button>
-            )}
+            {!isLoggedIn && <Button to="/signup" variant="outline" className={styles.joinCommunityBtn}>Join the Community</Button>}
           </div>
         </div>
-        
-        {/* NEW: Illustration container from image */}
         <div className={styles.heroIllustration}>
-          <img src={heroBgImage} alt="CoStacked Platform Preview" />
+          <img src={heroBgImage} alt="Preview" />
         </div>
       </section>
 
-      {/* 2. LOGGED IN CONTENT - All sections preserved */}
+      {/* Logged In Dashboard - RE-INTEGRATED CONTENT */}
       {isLoggedIn && (
         <div className={styles.loggedInContent}>
           
-          {/* Featured Projects */}
+          {/* 1. Featured Projects */}
           {featuredProjects.length > 0 && (
-            <section className={styles.contentSection}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>Featured Projects</h2>
-              </div>
+            <div className={styles.dashboardSection}>
+              <h2 className={styles.dashboardTitle}>Featured Projects</h2>
               <Carousel>
-                {featuredProjects.map((project) => <ProjectCard key={project._id} project={project} />)}
+                {featuredProjects.map(p => <ProjectCard key={p._id} project={p} />)}
               </Carousel>
-            </section>
+            </div>
           )}
 
-          {/* Featured Talent */}
+          {/* 2. Featured Talent */}
           {featuredUsers.length > 0 && (
-            <section className={styles.contentSection}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>Featured Talent</h2>
-              </div>
+            <div className={styles.dashboardSection}>
+              <h2 className={styles.dashboardTitle}>Featured Talent</h2>
               <Carousel>
-                {featuredUsers.map((user) => <UserCard key={user._id} user={user} />)}
+                {featuredUsers.map(u => <UserCard key={u._id} user={u} />)}
               </Carousel>
-            </section>
+            </div>
           )}
 
-          {/* Latest Projects */}
-          {latestProjects.length > 0 && (
-            <section className={styles.contentSection}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>Latest Projects</h2>
-                <Link to="/projects" className={styles.seeAllLink}>
-                  See All <ArrowRight size={16} />
-                </Link>
-              </div>
-              <div className={styles.grid}>
-                {latestProjects.map((project) => <ProjectCard key={project._id} project={project} />)}
-              </div>
-            </section>
-          )}
+          {/* 3. Latest Projects */}
+          <div className={styles.dashboardSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.dashboardTitle}>Latest Projects</h2>
+              <Link to="/projects" className={styles.seeAll}>See all <ArrowRight size={16}/></Link>
+            </div>
+            <div className={styles.contentGrid}>
+              {latestProjects.map(p => <ProjectCard key={p._id} project={p} />)}
+            </div>
+          </div>
 
-          {/* Latest Talent */}
-          {latestUsers.length > 0 && (
-            <section className={styles.contentSection}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>Newest Talent</h2>
-                <Link to="/users" className={styles.seeAllLink}>
-                  See All <ArrowRight size={16} />
-                </Link>
-              </div>
-              <div className={styles.grid}>
-                {latestUsers.map((user) => <UserCard key={user._id} user={user} />)}
-              </div>
-            </section>
-          )}
+          {/* 4. Latest Talent */}
+          <div className={styles.dashboardSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.dashboardTitle}>Newest Talent</h2>
+              <Link to="/users" className={styles.seeAll}>See all <ArrowRight size={16}/></Link>
+            </div>
+            <div className={styles.contentGrid}>
+              {latestUsers.map(u => <UserCard key={u._id} user={u} />)}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* 3. HOW IT WORKS - Preserved content, updated layout */}
-      <section className={styles.howItWorksSection}>
+      {/* Workflow Section */}
+      <section className={styles.workflowSection}>
         <span className={styles.workflowLabel}>The Workflow</span>
         <h2 className={styles.sectionTitle}>How CoStacked Works</h2>
-        <p className={styles.sectionSubtitle}>Our platform streamlines the journey from idea to execution through three simple steps.</p>
         <div className={styles.featuresGrid}>
-          {features.map((feature) => (
-            <FeatureCard
-              key={feature.title}
-              icon={feature.icon}
-              title={feature.title}
-              description={feature.description}
-            />
-          ))}
+          {features.map((f) => <FeatureCard key={f.title} {...f} />)}
         </div>
       </section>
 
-      {/* 4. CTA BANNER - New from image */}
+      {/* CTA Section */}
       <section className={styles.ctaSection}>
         <div className={styles.ctaCard}>
           <h2>Ready to build the future?</h2>
-          <p>Join thousands of founders and developers already collaborating on CoStacked. Your next big idea is one connection away.</p>
           <Button to="/signup" variant="primary">Get Started Now</Button>
         </div>
       </section>
