@@ -3,11 +3,11 @@
   --background: #ffffff;
   --foreground: #0f172a;
   --card-background: #ffffff;
-  --muted-foreground: #64748b;      /* darker in light mode */
+  --muted-foreground: #64748b;
   --border: #e2e8f0;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
-  --sidebar-bg: #f8fafc;
+  --sidebar-bg: #ffffff;           /* pure white in light mode */
   --glow: rgba(37, 99, 235, 0.15);
   --toast-bg: #0f172a;
   --toast-text: #ffffff;
@@ -18,9 +18,11 @@
     --background: #0b1120;
     --foreground: #f8fafc;
     --card-background: #111827;
-    --muted-foreground: #94a3b8;    /* lighter in dark mode */
+    --muted-foreground: #94a3b8;
     --border: #1e293b;
-    --sidebar-bg: #0f172a;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --sidebar-bg: #111827;          /* matches card background in dark mode */
     --glow: rgba(59, 130, 246, 0.3);
     --toast-bg: #1e293b;
     --toast-text: #f8fafc;
@@ -74,7 +76,7 @@
   font-size: 2.75rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--foreground);          /* now respects light/dark */
+  color: var(--foreground);
   margin: 0;
 }
 
@@ -309,7 +311,7 @@
 }
 
 .sideSection {
-  background: var(--sidebar-bg);
+  background: var(--sidebar-bg);    /* now matches card background */
   border-radius: 20px;
   padding: 1.5rem;
   border: 1px solid var(--border);
@@ -366,7 +368,7 @@
   display: flex;
   gap: 1.25rem;
   font-size: 0.8rem;
-  color: var(--muted-foreground);    /* now adapts to mode */
+  color: var(--muted-foreground);
 }
 
 .sideMeta span {
@@ -411,7 +413,7 @@
   color: var(--foreground);
 }
 
-/* Newsletter card */
+/* Newsletter card (kept distinct) */
 .newsletterCard {
   background: #0f172a;
   color: white;
