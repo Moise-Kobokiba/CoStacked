@@ -1,57 +1,106 @@
 .container {
-  max-width: 1200px;
+  max-width: 1400px; /* Increased from 1200px for better monitor fit */
   margin: 0 auto;
-  padding: 4rem 1.5rem;
-  background-color: #0b1120; /* Deep dark background */
+  padding: 5rem 2rem; /* Increased padding */
+  background-color: #0b1120;
   color: #ffffff;
+  min-height: 100vh;
+}
+
+.header {
+  margin-bottom: 4rem; /* More space before search */
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end; /* Align button to baseline of text */
+  margin-bottom: 1.5rem;
 }
 
 .pageTitle {
-  font-size: 2.75rem;
+  font-size: 3.5rem; /* Larger for desktop */
   font-weight: 800;
-  letter-spacing: -0.04em;
-  margin-bottom: 0.5rem;
+  letter-spacing: -0.05em;
+  margin: 0;
 }
 
 .pageSubtitle {
   color: #94a3b8;
-  font-size: 1.1rem;
-  margin-bottom: 3rem;
+  font-size: 1.25rem;
+  max-width: 600px;
+  line-height: 1.6;
 }
 
 .submitBtn {
   background: #2563eb;
   color: white;
-  padding: 0.7rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 600;
+  padding: 0.8rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 700;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  transition: all 0.2s ease;
 }
 
-/* Categories & Search */
+.submitBtn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+/* Controls Section */
+.controlsSection {
+  margin-bottom: 4rem;
+}
+
+.searchWrapper {
+  position: relative;
+  margin-bottom: 2rem;
+  max-width: 800px; /* Prevents search bar from being too long on big screens */
+}
+
+.searchIcon {
+  position: absolute;
+  left: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+}
+
 .searchInput {
   width: 100%;
-  padding: 1.1rem 1.1rem 1.1rem 3.5rem;
-  border-radius: 12px;
+  padding: 1.25rem 1.25rem 1.25rem 4rem;
+  border-radius: 16px;
   background: #1e293b;
   border: 1px solid #334155;
   color: white;
-  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+.categoryBar {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .categoryBtn {
   background: #1e293b;
   border: 1px solid #334155;
   color: #94a3b8;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  margin-right: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
+  transition: 0.2s;
 }
 
 .categoryBtn.active {
@@ -60,85 +109,122 @@
   border-color: #2563eb;
 }
 
-/* Article Cards */
+/* Layout Grid - Fixing the "Cramped" look */
+.mainContent {
+  display: grid;
+  grid-template-columns: 1fr 380px; /* Fixed sidebar width, flexible content */
+  gap: 6rem; /* Huge gap for premium feel */
+  align-items: start;
+}
+
+.articlesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3rem; /* More space between cards */
+}
+
+/* Article Card Refinement */
 .articleCard {
   background: #111827;
   border: 1px solid #1f2937;
-  border-radius: 16px;
+  border-radius: 24px;
   overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.articleCard:hover { transform: translateY(-5px); }
+.articleCard:hover {
+  transform: translateY(-10px);
+  border-color: #3b82f6;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
 
-.imageContainer { height: 200px; }
-.imageContainer img { width: 100%; height: 100%; object-fit: cover; }
+.imageContainer {
+  height: 240px;
+  width: 100%;
+}
 
-.cardBody { padding: 1.5rem; }
+.imageContainer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardBody {
+  padding: 2rem;
+}
 
 .articleCategoryLabel {
-  color: #3b82f6; /* Neon Blue */
-  font-size: 0.75rem;
-  font-weight: 800;
+  color: #3b82f6;
+  font-size: 0.8rem;
+  font-weight: 900;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .cardMetaPrimary {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
   color: #64748b;
-  font-size: 0.85rem;
-  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
 }
 
-.cardMetaPrimary span { display: flex; align-items: center; gap: 0.3rem; }
-
-.cardBody h3 { font-size: 1.4rem; margin-bottom: 0.75rem; line-height: 1.3; }
-.cardBody p { color: #94a3b8; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem; }
-
-/* Sidebar Guides */
-.sideArticle {
-  padding: 1.25rem 0;
-  border-bottom: 1px solid #1f2937;
-  cursor: pointer;
+.cardBody h3 {
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+  line-height: 1.2;
 }
 
-.sideCategory {
-  color: #3b82f6;
-  font-size: 0.7rem;
+/* Sidebar Sectioning */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+  position: sticky; /* Keeps it visible while scrolling */
+  top: 2rem;
+}
+
+.sideHeading {
+  font-size: 1.25rem;
   font-weight: 800;
-  text-transform: uppercase;
-}
-
-.sideArticle h5 { font-size: 1.1rem; margin: 0.4rem 0; line-height: 1.4; }
-
-.sideMeta {
+  margin-bottom: 2rem;
   display: flex;
-  gap: 1rem;
-  color: #64748b;
-  font-size: 0.8rem;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.popItem {
-  display: flex;
-  padding: 1rem 0;
-  cursor: pointer;
+.sideArticle {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #1f2937;
 }
 
-.popIndex {
-  color: #3b82f6;
-  font-weight: 900;
-  font-style: italic;
-  margin-right: 1rem;
-  opacity: 0.5;
+.sideArticle:last-child { border-bottom: none; }
+
+.sideArticle h5 {
+  font-size: 1.15rem;
+  margin: 0.5rem 0;
+  line-height: 1.4;
+  transition: color 0.2s;
 }
 
-/* Mobile Adjustments */
-@media (max-width: 768px) {
-  .mainContent { grid-template-columns: 1fr; }
-  .articlesGrid { grid-template-columns: 1fr; }
-  .pageTitle { font-size: 2.2rem; }
+.sideArticle:hover h5 { color: #3b82f6; }
+
+/* Desktop Media Query */
+@media (max-width: 1280px) {
+  .mainContent {
+    gap: 3rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .mainContent {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    margin-top: 4rem;
+  }
 }
