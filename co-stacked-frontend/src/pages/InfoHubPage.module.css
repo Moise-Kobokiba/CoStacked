@@ -1,3 +1,4 @@
+/* --- Theme Definitions --- */
 :root {
   --bg: #ffffff;
   --card-bg: #ffffff;
@@ -5,7 +6,8 @@
   --muted: #64748b;
   --border: #e2e8f0;
   --accent: #2563eb;
-  --glow: rgba(37, 99, 235, 0.2);
+  --glow: rgba(37, 99, 235, 0.15);
+  --sidebar-hover: #f8fafc;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -16,32 +18,32 @@
     --muted: #94a3b8;
     --border: #1f2937;
     --accent: #3b82f6;
-    --glow: rgba(59, 130, 246, 0.3);
+    --glow: rgba(59, 130, 246, 0.25);
+    --sidebar-hover: #1e293b;
   }
 }
 
-/* --- Global Mobile-First Guard --- */
 .container {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 2rem 1.25rem; /* Dynamic padding for mobile */
+  padding: 4rem 2rem;
   background-color: var(--bg);
   color: var(--text);
-  overflow-x: hidden; /* Prevent horizontal scroll */
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
-/* --- Header Section --- */
+/* --- Responsive Header --- */
 .headerTop {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  margin-bottom: 0.5rem;
 }
 
-.pageTitle { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; margin: 0; }
+.pageTitle { font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 800; }
 
-/* Desktop Style Buttons used for both Submit and Load More */
 .submitBtn, .loadMore {
   background-color: var(--accent);
   color: #fff;
@@ -55,76 +57,72 @@
   gap: 0.6rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.loadMore {
-  margin: 4rem auto;
-  width: fit-content;
 }
 
 .submitBtn:hover, .loadMore:hover {
   filter: brightness(1.1);
   box-shadow: 0 0 20px var(--glow);
-  transform: translateY(-2px);
 }
 
-/* --- Layout Grid --- */
+/* --- Main Layout Grid --- */
 .mainLayout {
   display: grid;
   grid-template-columns: 1fr 380px;
-  gap: 4rem;
+  gap: 5rem;
   margin-top: 3rem;
 }
 
 .articlesGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 2.5rem;
 }
 
-/* --- Cards & Glow Effects --- */
+/* --- Article Cards --- */
 .card {
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  transition: 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .card:hover {
+  transform: translateY(-8px);
   border-color: var(--accent);
-  box-shadow: 0 10px 30px -10px var(--glow);
+  box-shadow: 0 10px 40px -10px var(--glow);
 }
 
+/* --- Sidebar Modern Link Styles --- */
 .sideItem {
   display: flex; gap: 1rem; padding: 1rem;
-  border-radius: 12px; transition: 0.3s;
+  border-radius: 12px; cursor: pointer; transition: 0.3s ease;
 }
 
 .sideItem:hover {
-  background: var(--card-bg);
-  box-shadow: 0 5px 15px var(--glow);
+  background: var(--sidebar-hover);
+  box-shadow: 0 0 20px var(--glow);
   transform: translateX(5px);
 }
 
-.sideThumb { width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+.sideThumb { width: 70px; height: 55px; border-radius: 8px; overflow: hidden; flex-shrink: 0; }
 .sideThumb img { width: 100%; height: 100%; object-fit: cover; }
 
-/* --- Mobile Adaptations (The Overflow Fix) --- */
+/* --- Mobile Responsiveness Adjustments --- */
 @media (max-width: 1024px) {
-  .mainLayout { grid-template-columns: 1fr; gap: 3rem; }
+  .mainLayout { grid-template-columns: 1fr; gap: 4rem; }
   .sidebar { order: 2; }
-  .contentArea { order: 1; }
 }
 
 @media (max-width: 600px) {
+  .container { padding: 2rem 1.25rem; }
+  
   .headerTop { flex-direction: column; align-items: stretch; }
-  .submitBtn { width: 100%; order: 2; margin-top: 1rem; }
+  .submitBtn { width: 100%; order: 2; }
   .pageTitle { order: 1; text-align: left; }
   
   .categoryBar {
-    margin: 1.5rem -1.25rem; /* Bleed to edges */
+    margin: 1.5rem -1.25rem;
     padding: 0 1.25rem 10px;
     display: flex;
     overflow-x: auto;
@@ -132,11 +130,5 @@
   }
 
   .articlesGrid { grid-template-columns: 1fr; }
-  
-  .cardImage { height: 200px; }
-  
-  .loadMore { width: 100%; } /* Full width button on mobile */
+  .loadMore { width: 100%; }
 }
-
-/* Utility to ensure images never break layout */
-img { max-width: 100%; height: auto; display: block; }
