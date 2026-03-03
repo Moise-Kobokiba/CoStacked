@@ -1,18 +1,26 @@
+// src/pages/HomePage.jsx
+
 import { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import { fetchProjects } from '../features/projects/projectsSlice';
 import { fetchUsers } from '../features/users/usersSlice';
 
 // Import components
 import { Button } from '../components/shared/Button';
+import { FeatureCard } from '../components/shared/FeatureCard';
 import { ProjectCard } from '../components/shared/ProjectCard';
 import { UserCard } from '../components/shared/UserCard';
 import { Carousel } from '../components/shared/Carousel';
 import { Lightbulb, Users, ShieldCheck, ArrowRight } from 'lucide-react';
 
-// NOTE: I removed the import styles from './HomePage.module.css'
+// Import assets and styles
+import heroLight from '../assets/hero-light.jpg';
+import heroDark from '../assets/hero-dark.png';
+import styles from './HomePage.module.css';
 
+// Data can remain outside the component
 const features = [
   { icon: Lightbulb, title: '1. Share Your Vision', description: 'Founders post structured project listings that include required skills, expected commitment, compensation type, and project stage.' },
   { icon: Users, title: '2. Discover Your Match', description: 'Developers browse open projects and apply directly, while founders filter collaborators by skills, availability, and experience.' },
@@ -21,13 +29,17 @@ const features = [
 
 export const HomePage = () => {
   const dispatch = useDispatch();
+  const { theme } = useTheme();
   
+  // Auth state
   const { token } = useSelector((state) => state.auth);
   const isLoggedIn = !!token;
 
+  // Data state
   const { items: allProjects = [] } = useSelector((state) => state.projects || {});
   const { items: allUsers = [] } = useSelector((state) => state.users || {});
 
+  // Fetch data if logged in
   useEffect(() => {
     if (isLoggedIn) {
       dispatch(fetchProjects());
@@ -35,93 +47,127 @@ export const HomePage = () => {
     }
   }, [dispatch, isLoggedIn]);
 
+  // Filter and sort logic
   const { featuredProjects, latestProjects, featuredUsers, latestUsers } = useMemo(() => {
     if (!isLoggedIn) return { featuredProjects: [], latestProjects: [], featuredUsers: [], latestUsers: [] };
+
     const now = new Date();
+
+    // Projects
     const sortedProjects = [...allProjects].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     const fProjects = sortedProjects.filter(p => p.isBoosted && new Date(p.boostExpiresAt) > now);
     const lProjects = sortedProjects.filter(p => !p.isBoosted || new Date(p.boostExpiresAt) <= now).slice(0, 4);
+
+    // Users
     const sortedUsers = [...allUsers].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     const fUsers = sortedUsers.filter(u => u.isBoosted && new Date(u.boostExpiresAt) > now);
     const lUsers = sortedUsers.filter(u => !u.isBoosted || new Date(u.boostExpiresAt) <= now).slice(0, 4);
 
-    return { featuredProjects: fProjects, latestProjects: lProjects, featuredUsers: fUsers, latestUsers: lUsers };
+    return { 
+      featuredProjects: fProjects, 
+      latestProjects: lProjects, 
+      featuredUsers: fUsers, 
+      latestUsers: lUsers 
+    };
   }, [allProjects, allUsers, isLoggedIn]);
 
+  // Conditionally select the correct image source based on the theme
+  const heroBgImage = theme === 'light' ? heroLight : heroDark;
+
   return (
-    <div className="w-full bg-[#f6f6f8] dark:bg-[#111621] font-sans">
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-12 px-6 text-center overflow-hidden">
-        {/* The "Glow" from the mockup */}
-        <div className="absolute top-0 left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 bg-blue-500/5 blur-[100px] rounded-full"></div>
-        
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-7xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-8">
-            Connect, Collaborate, Create. <br /> 
-            <span className="text-blue-600">Your Next Project Starts Here.</span>
+    <div className={styles.pageContainer}>
+      {/* Hero Section - Always Visible */}
+      <section 
+        className={styles.hero} 
+        style={{ '--hero-bg-image': `url(${heroBgImage})` }}
+      >
+        <div className={styles.heroOverlay}></div>
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>
+            Connect, Collaborate, Create. <br /> Your Next Project Starts Here.
           </h1>
-          <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10">
+          <p className={styles.heroSubtitle}>
             CoStacked is the platform where ambitious founders and talented developers unite to build the future. Find your perfect match and bring your ideas to life.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button to="/projects" className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all">
-              Discover Projects
-            </Button>
-            {!isLoggedIn && (
-              <Button to="/signup" className="bg-white text-slate-900 border border-slate-200 px-8 py-4 rounded-xl font-bold hover:bg-slate-50 transition-all">
-                Join the Community
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Hero Image - The illustration in the image */}
-        <div className="mt-16 max-w-5xl mx-auto">
-          <div className="rounded-3xl overflow-hidden shadow-2xl border border-slate-200/50">
-             <img src="/path-to-your-illustration.png" alt="Collaborating" className="w-full h-auto" />
+          <div className={styles.heroActions}>
+            <Button to="/projects" variant="primary">Discover Projects</Button>
+            {!isLoggedIn && <Button to="/signup" variant="outline" className={styles.joinCommunityBtn}>Join the Community</Button>}
           </div>
         </div>
       </section>
 
       {/* Logged In Content */}
       {isLoggedIn && (
-        <div className="max-w-7xl mx-auto px-6 py-12 space-y-20">
+        <div className={styles.loggedInContent}>
+          
+          {/* Featured Projects */}
+          {featuredProjects.length > 0 && (
+            <section className={styles.contentSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Featured Projects</h2>
+              </div>
+              <Carousel>
+                {featuredProjects.map((project) => <ProjectCard key={project._id} project={project} />)}
+              </Carousel>
+            </section>
+          )}
+
+          {/* Featured Talent */}
+          {featuredUsers.length > 0 && (
+            <section className={styles.contentSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Featured Talent</h2>
+              </div>
+              <Carousel>
+                {featuredUsers.map((user) => <UserCard key={user._id} user={user} />)}
+              </Carousel>
+            </section>
+          )}
+
+          {/* Latest Projects */}
           {latestProjects.length > 0 && (
-            <section>
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white">Latest Projects</h2>
-                <Link to="/projects" className="text-blue-600 font-bold flex items-center gap-1 hover:underline">
-                  See All <ArrowRight size={18} />
+            <section className={styles.contentSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Latest Projects</h2>
+                <Link to="/projects" className={styles.seeAllLink}>
+                  See All <ArrowRight size={16} />
                 </Link>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className={styles.grid}>
                 {latestProjects.map((project) => <ProjectCard key={project._id} project={project} />)}
+              </div>
+            </section>
+          )}
+
+          {/* Latest Talent */}
+          {latestUsers.length > 0 && (
+            <section className={styles.contentSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Newest Talent</h2>
+                <Link to="/users" className={styles.seeAllLink}>
+                  See All <ArrowRight size={16} />
+                </Link>
+              </div>
+              <div className={styles.grid}>
+                {latestUsers.map((user) => <UserCard key={user._id} user={user} />)}
               </div>
             </section>
           )}
         </div>
       )}
 
-      {/* How It Works Section */}
-      <section className="bg-white dark:bg-slate-900/50 py-24 px-6 border-y border-slate-100 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="bg-blue-50 text-blue-600 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">The Workflow</span>
-            <h2 className="text-3xl md:text-5xl font-black mt-4 text-slate-900 dark:text-white">How CoStacked Works</h2>
-            <p className="text-slate-500 mt-4">Three simple steps to build the future.</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((f, i) => (
-              <div key={i} className="p-8 rounded-2xl bg-[#f6f6f8] dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                <div className="w-12 h-12 bg-blue-600/10 text-blue-600 rounded-xl flex items-center justify-center mb-6">
-                   <f.icon size={24} />
-                </div>
-                <h3 className="text-xl font-bold mb-3 dark:text-white">{f.title}</h3>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">{f.description}</p>
-              </div>
-            ))}
-          </div>
+      {/* How It Works - Always Visible */}
+      <section className={styles.howItWorksSection}>
+        <h2 className={styles.sectionTitle}>How CoStacked Works</h2>
+        <div className={styles.featuresGrid}>
+          {features.map((feature) => (
+            <FeatureCard
+              key={feature.title}
+              icon={feature.icon}
+              title={feature.title}
+              description={feature.description}
+            />
+          ))}
         </div>
       </section>
     </div>
