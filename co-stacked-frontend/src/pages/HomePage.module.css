@@ -2,213 +2,132 @@
 
 .pageContainer {
   width: 100%;
+  background-color: #ffffff;
 }
 
-/* ======================================== */
-/*               HERO SECTION               */
-/* ======================================== */
 .hero {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  padding: 4rem 1.5rem;
+  padding: 5rem 1.5rem 0;
   text-align: center;
-  
-  /* --- KEY IMPLEMENTATION --- */
-  /* This uses the CSS variable passed from the HomePage component */
-  background-image: var(--hero-bg-image);
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  transition: background-image 0.3s ease-in-out; /* Smooth transition for the image swap */
-}
-
-.heroOverlay {
-  content: "";
-  position: absolute;
-  inset: 0; /* Covers the entire hero section */
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay for text readability */
-  z-index: 1;
-}
-
-.heroContent {
-  position: relative;
-  z-index: 2; /* Ensures content is above the overlay */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 800px;
 }
 
 .heroTitle {
-  color: #ffffff; /* White text looks good on a dark overlay */
-  font-size: 2.5rem;
+  font-size: 3.5rem;
   font-weight: 800;
-  letter-spacing: -0.05em;
-  line-height: 1.2;
-  margin-bottom: 1rem;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+}
+
+.heroTitle span {
+  color: #2563eb;
 }
 
 .heroSubtitle {
-  color: rgba(255, 255, 255, 0.9);
+  color: #64748b;
   font-size: 1.1rem;
   max-width: 600px;
-  line-height: 1.6;
-  margin-bottom: 2rem;
+  margin: 0 auto 2.5rem;
 }
 
 .heroActions {
   display: flex;
-  flex-direction: column; /* Stack buttons vertically on mobile */
-  align-items: center;
   gap: 1rem;
+  justify-content: center;
+}
+
+.secondaryBtn {
+  background: white !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.heroIllustration {
+  margin-top: 4rem;
+  max-width: 1100px;
+  width: 90%;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.heroIllustration img {
   width: 100%;
+  display: block;
 }
 
-.heroActions > * {
-  width: 100%;
-  max-width: 280px;
+/* Workflow */
+.workflowSection {
+  padding: 8rem 1.5rem;
+  text-align: center;
 }
 
-.joinCommunityBtn {
-  background-color: #ffffff !important; 
-  color: #0f172a !important; /* Dark slate color for good readability */
-  border-color: #ffffff !important;
-  font-weight: 700 !important;
-}
-
-.joinCommunityBtn:hover {
-  background-color: #f1f5f9 !important; /* Slightly off-white for hover */
-  border-color: #f1f5f9 !important;
-}
-
-
-/* ======================================== */
-/*        FEATURES & TESTIMONIALS           */
-/* ======================================== */
-.howItWorksSection, .testimonialsSection {
-  width: 100%;
-  padding: 4rem 1.5rem;
-}
-
-.testimonialsSection {
-  background-color: var(--card-background); /* Adapts to theme */
+.workflowLabel {
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .sectionTitle {
-  text-align: center;
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 800;
-  letter-spacing: -0.05em;
-  color: var(--foreground);
-  margin: 0 auto 3rem auto;
+  margin: 1.5rem 0 1rem;
+  color: #0f172a;
+}
+
+.sectionSubtitle {
+  color: #64748b;
   max-width: 600px;
+  margin: 0 auto 4rem;
 }
 
-.featuresGrid, .testimonialsGrid {
+.featuresGrid {
   max-width: 1200px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
 }
 
-
-/* ======================================== */
-/*            RESPONSIVE QUERIES            */
-/* ======================================== */
-
-/* --- Medium Screens / Tablets (768px and up) --- */
-@media (min-width: 768px) {
-  .hero {
-    min-height: 70vh;
-  }
-  .heroTitle {
-    font-size: 3.5rem;
-  }
-  .heroSubtitle {
-    font-size: 1.25rem;
-  }
-  .heroActions {
-    flex-direction: row; /* Place buttons side-by-side */
-    justify-content: center;
-    gap: 1.25rem;
-  }
-  .heroActions > * {
-    width: auto; /* Allow buttons to size to their content */
-    max-width: none;
-  }
-  .featuresGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .testimonialsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .sectionTitle {
-    font-size: 2.5rem;
-  }
+/* CTA Card */
+.ctaSection {
+  padding: 0 1.5rem 8rem;
 }
 
-/* --- Large Screens / Desktops (1024px and up) --- */
-@media (min-width: 1024px) {
-  .howItWorksSection, .testimonialsSection {
-    padding: 6rem 2rem;
-  }
-  .heroTitle {
-    font-size: 4rem;
-  }
-}
-
-/* ======================================== */
-/*           LOGGED IN CONTENT              */
-/* ======================================== */
-.loggedInContent {
-  width: 100%;
-  max-width: 1200px;
+.ctaCard {
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 3rem;
+  background: radial-gradient(circle at top left, #1e293b, #0f172a);
+  padding: 5rem 2rem;
+  border-radius: 24px;
+  text-align: center;
+  color: white;
 }
 
-.contentSection {
-  width: 100%;
+.ctaTitle {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
 }
 
-.sectionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
+.ctaSubtitle {
+  color: #94a3b8;
+  margin-bottom: 2.5rem;
 }
 
-.sectionHeader .sectionTitle {
-  margin: 0;
-  text-align: left;
-  font-size: 1.75rem;
+.ctaBtn {
+  padding: 1rem 2.5rem !important;
+  font-weight: 700 !important;
 }
 
-.seeAllLink {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--primary);
-  font-weight: 600;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.seeAllLink:hover {
-  color: var(--primary-hover);
-  text-decoration: underline;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+@media (max-width: 768px) {
+  .heroTitle { font-size: 2.5rem; }
+  .heroActions { flex-direction: column; }
+  .ctaTitle { font-size: 1.8rem; }
 }
