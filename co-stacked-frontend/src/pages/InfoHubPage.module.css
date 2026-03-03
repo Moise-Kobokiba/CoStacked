@@ -1,13 +1,13 @@
 /* Light/Dark variables */
 :root {
-  --background: #ffffff;            /* main page background */
+  --background: #ffffff;
   --foreground: #0f172a;
   --card-background: #ffffff;
   --muted-foreground: #64748b;
   --border: #e2e8f0;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
-  --sidebar-bg: #f8fafc;            /* light grey sidebar */
+  --sidebar-bg: #f1f5f9;        /* refined light grey for sidebar */
   --glow: rgba(37, 99, 235, 0.15);
   --toast-bg: #0f172a;
   --toast-text: #ffffff;
@@ -22,7 +22,7 @@
     --border: #1e293b;
     --accent: #2563eb;
     --accent-hover: #1d4ed8;
-    --sidebar-bg: #1e293b;           /* lighter dark sidebar */
+    --sidebar-bg: #1e293b;       /* distinct dark sidebar */
     --glow: rgba(59, 130, 246, 0.3);
     --toast-bg: #1e293b;
     --toast-text: #f8fafc;
