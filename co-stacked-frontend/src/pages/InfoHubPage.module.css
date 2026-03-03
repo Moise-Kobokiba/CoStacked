@@ -82,7 +82,7 @@
   margin: 0;
 }
 
-/* ===== Unified Button ===== */
+/* ===== Unified Button (Submit & Load More) ===== */
 .mainActionBtn {
   background-color: var(--accent);
   color: #fff;
