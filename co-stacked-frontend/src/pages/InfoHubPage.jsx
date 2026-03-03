@@ -38,7 +38,7 @@ export const InfoHubPage = () => {
     fetchArticles();
   }, []);
 
-  // Increment view count only when the user clicks the article
+  // Increment view count only when user clicks an article
   const handleArticleNavigation = async (article) => {
     try {
       await incrementViewCount(article._id);
@@ -46,6 +46,12 @@ export const InfoHubPage = () => {
     } catch (err) {
       navigate(`/info-hub/${article.slug}`);
     }
+  };
+
+  // Handle Submit Resource button click
+  const handleSubmitResource = () => {
+    // You can replace this with a modal or navigate to a form page
+    navigate('/submit-resource');
   };
 
   // Filter articles by search + category
@@ -67,7 +73,7 @@ export const InfoHubPage = () => {
       .slice(0, 3);
   }, [articles]);
 
-  // First 3 articles for "Featured Guides" (can also be manually curated)
+  // First 3 articles for "Featured Guides"
   const featuredGuides = useMemo(() => articles.slice(0, 3), [articles]);
 
   if (loading) {
@@ -76,11 +82,14 @@ export const InfoHubPage = () => {
 
   return (
     <div className={styles.container}>
-      {/* Header */}
+      {/* Header with Submit Resource button */}
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <h1 className={styles.pageTitle}>Info Hub</h1>
-          <button className={styles.mainActionBtn}>
+          <button
+            className={styles.mainActionBtn}
+            onClick={handleSubmitResource}   // 👈 interactive now
+          >
             <Plus size={18} />
             <span>Submit Resource</span>
           </button>
@@ -137,7 +146,7 @@ export const InfoHubPage = () => {
               <article
                 key={article._id}
                 className={styles.card}
-                onClick={() => handleArticleNavigation(article)}
+                onClick={() => handleArticleNavigation(article)} // 👈 interactive
               >
                 <div className={styles.cardImage}>
                   <img src={article.coverImage} alt="" />
@@ -159,7 +168,7 @@ export const InfoHubPage = () => {
                     </span>
                     {article.readTime && (
                       <span>
-                        <Clock size={14} /> {article.readTime} min
+                        <Clock size={14} /> {article.readTime} min read
                       </span>
                     )}
                   </div>
@@ -196,7 +205,7 @@ export const InfoHubPage = () => {
               <div
                 key={guide._id}
                 className={styles.interactiveGlow}
-                onClick={() => handleArticleNavigation(guide)}
+                onClick={() => handleArticleNavigation(guide)} // 👈 interactive
               >
                 <div className={styles.sideThumb}>
                   <img src={guide.coverImage} alt="" />
@@ -209,7 +218,7 @@ export const InfoHubPage = () => {
                   <div className={styles.sideMeta}>
                     {guide.readTime && (
                       <span>
-                        <Clock size={12} /> {guide.readTime} min
+                        <Clock size={12} /> {guide.readTime} min read
                       </span>
                     )}
                     <span>
@@ -230,7 +239,7 @@ export const InfoHubPage = () => {
               <div
                 key={pop._id}
                 className={styles.popItem}
-                onClick={() => handleArticleNavigation(pop)}
+                onClick={() => handleArticleNavigation(pop)} // 👈 interactive
               >
                 <span className={styles.popRank}>0{index + 1}</span>
                 <div className={styles.popContent}>
@@ -240,7 +249,7 @@ export const InfoHubPage = () => {
             ))}
           </section>
 
-          {/* Weekly Newsletter (from second image) */}
+          {/* Weekly Newsletter */}
           <section className={styles.sideSection}>
             <h4 className={styles.sideTitle}>
               <Mail size={18} /> Weekly Founders Insights
@@ -260,7 +269,7 @@ export const InfoHubPage = () => {
         </aside>
       </div>
 
-      {/* Footer (from second image) */}
+      {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerLinks}>
           <span>© 2024 CoStacked Platform. All rights reserved.</span>
