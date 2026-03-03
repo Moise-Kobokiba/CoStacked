@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPublishedArticles, incrementArticleView } from '../api/articlesApi'; 
-import { Search, Eye, ArrowRight, TrendingUp, Calendar, Plus, Zap, Share2, Mail } from 'lucide-react';
+import { Search, Eye, ArrowRight, TrendingUp, Calendar, Plus, Zap, Share2, Mail, Clock } from 'lucide-react';
 import styles from './InfoHubPage.module.css';
 
 const SkeletonCard = () => (
@@ -28,22 +28,30 @@ export const InfoHubPage = () => {
             try {
                 const response = await getPublishedArticles();
                 setArticles(response.data || []);
-            } catch (err) { console.error(err); } 
-            finally { setLoading(false); }
+            } catch (err) {
+                console.error('Error fetching articles:', err);
+            } finally {
+                setLoading(false);
+            }
         };
         fetchArticles();
     }, []);
+
+    const handleArticleClick = async (article) => {
+        try {
+            // Increment view only when actually viewed
+            await incrementArticleView(article._id); 
+        } catch (err) {
+            console.error("View count increment failed", err);
+        }
+        navigate(`/info-hub/${article.slug}`);
+    };
 
     const handleShare = (e, article) => {
         e.stopPropagation();
         const url = `${window.location.origin}/info-hub/${article.slug}`;
         navigator.clipboard.writeText(url);
         alert("Link copied to clipboard!");
-    };
-
-    const handleArticleClick = async (article) => {
-        try { await incrementArticleView(article._id); } catch (err) { }
-        navigate(`/info-hub/${article.slug}`);
     };
 
     const filteredArticles = useMemo(() => {
@@ -62,18 +70,18 @@ export const InfoHubPage = () => {
         <div className={styles.container}>
             <header className={styles.header}>
                 <div className={styles.headerTop}>
-                    <div>
+                    <div className={styles.titleArea}>
                         <h1 className={styles.pageTitle}>Info Hub</h1>
                         <p className={styles.pageSubtitle}>Curated resources to scale your startup from zero to one.</p>
                     </div>
-                    <button className={styles.primaryBtn}>
+                    <button className={styles.mainActionBtn}>
                         <Plus size={18} /> <span>Submit Resource</span>
                     </button>
                 </div>
             </header>
 
             <section className={styles.controls}>
-                <div className={styles.searchContainer}>
+                <div className={styles.searchBar}>
                     <Search className={styles.searchIcon} size={20} />
                     <input 
                         type="text" 
@@ -82,16 +90,18 @@ export const InfoHubPage = () => {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                <div className={styles.categoryBar}>
-                    {['All Resources', 'Fundraising', 'Product Development', 'Legal', 'Marketing', 'Hiring'].map(cat => (
-                        <button 
-                            key={cat}
-                            className={`${styles.categoryBtn} ${activeCategory === cat ? styles.active : ''}`}
-                            onClick={() => setActiveCategory(cat)}
-                        >
-                            {cat}
-                        </button>
-                    ))}
+                <div className={styles.categoryWrapper}>
+                    <div className={styles.categoryBar}>
+                        {['All Resources', 'Fundraising', 'Product Development', 'Legal', 'Marketing', 'Hiring'].map(cat => (
+                            <button 
+                                key={cat}
+                                className={`${styles.categoryBtn} ${activeCategory === cat ? styles.active : ''}`}
+                                onClick={() => setActiveCategory(cat)}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </section>
 
@@ -103,7 +113,7 @@ export const InfoHubPage = () => {
                                 <article key={article._id} className={styles.card} onClick={() => handleArticleClick(article)}>
                                     <div className={styles.cardImage}>
                                         <img src={article.coverImage} alt="" />
-                                        <span className={styles.categoryBadge}>{article.category || 'GUIDE'}</span>
+                                        <span className={styles.categoryBadge}>{article.category?.toUpperCase() || 'GUIDE'}</span>
                                     </div>
                                     <div className={styles.cardInfo}>
                                         <div className={styles.metaRow}>
@@ -125,8 +135,8 @@ export const InfoHubPage = () => {
                     </div>
                     {!loading && visibleCount < filteredArticles.length && (
                         <div className={styles.loadMoreWrapper}>
-                            <button className={styles.loadMoreBtn} onClick={() => setVisibleCount(v => v + 3)}>
-                                Load More Resources
+                            <button className={styles.mainActionBtn} onClick={() => setVisibleCount(v => v + 3)}>
+                                <Plus size={18} /> Load More Resources
                             </button>
                         </div>
                     )}
@@ -136,11 +146,11 @@ export const InfoHubPage = () => {
                     <section className={styles.sideSection}>
                         <h4 className={styles.sideTitle}><TrendingUp size={18} /> Featured Guides</h4>
                         {articles.slice(0, 3).map(guide => (
-                            <div key={guide._id} className={styles.sideItem} onClick={() => handleArticleClick(guide)}>
+                            <div key={guide._id} className={styles.sideGlowItem} onClick={() => handleArticleClick(guide)}>
                                 <div className={styles.sideContent}>
-                                    <span className={styles.sideTag}>{guide.category?.toUpperCase()}</span>
+                                    <span className={styles.sideTag}>{guide.category?.toUpperCase() || 'STRATEGY'}</span>
                                     <h5>{guide.title}</h5>
-                                    <span className={styles.sideMeta}><Clock size={12} /> 10 min read</span>
+                                    <span className={styles.sideMeta}><Clock size={12} /> 8 min read</span>
                                 </div>
                             </div>
                         ))}
@@ -149,20 +159,20 @@ export const InfoHubPage = () => {
                     <section className={styles.sideSection}>
                         <h4 className={styles.sideTitle}><Zap size={18} /> Most Popular</h4>
                         {popularArticles.map((pop, i) => (
-                            <div key={pop._id} className={styles.popItem} onClick={() => handleArticleClick(pop)}>
+                            <div key={pop._id} className={styles.popGlowItem} onClick={() => handleArticleClick(pop)}>
                                 <span className={styles.popNumber}>0{i+1}</span>
                                 <p>{pop.title}</p>
                             </div>
                         ))}
                     </section>
 
-                    <div className={styles.newsletterCard}>
+                    <section className={styles.newsletterCard}>
                         <Mail className={styles.newsIcon} size={32} />
                         <h4>Weekly Founders Insights</h4>
-                        <p>The best startup resources delivered to your inbox every Monday.</p>
+                        <p>The best startup resources delivered every Monday.</p>
                         <input type="email" placeholder="email@startup.com" className={styles.newsInput} />
                         <button className={styles.newsBtn}>Subscribe</button>
-                    </div>
+                    </section>
                 </aside>
             </main>
         </div>
