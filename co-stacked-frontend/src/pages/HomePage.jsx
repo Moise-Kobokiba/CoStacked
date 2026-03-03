@@ -13,7 +13,7 @@ import { UserCard } from '../components/shared/UserCard';
 import { Carousel } from '../components/shared/Carousel';
 import { Lightbulb, Users, ShieldCheck, ArrowRight } from 'lucide-react';
 
-import heroLight from '../assets/hero-light.jpg';
+import heroLight from '../assets/hero-light.png';
 import heroDark from '../assets/hero-dark.png';
 import styles from './HomePage.module.css';
 
