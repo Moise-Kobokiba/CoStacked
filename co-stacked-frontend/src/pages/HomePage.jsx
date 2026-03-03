@@ -4,15 +4,24 @@ import { Link } from 'react-router-dom';
 import { fetchProjects } from '../features/projects/projectsSlice';
 import { fetchUsers } from '../features/users/usersSlice';
 
-// UI Components
+// Import components
 import { Button } from '../components/shared/Button';
 import { ProjectCard } from '../components/shared/ProjectCard';
 import { UserCard } from '../components/shared/UserCard';
 import { Carousel } from '../components/shared/Carousel';
 import { Lightbulb, Users, ShieldCheck, ArrowRight } from 'lucide-react';
 
+// NOTE: I removed the import styles from './HomePage.module.css'
+
+const features = [
+  { icon: Lightbulb, title: '1. Share Your Vision', description: 'Founders post structured project listings that include required skills, expected commitment, compensation type, and project stage.' },
+  { icon: Users, title: '2. Discover Your Match', description: 'Developers browse open projects and apply directly, while founders filter collaborators by skills, availability, and experience.' },
+  { icon: ShieldCheck, title: '3. Collaborate & Build', description: 'Once connected, teams collaborate independently using their own tools, with CoStacked acting as the discovery and trust layer.' },
+];
+
 export const HomePage = () => {
   const dispatch = useDispatch();
+  
   const { token } = useSelector((state) => state.auth);
   const isLoggedIn = !!token;
 
@@ -32,7 +41,6 @@ export const HomePage = () => {
     const sortedProjects = [...allProjects].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     const fProjects = sortedProjects.filter(p => p.isBoosted && new Date(p.boostExpiresAt) > now);
     const lProjects = sortedProjects.filter(p => !p.isBoosted || new Date(p.boostExpiresAt) <= now).slice(0, 4);
-
     const sortedUsers = [...allUsers].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     const fUsers = sortedUsers.filter(u => u.isBoosted && new Date(u.boostExpiresAt) > now);
     const lUsers = sortedUsers.filter(u => !u.isBoosted || new Date(u.boostExpiresAt) <= now).slice(0, 4);
@@ -41,94 +49,81 @@ export const HomePage = () => {
   }, [allProjects, allUsers, isLoggedIn]);
 
   return (
-    <div className="min-h-screen bg-[#f6f6f8] dark:bg-[#111621] font-sans text-slate-900 dark:text-slate-100 overflow-x-hidden">
-      
-      {/* --- HERO SECTION --- */}
-      <section className="relative px-5 py-12 md:py-32 flex flex-col items-center text-center">
-        {/* Decorative Glow */}
-        <div className="absolute top-0 left-1/2 -z-10 h-64 w-64 -translate-x-1/2 bg-blue-500/10 blur-[80px] rounded-full"></div>
+    <div className="w-full bg-[#f6f6f8] dark:bg-[#111621] font-sans">
+      {/* Hero Section */}
+      <section className="relative pt-20 pb-12 px-6 text-center overflow-hidden">
+        {/* The "Glow" from the mockup */}
+        <div className="absolute top-0 left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 bg-blue-500/5 blur-[100px] rounded-full"></div>
         
-        <div className="max-w-4xl">
-          <h1 className="text-3xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] mb-6">
-            Connect, Collaborate, Create. <span className="text-blue-600">Your Next Project Starts Here.</span>
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-4xl md:text-7xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-8">
+            Connect, Collaborate, Create. <br /> 
+            <span className="text-blue-600">Your Next Project Starts Here.</span>
           </h1>
-          <p className="mx-auto max-w-2xl text-base md:text-xl text-slate-600 dark:text-slate-400 mb-8 px-2">
-            CoStacked is the platform where ambitious founders and talented developers unite to build the future.
+          <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10">
+            CoStacked is the platform where ambitious founders and talented developers unite to build the future. Find your perfect match and bring your ideas to life.
           </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-md mx-auto">
-            <Button to="/projects" className="w-full sm:w-auto px-8 py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/25">
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button to="/projects" className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all">
               Discover Projects
             </Button>
             {!isLoggedIn && (
-              <Button to="/signup" className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold">
-                Join Community
+              <Button to="/signup" className="bg-white text-slate-900 border border-slate-200 px-8 py-4 rounded-xl font-bold hover:bg-slate-50 transition-all">
+                Join the Community
               </Button>
             )}
           </div>
         </div>
-      </section>
 
-      {/* --- HOW IT WORKS SECTION --- */}
-      <section className="py-16 px-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-transparent">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-12">
-            <span className="text-blue-600 text-xs font-bold uppercase tracking-widest">The Workflow</span>
-            <h2 className="text-2xl md:text-4xl font-black mt-2">How CoStacked Works</h2>
-            <p className="text-slate-500 mt-2">Streamlined journey from idea to execution.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FeatureStep 
-              Icon={Lightbulb} 
-              title="1. Share Your Vision" 
-              desc="Founders post structured project listings including skills, compensation, and stage."
-            />
-            <FeatureStep 
-              Icon={Users} 
-              title="2. Discover Your Match" 
-              desc="Developers browse open projects while founders filter by skills and experience."
-            />
-            <FeatureStep 
-              Icon={ShieldCheck} 
-              title="3. Collaborate & Build" 
-              desc="Teams collaborate independently, with CoStacked acting as the trust layer."
-            />
+        {/* Hero Image - The illustration in the image */}
+        <div className="mt-16 max-w-5xl mx-auto">
+          <div className="rounded-3xl overflow-hidden shadow-2xl border border-slate-200/50">
+             <img src="/path-to-your-illustration.png" alt="Collaborating" className="w-full h-auto" />
           </div>
         </div>
       </section>
 
-      {/* --- LOGGED IN CONTENT (Preserved) --- */}
+      {/* Logged In Content */}
       {isLoggedIn && (
-        <main className="max-w-7xl mx-auto px-5 py-12 space-y-20">
+        <div className="max-w-7xl mx-auto px-6 py-12 space-y-20">
           {latestProjects.length > 0 && (
             <section>
-              <div className="flex justify-between items-end mb-6">
-                <h2 className="text-xl font-black">Latest Projects</h2>
-                <Link to="/projects" className="text-blue-600 font-bold text-sm flex items-center">
-                  See All <ArrowRight size={14} className="ml-1" />
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white">Latest Projects</h2>
+                <Link to="/projects" className="text-blue-600 font-bold flex items-center gap-1 hover:underline">
+                  See All <ArrowRight size={18} />
                 </Link>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {latestProjects.map((project) => <ProjectCard key={project._id} project={project} />)}
               </div>
             </section>
           )}
-        </main>
+        </div>
       )}
+
+      {/* How It Works Section */}
+      <section className="bg-white dark:bg-slate-900/50 py-24 px-6 border-y border-slate-100 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="bg-blue-50 text-blue-600 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">The Workflow</span>
+            <h2 className="text-3xl md:text-5xl font-black mt-4 text-slate-900 dark:text-white">How CoStacked Works</h2>
+            <p className="text-slate-500 mt-4">Three simple steps to build the future.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {features.map((f, i) => (
+              <div key={i} className="p-8 rounded-2xl bg-[#f6f6f8] dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <div className="w-12 h-12 bg-blue-600/10 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+                   <f.icon size={24} />
+                </div>
+                <h3 className="text-xl font-bold mb-3 dark:text-white">{f.title}</h3>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">{f.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
-
-const FeatureStep = ({ Icon, title, desc }) => (
-  <div className="p-6 rounded-2xl bg-[#f6f6f8] dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
-      <Icon size={24} />
-    </div>
-    <h3 className="text-lg font-bold mb-2">{title}</h3>
-    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{desc}</p>
-    <div className="mt-4 flex items-center text-blue-600 font-bold text-xs uppercase tracking-wider cursor-pointer">
-      Learn more <ArrowRight size={12} className="ml-1" />
-    </div>
-  </div>
-);
