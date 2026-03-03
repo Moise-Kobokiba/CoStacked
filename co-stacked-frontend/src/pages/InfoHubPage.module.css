@@ -1,35 +1,66 @@
+/* ======================================== */
+/* 1. CONTAINER & HEADER                    */
+/* ======================================== */
 .container {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 4rem 1.5rem;
+  padding: 3rem 1.5rem;
   background-color: var(--background);
+  color: var(--foreground);
 }
 
 .header {
-  text-align: left;
   margin-bottom: 3rem;
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
 }
 
 .pageTitle {
   font-size: 2.5rem;
   font-weight: 800;
-  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 
 .pageSubtitle {
   color: var(--muted-foreground);
-  font-size: 1.15rem;
-  line-height: 1.6;
+  font-size: 1.1rem;
+  max-width: 600px;
+  line-height: 1.5;
 }
 
-/* Search & Filters */
+.submitBtn {
+  background: #2563eb;
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submitBtn:hover {
+  background: #1d4ed8;
+}
+
+/* ======================================== */
+/* 2. SEARCH & CATEGORY FILTERS             */
+/* ======================================== */
 .controlsSection {
-  margin-bottom: 3rem;
+  margin-bottom: 3.5rem;
 }
 
 .searchWrapper {
   position: relative;
-  max-width: 100%;
   margin-bottom: 1.5rem;
 }
 
@@ -43,11 +74,18 @@
 
 .searchInput {
   width: 100%;
-  padding: 1.25rem 1.25rem 1.25rem 3.5rem;
+  padding: 1rem 1rem 1rem 3.5rem;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--card-background);
+  color: var(--foreground);
   font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #2563eb;
 }
 
 .categoryBar {
@@ -55,30 +93,39 @@
   gap: 0.75rem;
   overflow-x: auto;
   padding-bottom: 0.5rem;
+  scrollbar-width: none; /* Hide scrollbar for Chrome/Safari below */
 }
+
+.categoryBar::-webkit-scrollbar { display: none; }
 
 .categoryBtn {
   padding: 0.6rem 1.25rem;
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--card-background);
+  color: var(--foreground);
   white-space: nowrap;
   font-weight: 500;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   transition: all 0.2s;
 }
 
 .categoryBtn.active {
-  background: var(--primary);
+  background: #2563eb;
   color: white;
-  border-color: var(--primary);
+  border-color: #2563eb;
 }
 
-/* Layout */
+/* ======================================== */
+/* 3. MAIN CONTENT LAYOUT                   */
+/* ======================================== */
 .mainContent {
   display: grid;
-  grid-template-columns: 1fr 350px;
-  gap: 3rem;
+  grid-template-columns: 1fr 340px;
+  gap: 4rem;
 }
 
 .articlesGrid {
@@ -87,23 +134,25 @@
   gap: 2rem;
 }
 
-/* Article Cards */
+/* Article Card UI */
 .articleCard {
   background: var(--card-background);
-  border-radius: 16px;
   border: 1px solid var(--border);
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .articleCard:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
 }
 
 .imageContainer {
   position: relative;
   height: 200px;
+  background: #f1f5f9;
 }
 
 .imageContainer img {
@@ -112,16 +161,16 @@
   object-fit: cover;
 }
 
-.badge {
+.cardBadge {
   position: absolute;
   top: 1rem;
   left: 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 0.25rem 0.75rem;
+  background: rgba(255, 255, 255, 0.95);
+  color: #2563eb;
+  padding: 0.25rem 0.6rem;
   border-radius: 6px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  color: var(--primary);
   text-transform: uppercase;
 }
 
@@ -129,15 +178,16 @@
   padding: 1.5rem;
 }
 
-.articleTitle {
+.cardBody h3 {
   font-size: 1.25rem;
-  font-weight: 700;
   margin-bottom: 0.75rem;
+  line-height: 1.3;
 }
 
-.articleSnippet {
+.cardBody p {
   color: var(--muted-foreground);
   font-size: 0.95rem;
+  line-height: 1.5;
   margin-bottom: 1.5rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -145,59 +195,69 @@
   overflow: hidden;
 }
 
-.cardFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.readMore {
-  background: none;
-  border: none;
-  color: var(--primary);
-  font-weight: 600;
+.cardLink {
+  color: #2563eb;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
+  gap: 0.4rem;
+  font-size: 0.9rem;
 }
 
-.metaInfo {
-  font-size: 0.85rem;
-  color: var(--muted-foreground);
-}
-
-/* Sidebar */
+/* ======================================== */
+/* 4. SIDEBAR & FEATURED GUIDES             */
+/* ======================================== */
 .sidebar {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 3rem;
 }
 
-.sidebarTitle {
+.sideHeading {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
 }
 
-.sideItem {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
+.sideArticle {
+  padding: 1.25rem 0;
   border-bottom: 1px solid var(--border);
 }
 
-.sideItem h5 { margin: 0.5rem 0; font-size: 1rem; }
+.sideArticle:last-child { border-bottom: none; }
+
+.sideCategory {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #2563eb;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.sideArticle h5 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
 
 .sideMeta {
   display: flex;
-  gap: 1rem;
-  font-size: 0.8rem;
+  gap: 1.25rem;
   color: var(--muted-foreground);
+  font-size: 0.85rem;
 }
 
+.sideMeta span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Most Popular List */
 .popItem {
   display: flex;
   gap: 1rem;
@@ -206,124 +266,45 @@
 
 .popIndex {
   font-style: italic;
-  font-weight: 800;
-  color: var(--primary);
-  opacity: 0.3;
+  font-weight: 900;
+  color: #2563eb;
+  opacity: 0.4;
+  font-size: 1.1rem;
 }
 
-/* Newsletter Widget */
-.newsletterCard {
-  background: #0f172a;
-  color: white;
-  padding: 2rem;
-  border-radius: 16px;
-  text-align: center;
+.popItem p {
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin: 0;
 }
 
-.mailIcon {
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-.newsInputWrapper {
-  margin-top: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.newsInputWrapper input {
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-}
-
-.subscribeBtn {
-  background: var(--primary);
-  color: white;
-  border: none;
-  padding: 0.75rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-@media (max-width: 1024px) {
-  .mainContent { grid-template-columns: 1fr; }
-  .articlesGrid { grid-template-columns: 1fr; }
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-}
-
-.headerTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.submitBtn {
-  background: #2563eb;
-  color: white;
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  border: none;
-}
-
-/* Sidebar Styling (Matching Dark Mode Request) */
-.sideArticle {
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.sideMeta {
-  display: flex;
-  gap: 1.5rem;
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-  color: #94a3b8; /* Muted color for views/time */
-}
-
-.sideMeta span {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-/* Pagination Button */
+/* ======================================== */
+/* 5. LOAD MORE & MOBILE                    */
+/* ======================================== */
 .loadMoreBtn {
   width: 100%;
-  margin-top: 2rem;
+  margin-top: 3rem;
   padding: 1rem;
   background: var(--card-background);
   border: 1px solid var(--border);
   border-radius: 12px;
+  color: var(--foreground);
   font-weight: 600;
   cursor: pointer;
-  color: var(--foreground);
+  transition: background 0.2s;
 }
 
 .loadMoreBtn:hover {
   background: var(--input-background);
 }
 
-/* Mobile adjustments for sidebar and meta */
-@media (max-width: 768px) {
-  .mainContent {
-    grid-template-columns: 1fr;
-  }
-  .sideMeta {
-    gap: 1rem;
-  }
+@media (max-width: 1024px) {
+  .mainContent { grid-template-columns: 1fr; gap: 4rem; }
 }
 
+@media (max-width: 768px) {
+  .articlesGrid { grid-template-columns: 1fr; }
+  .headerTop { flex-direction: column; gap: 1.5rem; align-items: flex-start; }
+  .submitBtn { width: 100%; justify-content: center; }
+  .pageTitle { font-size: 2rem; }
+}
