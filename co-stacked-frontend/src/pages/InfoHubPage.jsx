@@ -47,14 +47,16 @@ export const InfoHubPage = () => {
         <div className={styles.container}>
             <header className={styles.header}>
                 <div className={styles.headerTop}>
-                    <h1 className={styles.pageTitle}>Info Hub</h1>
+                    <div className={styles.titleGroup}>
+                        <h1 className={styles.pageTitle}>Info Hub</h1>
+                        <p className={styles.pageSubtitle}>
+                            Expertly curated resources to help you scale your startup from zero to one.
+                        </p>
+                    </div>
                     <button className={styles.submitBtn} onClick={handleSubmitResource}>
-                        <Plus size={18} /> Submit Resource
+                        <Plus size={18} /> <span className={styles.btnText}>Submit Resource</span>
                     </button>
                 </div>
-                <p className={styles.pageSubtitle}>
-                    Expertly curated resources to help you scale your startup from zero to one.
-                </p>
             </header>
 
             <div className={styles.controlsSection}>
@@ -73,7 +75,10 @@ export const InfoHubPage = () => {
                         <button 
                             key={cat}
                             className={`${styles.categoryBtn} ${activeCategory === cat ? styles.active : ''}`}
-                            onClick={() => setActiveCategory(cat)}
+                            onClick={() => {
+                                setActiveCategory(cat);
+                                setVisibleCount(4);
+                            }}
                         >
                             {cat}
                         </button>
@@ -87,7 +92,7 @@ export const InfoHubPage = () => {
                         {filteredArticles.slice(0, visibleCount).map((article) => (
                             <article key={article._id} className={styles.articleCard} onClick={() => navigate(`/info-hub/${article.slug}`)}>
                                 <div className={styles.imageContainer}>
-                                    <img src={article.coverImage} alt="" />
+                                    <img src={article.coverImage} alt={article.title} />
                                 </div>
                                 <div className={styles.cardBody}>
                                     <span className={styles.articleCategoryLabel}>{article.category}</span>
@@ -114,10 +119,10 @@ export const InfoHubPage = () => {
                         <h4 className={styles.sideHeading}><TrendingUp size={18} /> Featured Guides</h4>
                         {articles.slice(0, 3).map(guide => (
                             <div key={guide._id} className={styles.sideArticle} onClick={() => navigate(`/info-hub/${guide.slug}`)}>
-                                <span className={styles.sideCategory}>Fundamentals</span>
+                                <span className={styles.sideSubLabel}>Fundamentals</span>
                                 <h5>{guide.title}</h5>
                                 <div className={styles.sideMeta}>
-                                    <span><Clock size={14} /> {guide.readTime}</span>
+                                    <span><Clock size={14} /> {guide.readTime || '8 min read'}</span>
                                     <span><Eye size={14} /> {guide.views || '1.2k'} views</span>
                                 </div>
                             </div>
