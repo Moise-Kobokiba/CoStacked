@@ -1,62 +1,49 @@
-/* ======================================== */
-/* 1. CONTAINER & HEADER                    */
-/* ======================================== */
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 3rem 1.5rem;
+  padding: 4rem 1.5rem;
   background-color: var(--background);
-  color: var(--foreground);
+  transition: background-color 0.3s ease;
 }
 
-.header {
-  margin-bottom: 3rem;
-}
-
+/* Header UI */
 .headerTop {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 1rem;
 }
 
 .pageTitle {
-  font-size: 2.5rem;
+  font-size: 2.75rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
-  margin: 0;
+  letter-spacing: -0.03em;
+  color: var(--foreground);
 }
 
 .pageSubtitle {
   color: var(--muted-foreground);
-  font-size: 1.1rem;
-  max-width: 600px;
-  line-height: 1.5;
+  font-size: 1.15rem;
+  max-width: 700px;
+  line-height: 1.6;
 }
 
 .submitBtn {
   background: #2563eb;
   color: white;
   padding: 0.75rem 1.25rem;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   cursor: pointer;
-  transition: background 0.2s;
 }
 
-.submitBtn:hover {
-  background: #1d4ed8;
-}
-
-/* ======================================== */
-/* 2. SEARCH & CATEGORY FILTERS             */
-/* ======================================== */
+/* Controls & Search */
 .controlsSection {
-  margin-bottom: 3.5rem;
+  margin: 3rem 0;
 }
 
 .searchWrapper {
@@ -74,18 +61,12 @@
 
 .searchInput {
   width: 100%;
-  padding: 1rem 1rem 1rem 3.5rem;
-  border-radius: 12px;
+  padding: 1.1rem 1.1rem 1.1rem 3.5rem;
+  border-radius: 14px;
   border: 1px solid var(--border);
   background: var(--card-background);
   color: var(--foreground);
   font-size: 1rem;
-  transition: border-color 0.2s;
-}
-
-.searchInput:focus {
-  outline: none;
-  border-color: #2563eb;
 }
 
 .categoryBar {
@@ -93,10 +74,8 @@
   gap: 0.75rem;
   overflow-x: auto;
   padding-bottom: 0.5rem;
-  scrollbar-width: none; /* Hide scrollbar for Chrome/Safari below */
+  scrollbar-width: none;
 }
-
-.categoryBar::-webkit-scrollbar { display: none; }
 
 .categoryBtn {
   padding: 0.6rem 1.25rem;
@@ -105,12 +84,9 @@
   background: var(--card-background);
   color: var(--foreground);
   white-space: nowrap;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
+  transition: 0.2s;
 }
 
 .categoryBtn.active {
@@ -119,9 +95,7 @@
   border-color: #2563eb;
 }
 
-/* ======================================== */
-/* 3. MAIN CONTENT LAYOUT                   */
-/* ======================================== */
+/* Main Layout */
 .mainContent {
   display: grid;
   grid-template-columns: 1fr 340px;
@@ -134,25 +108,23 @@
   gap: 2rem;
 }
 
-/* Article Card UI */
+/* Article Cards */
 .articleCard {
   background: var(--card-background);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.3s ease;
 }
 
 .articleCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+  transform: translateY(-6px);
 }
 
 .imageContainer {
   position: relative;
-  height: 200px;
-  background: #f1f5f9;
+  height: 220px;
 }
 
 .imageContainer img {
@@ -167,32 +139,28 @@
   left: 1rem;
   background: rgba(255, 255, 255, 0.95);
   color: #2563eb;
-  padding: 0.25rem 0.6rem;
+  padding: 0.3rem 0.7rem;
   border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 800;
   text-transform: uppercase;
 }
 
 .cardBody {
-  padding: 1.5rem;
+  padding: 1.75rem;
 }
 
 .cardBody h3 {
-  font-size: 1.25rem;
-  margin-bottom: 0.75rem;
+  font-size: 1.35rem;
+  margin-bottom: 0.8rem;
   line-height: 1.3;
 }
 
 .cardBody p {
   color: var(--muted-foreground);
   font-size: 0.95rem;
-  line-height: 1.5;
   margin-bottom: 1.5rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  line-height: 1.5;
 }
 
 .cardLink {
@@ -200,38 +168,38 @@
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
+  gap: 0.5rem;
 }
 
-/* ======================================== */
-/* 4. SIDEBAR & FEATURED GUIDES             */
-/* ======================================== */
+/* Sidebar Styling */
 .sidebar {
   display: flex;
   flex-direction: column;
-  gap: 3rem;
+  gap: 3.5rem;
 }
 
 .sideHeading {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  font-size: 1.1rem;
+  gap: 0.75rem;
+  font-size: 1.15rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
+  color: var(--foreground);
 }
 
 .sideArticle {
   padding: 1.25rem 0;
   border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.sideArticle:last-child { border-bottom: none; }
+.sideArticle:hover h5 { color: #2563eb; }
 
 .sideCategory {
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #2563eb;
   text-transform: uppercase;
   margin-bottom: 0.5rem;
@@ -239,48 +207,64 @@
 }
 
 .sideArticle h5 {
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.05rem;
+  margin-bottom: 0.6rem;
   line-height: 1.4;
 }
 
 .sideMeta {
   display: flex;
   gap: 1.25rem;
-  color: var(--muted-foreground);
+  color: #94a3b8; /* Explicit readable muted color */
   font-size: 0.85rem;
 }
 
 .sideMeta span {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.4rem;
 }
 
-/* Most Popular List */
 .popItem {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  transition: 0.2s;
 }
+
+.popItem:hover p { color: #2563eb; }
 
 .popIndex {
   font-style: italic;
   font-weight: 900;
   color: #2563eb;
   opacity: 0.4;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
 }
 
-.popItem p {
-  font-weight: 500;
-  font-size: 0.95rem;
-  margin: 0;
+/* Newsletter Widget */
+.newsletterCard {
+  background: #0f172a;
+  color: white;
+  padding: 2rem;
+  border-radius: 20px;
+  text-align: center;
 }
 
-/* ======================================== */
-/* 5. LOAD MORE & MOBILE                    */
-/* ======================================== */
+.newsletterCard h4 { margin-bottom: 0.5rem; font-size: 1.25rem; }
+.newsletterCard p { font-size: 0.9rem; opacity: 0.7; margin-bottom: 1.5rem; }
+
+.newsInput {
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: white;
+  margin-bottom: 0.75rem;
+}
+
 .loadMoreBtn {
   width: 100%;
   margin-top: 3rem;
@@ -289,22 +273,18 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   color: var(--foreground);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
 }
 
-.loadMoreBtn:hover {
-  background: var(--input-background);
-}
-
+/* Mobile Responsiveness */
 @media (max-width: 1024px) {
-  .mainContent { grid-template-columns: 1fr; gap: 4rem; }
+  .mainContent { grid-template-columns: 1fr; }
+  .articlesGrid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
-  .articlesGrid { grid-template-columns: 1fr; }
-  .headerTop { flex-direction: column; gap: 1.5rem; align-items: flex-start; }
+  .headerTop { flex-direction: column; align-items: flex-start; gap: 1rem; }
   .submitBtn { width: 100%; justify-content: center; }
-  .pageTitle { font-size: 2rem; }
+  .pageTitle { font-size: 2.25rem; }
 }
