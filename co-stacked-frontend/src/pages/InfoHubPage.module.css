@@ -1,80 +1,43 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 4rem 1.5rem;
-  background-color: var(--background);
-  transition: background-color 0.3s ease;
+  padding: 3rem 1.5rem;
 }
 
-/* Header UI */
 .headerTop {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .pageTitle {
-  font-size: 2.75rem;
+  font-size: 2.5rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
   color: var(--foreground);
-}
-
-.pageSubtitle {
-  color: var(--muted-foreground);
-  font-size: 1.15rem;
-  max-width: 700px;
-  line-height: 1.6;
 }
 
 .submitBtn {
   background: #2563eb;
-  color: white;
-  padding: 0.75rem 1.25rem;
-  border-radius: 10px;
+  color: #fff;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
   border: none;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   cursor: pointer;
 }
 
-/* Controls & Search */
-.controlsSection {
-  margin: 3rem 0;
-}
-
-.searchWrapper {
-  position: relative;
-  margin-bottom: 1.5rem;
-}
-
-.searchIcon {
-  position: absolute;
-  left: 1.25rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted-foreground);
-}
-
+/* Search & Filters */
 .searchInput {
   width: 100%;
-  padding: 1.1rem 1.1rem 1.1rem 3.5rem;
-  border-radius: 14px;
+  padding: 1rem 1rem 1rem 3.5rem;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--card-background);
   color: var(--foreground);
-  font-size: 1rem;
-}
-
-.categoryBar {
-  display: flex;
-  gap: 0.75rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-  scrollbar-width: none;
 }
 
 .categoryBtn {
@@ -83,23 +46,21 @@
   border: 1px solid var(--border);
   background: var(--card-background);
   color: var(--foreground);
-  white-space: nowrap;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.2s;
 }
 
 .categoryBtn.active {
   background: #2563eb;
-  color: white;
+  color: #fff;
   border-color: #2563eb;
 }
 
-/* Main Layout */
+/* Main Grid & Cards */
 .mainContent {
   display: grid;
   grid-template-columns: 1fr 340px;
-  gap: 4rem;
+  gap: 3rem;
 }
 
 .articlesGrid {
@@ -108,115 +69,51 @@
   gap: 2rem;
 }
 
-/* Article Cards */
 .articleCard {
   background: var(--card-background);
   border: 1px solid var(--border);
-  border-radius: 18px;
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 .articleCard:hover {
-  transform: translateY(-6px);
+  transform: translateY(-4px);
 }
 
-.imageContainer {
-  position: relative;
-  height: 220px;
-}
-
-.imageContainer img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.cardBadge {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background: rgba(255, 255, 255, 0.95);
-  color: #2563eb;
-  padding: 0.3rem 0.7rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.cardBody {
-  padding: 1.75rem;
-}
-
-.cardBody h3 {
-  font-size: 1.35rem;
-  margin-bottom: 0.8rem;
-  line-height: 1.3;
-}
-
-.cardBody p {
+.cardMetaPrimary {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
   color: var(--muted-foreground);
-  font-size: 0.95rem;
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
+  margin-bottom: 0.75rem;
 }
 
-.cardLink {
-  color: #2563eb;
-  font-weight: 700;
+.cardMetaPrimary span {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
-/* Sidebar Styling */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 3.5rem;
-}
-
-.sideHeading {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 1.15rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  color: var(--foreground);
-}
-
-.sideArticle {
+/* Sidebar Interactions */
+.sideArticle, .popItem {
   padding: 1.25rem 0;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.2s ease;
 }
 
-.sideArticle:hover h5 { color: #2563eb; }
-
-.sideCategory {
-  font-size: 0.7rem;
-  font-weight: 800;
+.sideArticle:hover h5, .popItem:hover p {
   color: #2563eb;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
-  display: block;
-}
-
-.sideArticle h5 {
-  font-size: 1.05rem;
-  margin-bottom: 0.6rem;
-  line-height: 1.4;
 }
 
 .sideMeta {
   display: flex;
   gap: 1.25rem;
-  color: #94a3b8; /* Explicit readable muted color */
   font-size: 0.85rem;
+  color: #94a3b8; /* Specifically tuned for visibility in Dark Mode */
+  margin-top: 0.5rem;
 }
 
 .sideMeta span {
@@ -225,66 +122,14 @@
   gap: 0.4rem;
 }
 
-.popItem {
-  display: flex;
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.popItem:hover p { color: #2563eb; }
-
 .popIndex {
-  font-style: italic;
   font-weight: 900;
   color: #2563eb;
   opacity: 0.4;
-  font-size: 1.2rem;
+  margin-right: 0.75rem;
 }
 
-/* Newsletter Widget */
-.newsletterCard {
-  background: #0f172a;
-  color: white;
-  padding: 2rem;
-  border-radius: 20px;
-  text-align: center;
-}
-
-.newsletterCard h4 { margin-bottom: 0.5rem; font-size: 1.25rem; }
-.newsletterCard p { font-size: 0.9rem; opacity: 0.7; margin-bottom: 1.5rem; }
-
-.newsInput {
-  width: 100%;
-  padding: 0.8rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.05);
-  color: white;
-  margin-bottom: 0.75rem;
-}
-
-.loadMoreBtn {
-  width: 100%;
-  margin-top: 3rem;
-  padding: 1rem;
-  background: var(--card-background);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  color: var(--foreground);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-/* Mobile Responsiveness */
 @media (max-width: 1024px) {
   .mainContent { grid-template-columns: 1fr; }
   .articlesGrid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 768px) {
-  .headerTop { flex-direction: column; align-items: flex-start; gap: 1rem; }
-  .submitBtn { width: 100%; justify-content: center; }
-  .pageTitle { font-size: 2.25rem; }
 }
