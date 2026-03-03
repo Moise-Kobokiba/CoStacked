@@ -1,13 +1,13 @@
 /* Light/Dark variables */
 :root {
-  --background: #ffffff;
+  --background: #ffffff;            /* main page background */
   --foreground: #0f172a;
   --card-background: #ffffff;
   --muted-foreground: #64748b;
   --border: #e2e8f0;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
-  --sidebar-bg: #ffffff;           /* pure white in light mode */
+  --sidebar-bg: #f8fafc;            /* light grey sidebar */
   --glow: rgba(37, 99, 235, 0.15);
   --toast-bg: #0f172a;
   --toast-text: #ffffff;
@@ -22,7 +22,7 @@
     --border: #1e293b;
     --accent: #2563eb;
     --accent-hover: #1d4ed8;
-    --sidebar-bg: #111827;          /* matches card background in dark mode */
+    --sidebar-bg: #1e293b;           /* lighter dark sidebar */
     --glow: rgba(59, 130, 246, 0.3);
     --toast-bg: #1e293b;
     --toast-text: #f8fafc;
@@ -38,6 +38,8 @@
   transition: background-color 0.3s ease;
   position: relative;
 }
+
+/* ... rest of the CSS remains exactly as before ... */
 
 /* Toast notification */
 .toast {
