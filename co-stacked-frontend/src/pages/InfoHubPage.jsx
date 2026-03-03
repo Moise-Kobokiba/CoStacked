@@ -1,10 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPublishedArticles } from '../api/articlesApi';
-import { 
-    Search, Clock, Eye, ArrowRight, 
-    TrendingUp, Calendar, Plus, Mail 
-} from 'lucide-react';
+import { Search, Clock, Eye, ArrowRight, TrendingUp, Calendar, Plus, Mail } from 'lucide-react';
 import styles from './InfoHubPage.module.css';
 
 export const InfoHubPage = () => {
@@ -41,10 +38,10 @@ export const InfoHubPage = () => {
 
     return (
         <div className={styles.container}>
+            {/* 1. Header Area: Stacks naturally on mobile */}
             <header className={styles.header}>
                 <div className={styles.headerTop}>
                     <h1 className={styles.pageTitle}>Info Hub</h1>
-                    {/* Updated Submit Button for Mobile Visibility */}
                     <button className={styles.submitBtn}>
                         <Plus size={18} /> <span>Submit Resource</span>
                     </button>
@@ -54,48 +51,50 @@ export const InfoHubPage = () => {
                 </p>
             </header>
 
+            {/* 2. Controls Area: Fixes the collision seen in screenshot */}
             <section className={styles.controls}>
                 <div className={styles.searchBar}>
                     <Search className={styles.searchIcon} size={20} />
                     <input 
                         type="text" 
-                        placeholder="Search for guides, templates..." 
+                        placeholder="Search for guides..." 
                         className={styles.searchInput}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                <div className={styles.categoryBar}>
-                    {['All Resources', 'Fundraising', 'Product Development', 'Legal', 'Marketing', 'Hiring'].map(cat => (
-                        <button 
-                            key={cat}
-                            className={`${styles.categoryBtn} ${activeCategory === cat ? styles.active : ''}`}
-                            onClick={() => setActiveCategory(cat)}
-                        >
-                            {cat}
-                        </button>
-                    ))}
+                <div className={styles.categoryWrapper}>
+                    <div className={styles.categoryBar}>
+                        {['All Resources', 'Fundraising', 'Product Development', 'Legal', 'Marketing', 'Hiring'].map(cat => (
+                            <button 
+                                key={cat}
+                                className={`${styles.categoryBtn} ${activeCategory === cat ? styles.active : ''}`}
+                                onClick={() => setActiveCategory(cat)}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </section>
 
+            {/* 3. Main Content: Grid for desktop, Single Column for mobile */}
             <main className={styles.mainLayout}>
                 <div className={styles.contentArea}>
                     <div className={styles.articlesGrid}>
                         {filteredArticles.slice(0, visibleCount).map((article) => (
                             <article key={article._id} className={styles.card} onClick={() => navigate(`/info-hub/${article.slug}`)}>
                                 <div className={styles.cardImage}>
-                                    <img src={article.coverImage} alt={article.title} />
+                                    <img src={article.coverImage} alt="" />
                                 </div>
                                 <div className={styles.cardInfo}>
-                                    <span className={styles.subLabel}>{article.category?.toUpperCase() || 'FUNDAMENTALS'}</span>
+                                    <span className={styles.subLabel}>{article.category || 'FUNDAMENTALS'}</span>
                                     <div className={styles.metaRow}>
                                         <span><Calendar size={14} /> 19 Feb</span>
-                                        <span><Eye size={14} /> {article.views || 0} views</span>
+                                        <span><Eye size={14} /> {article.views || 0}</span>
                                     </div>
                                     <h3>{article.title}</h3>
                                     <p>{article.description}</p>
-                                    <div className={styles.readMore}>
-                                        Read More <ArrowRight size={16} />
-                                    </div>
+                                    <div className={styles.readMore}>Read More <ArrowRight size={16} /></div>
                                 </div>
                             </article>
                         ))}
@@ -111,10 +110,8 @@ export const InfoHubPage = () => {
                     <section className={styles.sideSection}>
                         <h4 className={styles.sideTitle}><TrendingUp size={18} /> Featured Guides</h4>
                         {articles.slice(0, 3).map(guide => (
-                            <div key={guide._id} className={styles.sideItem} onClick={() => navigate(`/info-hub/${guide.slug}`)}>
-                                <div className={styles.sideThumb}>
-                                    <img src={guide.coverImage} alt="" />
-                                </div>
+                            <div key={guide._id} className={styles.sideItem}>
+                                <div className={styles.sideThumb}><img src={guide.coverImage} alt="" /></div>
                                 <div className={styles.sideContent}>
                                     <span className={styles.sideSubLabel}>Fundamentals</span>
                                     <h5>{guide.title}</h5>
@@ -125,15 +122,6 @@ export const InfoHubPage = () => {
                                 </div>
                             </div>
                         ))}
-                    </section>
-
-                    <section className={styles.newsletterCard}>
-                        <div className={styles.newsHeader}>
-                            <Mail size={20} /> <h4>Weekly Founders Insights</h4>
-                        </div>
-                        <p>The best startup resources delivered every Monday.</p>
-                        <input type="email" placeholder="email@startup.com" className={styles.newsInput} />
-                        <button className={styles.newsSubmit}>Subscribe</button>
                     </section>
                 </aside>
             </main>
