@@ -1,210 +1,104 @@
-/* src/pages/HomePage.module.css */
-
+/* Light Defaults */
 .pageContainer {
   width: 100%;
-  background-color: var(--background, #ffffff); /* Fallback to white if variable not set */
+  background-color: #ffffff;
+  color: #0f172a;
+  transition: background-color 0.3s ease;
 }
 
-/* ======================================== */
-/* HERO SECTION               */
-/* ======================================== */
+/* DARK MODE SUPPORT */
+.pageContainer[data-theme='dark'] {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+.pageContainer[data-theme='dark'] .heroTitle { color: #ffffff; }
+.pageContainer[data-theme='dark'] .heroSubtitle { color: #94a3b8; }
+.pageContainer[data-theme='dark'] .dashboardTitle { color: #ffffff; }
+
+/* HERO */
 .hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6rem 1.5rem 0; /* No bottom padding here to let illustration touch the next section */
+  padding: 5rem 1.5rem 0;
   text-align: center;
 }
 
-.heroContent {
-  max-width: 900px;
-  margin-bottom: 3rem;
-}
-
 .heroTitle {
-  color: #1e293b; 
-  font-size: 3rem;
+  font-size: 3.5rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
   line-height: 1.1;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
-.heroTitle span {
-  color: #2563eb;
-}
+.heroTitle span { color: #2563eb; }
 
-.heroSubtitle {
-  color: #64748b;
-  font-size: 1.15rem;
-  max-width: 650px;
-  line-height: 1.6;
-  margin: 0 auto 2.5rem;
-}
-
-.heroActions {
-  display: flex;
-  justify-content: center;
-  gap: 1.25rem;
-}
-
-.joinCommunityBtn {
-  background-color: #ffffff !important; 
-  color: #0f172a !important;
-  border: 1px solid #e2e8f0 !important;
-  font-weight: 700 !important;
-}
-
-.heroIllustration {
-  width: 100%;
-  max-width: 1050px;
-  margin-top: 2rem;
-  border-radius: 20px 20px 0 0;
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.06);
-  border: 1px solid #f1f5f9;
-}
-
-.heroIllustration img {
-  width: 100%;
-  display: block;
-}
-
-/* ======================================== */
-/* LOGGED IN CONTENT              */
-/* ======================================== */
+/* DASHBOARD SECTIONS (For Logged In Users) */
 .loggedInContent {
-  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 5rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 4.5rem;
+  padding: 4rem 1.5rem;
 }
 
-.contentSection {
-  width: 100%;
+.dashboardSection {
+  margin-bottom: 5rem;
+}
+
+.dashboardTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
 }
 
 .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
 }
 
-/* Override general sectionTitle for the logged-in headers */
-.sectionHeader .sectionTitle {
-  margin: 0;
-  text-align: left;
-  font-size: 1.75rem;
-}
-
-.seeAllLink {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #2563eb;
-  font-weight: 600;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.seeAllLink:hover {
-  color: #1d4ed8;
-}
-
-.grid {
+.contentGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
 }
 
-/* ======================================== */
-/* HOW IT WORKS / WORKFLOW           */
-/* ======================================== */
-.howItWorksSection {
-  padding: 8rem 1.5rem;
-  background-color: #fdfdfd;
-  text-align: center;
-  border-top: 1px solid #f1f5f9;
-}
-
-.workflowLabel {
-  display: inline-block;
+.seeAll {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   color: #2563eb;
-  background: #eff6ff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 0.4rem 1rem;
-  border-radius: 20px;
-  margin-bottom: 1.25rem;
+  text-decoration: none;
+  font-weight: 600;
 }
 
-.sectionTitle {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin-bottom: 1rem;
-}
-
-.sectionSubtitle {
-  color: #64748b;
-  font-size: 1.1rem;
-  max-width: 600px;
-  margin: 0 auto 4rem;
+/* WORKFLOW */
+.workflowSection {
+  padding: 6rem 1.5rem;
+  text-align: center;
 }
 
 .featuresGrid {
-  max-width: 1200px;
-  margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
+  max-width: 1200px;
+  margin: 4rem auto 0;
 }
 
-/* ======================================== */
-/* READY TO BUILD CTA            */
-/* ======================================== */
+/* CTA */
 .ctaSection {
-  padding: 2rem 1.5rem 8rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 4rem 1.5rem 8rem;
 }
 
 .ctaCard {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, #1e293b, #0f172a);
   border-radius: 24px;
-  padding: 6rem 2rem;
+  padding: 5rem;
   text-align: center;
   color: white;
 }
 
-.ctaCard h2 {
-  font-size: 2.75rem;
-  font-weight: 800;
-  margin-bottom: 1.25rem;
-}
-
-.ctaCard p {
-  color: #cbd5e1;
-  font-size: 1.1rem;
-  max-width: 550px;
-  margin: 0 auto 2.5rem;
-}
-
-/* ======================================== */
-/* RESPONSIVE QUERIES            */
-/* ======================================== */
-
-@media (min-width: 768px) {
-  .heroTitle {
-    font-size: 4.5rem;
-  }
-  .featuresGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+@media (max-width: 768px) {
+  .heroTitle { font-size: 2.5rem; }
 }
