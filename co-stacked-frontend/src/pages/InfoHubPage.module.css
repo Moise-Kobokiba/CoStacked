@@ -254,3 +254,76 @@
   .mainContent { grid-template-columns: 1fr; }
   .articlesGrid { grid-template-columns: 1fr; }
 }
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.submitBtn {
+  background: #2563eb;
+  color: white;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  border: none;
+}
+
+/* Sidebar Styling (Matching Dark Mode Request) */
+.sideArticle {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.sideMeta {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #94a3b8; /* Muted color for views/time */
+}
+
+.sideMeta span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Pagination Button */
+.loadMoreBtn {
+  width: 100%;
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--foreground);
+}
+
+.loadMoreBtn:hover {
+  background: var(--input-background);
+}
+
+/* Mobile adjustments for sidebar and meta */
+@media (max-width: 768px) {
+  .mainContent {
+    grid-template-columns: 1fr;
+  }
+  .sideMeta {
+    gap: 1rem;
+  }
+}
+
