@@ -44,6 +44,7 @@ export const InfoHubPage = () => {
             <header className={styles.header}>
                 <div className={styles.headerTop}>
                     <h1 className={styles.pageTitle}>Info Hub</h1>
+                    {/* Updated Submit Button for Mobile Visibility */}
                     <button className={styles.submitBtn}>
                         <Plus size={18} /> <span>Submit Resource</span>
                     </button>
@@ -58,13 +59,13 @@ export const InfoHubPage = () => {
                     <Search className={styles.searchIcon} size={20} />
                     <input 
                         type="text" 
-                        placeholder="Search for guides..." 
+                        placeholder="Search for guides, templates..." 
                         className={styles.searchInput}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
                 <div className={styles.categoryBar}>
-                    {['All Resources', 'Fundraising', 'Product Development', 'Legal', 'Marketing'].map(cat => (
+                    {['All Resources', 'Fundraising', 'Product Development', 'Legal', 'Marketing', 'Hiring'].map(cat => (
                         <button 
                             key={cat}
                             className={`${styles.categoryBtn} ${activeCategory === cat ? styles.active : ''}`}
@@ -82,17 +83,19 @@ export const InfoHubPage = () => {
                         {filteredArticles.slice(0, visibleCount).map((article) => (
                             <article key={article._id} className={styles.card} onClick={() => navigate(`/info-hub/${article.slug}`)}>
                                 <div className={styles.cardImage}>
-                                    <img src={article.coverImage} alt="" />
+                                    <img src={article.coverImage} alt={article.title} />
                                 </div>
                                 <div className={styles.cardInfo}>
-                                    <span className={styles.subLabel}>{article.category || 'FUNDAMENTALS'}</span>
+                                    <span className={styles.subLabel}>{article.category?.toUpperCase() || 'FUNDAMENTALS'}</span>
                                     <div className={styles.metaRow}>
                                         <span><Calendar size={14} /> 19 Feb</span>
-                                        <span><Eye size={14} /> {article.views || 0}</span>
+                                        <span><Eye size={14} /> {article.views || 0} views</span>
                                     </div>
                                     <h3>{article.title}</h3>
                                     <p>{article.description}</p>
-                                    <div className={styles.readMore}>Read More <ArrowRight size={16} /></div>
+                                    <div className={styles.readMore}>
+                                        Read More <ArrowRight size={16} />
+                                    </div>
                                 </div>
                             </article>
                         ))}
@@ -108,8 +111,10 @@ export const InfoHubPage = () => {
                     <section className={styles.sideSection}>
                         <h4 className={styles.sideTitle}><TrendingUp size={18} /> Featured Guides</h4>
                         {articles.slice(0, 3).map(guide => (
-                            <div key={guide._id} className={styles.sideItem}>
-                                <div className={styles.sideThumb}><img src={guide.coverImage} alt="" /></div>
+                            <div key={guide._id} className={styles.sideItem} onClick={() => navigate(`/info-hub/${guide.slug}`)}>
+                                <div className={styles.sideThumb}>
+                                    <img src={guide.coverImage} alt="" />
+                                </div>
                                 <div className={styles.sideContent}>
                                     <span className={styles.sideSubLabel}>Fundamentals</span>
                                     <h5>{guide.title}</h5>
@@ -124,8 +129,9 @@ export const InfoHubPage = () => {
 
                     <section className={styles.newsletterCard}>
                         <div className={styles.newsHeader}>
-                            <Mail size={20} /> <h4>Founders Insights</h4>
+                            <Mail size={20} /> <h4>Weekly Founders Insights</h4>
                         </div>
+                        <p>The best startup resources delivered every Monday.</p>
                         <input type="email" placeholder="email@startup.com" className={styles.newsInput} />
                         <button className={styles.newsSubmit}>Subscribe</button>
                     </section>
