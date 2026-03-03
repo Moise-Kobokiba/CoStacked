@@ -1,87 +1,133 @@
-/* Light Defaults */
+/* ======================================== */
+/* 1. BASE CONTAINER & THEME SWITCHING      */
+/* ======================================== */
 .pageContainer {
   width: 100%;
   background-color: #ffffff;
   color: #0f172a;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.33s ease, color 0.33s ease;
+  overflow-x: hidden;
 }
 
-/* DARK MODE SUPPORT */
+/* Global Dark Mode Override */
 .pageContainer[data-theme='dark'] {
-  background-color: #0f172a;
+  background-color: #0b1120; /* Deep navy/black */
   color: #f8fafc;
 }
 
-.pageContainer[data-theme='dark'] .heroTitle { color: #ffffff; }
-.pageContainer[data-theme='dark'] .heroSubtitle { color: #94a3b8; }
-.pageContainer[data-theme='dark'] .dashboardTitle { color: #ffffff; }
-
-/* HERO */
+/* ======================================== */
+/* 2. HERO SECTION (Adaptive & Mobile)      */
+/* ======================================== */
 .hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 5rem 1.5rem 0;
+  padding: 3.5rem 1.25rem 0;
   text-align: center;
 }
 
 .heroTitle {
-  font-size: 3.5rem;
+  font-size: 2.5rem;
   font-weight: 800;
   line-height: 1.1;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.02em;
 }
 
-.heroTitle span { color: #2563eb; }
+.heroTitle span {
+  color: #2563eb;
+}
 
-/* DASHBOARD SECTIONS (For Logged In Users) */
+.heroSubtitle {
+  color: #64748b;
+  font-size: 1rem;
+  max-width: 600px;
+  line-height: 1.6;
+  margin: 0 auto 2rem;
+}
+
+.pageContainer[data-theme='dark'] .heroTitle { color: #ffffff; }
+.pageContainer[data-theme='dark'] .heroSubtitle { color: #94a3b8; }
+
+.heroActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.heroIllustration {
+  width: 100%;
+  max-width: 1050px;
+  margin-top: 3rem;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f1f5f9;
+}
+
+.pageContainer[data-theme='dark'] .heroIllustration {
+  border-color: #1e293b;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.heroIllustration img {
+  width: 100%;
+  display: block;
+}
+
+/* ======================================== */
+/* 3. LOGGED IN DASHBOARD CONTENT           */
+/* ======================================== */
 .loggedInContent {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 4rem 1.5rem;
+  padding: 4rem 1.25rem;
 }
 
 .dashboardSection {
-  margin-bottom: 5rem;
+  margin-bottom: 4rem;
 }
 
 .dashboardTitle {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
 }
 
 .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.contentGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .seeAll {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   color: #2563eb;
-  text-decoration: none;
   font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
 }
 
-/* WORKFLOW */
-/* src/pages/HomePage.module.css */
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
 
+/* ======================================== */
+/* 4. THE WORKFLOW (Improved Spacing)       */
+/* ======================================== */
 .workflowSection {
-  /* Increased padding to separate from the Dashboard/Hero above */
-  padding: 5rem 1.25rem; 
+  padding: 5rem 1.25rem;
   text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Ensures the label and title are centered */
+  align-items: center;
 }
 
 .workflowLabel {
@@ -92,245 +138,120 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  padding: 0.5rem 1rem; /* More "pill-like" padding */
+  padding: 0.5rem 1.25rem;
   border-radius: 20px;
-  
-  /* Adds space below the label so it doesn't touch the "How CoStacked Works" title */
-  margin-bottom: 1.25rem; 
-}
-
-.sectionTitle {
-  font-size: 1.85rem; /* Scaled for mobile */
-  font-weight: 800;
-  color: #0f172a;
-  line-height: 1.2;
-  margin-bottom: 3rem; /* Space between the title and the first card */
-  max-width: 90%;
-}
-
-/* Fix for the Cards on Mobile */
-.featuresGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  width: 100%;
-  max-width: 400px; /* Prevents cards from getting too wide on phablets */
-}
-
-/* Media query to restore desktop spacing */
-@media (min-width: 768px) {
-  .workflowSection {
-    padding: 8rem 1.5rem;
-  }
-  .sectionTitle {
-    font-size: 2.5rem;
-    margin-bottom: 4rem;
-  }
-  .featuresGrid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    max-width: 1200px;
-  }
-}
-
-
-/* src/components/shared/FeatureCard.module.css */
-.card {
-  padding: 2.5rem 1.5rem; /* generous vertical padding, safe horizontal padding */
-  text-align: center;
-  border-radius: 16px;
-  /* ... rest of your styles ... */
-}
-
-
-/* CTA */
-.ctaSection {
-  padding: 4rem 1.5rem 8rem;
-}
-
-.ctaCard {
-  background: linear-gradient(135deg, #1e293b, #0f172a);
-  border-radius: 24px;
-  padding: 5rem;
-  text-align: center;
-  color: white;
-}
-
-@media (max-width: 768px) {
-  .heroTitle { font-size: 2.5rem; }
-}
-/* ... keep previous root and variable styles ... */
-
-.pageContainer {
-  width: 100%;
-  background-color: #ffffff;
-  color: #0f172a;
-  transition: background-color 0.3s ease;
-  overflow-x: hidden; /* Prevent horizontal scroll on small devices */
-}
-
-.pageContainer[data-theme='dark'] {
-  background-color: #0f172a;
-}
-
-/* ======================================== */
-/* HERO SECTION - MOBILE OPTIMIZED          */
-/* ======================================== */
-.hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 3rem 1.25rem 0; /* Reduced top padding for mobile */
-  text-align: center;
-}
-
-.heroContent {
-  max-width: 900px;
-  margin-bottom: 2rem; /* Tighter gap between text and image */
-}
-
-.heroTitle {
-  font-size: 2.25rem; /* Smaller for mobile */
-  font-weight: 800;
-  line-height: 1.2;
-  margin-bottom: 1.25rem;
-}
-
-.heroSubtitle {
-  color: #64748b;
-  font-size: 1rem; /* Better readability on phones */
-  max-width: 100%;
-  line-height: 1.5;
-  margin: 0 auto 2rem;
-  padding: 0 0.5rem;
-}
-
-.heroActions {
-  display: flex;
-  flex-direction: column; /* Stack buttons on mobile */
-  width: 100%;
-  gap: 0.75rem;
-  padding: 0 1rem;
-}
-
-/* Ensure buttons take full width on mobile */
-.heroActions > * {
-  width: 100%;
-}
-
-.heroIllustration {
-  width: 100%;
-  margin-top: 2.5rem;
-  border-radius: 12px 12px 0 0; /* Slightly smaller radius for mobile */
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-}
-
-/* ======================================== */
-/* LOGGED IN CONTENT - MOBILE SPACING       */
-/* ======================================== */
-.loggedInContent {
-  padding: 3rem 1.25rem; /* More horizontal breathing room */
-}
-
-.dashboardSection {
-  margin-bottom: 3.5rem; /* Reduced from 5rem for mobile */
-}
-
-.dashboardTitle {
-  font-size: 1.5rem; /* Down from 1.75rem */
   margin-bottom: 1.5rem;
 }
 
-/* ======================================== */
-/* WORKFLOW & FEATURES                      */
-/* ======================================== */
-.workflowSection {
-  padding: 4rem 1.25rem; /* Reduced vertical padding */
+/* Dark mode workflow label */
+.pageContainer[data-theme='dark'] .workflowLabel {
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
 }
 
 .sectionTitle {
-  font-size: 1.85rem; /* Scaled down */
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: #0f172a;
+}
+
+.pageContainer[data-theme='dark'] .sectionTitle {
+  color: #ffffff;
+}
+
+.sectionSubtitle {
+  color: #64748b;
+  font-size: 1rem;
+  margin-bottom: 3.5rem;
+  max-width: 550px;
+}
+
+.pageContainer[data-theme='dark'] .sectionSubtitle {
+  color: #94a3b8;
 }
 
 .featuresGrid {
   display: grid;
-  grid-template-columns: 1fr; /* Single column for mobile */
-  gap: 1.25rem;
-  margin-top: 2.5rem;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  width: 100%;
 }
 
 /* ======================================== */
-/* CTA CARD - MOBILE OPTIMIZED              */
+/* 5. CTA SECTION                           */
 /* ======================================== */
 .ctaSection {
-  padding: 1rem 1.25rem 4rem; /* Reduced padding */
+  padding: 2rem 1.25rem 6rem;
 }
 
 .ctaCard {
-  padding: 3.5rem 1.5rem; /* Smaller internal padding */
-  border-radius: 20px;
+  background: linear-gradient(145deg, #0f172a, #1e293b);
+  border-radius: 24px;
+  padding: 4rem 1.5rem;
+  text-align: center;
+  color: white;
 }
 
 .ctaCard h2 {
-  font-size: 1.75rem;
-  margin-bottom: 1rem;
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
 }
 
 .ctaCard p {
-  font-size: 0.95rem;
+  color: #cbd5e1;
   margin-bottom: 2rem;
+  font-size: 1rem;
 }
 
 /* ======================================== */
-/* TABLET & DESKTOP OVERRIDES               */
+/* 6. DESKTOP RESPONSIVENESS                */
 /* ======================================== */
-
 @media (min-width: 768px) {
   .hero {
-    padding: 6rem 1.5rem 0;
+    padding: 7rem 1.5rem 0;
   }
 
   .heroTitle {
     font-size: 4.5rem;
   }
 
-  .heroSubtitle {
-    font-size: 1.15rem;
-  }
-
   .heroActions {
-    flex-direction: row; /* Side-by-side buttons back */
-    width: auto;
+    flex-direction: row;
+    justify-content: center;
   }
 
   .heroActions > * {
     width: auto;
-    min-width: 180px;
+    min-width: 200px;
   }
 
-  .heroIllustration {
-    border-radius: 20px 20px 0 0;
+  .dashboardTitle {
+    font-size: 1.85rem;
   }
 
-  .loggedInContent {
-    padding: 5rem 1.5rem;
+  .contentGrid {
+    grid-template-columns: repeat(4, 1fr);
   }
 
-  .dashboardSection {
-    margin-bottom: 5rem;
+  .sectionTitle {
+    font-size: 2.75rem;
   }
 
   .featuresGrid {
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
+    max-width: 1200px;
   }
 
   .ctaCard {
     padding: 6rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
   }
 
   .ctaCard h2 {
-    font-size: 2.75rem;
+    font-size: 3rem;
   }
 }
-
