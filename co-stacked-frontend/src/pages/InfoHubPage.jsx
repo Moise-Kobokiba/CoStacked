@@ -46,16 +46,15 @@ export const InfoHubPage = () => {
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <div className={styles.headerTop}>
-                    <div className={styles.titleGroup}>
-                        <h1 className={styles.pageTitle}>Info Hub</h1>
-                        <p className={styles.pageSubtitle}>
-                            Expertly curated resources to help you scale your startup from zero to one.
-                        </p>
-                    </div>
+                <div className={styles.headerLeft}>
+                    <h1 className={styles.pageTitle}>Info Hub</h1>
                     <button className={styles.submitBtn} onClick={handleSubmitResource}>
                         <Plus size={18} /> <span className={styles.btnText}>Submit Resource</span>
                     </button>
+                    <p className={styles.pageSubtitle}>
+                        Expertly curated resources to help you scale your startup from zero to one.
+                        Templates, guides, and industry insights at your fingertips.
+                    </p>
                 </div>
             </header>
 
@@ -75,10 +74,7 @@ export const InfoHubPage = () => {
                         <button 
                             key={cat}
                             className={`${styles.categoryBtn} ${activeCategory === cat ? styles.active : ''}`}
-                            onClick={() => {
-                                setActiveCategory(cat);
-                                setVisibleCount(4);
-                            }}
+                            onClick={() => setActiveCategory(cat)}
                         >
                             {cat}
                         </button>
@@ -92,12 +88,12 @@ export const InfoHubPage = () => {
                         {filteredArticles.slice(0, visibleCount).map((article) => (
                             <article key={article._id} className={styles.articleCard} onClick={() => navigate(`/info-hub/${article.slug}`)}>
                                 <div className={styles.imageContainer}>
-                                    <img src={article.coverImage} alt={article.title} />
+                                    <img src={article.coverImage} alt="" />
                                 </div>
                                 <div className={styles.cardBody}>
-                                    <span className={styles.articleCategoryLabel}>{article.category}</span>
-                                    <div className={styles.cardMetaPrimary}>
-                                        <span><Calendar size={14} /> {new Date(article.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                                    <span className={styles.articleSubLabel}>Fundamentals</span>
+                                    <div className={styles.cardMeta}>
+                                        <span><Calendar size={14} /> 19 Feb</span>
                                         <span><Eye size={14} /> {article.views || '0'} views</span>
                                     </div>
                                     <h3>{article.title}</h3>
