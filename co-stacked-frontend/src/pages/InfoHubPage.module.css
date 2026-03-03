@@ -1,34 +1,32 @@
+/* Container & High-Level Layout */
 .container {
-  max-width: 1400px; /* Increased from 1200px for better monitor fit */
+  max-width: 1440px; /* Wider for desktop monitors */
   margin: 0 auto;
-  padding: 5rem 2rem; /* Increased padding */
+  padding: 4rem 2rem;
   background-color: #0b1120;
   color: #ffffff;
   min-height: 100vh;
 }
 
-.header {
-  margin-bottom: 4rem; /* More space before search */
-}
-
 .headerTop {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end; /* Align button to baseline of text */
-  margin-bottom: 1.5rem;
+  align-items: flex-end;
+  margin-bottom: 3rem;
+  gap: 2rem;
 }
 
 .pageTitle {
-  font-size: 3.5rem; /* Larger for desktop */
+  font-size: clamp(2.5rem, 5vw, 3.5rem); /* Responsive sizing */
   font-weight: 800;
-  letter-spacing: -0.05em;
-  margin: 0;
+  letter-spacing: -0.04em;
+  margin-bottom: 0.5rem;
 }
 
 .pageSubtitle {
   color: #94a3b8;
-  font-size: 1.25rem;
-  max-width: 600px;
+  font-size: 1.15rem;
+  max-width: 650px;
   line-height: 1.6;
 }
 
@@ -36,38 +34,33 @@
   background: #2563eb;
   color: white;
   padding: 0.8rem 1.5rem;
-  border-radius: 10px;
+  border-radius: 12px;
   font-weight: 700;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  transition: all 0.2s ease;
+  white-space: nowrap;
+  transition: transform 0.2s ease;
 }
 
-.submitBtn:hover {
-  background: #1d4ed8;
-  transform: translateY(-2px);
-}
+.submitBtn:hover { transform: translateY(-2px); background: #1d4ed8; }
 
-/* Controls Section */
+/* Search & Filters */
 .controlsSection {
   margin-bottom: 4rem;
 }
 
 .searchWrapper {
   position: relative;
+  max-width: 800px;
   margin-bottom: 2rem;
-  max-width: 800px; /* Prevents search bar from being too long on big screens */
 }
 
 .searchIcon {
-  position: absolute;
-  left: 1.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #64748b;
+  position: absolute; left: 1.5rem; top: 50%;
+  transform: translateY(-50%); color: #64748b;
 }
 
 .searchInput {
@@ -78,29 +71,25 @@
   border: 1px solid #334155;
   color: white;
   font-size: 1.1rem;
-  transition: border-color 0.2s;
-}
-
-.searchInput:focus {
-  border-color: #3b82f6;
-  outline: none;
 }
 
 .categoryBar {
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  scrollbar-width: none; /* Hide scrollbar for clean look */
 }
 
 .categoryBtn {
   background: #1e293b;
   border: 1px solid #334155;
   color: #94a3b8;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
+  padding: 0.7rem 1.4rem;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
-  transition: 0.2s;
+  white-space: nowrap;
 }
 
 .categoryBtn.active {
@@ -109,122 +98,89 @@
   border-color: #2563eb;
 }
 
-/* Layout Grid - Fixing the "Cramped" look */
+/* Main Layout Grid */
 .mainContent {
   display: grid;
-  grid-template-columns: 1fr 380px; /* Fixed sidebar width, flexible content */
-  gap: 6rem; /* Huge gap for premium feel */
-  align-items: start;
+  grid-template-columns: 1fr 360px; /* Fixed sidebar width */
+  gap: 5rem; /* Large gap for monitor breathing room */
 }
 
 .articlesGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 3rem; /* More space between cards */
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); /* Adaptive grid */
+  gap: 2.5rem;
 }
 
-/* Article Card Refinement */
+/* Article Cards */
 .articleCard {
   background: #111827;
   border: 1px solid #1f2937;
-  border-radius: 24px;
+  border-radius: 20px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .articleCard:hover {
-  transform: translateY(-10px);
+  transform: translateY(-8px);
   border-color: #3b82f6;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
 }
 
-.imageContainer {
-  height: 240px;
-  width: 100%;
-}
+.imageContainer { height: 240px; }
+.imageContainer img { width: 100%; height: 100%; object-fit: cover; }
 
-.imageContainer img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.cardBody {
-  padding: 2rem;
-}
+.cardBody { padding: 2rem; }
 
 .articleCategoryLabel {
   color: #3b82f6;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
   display: block;
-  margin-bottom: 1rem;
 }
 
 .cardMetaPrimary {
-  display: flex;
-  gap: 1.5rem;
-  color: #64748b;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
+  display: flex; gap: 1.2rem;
+  color: #64748b; font-size: 0.85rem; margin-bottom: 1rem;
 }
 
-.cardBody h3 {
-  font-size: 1.6rem;
-  margin-bottom: 1rem;
-  line-height: 1.2;
-}
+.cardMetaPrimary span { display: flex; align-items: center; gap: 0.4rem; }
 
-/* Sidebar Sectioning */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 4rem;
-  position: sticky; /* Keeps it visible while scrolling */
-  top: 2rem;
-}
+.cardBody h3 { font-size: 1.6rem; margin-bottom: 1rem; line-height: 1.3; }
+.cardBody p { color: #94a3b8; font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem; }
+
+.cardLink { color: #3b82f6; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+
+/* Sidebar discovered from images */
+.sidebar { display: flex; flex-direction: column; gap: 4rem; position: sticky; top: 2rem; }
 
 .sideHeading {
-  font-size: 1.25rem;
-  font-weight: 800;
-  margin-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  font-size: 1.25rem; font-weight: 800; margin-bottom: 2rem;
+  display: flex; align-items: center; gap: 0.8rem;
 }
 
-.sideArticle {
-  padding: 1.5rem 0;
-  border-bottom: 1px solid #1f2937;
+.sideArticle { padding: 1.5rem 0; border-bottom: 1px solid #1f2937; cursor: pointer; }
+.sideSubLabel { color: #3b82f6; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
+.sideArticle h5 { font-size: 1.15rem; margin: 0.6rem 0; line-height: 1.4; }
+.sideMeta { display: flex; gap: 1.25rem; color: #64748b; font-size: 0.85rem; }
+.sideMeta span { display: flex; align-items: center; gap: 0.4rem; }
+
+.popItem { display: flex; gap: 1.25rem; padding: 1rem 0; cursor: pointer; }
+.popIndex { color: #3b82f6; font-weight: 900; font-style: italic; font-size: 1.2rem; opacity: 0.6; }
+
+/* RESPONSIVENESS */
+@media (max-width: 1100px) {
+  .mainContent { grid-template-columns: 1fr; gap: 4rem; }
+  .sidebar { position: static; }
 }
 
-.sideArticle:last-child { border-bottom: none; }
-
-.sideArticle h5 {
-  font-size: 1.15rem;
-  margin: 0.5rem 0;
-  line-height: 1.4;
-  transition: color 0.2s;
-}
-
-.sideArticle:hover h5 { color: #3b82f6; }
-
-/* Desktop Media Query */
-@media (max-width: 1280px) {
-  .mainContent {
-    gap: 3rem;
-  }
-}
-
-@media (max-width: 1024px) {
-  .mainContent {
-    grid-template-columns: 1fr;
-  }
-  .sidebar {
-    margin-top: 4rem;
-  }
+@media (max-width: 768px) {
+  .container { padding: 2rem 1.25rem; }
+  .headerTop { flex-direction: column; align-items: flex-start; }
+  .btnText { display: none; } /* On mobile, only show the Plus icon for submit */
+  .submitBtn { padding: 0.8rem; border-radius: 50%; }
+  .articlesGrid { grid-template-columns: 1fr; }
+  .imageContainer { height: 200px; }
 }
