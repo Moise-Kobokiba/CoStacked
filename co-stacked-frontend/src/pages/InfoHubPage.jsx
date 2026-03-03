@@ -1,8 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPublishedArticles, incrementArticleView } from '../api/articlesApi'; 
-import { Search, Clock, Eye, ArrowRight, TrendingUp, Calendar, Plus, Mail, Zap } from 'lucide-react';
+import { Search, Eye, ArrowRight, TrendingUp, Calendar, Plus, Zap, Share2, Mail } from 'lucide-react';
 import styles from './InfoHubPage.module.css';
+
+const SkeletonCard = () => (
+    <div className={styles.skeletonCard}>
+        <div className={styles.skeletonImage} />
+        <div className={styles.skeletonInfo}>
+            <div className={styles.skeletonLineShort} />
+            <div className={styles.skeletonTitle} />
+            <div className={styles.skeletonLineLong} />
+        </div>
+    </div>
+);
 
 export const InfoHubPage = () => {
     const navigate = useNavigate();
@@ -17,21 +28,21 @@ export const InfoHubPage = () => {
             try {
                 const response = await getPublishedArticles();
                 setArticles(response.data || []);
-            } catch (err) {
-                console.error('Error fetching articles:', err);
-            } finally {
-                setLoading(false);
-            }
+            } catch (err) { console.error(err); } 
+            finally { setLoading(false); }
         };
         fetchArticles();
     }, []);
 
+    const handleShare = (e, article) => {
+        e.stopPropagation();
+        const url = `${window.location.origin}/info-hub/${article.slug}`;
+        navigator.clipboard.writeText(url);
+        alert("Link copied to clipboard!");
+    };
+
     const handleArticleClick = async (article) => {
-        try {
-            await incrementArticleView(article._id); 
-        } catch (err) {
-            console.error("View increment failed:", err);
-        }
+        try { await incrementArticleView(article._id); } catch (err) { }
         navigate(`/info-hub/${article.slug}`);
     };
 
@@ -47,32 +58,32 @@ export const InfoHubPage = () => {
         return [...articles].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 3);
     }, [articles]);
 
-    if (loading) return <div className={styles.loading}>Preparing Resources...</div>;
-
     return (
         <div className={styles.container}>
             <header className={styles.header}>
                 <div className={styles.headerTop}>
-                    <h1 className={styles.pageTitle}>Info Hub</h1>
+                    <div>
+                        <h1 className={styles.pageTitle}>Info Hub</h1>
+                        <p className={styles.pageSubtitle}>Curated resources to scale your startup from zero to one.</p>
+                    </div>
                     <button className={styles.primaryBtn}>
-                        <Plus size={18} /> <span className={styles.btnText}>Submit Resource</span>
+                        <Plus size={18} /> <span>Submit Resource</span>
                     </button>
                 </div>
-                <p className={styles.pageSubtitle}>Expertly curated resources to help you scale your startup.</p>
             </header>
 
             <section className={styles.controls}>
-                <div className={styles.searchBar}>
+                <div className={styles.searchContainer}>
                     <Search className={styles.searchIcon} size={20} />
                     <input 
                         type="text" 
-                        placeholder="Search for guides..." 
+                        placeholder="Search for guides, templates, or articles..." 
                         className={styles.searchInput}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
                 <div className={styles.categoryBar}>
-                    {['All Resources', 'Fundraising', 'Product Development', 'Legal', 'Marketing'].map(cat => (
+                    {['All Resources', 'Fundraising', 'Product Development', 'Legal', 'Marketing', 'Hiring'].map(cat => (
                         <button 
                             key={cat}
                             className={`${styles.categoryBtn} ${activeCategory === cat ? styles.active : ''}`}
@@ -87,26 +98,35 @@ export const InfoHubPage = () => {
             <main className={styles.mainLayout}>
                 <div className={styles.contentArea}>
                     <div className={styles.articlesGrid}>
-                        {filteredArticles.slice(0, visibleCount).map((article) => (
-                            <article key={article._id} className={styles.card} onClick={() => handleArticleClick(article)}>
-                                <div className={styles.cardImage}><img src={article.coverImage} alt="" /></div>
-                                <div className={styles.cardInfo}>
-                                    <span className={styles.subLabel}>{article.category?.toUpperCase() || 'FUNDAMENTALS'}</span>
-                                    <div className={styles.metaRow}>
-                                        <span><Calendar size={14} /> 19 Feb</span>
-                                        <span><Eye size={14} /> {article.views || 0} views</span>
+                        {loading ? Array(6).fill(0).map((_, i) => <SkeletonCard key={i} />) : 
+                            filteredArticles.slice(0, visibleCount).map((article) => (
+                                <article key={article._id} className={styles.card} onClick={() => handleArticleClick(article)}>
+                                    <div className={styles.cardImage}>
+                                        <img src={article.coverImage} alt="" />
+                                        <span className={styles.categoryBadge}>{article.category || 'GUIDE'}</span>
                                     </div>
-                                    <h3>{article.title}</h3>
-                                    <p>{article.description}</p>
-                                    <div className={styles.readMore}>Read More <ArrowRight size={16} /></div>
-                                </div>
-                            </article>
-                        ))}
+                                    <div className={styles.cardInfo}>
+                                        <div className={styles.metaRow}>
+                                            <span><Calendar size={14} /> 19 Feb</span>
+                                            <span><Eye size={14} /> {article.views || 0} views</span>
+                                        </div>
+                                        <h3 className={styles.cardTitle}>{article.title}</h3>
+                                        <p className={styles.cardDesc}>{article.description}</p>
+                                        <div className={styles.cardFooter}>
+                                            <span className={styles.readMore}>Read More <ArrowRight size={16} /></span>
+                                            <button className={styles.shareBtn} onClick={(e) => handleShare(e, article)}>
+                                                <Share2 size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </article>
+                            ))
+                        }
                     </div>
-                    {visibleCount < filteredArticles.length && (
+                    {!loading && visibleCount < filteredArticles.length && (
                         <div className={styles.loadMoreWrapper}>
-                            <button className={styles.primaryBtn} onClick={() => setVisibleCount(v => v + 3)}>
-                                <Plus size={18} /> Load More Resources
+                            <button className={styles.loadMoreBtn} onClick={() => setVisibleCount(v => v + 3)}>
+                                Load More Resources
                             </button>
                         </div>
                     )}
@@ -117,10 +137,10 @@ export const InfoHubPage = () => {
                         <h4 className={styles.sideTitle}><TrendingUp size={18} /> Featured Guides</h4>
                         {articles.slice(0, 3).map(guide => (
                             <div key={guide._id} className={styles.sideItem} onClick={() => handleArticleClick(guide)}>
-                                <div className={styles.sideThumb}><img src={guide.coverImage} alt="" /></div>
                                 <div className={styles.sideContent}>
+                                    <span className={styles.sideTag}>{guide.category?.toUpperCase()}</span>
                                     <h5>{guide.title}</h5>
-                                    <span className={styles.sideMeta}><Eye size={12} /> {guide.views || 0} views</span>
+                                    <span className={styles.sideMeta}><Clock size={12} /> 10 min read</span>
                                 </div>
                             </div>
                         ))}
@@ -135,6 +155,14 @@ export const InfoHubPage = () => {
                             </div>
                         ))}
                     </section>
+
+                    <div className={styles.newsletterCard}>
+                        <Mail className={styles.newsIcon} size={32} />
+                        <h4>Weekly Founders Insights</h4>
+                        <p>The best startup resources delivered to your inbox every Monday.</p>
+                        <input type="email" placeholder="email@startup.com" className={styles.newsInput} />
+                        <button className={styles.newsBtn}>Subscribe</button>
+                    </div>
                 </aside>
             </main>
         </div>
