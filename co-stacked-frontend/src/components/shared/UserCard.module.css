@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden; /* Prevents child content from breaking the card's border-radius */
+  overflow: hidden;
   box-sizing: border-box;
 }
 
@@ -41,18 +41,54 @@
   margin-top: 0.1rem;
 }
 
+/* Bio section styles */
+.bioContainer {
+  position: relative;
+  flex-grow: 1;
+  margin-bottom: 1rem;
+}
+
 .bio {
   color: var(--foreground);
   font-size: 0.9rem;
   line-height: 1.6;
-  margin-bottom: 1rem;
-  flex-grow: 1;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin: 0;
+}
+
+.bio.expanded {
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  display: block;
+}
+
+.seeMoreBtn {
+  background: none;
+  border: none;
+  color: var(--primary, #3b82f6);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.25rem 0;
+  margin-top: 0.25rem;
+  display: block;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.seeMoreBtn:hover {
+  color: var(--primary-hover, #2563eb);
+  text-decoration: underline;
+}
+
+.seeMoreBtn:focus {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .skillsSection {
@@ -86,30 +122,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.5rem; /* Add a small gap to prevent elements from touching */
+  gap: 0.5rem;
 }
 
-/* --- THIS IS THE FIX --- */
 .availability {
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--muted-foreground);
-  
-  /* 1. Allow this element to shrink if space is tight */
   flex-shrink: 1;
-  /* 2. Allow it to shrink smaller than its content, forcing text to wrap */
   min-width: 0;
-  /* 3. Ensure long words can break if necessary */
   word-break: break-word;
   text-align: left;
 }
 
-/* This targets the button in the footer and prevents it from shrinking */
 .footer > :last-child {
   flex-shrink: 0;
 }
-/* --- END FIX --- */
-
 
 .boostedCard {
   border: 1px solid var(--primary);
@@ -132,7 +160,6 @@
   font-weight: 600;
 }
 
-
 /* ======================================== */
 /*            RESPONSIVE QUERIES            */
 /* ======================================== */
@@ -151,10 +178,20 @@
   .role {
     font-size: 1rem;
   }
-  .bio {
-    font-size: 1rem;
+  
+  .bioContainer {
     margin-bottom: 1.5rem;
   }
+  
+  .bio {
+    font-size: 1rem;
+  }
+  
+  .seeMoreBtn {
+    font-size: 0.9rem;
+    margin-top: 0.35rem;
+  }
+  
   .noSkills {
     font-size: 0.9rem;
   }
