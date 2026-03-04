@@ -29,6 +29,21 @@ const fetchStats = async () => {
     }
 };
 
+const [tips, setTips] = useState([]);
+const [tipsLoading, setTipsLoading] = useState(true);
+
+const fetchTips = async () => {
+  try {
+    setTipsLoading(true);
+    const data = await getValidationTips();
+    setTips(data);
+  } catch (error) {
+    console.error('Error fetching tips:', error);
+  } finally {
+    setTipsLoading(false);
+  }
+};
+
             // Enhance ideas with placeholder tags and likes to match the design
             const enhanced = data.map(idea => ({
                 ...idea,
