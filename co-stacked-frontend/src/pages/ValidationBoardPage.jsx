@@ -11,6 +11,7 @@ export const ValidationBoardPage = () => {
 const [activeFounders, setActiveFounders] = useState(0);
 const [tips, setTips] = useState([]);
 const [progressPercent, setProgressPercent] = useState(0);
+const [stats, setStats] = useState(null);
 
     useEffect(() => {
         fetchIdeas();
