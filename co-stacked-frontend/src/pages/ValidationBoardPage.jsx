@@ -14,14 +14,18 @@ const [progressPercent, setProgressPercent] = useState(0);
 const [stats, setStats] = useState(null);
 
     useEffect(() => {
-        fetchIdeas();
-    }, [filter]);
+    fetchIdeas();
+    fetchStats();
+}, [filter]);
 
-    const fetchIdeas = async () => {
-        setLoading(true);
-        try {
-            const sort = filter === 'popular' ? 'popular' : 'newest';
-            const data = await getIdeas({ sort });
+const fetchStats = async () => {
+    try {
+        const data = await getCommunityStats();
+        setStats(data);
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+    }
+};
 
             // Enhance ideas with placeholder tags and likes to match the design
             const enhanced = data.map(idea => ({
