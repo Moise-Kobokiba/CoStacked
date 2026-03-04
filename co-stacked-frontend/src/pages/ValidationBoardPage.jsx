@@ -18,6 +18,7 @@ const [stats, setStats] = useState(null);
     useEffect(() => {
     fetchIdeas();
     fetchStats();
+    fetchTips();
 }, [filter]);
 
 const fetchStats = async () => {
