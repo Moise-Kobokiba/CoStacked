@@ -104,6 +104,7 @@ app.use('/api/conversations', conversationRoutes); // <-- MOUNT NEW ROUTE
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/ideas', ideaRoutes);
+app.use('/api/validation-tips', validationTipRoutes);
 
 // --- 6. DEFAULT ROUTE ---
 app.get('/', (req, res) => res.send('API is running successfully...'));
