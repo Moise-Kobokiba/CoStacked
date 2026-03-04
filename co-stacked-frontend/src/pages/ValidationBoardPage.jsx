@@ -7,6 +7,10 @@ export const ValidationBoardPage = () => {
     const [ideas, setIdeas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('active'); // active, newest, popular
+     const [totalIdeas, setTotalIdeas] = useState(0);
+const [activeFounders, setActiveFounders] = useState(0);
+const [tips, setTips] = useState([]);
+const [progressPercent, setProgressPercent] = useState(0);
 
     useEffect(() => {
         fetchIdeas();
