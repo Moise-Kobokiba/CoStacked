@@ -7,7 +7,7 @@
   --border: #e2e8f0;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
-  --sidebar-bg: #f1f5f9;
+  --sidebar-bg: var(--card-background);
   --glow: rgba(37, 99, 235, 0.15);
   --toast-bg: #0f172a;
   --toast-text: #ffffff;
@@ -22,7 +22,7 @@ html.dark {
   --border: #1e293b;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
-  --sidebar-bg: #1e293b;
+  --sidebar-bg: var(--card-background);
   --glow: rgba(59, 130, 246, 0.3);
   --toast-bg: #1e293b;
   --toast-text: #f8fafc;
@@ -562,16 +562,6 @@ html.dark {
 body {
   background-color: var(--background);
   color: var(--foreground);
-}
-
-/* This targets the sidebar container and the cards shown in your image */
-.sidebar, 
-.sidebar-container, 
-.featured-guides-container,
-[class*="sidebar"] { 
-  background-color: var(--sidebar-bg) !important;
-  color: var(--foreground) !important;
-  border-color: var(--border);
 }
 
 /* --- Specific Text Fixes --- */
