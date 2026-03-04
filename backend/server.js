@@ -7,7 +7,9 @@ const passport = require('passport');
 const connectDB = require('./config/db');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const validationTipRoutes = require('./routes/validationTipRoutes');
 
+app.use('/api/validation-tips', validationTipRoutes);
 const startSubscriptionCron = require('./cron/subscriptionCron'); // Import Cron
 
 // --- 1.5. MODEL IMPORTS (Ensure models are registered) ---
