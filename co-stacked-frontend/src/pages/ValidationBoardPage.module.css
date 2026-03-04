@@ -6,6 +6,7 @@
     min-height: 100vh;
 }
 
+/* Header */
 .header {
     display: flex;
     justify-content: space-between;
@@ -36,38 +37,6 @@
 .headerContent {
     flex: 1;
     max-width: 720px;
-}
-
-.headerBadge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 14px;
-    background: var(--input-background);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--foreground);
-    margin-bottom: 16px;
-    letter-spacing: 0.01em;
-}
-
-.badgeDot {
-    width: 6px;
-    height: 6px;
-    background: #10b981;
-    border-radius: 50%;
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
 }
 
 .title {
@@ -113,55 +82,78 @@
     transform: translateY(0);
 }
 
-.createIcon {
-    flex-shrink: 0;
+.plusIcon {
+    font-size: 1.2rem;
+    line-height: 1;
 }
 
-.filters {
+/* Main layout (content + sidebar) */
+.mainLayout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 32px;
+}
+
+@media (max-width: 768px) {
+    .mainLayout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.contentColumn {
+    min-width: 0; /* Prevents overflow */
+}
+
+/* Tabs */
+.tabs {
     display: flex;
-    gap: 16px;
-    margin-bottom: 30px;
+    gap: 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+    padding-bottom: 8px;
+    overflow-x: auto;
+    white-space: nowrap;
 }
 
-.filterBtn {
-    background: transparent;
+.tabBtn {
+    background: none;
     border: none;
-    padding: 8px 16px;
-    font-size: 1rem;
     color: var(--muted-foreground);
+    font-size: 0.875rem;
     cursor: pointer;
-    border-radius: 20px;
-    font-weight: 500;
-    transition: all 0.2s;
+    padding: 8px 0;
+    transition: color 0.2s;
 }
 
-.filterBtn:hover {
-    background-color: var(--input-background);
+.tabBtn:hover {
     color: var(--foreground);
 }
 
-.filterBtn.active {
-    background-color: var(--primary-light);
+.tabActive {
     color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+    font-weight: 600;
 }
 
+/* Grid */
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 24px;
 }
 
+/* Cards */
 .card {
     background: var(--card-background);
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 24px;
     text-decoration: none;
     color: inherit;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--border);
     transition: all 0.2s;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .card:hover {
@@ -181,38 +173,70 @@ html[data-theme='dark'] .card:hover {
 .cardHeader {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 16px;
 }
 
-.industry {
-    background: linear-gradient(135deg, var(--primary-light) 0%, var(--input-background) 100%);
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.8rem;
+.phaseBadge {
+    background: var(--primary-light);
     color: var(--primary);
-    font-weight: 600;
-    border: 1px solid var(--primary-light);
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
 }
 
-.score {
+.confidence {
+    text-align: right;
+}
+
+.confValue {
+    display: block;
+    color: var(--primary);
     font-weight: 700;
-    color: #ea580c; /* Orange/Fire color - keeps contrast in both modes */
+    font-size: 1.1rem;
+    line-height: 1.2;
 }
 
-.card h3 {
+.confLabel {
+    font-size: 0.6rem;
+    color: var(--muted-foreground);
+    letter-spacing: 0.05em;
+}
+
+.cardTitle {
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--foreground);
-    margin-bottom: 10px;
+    margin: 0 0 10px 0;
     line-height: 1.4;
 }
 
-.problem {
+.description {
     color: var(--muted-foreground);
     font-size: 0.95rem;
     line-height: 1.5;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     flex-grow: 1;
+}
+
+.tagList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 8px;
+}
+
+.tag {
+    background: var(--input-background);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
 }
 
 .cardFooter {
@@ -221,6 +245,7 @@ html[data-theme='dark'] .card:hover {
     align-items: center;
     border-top: 1px solid var(--border);
     padding-top: 16px;
+    margin-top: 16px;
 }
 
 .author {
@@ -236,30 +261,100 @@ html[data-theme='dark'] .card:hover {
     object-fit: cover;
 }
 
-.avatarPlaceholder {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background-color: var(--primary);
-    color: white;
+.authorName {
+    font-size: 0.9rem;
+    color: var(--muted-foreground);
+}
+
+.cardStats {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    gap: 12px;
     font-size: 0.9rem;
+    color: var(--muted-foreground);
+}
+
+/* Sidebar */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebarCard,
+.tipsCard {
+    background: var(--card-background);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.sidebarCard h4,
+.tipsCard h4 {
+    font-size: 0.75rem;
     font-weight: 600;
-}
-
-.author span {
-    font-size: 0.9rem;
+    letter-spacing: 0.05em;
     color: var(--muted-foreground);
+    margin: 0 0 12px 0;
 }
 
-.stats {
-    font-size: 0.9rem;
+.statLarge {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--foreground);
+    line-height: 1.2;
+}
+
+.sidebarCard p {
     color: var(--muted-foreground);
+    font-size: 0.9rem;
+    margin: 4px 0 0;
 }
 
-.loading, .empty {
+.progressBar {
+    height: 8px;
+    background: var(--input-background);
+    border-radius: 4px;
+    margin: 12px 0;
+    overflow: hidden;
+}
+
+.progressBar div {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+.sidebarFooter {
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+    margin-top: 8px;
+}
+
+.tipsCard ol {
+    margin: 0 0 16px 0;
+    padding-left: 20px;
+    color: var(--foreground);
+    font-size: 0.9rem;
+}
+
+.tipsCard li {
+    margin-bottom: 8px;
+}
+
+.tipsCard a {
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.tipsCard a:hover {
+    text-decoration: underline;
+}
+
+/* Loading & empty states */
+.loading,
+.empty {
     text-align: center;
     padding: 60px;
     color: var(--muted-foreground);
