@@ -1,55 +1,18 @@
-/* --- Core Container Fixes --- */
+/* --- 1. Global Layout & Body --- */
+body, .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease;
+  position: relative;
+}
 
-/* This targets the sidebar/featured area and ensures the background swaps correctly */
+/* --- 2. Sidebar & Card Containers --- */
 .sidebar, 
 .sidebar-container, 
 [class*="sidebar"],
-.featured-guides { 
-  background-color: var(--sidebar-bg) !important;
-  color: var(--foreground) !important;
-  border: 1px solid var(--border);
-}
-
-/* --- Heading Fixes (The unreadable titles) --- */
-
-/* This forces the main titles ("The Complete App Launch...") to swap between dark/light */
-.sidebar h2, 
-.sidebar h3, 
-.sidebar .title,
-[class*="title"] {
-  color: var(--foreground) !important;
-}
-
-/* --- Category Label Fix (REMAIN BLUE) --- */
-
-/* This ensures "FUNDAMENTALS", "SCALE-UP", etc. stay blue and bold as intended */
-.sidebar .category,
-.sidebar span[class*="label"],
-[class*="category"] {
-  color: var(--accent) !important; /* Uses your Blue #2563eb */
-  font-weight: bold;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-}
-
-/* --- Metadata Fix (Read time, views) --- */
-
-/* This ensures the smaller text uses your muted grey/slate variables */
-.sidebar .metadata, 
-.sidebar p, 
-.sidebar span:not([class*="category"]) {
-  color: var(--muted-foreground) !important;
-}
-
-/* --- Global Body & Container Fixes --- */
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-}
-
-/* Fixes the sidebar/card background and main text visibility */
-.sidebar, 
-.sidebar-container, 
 .featured-guides,
 .card { 
   background-color: var(--sidebar-bg) !important;
@@ -57,36 +20,46 @@ body {
   border: 1px solid var(--border);
 }
 
-/* --- Heading Fixes --- */
-/* Ensures "The Complete App Launch..." titles switch to light text in dark mode */
+/* --- 3. Titles & Headings --- */
+/* Forces titles to be dark in light mode, light in dark mode */
 .sidebar h2, 
 .sidebar h3, 
 .card-title,
+.sidebar .title,
 [class*="title"] {
   color: var(--foreground) !important;
 }
 
-/* --- Metadata Fixes --- */
-/* Ensures "8 min read", dates, and views are visible grey */
+/* --- 4. Metadata (Dates, Read Time, Views) --- */
 .sidebar .metadata, 
 .sidebar p, 
-.sidebar span:not(.fundamentals-tag) {
+.sidebar span:not(.fundamentals-tag):not([class*="category"]) {
   color: var(--muted-foreground) !important;
 }
 
-/* --- THE FUNDAMENTALS BADGE FIX --- */
-/* This forces the text to be DARK SLATE (#0f172a) so it shows up on the white pill */
+/* --- 5. THE FUNDAMENTALS BADGE FIX --- */
+/* Forces dark text so it's visible on the white pill background */
 .fundamentals-tag,
-[class*="Fundamentals"],
-.badge-pill {
+.badge-pill,
+[class*="Fundamentals"] {
   color: #0f172a !important; 
   font-weight: 700 !important;
   text-transform: uppercase;
   font-size: 0.7rem;
 }
 
-/* --- READ MORE & ACCENT FIXES --- */
-/* Makes "Read More" and the arrow blue (#2563eb) */
+/* --- 6. Category Labels (General) --- */
+/* Keeps other categories blue if they don't have a white pill background */
+.sidebar .category,
+.sidebar span[class*="label"],
+[class*="category"]:not([class*="Fundamentals"]) {
+  color: var(--accent) !important;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+/* --- 7. Read More & Icons --- */
 .read-more,
 .read-more-link,
 .read-more span {
@@ -98,7 +71,7 @@ body {
   text-decoration: none;
 }
 
-/* Ensures the SVG arrow icon specifically turns blue */
+/* Forces the SVG arrow to use the blue accent color */
 .read-more svg,
 .read-more path {
   fill: var(--accent) !important;
@@ -108,17 +81,6 @@ body {
 .read-more:hover {
   color: var(--accent-hover) !important;
 }
-
-
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 3rem 1.5rem;
-  background-color: var(--background);
-  color: var(--foreground);
-  transition: background-color 0.3s ease;
-  position: relative;
 }
 
 /* Toast notification */
