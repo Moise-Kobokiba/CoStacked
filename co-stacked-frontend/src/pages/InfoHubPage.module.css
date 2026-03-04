@@ -81,7 +81,6 @@ body, .container {
 .read-more:hover {
   color: var(--accent-hover) !important;
 }
-}
 
 /* Toast notification */
 .toast {
