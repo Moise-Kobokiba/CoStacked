@@ -10,6 +10,7 @@ const { Server } = require('socket.io');
 
 const validationTipRoutes = require('./routes/validationTipRoutes');
 const startSubscriptionCron = require('./cron/subscriptionCron');
+
 // --- 1.5. MODEL IMPORTS (Ensure models are registered) ---
 require('./models/User');
 require('./models/Project');
