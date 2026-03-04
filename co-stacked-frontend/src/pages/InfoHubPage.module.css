@@ -1,54 +1,54 @@
-/* --- Global Body & Sidebar Fix --- */
+/* --- Core Container Fixes --- */
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-}
-
-/* This targets the sidebar container and the cards shown in your image */
+/* This targets the sidebar/featured area and ensures the background swaps correctly */
 .sidebar, 
 .sidebar-container, 
-.featured-guides-container,
-[class*="sidebar"] { 
+[class*="sidebar"],
+.featured-guides { 
   background-color: var(--sidebar-bg) !important;
   color: var(--foreground) !important;
-  border-color: var(--border);
+  border: 1px solid var(--border);
 }
 
-/* --- Specific Text Fixes --- */
+/* --- Heading Fixes (The unreadable titles) --- */
 
-/* Fixes the Main Titles (e.g., "The Complete App Launch...") */
-.sidebar h1, 
+/* This forces the main titles ("The Complete App Launch...") to swap between dark/light */
 .sidebar h2, 
 .sidebar h3, 
-.sidebar h4,
-.sidebar-title {
+.sidebar .title,
+[class*="title"] {
   color: var(--foreground) !important;
 }
 
-/* Fixes the Category Labels (e.g., "FUNDAMENTALS") */
-.sidebar .category-label,
-.sidebar span[class*="label"] {
-  color: var(--accent); /* This keeps them blue as seen in your image */
+/* --- Category Label Fix (REMAIN BLUE) --- */
+
+/* This ensures "FUNDAMENTALS", "SCALE-UP", etc. stay blue and bold as intended */
+.sidebar .category,
+.sidebar span[class*="label"],
+[class*="category"] {
+  color: var(--accent) !important; /* Uses your Blue #2563eb */
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.75rem;
 }
 
-/* Fixes the Metadata (e.g., "8 min read", "0 views") */
+/* --- Metadata Fix (Read time, views) --- */
+
+/* This ensures the smaller text uses your muted grey/slate variables */
 .sidebar .metadata, 
 .sidebar p, 
-.sidebar span,
-.sidebar div {
-  color: var(--muted-foreground);
+.sidebar span:not([class*="category"]) {
+  color: var(--muted-foreground) !important;
 }
 
-/* Ensure links are visible */
-.sidebar a {
-  color: var(--foreground);
-  text-decoration: none;
+/* --- Icons Fix --- */
+
+/* If your clock/eye icons are disappearing, this ensures they follow the text color */
+.sidebar svg {
+  stroke: var(--muted-foreground);
+  fill: none;
 }
 
-.sidebar a:hover {
-  color: var(--accent);
-}
 
 
 .container {
