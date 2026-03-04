@@ -129,7 +129,9 @@ const fetchStats = async () => {
                 <aside className={styles.sidebar}>
                     <div className={styles.sidebarCard}>
                         <h4>COMMUNITY STATS</h4>
-                        <div className={styles.statLarge}>1,240</div>
+                        <div className={styles.statLarge}>
+  {stats ? stats.totalIdeas.toLocaleString() : '...'}
+</div>
                         <p>Total Ideas Validated</p>
                         <div className={styles.progressBar}>
                             <div style={{ width: '75%' }}></div>
