@@ -134,8 +134,8 @@ const fetchStats = async () => {
 </div>
                         <p>Total Ideas Validated</p>
                         <div className={styles.progressBar}>
-                            <div style={{ width: '75%' }}></div>
-                        </div>
+  <div style={{ width: `${stats?.growthPercentage || 0}%` }}></div>
+</div>
                         <p className={styles.sidebarFooter}>Join 5,000+ founders active this month.</p>
                     </div>
 
