@@ -1,4 +1,4 @@
-/* Light/Dark variables */
+/* Light mode (default) */
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
@@ -13,20 +13,19 @@
   --toast-text: #ffffff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0b1120;
-    --foreground: #f8fafc;
-    --card-background: #111827;
-    --muted-foreground: #94a3b8;
-    --border: #1e293b;
-    --accent: #2563eb;
-    --accent-hover: #1d4ed8;
-    --sidebar-bg: #1e293b;
-    --glow: rgba(59, 130, 246, 0.3);
-    --toast-bg: #1e293b;
-    --toast-text: #f8fafc;
-  }
+/* Dark mode – activated when <html> has class "dark" */
+html.dark {
+  --background: #0b1120;
+  --foreground: #f8fafc;
+  --card-background: #111827;
+  --muted-foreground: #94a3b8;
+  --border: #1e293b;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --sidebar-bg: #1e293b;
+  --glow: rgba(59, 130, 246, 0.3);
+  --toast-bg: #1e293b;
+  --toast-text: #f8fafc;
 }
 
 .container {
