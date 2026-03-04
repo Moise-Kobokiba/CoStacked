@@ -136,8 +136,9 @@ const fetchStats = async () => {
                         <div className={styles.progressBar}>
   <div style={{ width: `${stats?.growthPercentage || 0}%` }}></div>
 </div>
-                        <p className={styles.sidebarFooter}>Join 5,000+ founders active this month.</p>
-                    </div>
+                        <p className={styles.sidebarFooter}>
+  Join {stats ? stats.activeFounders.toLocaleString() : '...'} founders active this month.
+</p>
 
                     <div className={styles.tipsCard}>
                         <h4>💡 VALIDATION TIPS</h4>
