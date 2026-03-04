@@ -54,7 +54,7 @@ export const InfoHubPage = () => {
     const body = encodeURIComponent(
       "Hi CoStacked Team,\n\nI would like to suggest a resource for the Info Hub.\n\nResource Title:\nLink/Details:\nCategory:"
     );
-    window.location.href = `mailto:hello@costacked.co.za?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:info@costacked.co.za?subject=${subject}&body=${body}`;
     setShowSubmitSuccess(true);
     setTimeout(() => setShowSubmitSuccess(false), 3000);
   };
