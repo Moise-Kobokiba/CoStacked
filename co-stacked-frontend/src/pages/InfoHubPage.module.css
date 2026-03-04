@@ -41,34 +41,74 @@
   color: var(--muted-foreground) !important;
 }
 
-/* --- Icons Fix --- */
-
-/* If your clock/eye icons are disappearing, this ensures they follow the text color */
-.sidebar svg {
-  stroke: var(--muted-foreground);
-  fill: none;
+/* --- Global Body & Container Fixes --- */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
-/* Target the badge/pill specifically */
-.fundamentals-badge, 
+/* Fixes the sidebar/card background and main text visibility */
+.sidebar, 
+.sidebar-container, 
+.featured-guides,
+.card { 
+  background-color: var(--sidebar-bg) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border);
+}
+
+/* --- Heading Fixes --- */
+/* Ensures "The Complete App Launch..." titles switch to light text in dark mode */
+.sidebar h2, 
+.sidebar h3, 
+.card-title,
+[class*="title"] {
+  color: var(--foreground) !important;
+}
+
+/* --- Metadata Fixes --- */
+/* Ensures "8 min read", dates, and views are visible grey */
+.sidebar .metadata, 
+.sidebar p, 
+.sidebar span:not(.fundamentals-tag) {
+  color: var(--muted-foreground) !important;
+}
+
+/* --- THE FUNDAMENTALS BADGE FIX --- */
+/* This forces the text to be DARK SLATE (#0f172a) so it shows up on the white pill */
+.fundamentals-tag,
 [class*="Fundamentals"],
 .badge-pill {
-  /* Use the dark navy color from your Light Mode variables */
   color: #0f172a !important; 
-  
-  /* Ensure it stays bold and uppercase like the image */
-  font-weight: 700;
+  font-weight: 700 !important;
   text-transform: uppercase;
   font-size: 0.7rem;
-  letter-spacing: 0.05em;
 }
 
-/* If you want the blue accent color instead, use this: */
-/*
-.fundamentals-badge {
+/* --- READ MORE & ACCENT FIXES --- */
+/* Makes "Read More" and the arrow blue (#2563eb) */
+.read-more,
+.read-more-link,
+.read-more span {
   color: var(--accent) !important;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
 }
-*/
+
+/* Ensures the SVG arrow icon specifically turns blue */
+.read-more svg,
+.read-more path {
+  fill: var(--accent) !important;
+  stroke: var(--accent) !important;
+}
+
+.read-more:hover {
+  color: var(--accent-hover) !important;
+}
+
 
 
 .container {
