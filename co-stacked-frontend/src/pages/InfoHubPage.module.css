@@ -1,4 +1,4 @@
-/* Light/Dark variables */
+/* Light mode (default) */
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
@@ -13,8 +13,24 @@
   --toast-text: #ffffff;
 }
 
+/* Dark mode – activated when <html> has class "dark" */
+html.dark {
+  --background: #0b1120;
+  --foreground: #f8fafc;
+  --card-background: #111827;
+  --muted-foreground: #94a3b8;
+  --border: #1e293b;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --sidebar-bg: #1e293b;
+  --glow: rgba(59, 130, 246, 0.3);
+  --toast-bg: #1e293b;
+  --toast-text: #f8fafc;
+}
+
+/* Optional fallback to system preference if no class is set */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light):not(.dark) {
     --background: #0b1120;
     --foreground: #f8fafc;
     --card-background: #111827;
@@ -559,29 +575,53 @@
   }
 }
 
-/* --- Global Body Fix --- */
+/* --- Global Body & Sidebar Fix --- */
 body {
   background-color: var(--background);
   color: var(--foreground);
 }
 
-/* Apply the variables to the actual sidebar container */
-.sidebar, .sidebar-container { 
-  background-color: var(--sidebar-bg);
-  border-right: 1px solid var(--border);
-  color: var(--foreground);
+/* This targets the sidebar container and the cards shown in your image */
+.sidebar, 
+.sidebar-container, 
+.featured-guides-container,
+[class*="sidebar"] { 
+  background-color: var(--sidebar-bg) !important;
+  color: var(--foreground) !important;
+  border-color: var(--border);
 }
 
-/* Fix for the specific text inside the sidebar */
+/* --- Specific Text Fixes --- */
+
+/* Fixes the Main Titles (e.g., "The Complete App Launch...") */
+.sidebar h1, 
 .sidebar h2, 
 .sidebar h3, 
-.sidebar p,
-.sidebar a {
-  color: var(--foreground);
+.sidebar h4,
+.sidebar-title {
+  color: var(--foreground) !important;
 }
 
-/* Fix for the smaller metadata text (read time, views) */
+/* Fixes the Category Labels (e.g., "FUNDAMENTALS") */
+.sidebar .category-label,
+.sidebar span[class*="label"] {
+  color: var(--accent);
+}
+
+/* Fixes the Metadata (e.g., "8 min read", "0 views") */
 .sidebar .metadata, 
-.sidebar span {
+.sidebar p, 
+.sidebar span,
+.sidebar div {
   color: var(--muted-foreground);
+}
+
+/* Ensure links are visible */
+.sidebar a {
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.sidebar a:hover {
+  color: var(--accent);
 }
