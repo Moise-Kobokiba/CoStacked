@@ -15,11 +15,18 @@ export const ValidationBoardPage = () => {
     const fetchIdeas = async () => {
         setLoading(true);
         try {
-            // Pass sort param based on filter
             const sort = filter === 'popular' ? 'popular' : 'newest';
-            // filter == 'active' is default status in backend
             const data = await getIdeas({ sort });
-            setIdeas(data);
+
+            // Enhance ideas with placeholder tags and likes to match the design
+            const enhanced = data.map(idea => ({
+                ...idea,
+                likes: idea.likes || Math.floor(idea.validationScore / 2) + 5,
+                tags: idea.tags || (idea.industry ? [idea.industry] : ['SaaS']),
+                phase: idea.phase || 'PROBLEM PHASE', // default phase if missing
+            }));
+
+            setIdeas(enhanced);
         } catch (error) {
             console.error('Error fetching ideas:', error);
         } finally {
@@ -29,76 +36,108 @@ export const ValidationBoardPage = () => {
 
     return (
         <div className={styles.container}>
+            {/* Header Section */}
             <div className={styles.header}>
                 <div className={styles.headerContent}>
-                    <div className={styles.headerBadge}>
-                        <span className={styles.badgeDot}></span>
-                        Community Driven
-                    </div>
                     <h1 className={styles.title}>Validation Board</h1>
                     <p className={styles.subtitle}>
-                        Get real feedback from founders and entrepreneurs before you build.
+                        Validate your ideas with the community and build something people want. Get feedback from experienced builders.
                     </p>
                 </div>
                 <Link to="/validation-board/create" className={styles.createBtn}>
-                    <svg className={styles.createIcon} width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                    Post an Idea
+                    <span className={styles.plusIcon}>+</span> Post Your Idea
                 </Link>
             </div>
 
-            <div className={styles.filters}>
-                <button
-                    className={`${styles.filterBtn} ${filter === 'active' ? styles.active : ''}`}
-                    onClick={() => setFilter('active')}
-                >
-                    Recent
-                </button>
-                <button
-                    className={`${styles.filterBtn} ${filter === 'popular' ? styles.active : ''}`}
-                    onClick={() => setFilter('popular')}
-                >
-                    Most Popular
-                </button>
-            </div>
+            {/* Main Content + Sidebar */}
+            <div className={styles.mainLayout}>
+                <div className={styles.contentColumn}>
+                    {/* Tabs */}
+                    <div className={styles.tabs}>
+                        {['All Ideas', 'Problem Validation', 'Solution Validation', 'MVP/Landing Page', 'My Posts'].map(tab => (
+                            <button
+                                key={tab}
+                                className={`${styles.tabBtn} ${tab === 'All Ideas' ? styles.tabActive : ''}`}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
 
-            {loading ? (
-                <div className={styles.loading}>Loading ideas...</div>
-            ) : (
-                <div className={styles.grid}>
-                    {ideas.length === 0 ? (
-                        <div className={styles.empty}>No ideas found. Be the first to post!</div>
+                    {/* Cards Grid */}
+                    {loading ? (
+                        <div className={styles.loading}>Loading ideas...</div>
                     ) : (
-                        ideas.map((idea) => (
-                            <Link to={`/validation-board/${idea._id}`} key={idea._id} className={styles.card}>
-                                <div className={styles.cardHeader}>
-                                    <span className={styles.industry}>{idea.industry || 'General'}</span>
-                                    <span className={styles.score}>
-                                        🔥 {idea.validationScore}
-                                    </span>
-                                </div>
-                                <h3>{idea.title}</h3>
-                                <p className={styles.problem}>{idea.problemStatement.substring(0, 100)}...</p>
+                        <div className={styles.grid}>
+                            {ideas.length === 0 ? (
+                                <div className={styles.empty}>No ideas found. Be the first to post!</div>
+                            ) : (
+                                ideas.map((idea) => (
+                                    <Link to={`/validation-board/${idea._id}`} key={idea._id} className={styles.card}>
+                                        <div className={styles.cardHeader}>
+                                            <span className={styles.phaseBadge}>{idea.phase}</span>
+                                            <div className={styles.confidence}>
+                                                <span className={styles.confValue}>{idea.validationScore}%</span>
+                                                <span className={styles.confLabel}>CONFIDENCE</span>
+                                            </div>
+                                        </div>
 
-                                <div className={styles.cardFooter}>
-                                    <div className={styles.author}>
-                                        {idea.founder?.avatarUrl ? (
-                                            <img src={idea.founder.avatarUrl} alt="avatar" />
-                                        ) : (
-                                            <div className={styles.avatarPlaceholder}>{idea.founder?.name?.charAt(0) || 'U'}</div>
-                                        )}
-                                        <span>{idea.founder?.name || 'Anonymous'}</span>
-                                    </div>
-                                    <div className={styles.stats}>
-                                        <span>💬 {idea.engagementCount || 0}</span>
-                                    </div>
-                                </div>
-                            </Link>
-                        ))
+                                        <h3 className={styles.cardTitle}>{idea.title}</h3>
+                                        <p className={styles.description}>
+                                            {idea.problemStatement.substring(0, 120)}...
+                                        </p>
+
+                                        <div className={styles.tagList}>
+                                            {idea.tags.map(tag => (
+                                                <span key={tag} className={styles.tag}>{tag}</span>
+                                            ))}
+                                        </div>
+
+                                        <div className={styles.cardFooter}>
+                                            <div className={styles.author}>
+                                                <img
+                                                    src={idea.founder?.avatarUrl || '/default-avatar.png'}
+                                                    alt="avatar"
+                                                />
+                                                <span className={styles.authorName}>
+                                                    {idea.founder?.name || 'Anonymous'}
+                                                </span>
+                                            </div>
+                                            <div className={styles.cardStats}>
+                                                <span>👍 {idea.likes}</span>
+                                                <span>💬 {idea.engagementCount || 0}</span>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))
+                            )}
+                        </div>
                     )}
                 </div>
-            )}
+
+                {/* Sidebar */}
+                <aside className={styles.sidebar}>
+                    <div className={styles.sidebarCard}>
+                        <h4>COMMUNITY STATS</h4>
+                        <div className={styles.statLarge}>1,240</div>
+                        <p>Total Ideas Validated</p>
+                        <div className={styles.progressBar}>
+                            <div style={{ width: '75%' }}></div>
+                        </div>
+                        <p className={styles.sidebarFooter}>Join 5,000+ founders active this month.</p>
+                    </div>
+
+                    <div className={styles.tipsCard}>
+                        <h4>💡 VALIDATION TIPS</h4>
+                        <ol>
+                            <li><strong>Define your ICP.</strong> Be specific about who has the problem.</li>
+                            <li><strong>Ask open questions.</strong> Don't lead the witness.</li>
+                            <li><strong>Iterate quickly.</strong> If people aren’t excited, tweak the pitch and repost.</li>
+                        </ol>
+                        <a href="#">Read full guide →</a>
+                    </div>
+                </aside>
+            </div>
         </div>
     );
 };
