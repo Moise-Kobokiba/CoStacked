@@ -158,14 +158,22 @@ const fetchTips = async () => {
 </p>
 
                     <div className={styles.tipsCard}>
-                        <h4>💡 VALIDATION TIPS</h4>
-                        <ol>
-                            <li><strong>Define your ICP.</strong> Be specific about who has the problem.</li>
-                            <li><strong>Ask open questions.</strong> Don't lead the witness.</li>
-                            <li><strong>Iterate quickly.</strong> If people aren’t excited, tweak the pitch and repost.</li>
-                        </ol>
-                        <a href="#">Read full guide →</a>
-                    </div>
+    <h4>💡 VALIDATION TIPS</h4>
+
+    {tipsLoading ? (
+        <p>Loading tips...</p>
+    ) : tips.length === 0 ? (
+        <p>No tips available.</p>
+    ) : (
+        <ol>
+            {tips.map(tip => (
+                <li key={tip._id}>
+                    <strong>{tip.title}</strong> {tip.content}
+                </li>
+            ))}
+        </ol>
+    )}
+</div>
                 </aside>
             </div>
         </div>
