@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { getIdeas } from '../api/ideasApi';
 import styles from './ValidationBoardPage.module.css';
 import { getCommunityStats } from '../api/statsApi';
+import { getValidationTips } from '../api/validationTipApi';
 
 export const ValidationBoardPage = () => {
     const [ideas, setIdeas] = useState([]);
