@@ -1,35 +1,55 @@
-/* Light/Dark variables – now properly separated */
-:root {
-  /* Light mode (default) */
-  --background: #ffffff;
-  --foreground: #0f172a;           /* dark text */
-  --card-background: #ffffff;
-  --muted-foreground: #4b5563;     /* darker grey for metadata */
-  --border: #e2e8f0;
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
-  --sidebar-bg: #f1f5f9;           /* light grey sidebar */
-  --glow: rgba(37, 99, 235, 0.15);
-  --toast-bg: #0f172a;
-  --toast-text: #ffffff;
+/* --- Global Body & Sidebar Fix --- */
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Dark mode overrides */
-    --background: #0b1120;
-    --foreground: #f8fafc;          /* light text */
-    --card-background: #111827;
-    --muted-foreground: #94a3b8;
-    --border: #1e293b;
-    --accent: #2563eb;
-    --accent-hover: #1d4ed8;
-    --sidebar-bg: #1e293b;          /* dark sidebar */
-    --glow: rgba(59, 130, 246, 0.3);
-    --toast-bg: #1e293b;
-    --toast-text: #f8fafc;
-  }
+/* This targets the sidebar container and the cards shown in your image */
+.sidebar, 
+.sidebar-container, 
+.featured-guides-container,
+[class*="sidebar"] { 
+  background-color: var(--sidebar-bg) !important;
+  color: var(--foreground) !important;
+  border-color: var(--border);
 }
+
+/* --- Specific Text Fixes --- */
+
+/* Fixes the Main Titles (e.g., "The Complete App Launch...") */
+.sidebar h1, 
+.sidebar h2, 
+.sidebar h3, 
+.sidebar h4,
+.sidebar-title {
+  color: var(--foreground) !important;
+}
+
+/* Fixes the Category Labels (e.g., "FUNDAMENTALS") */
+.sidebar .category-label,
+.sidebar span[class*="label"] {
+  color: var(--accent); /* This keeps them blue as seen in your image */
+}
+
+/* Fixes the Metadata (e.g., "8 min read", "0 views") */
+.sidebar .metadata, 
+.sidebar p, 
+.sidebar span,
+.sidebar div {
+  color: var(--muted-foreground);
+}
+
+/* Ensure links are visible */
+.sidebar a {
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.sidebar a:hover {
+  color: var(--accent);
+}
+
 
 .container {
   max-width: 1200px;
