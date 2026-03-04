@@ -49,6 +49,26 @@
   fill: none;
 }
 
+/* Target the badge/pill specifically */
+.fundamentals-badge, 
+[class*="Fundamentals"],
+.badge-pill {
+  /* Use the dark navy color from your Light Mode variables */
+  color: #0f172a !important; 
+  
+  /* Ensure it stays bold and uppercase like the image */
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+/* If you want the blue accent color instead, use this: */
+/*
+.fundamentals-badge {
+  color: var(--accent) !important;
+}
+*/
 
 
 .container {
