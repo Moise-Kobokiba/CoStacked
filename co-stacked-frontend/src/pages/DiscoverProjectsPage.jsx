@@ -1,3 +1,5 @@
+// src/pages/DiscoverProjectsPage.jsx
+
 import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProjects } from '../features/projects/projectsSlice';
@@ -27,13 +29,26 @@ export const DiscoverProjectsPage = () => {
 
     return [...allProjects]
       .filter(project => {
-        const matchesStage = activeFilter === 'All Stages' || project.stage === activeFilter;
+        // Stage / Equity filter
+        let matchesStage = true;
+        if (activeFilter !== 'All Stages') {
+          if (activeFilter === 'Equity Only') {
+            matchesStage = project.compensation?.toLowerCase().includes('equity') ?? false;
+          } else {
+            matchesStage = project.stage === activeFilter;
+          }
+        }
+
+        // Search (title or skills)
         const searchLower = searchQuery.toLowerCase();
-        const locationLower = locationQuery.toLowerCase();
         const matchesSearch =
           project.title.toLowerCase().includes(searchLower) ||
           (project.skillsNeeded && project.skillsNeeded.some(skill => skill.toLowerCase().includes(searchLower)));
+
+        // Location
+        const locationLower = locationQuery.toLowerCase();
         const matchesLocation = project.location ? project.location.toLowerCase().includes(locationLower) : true;
+
         return matchesStage && matchesSearch && matchesLocation;
       })
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
