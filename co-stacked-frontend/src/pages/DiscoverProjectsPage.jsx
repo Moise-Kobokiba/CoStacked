@@ -1,10 +1,8 @@
-// src/pages/DiscoverProjectsPage.jsx
-
 import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProjects } from '../features/projects/projectsSlice';
 import { ProjectCard } from '../components/shared/ProjectCard';
-import { CombinedSearchInput } from '../components/shared/CombinedSearchInput';
+import { Search } from 'lucide-react'; // For the search icon
 import styles from './DiscoverProjectsPage.module.css';
 
 const LoadingSpinner = () => <div className={styles.loader}>Loading projects...</div>;
@@ -15,7 +13,6 @@ export const DiscoverProjectsPage = () => {
   const { items: allProjects = [], status, error } = useSelector((state) => state.projects || {});
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [locationQuery, setLocationQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All Stages');
 
   useEffect(() => {
@@ -29,7 +26,7 @@ export const DiscoverProjectsPage = () => {
 
     return [...allProjects]
       .filter(project => {
-        // Stage / Equity filter
+        // Filter by stage / equity
         let matchesStage = true;
         if (activeFilter !== 'All Stages') {
           if (activeFilter === 'Equity Only') {
@@ -39,20 +36,16 @@ export const DiscoverProjectsPage = () => {
           }
         }
 
-        // Search (title or skills)
+        // Filter by search query (title or skills)
         const searchLower = searchQuery.toLowerCase();
         const matchesSearch =
           project.title.toLowerCase().includes(searchLower) ||
           (project.skillsNeeded && project.skillsNeeded.some(skill => skill.toLowerCase().includes(searchLower)));
 
-        // Location
-        const locationLower = locationQuery.toLowerCase();
-        const matchesLocation = project.location ? project.location.toLowerCase().includes(locationLower) : true;
-
-        return matchesStage && matchesSearch && matchesLocation;
+        return matchesStage && matchesSearch;
       })
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [allProjects, searchQuery, locationQuery, activeFilter]);
+  }, [allProjects, searchQuery, activeFilter]);
 
   const stages = ['All Stages', 'Ideation', 'MVP Phase', 'Scaling', 'Fully Funded', 'Equity Only'];
 
@@ -68,20 +61,16 @@ export const DiscoverProjectsPage = () => {
 
         <div className={styles.searchSection}>
           <div className={styles.searchWrapper}>
-            <CombinedSearchInput
-              searchValue={searchQuery}
-              onSearchChange={(e) => setSearchQuery(e.target.value)}
-              locationValue={locationQuery}
-              onLocationChange={(e) => setLocationQuery(e.target.value)}
-              searchPlaceholder="Search by project name, skills, or founders..."
-              locationPlaceholder="e.g., Cape Town, WC or Remote"
+            <input
+              type="text"
+              placeholder="Search by project name, skills, or founders..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchInput}
             />
             <button className={styles.searchBtn}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              Search Projects
+              <Search size={18} />
+              <span>Search Projects</span>
             </button>
           </div>
 
