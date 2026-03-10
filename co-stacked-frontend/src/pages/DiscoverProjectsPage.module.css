@@ -1,167 +1,107 @@
 .pageContainer {
-  max-width: 1280px;
-  margin: 0 auto;
+  background-color: #f8fafc; /* Subtle grey background like Image 2 */
+  min-height: 100vh;
   padding: 4rem 2rem;
-  background-color: #fcfcfc;
 }
 
-.headerText {
-  text-align: left;
-  margin-bottom: 2.5rem;
+.header {
+  text-align: left; /* Changed from center to match Image 2 */
+  max-width: 1200px;
+  margin: 0 auto 3rem auto;
 }
 
 .title {
-  font-size: 2.5rem;
-  font-weight: 800;
+  font-size: 3rem;
+  font-weight: 850;
   color: #0f172a;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.75rem;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
 }
 
 .subtitle {
-  font-size: 1.15rem;
+  font-size: 1.125rem;
   color: #64748b;
-  max-width: 800px;
+  margin-bottom: 2.5rem;
 }
 
-/* Search bar area */
-.searchWrapper {
+/* Unified Search Bar styling */
+.filtersWrapper {
   display: flex;
   gap: 1rem;
-  margin-bottom: 2rem;
-  align-items: center;
-}
-
-.searchInput {
-  flex: 1;
-  padding: 0.75rem 1rem;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  outline: none;
-  transition: border-color 0.2s;
-  height: 48px;
-  box-sizing: border-box;
+  max-width: 100%;
+  margin-bottom: 2rem;
 }
 
-.searchInput:focus {
-  border-color: #0f2a52;
-}
-
-.searchBtn {
-  background-color: #0f2a52;
+.searchButton {
+  background-color: #1e3a8a;
   color: white;
-  padding: 0 1.5rem;
+  border: none;
+  padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  border: none;
   cursor: pointer;
   white-space: nowrap;
-  height: 48px;
-  transition: background-color 0.2s;
 }
 
-.searchBtn:hover {
-  background-color: #1e3a8a;
-}
-
-/* Filter pills */
-.filterPills {
+/* Stage Filter Row */
+.filterRow {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
-  margin-bottom: 3rem;
 }
 
 .filterLabel {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #94a3b8;
-  letter-spacing: 0.05em;
+  color: #64748b;
+  text-transform: uppercase;
   margin-right: 0.5rem;
 }
 
-.pill, .pillActive {
+.filterPill {
   padding: 0.5rem 1.25rem;
   border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: white;
   font-size: 0.875rem;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  background: none;
-}
-
-.pill {
-  background: white;
-  border: 1px solid #e2e8f0;
   color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.pillActive {
-  background: #0f2a52;
-  border: 1px solid #0f2a52;
+.activePill {
+  background: #1e3a8a;
   color: white;
+  border-color: #1e3a8a;
 }
 
-/* Grid layout */
+.mainContent {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 2rem;
 }
 
-.mainContent {
-  margin-top: 2rem;
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #1e293b;
 }
 
-/* Pagination */
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 4rem;
-}
-
-.pageItem {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  background: white;
-  color: #475569;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.pageItem:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-}
-
-.pageDots {
-  color: #64748b;
-  padding: 0 0.25rem;
-}
-
-/* Existing loader/error styles */
-.loader, .error, .noResults {
+.loader, .noResults {
   text-align: center;
-  padding: 4rem 0;
-}
-
-.error {
-  color: hsl(0, 70%, 50%);
-  background-color: hsl(0, 80%, 97%);
-  border: 1px solid hsl(0, 70%, 80%);
-  border-radius: var(--radius);
+  padding: 5rem 0;
+  color: #64748b;
 }
