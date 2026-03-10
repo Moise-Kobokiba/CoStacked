@@ -1,29 +1,39 @@
-import { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { deleteInterest } from '../../features/interests/interestsSlice';
-import PropTypes from 'prop-types';
-import { Card } from './Card';
-import { Tag } from './Tag';
-import { Button } from './Button';
-import { ConfirmationModal } from './ConfirmationModal';
-import styles from './ProjectCard.module.css';
-import { MessageSquare, XCircle, Rocket, ArrowRight } from 'lucide-react';
-import { VerificationBadge } from './VerificationBadge';
+import { useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { deleteInterest } from '../../features/interests/interestsSlice'
+import PropTypes from 'prop-types'
+import { Card } from './Card'
+import { Tag } from './Tag'
+import { Button } from './Button'
+import { ConfirmationModal } from './ConfirmationModal'
+import styles from './ProjectCard.module.css'
+
+import { MessageSquare, XCircle, Rocket } from 'lucide-react'
+import { VerificationBadge } from './VerificationBadge'
 
 export const ProjectCard = ({ project, connection }) => {
-  const dispatch = useDispatch();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const dispatch = useDispatch()
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const handleDeleteClick = () => setIsModalOpen(true);
+  const handleDeleteClick = () => {
+    setIsModalOpen(true)
+  }
+
   const confirmDelete = () => {
-    if (connection) dispatch(deleteInterest(connection._id));
-    setIsModalOpen(false);
-  };
+    if (connection) {
+      dispatch(deleteInterest(connection._id))
+    }
+    setIsModalOpen(false)
+  }
 
-  if (!project) return null;
+  if (!project) return null
 
-  const isBoostedActive = project.isBoosted && new Date(project.boostExpiresAt) > new Date();
-  const skills = Array.isArray(project.skillsNeeded) ? project.skillsNeeded : [];
+  const isBoostedActive =
+    project.isBoosted && new Date(project.boostExpiresAt) > new Date()
+
+  const skills = Array.isArray(project.skillsNeeded)
+    ? project.skillsNeeded
+    : []
 
   return (
     <>
@@ -32,81 +42,129 @@ export const ProjectCard = ({ project, connection }) => {
         onClose={() => setIsModalOpen(false)}
         onConfirm={confirmDelete}
         title="Cut Connection"
-        message={`Are you sure you want to end your collaboration on "${project.title}"?`}
+        message={`Are you sure you want to end your collaboration on "${project.title}"? This cannot be undone.`}
         confirmText="Yes, Cut Connection"
       />
 
-      <Card isInteractive={true} className={`${styles.card} ${isBoostedActive ? styles.boostedCard : ''}`}>
-        {/* Image header with stage badge */}
+      <Card
+        isInteractive={true}
+        className={`${styles.card} ${
+          isBoostedActive ? styles.boostedCard : ''
+        }`}
+      >
+        {/* CARD IMAGE HEADER */}
+
         <div className={styles.imageHeader}>
           <img
-            src={project.imageUrl || '/api/placeholder/400/200'}
+            src={
+              project.coverImage ||
+              'https://images.unsplash.com/photo-1551288049-bebda4e38f71'
+            }
             alt={project.title}
-            className={styles.projectImage}
           />
-          <div className={styles.imageOverlay} />
-          <span className={styles.stageBadge}>{project.stage?.toUpperCase() || 'IDEATION'}</span>
+
+          {project.stage && (
+            <span className={styles.stageBadge}>
+              {project.stage}
+            </span>
+          )}
 
           {isBoostedActive && (
             <div className={styles.boostBadge}>
-              <Rocket size={12} />
-              <span>FEATURED</span>
+              <Rocket size={14} />
+              <span>Featured</span>
             </div>
           )}
         </div>
 
         <div className={styles.contentWrapper}>
-          {/* Founder row */}
-          <div className={styles.founderRow}>
-            <div className={styles.avatarPlaceholder}>
-              {project.founder?.charAt(0) || 'F'}
-            </div>
-            <div className={styles.founderText}>
-              <span className={styles.metaLabel}>FOUNDER</span>
-              <p className={styles.founderName}>
-                {project.founder || 'Anonymous'}
-                {project.founderId?.isVerified && <VerificationBadge size={12} />}
-              </p>
-            </div>
-          </div>
+          <h3 className={styles.title}>
+            {project.title || 'Untitled Project'}
+          </h3>
 
-          <h3 className={styles.title}>{project.title}</h3>
-          <p className={styles.description}>{project.description}</p>
+          <p className={styles.description}>
+            {project.description || 'No description provided.'}
+          </p>
 
-          {/* Skills tags (max 3) */}
+          {/* SKILLS */}
+
           <div className={styles.tagsContainer}>
-            {skills.slice(0, 3).map((skill) => (
-              <Tag key={skill} className={styles.customTag}>{skill}</Tag>
-            ))}
+            {skills.length > 0 ? (
+              skills.slice(0, 4).map((skill) => (
+                <Tag key={skill}>{skill}</Tag>
+              ))
+            ) : (
+              <p className={styles.noSkills}>No skills listed</p>
+            )}
           </div>
 
-          {/* Footer with compensation and action */}
-          <div className={styles.footer}>
-            <div className={styles.compensationBlock}>
-              <span className={styles.metaLabel}>COMPENSATION</span>
-              <p className={styles.compValue}>{project.compensation || 'Equity'}</p>
-            </div>
+          {/* DETAILS */}
 
-            {connection ? (
-              <div className={styles.actionGroup}>
-                <Button variant="secondary" to="/messages" className={styles.iconBtn}>
-                  <MessageSquare size={18} />
-                </Button>
-                <Button onClick={handleDeleteClick} className={styles.iconBtnDanger}>
-                  <XCircle size={18} />
-                </Button>
+          <div className={styles.detailsList}>
+            <p className={styles.detailItem}>
+              <span className={styles.detailLabel}>
+                Compensation
+              </span>
+
+              <span className={styles.compensation}>
+                {project.compensation || 'N/A'}
+              </span>
+            </p>
+
+            <div className={styles.founderRow}>
+              <div className={styles.founderAvatar}>
+                {project.founder?.charAt(0) || 'F'}
               </div>
+
+              <div className={styles.founderInfo}>
+                <span className={styles.founderName}>
+                  {project.founder || 'Founder'}
+                </span>
+
+                {project.founderId?.isVerified && (
+                  <VerificationBadge size={14} />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* FOOTER */}
+
+          <div className={styles.footer}>
+            {connection ? (
+              <>
+                <Button
+                  variant="secondary"
+                  to="/messages"
+                  className={styles.actionButton}
+                >
+                  <MessageSquare size={16} />
+                  <span>Message</span>
+                </Button>
+
+                <Button
+                  onClick={handleDeleteClick}
+                  className={`${styles.actionButton} ${styles.disconnectButton}`}
+                >
+                  <XCircle size={16} />
+                  <span>Disconnect</span>
+                </Button>
+              </>
             ) : (
-              <Button variant="ghost" to={`/projects/${project._id}`} className={styles.viewDetailsLink}>
-                View Details <ArrowRight size={16} />
+              <Button
+                variant="primary"
+                to={`/projects/${project._id}`}
+                className={styles.viewDetailsButton}
+              >
+                View Details
               </Button>
             )}
           </div>
         </div>
       </Card>
     </>
-  );
-};
+  )
+}
 
 ProjectCard.propTypes = {
   project: PropTypes.shape({
@@ -117,10 +175,9 @@ ProjectCard.propTypes = {
     compensation: PropTypes.string,
     stage: PropTypes.string,
     founder: PropTypes.string,
-    founderId: PropTypes.shape({ isVerified: PropTypes.bool }),
     isBoosted: PropTypes.bool,
     boostExpiresAt: PropTypes.string,
-    imageUrl: PropTypes.string,
+    coverImage: PropTypes.string
   }).isRequired,
-  connection: PropTypes.object,
-};
+  connection: PropTypes.object
+}
