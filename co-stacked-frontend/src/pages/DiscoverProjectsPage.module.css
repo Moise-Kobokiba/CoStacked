@@ -1,103 +1,158 @@
 /* src/pages/DiscoverProjectsPage.module.css */
 
-/* 1. The full-width outer container.
-   It lets the body's background color show through and handles vertical spacing. */
 .pageContainer {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 3rem 1rem;
+  padding: 4rem 2rem;
+  background-color: #fcfcfc;
 }
 
-/* 2. The centered inner container for all content.
-   It sets the maximum width and centers itself on the page. */
-.contentWrapper {
-  max-width: 1200px;
-  margin: 0 auto;
-  /* Horizontal padding prevents content from touching screen edges */
-  padding: 0 2rem; 
-}
-
-/* 3. Header section containing the title and filters */
-.header h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: var(--foreground);
-  letter-spacing: -0.05em;
+.headerText {
+  text-align: left;
   margin-bottom: 2.5rem;
 }
 
-/* 4. Styles for the filter controls container (search bar and dropdowns) */
-.filters {
-  display: grid;
-  /* A 3-column layout: Search takes twice the space of the selects */
-  grid-template-columns: 2fr 1fr 1fr; 
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
-}
-
-/* 5. The grid for displaying all the project cards */
-.projectsGrid {
-  display: grid;
-  /* Creates a responsive grid of cards that adjust to screen size */
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-}
-.header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
 .title {
   font-size: 2.5rem;
   font-weight: 800;
-  margin-bottom: 2rem;
-}
-/* Main content area */
-.mainContent {
-  display: flex;
-  flex-direction: column;
-  gap: 4rem; /* Space between sections */
-}
-.sectionTitle {
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 0.75rem;
-}
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-}
-.noResults {
-  text-align: center;
-  color: var(--muted-foreground);
-  font-size: 1.1rem;
-  padding: 3rem 0;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
 }
 
 .subtitle {
-  font-size: 1.1rem;
-  color: var(--muted-foreground);
-  max-width: 600px;
-  margin: 0 auto;
+  font-size: 1.15rem;
+  color: #64748b;
+  max-width: 800px;
 }
-.loader {
-  font-size: 1.2rem;
-  color: var(--muted-foreground);
+
+/* Search bar area */
+.searchWrapper {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  align-items: center;
+}
+
+/* The CombinedSearchInput already has its own styles, but we can ensure it takes available space */
+.searchWrapper > :first-child {
+  flex: 1;
+}
+
+.searchBtn {
+  background-color: #0f2a52;
+  color: white;
+  padding: 0 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  height: 48px; /* match input height */
+  transition: background-color 0.2s;
+}
+
+.searchBtn:hover {
+  background-color: #1e3a8a;
+}
+
+/* Filter pills */
+.filterPills {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 3rem;
+}
+
+.filterLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  margin-right: 0.5rem;
+}
+
+.pill, .pillActive {
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+}
+
+.pill {
+  background: white;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.pillActive {
+  background: #0f2a52;
+  border: 1px solid #0f2a52;
+  color: white;
+}
+
+/* Grid layout */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 2rem;
+}
+
+.mainContent {
+  margin-top: 2rem;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 4rem;
+}
+
+.pageItem {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  color: #475569;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pageItem:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.pageDots {
+  color: #64748b;
+  padding: 0 0.25rem;
+}
+
+/* Existing loader/error styles */
+.loader, .error, .noResults {
   text-align: center;
   padding: 4rem 0;
 }
+
 .error {
   color: hsl(0, 70%, 50%);
   background-color: hsl(0, 80%, 97%);
   border: 1px solid hsl(0, 70%, 80%);
   border-radius: var(--radius);
-  padding: 1rem;
-  text-align: center;
-  font-weight: 500;
-}
-
-.latestSection {
-  margin-top: 2rem; /* Adds space between the carousel and the grid */
 }
