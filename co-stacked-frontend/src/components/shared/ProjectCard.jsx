@@ -1,5 +1,3 @@
-// src/components/shared/ProjectCard.jsx
-
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { deleteInterest } from '../../features/interests/interestsSlice';
@@ -47,7 +45,7 @@ export const ProjectCard = ({ project, connection }) => {
             className={styles.projectImage}
           />
           <div className={styles.imageOverlay} />
-          <span className={styles.stageBadge}>{project.stage || 'IDEATION'}</span>
+          <span className={styles.stageBadge}>{project.stage?.toUpperCase() || 'IDEATION'}</span>
 
           {isBoostedActive && (
             <div className={styles.boostBadge}>
