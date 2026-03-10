@@ -9,29 +9,22 @@ import { Tag } from './Tag';
 import { Button } from './Button';
 import { ConfirmationModal } from './ConfirmationModal';
 import styles from './ProjectCard.module.css';
-// --- 1. IMPORT ICONS ---
-import { MessageSquare, XCircle, Rocket } from 'lucide-react';
+import { MessageSquare, XCircle, Rocket, ArrowRight } from 'lucide-react';
 import { VerificationBadge } from './VerificationBadge';
 
 export const ProjectCard = ({ project, connection }) => {
   const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleDeleteClick = () => {
-    setIsModalOpen(true);
-  };
+  const handleDeleteClick = () => setIsModalOpen(true);
   const confirmDelete = () => {
-    if (connection) {
-      dispatch(deleteInterest(connection._id));
-    }
+    if (connection) dispatch(deleteInterest(connection._id));
     setIsModalOpen(false);
   };
-  
+
   if (!project) return null;
 
-  // --- 2. DETERMINE if the boost is currently active ---
   const isBoostedActive = project.isBoosted && new Date(project.boostExpiresAt) > new Date();
-
   const skills = Array.isArray(project.skillsNeeded) ? project.skillsNeeded : [];
 
   return (
@@ -41,73 +34,82 @@ export const ProjectCard = ({ project, connection }) => {
         onClose={() => setIsModalOpen(false)}
         onConfirm={confirmDelete}
         title="Cut Connection"
-        message={`Are you sure you want to end your collaboration on "${project.title}"? This cannot be undone.`}
+        message={`Are you sure you want to end your collaboration on "${project.title}"?`}
         confirmText="Yes, Cut Connection"
       />
-      {/* --- 3. CONDITIONALLY apply the .boostedCard style --- */}
+
       <Card isInteractive={true} className={`${styles.card} ${isBoostedActive ? styles.boostedCard : ''}`}>
-        {/* --- 4. CONDITIONALLY render the "Featured" badge --- */}
-        {isBoostedActive && (
-          <div className={styles.boostBadge}>
-            <Rocket size={14} />
-            <span>Featured</span>
-          </div>
-        )}
+        {/* Image header with stage badge */}
+        <div className={styles.imageHeader}>
+          <img
+            src={project.imageUrl || '/api/placeholder/400/200'}
+            alt={project.title}
+            className={styles.projectImage}
+          />
+          <div className={styles.imageOverlay} />
+          <span className={styles.stageBadge}>{project.stage || 'IDEATION'}</span>
+
+          {isBoostedActive && (
+            <div className={styles.boostBadge}>
+              <Rocket size={12} />
+              <span>FEATURED</span>
+            </div>
+          )}
+        </div>
 
         <div className={styles.contentWrapper}>
-            <h3 className={styles.title}>{project.title || 'Untitled Project'}</h3>
-            <p className={styles.description}>{project.description || 'No description provided.'}</p>
-            <div>
-              <h4 className={styles.skillsTitle}>Skills Needed</h4>
-              <div className={styles.tagsContainer}>
-                {skills.length > 0 ? (
-                    skills.map((skill) => <Tag key={skill}>{skill}</Tag>)
-                ) : (
-                    <p className={styles.noSkills}>No specific skills listed.</p>
-                )}
-              </div>
+          {/* Founder row */}
+          <div className={styles.founderRow}>
+            <div className={styles.avatarPlaceholder}>
+              {project.founder?.charAt(0) || 'F'}
             </div>
-            <div className={styles.detailsList}>
-              <p className={styles.detailItem}><span className={styles.detailLabel}>Compensation:</span> {project.compensation || 'N/A'}</p>
-              <p className={styles.detailItem}><span className={styles.detailLabel}>Stage:</span> {project.stage || 'N/A'}</p>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Founder:</span> 
-                <span className={styles.detailValue}>
-                  {project.founder || 'N/A'}
-                  {project.founderId?.isVerified && <VerificationBadge size={14} />}
-                </span>
-              </div>
+            <div className={styles.founderText}>
+              <span className={styles.metaLabel}>FOUNDER</span>
+              <p className={styles.founderName}>
+                {project.founder || 'Anonymous'}
+                {project.founderId?.isVerified && <VerificationBadge size={12} />}
+              </p>
             </div>
-        
-            {/* --- REFACTORED FOOTER LOGIC --- */}
-            <div className={styles.footer}>
-              {connection ? (
-                // If there's a connection object, show developer actions
-                <>
-                  <Button variant="secondary" to="/messages" className={styles.actionButton}>
-                      <MessageSquare size={16} />
-                      <span>Message</span>
-                  </Button>
-                  <Button onClick={handleDeleteClick} className={`${styles.actionButton} ${styles.disconnectButton}`}>
-                      <XCircle size={16} />
-                      <span>Disconnect</span>
-                  </Button>
-                </>
-              ) : (
-                // Otherwise (on Discover page), show a single, clear call-to-action
-                <Button variant="primary" to={`/projects/${project._id}`} className={styles.viewDetailsButton}>
-                  View Details & Connect
+          </div>
+
+          <h3 className={styles.title}>{project.title}</h3>
+          <p className={styles.description}>{project.description}</p>
+
+          {/* Skills tags (max 3) */}
+          <div className={styles.tagsContainer}>
+            {skills.slice(0, 3).map((skill) => (
+              <Tag key={skill} className={styles.customTag}>{skill}</Tag>
+            ))}
+          </div>
+
+          {/* Footer with compensation and action */}
+          <div className={styles.footer}>
+            <div className={styles.compensationBlock}>
+              <span className={styles.metaLabel}>COMPENSATION</span>
+              <p className={styles.compValue}>{project.compensation || 'Equity'}</p>
+            </div>
+
+            {connection ? (
+              <div className={styles.actionGroup}>
+                <Button variant="secondary" to="/messages" className={styles.iconBtn}>
+                  <MessageSquare size={18} />
                 </Button>
-              )}
-            </div>
-            {/* --- END REFACTORED FOOTER --- */}
+                <Button onClick={handleDeleteClick} className={styles.iconBtnDanger}>
+                  <XCircle size={18} />
+                </Button>
+              </div>
+            ) : (
+              <Button variant="ghost" to={`/projects/${project._id}`} className={styles.viewDetailsLink}>
+                View Details <ArrowRight size={16} />
+              </Button>
+            )}
+          </div>
         </div>
       </Card>
     </>
   );
 };
 
-// --- 5. UPDATE PropTypes to include the new boosting fields ---
 ProjectCard.propTypes = {
   project: PropTypes.shape({
     _id: PropTypes.string.isRequired,
@@ -117,8 +119,10 @@ ProjectCard.propTypes = {
     compensation: PropTypes.string,
     stage: PropTypes.string,
     founder: PropTypes.string,
+    founderId: PropTypes.shape({ isVerified: PropTypes.bool }),
     isBoosted: PropTypes.bool,
     boostExpiresAt: PropTypes.string,
+    imageUrl: PropTypes.string,
   }).isRequired,
   connection: PropTypes.object,
 };
