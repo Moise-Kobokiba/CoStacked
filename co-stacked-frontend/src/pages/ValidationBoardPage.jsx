@@ -9,41 +9,45 @@ export const ValidationBoardPage = () => {
     const [ideas, setIdeas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('active'); // active, newest, popular
-     const [totalIdeas, setTotalIdeas] = useState(0);
-const [activeFounders, setActiveFounders] = useState(0);
-const [tips, setTips] = useState([]);
-const [progressPercent, setProgressPercent] = useState(0);
-const [stats, setStats] = useState(null);
+    const [totalIdeas, setTotalIdeas] = useState(0);
+    const [activeFounders, setActiveFounders] = useState(0);
+    const [tips, setTips] = useState([]);
+    const [tipsLoading, setTipsLoading] = useState(true);
+    const [progressPercent, setProgressPercent] = useState(0);
+    const [stats, setStats] = useState(null);
 
     useEffect(() => {
-    fetchIdeas();
-    fetchStats();
-    fetchTips();
-}, [filter]);
+        fetchIdeas();
+        fetchStats();
+        fetchTips();
+    }, [filter]);
 
-const fetchStats = async () => {
-    try {
-        const data = await getCommunityStats();
-        setStats(data);
-    } catch (error) {
-        console.error('Error fetching stats:', error);
-    }
-};
+    const fetchStats = async () => {
+        try {
+            const data = await getCommunityStats();
+            setStats(data);
+        } catch (error) {
+            console.error('Error fetching stats:', error);
+        }
+    };
 
-const [tips, setTips] = useState([]);
-const [tipsLoading, setTipsLoading] = useState(true);
+    const fetchTips = async () => {
+        try {
+            setTipsLoading(true);
+            const data = await getValidationTips();
+            setTips(data);
+        } catch (error) {
+            console.error('Error fetching tips:', error);
+        } finally {
+            setTipsLoading(false);
+        }
+    };
 
-const fetchTips = async () => {
-  try {
-    setTipsLoading(true);
-    const data = await getValidationTips();
-    setTips(data);
-  } catch (error) {
-    console.error('Error fetching tips:', error);
-  } finally {
-    setTipsLoading(false);
-  }
-};
+    const fetchIdeas = async () => {
+        setLoading(true);
+        try {
+            const sort = filter === 'popular' ? 'popular' : 'newest';
+            const data = await getIdeas({ sort });
 
             // Enhance ideas with placeholder tags and likes to match the design
             const enhanced = data.map(idea => ({
@@ -147,33 +151,34 @@ const fetchTips = async () => {
                     <div className={styles.sidebarCard}>
                         <h4>COMMUNITY STATS</h4>
                         <div className={styles.statLarge}>
-  {stats ? stats.totalIdeas.toLocaleString() : '...'}
-</div>
+                            {stats ? stats.totalIdeas.toLocaleString() : '...'}
+                        </div>
                         <p>Total Ideas Validated</p>
                         <div className={styles.progressBar}>
-  <div style={{ width: `${stats?.growthPercentage || 0}%` }}></div>
-</div>
+                            <div style={{ width: `${stats?.growthPercentage || 0}%` }}></div>
+                        </div>
                         <p className={styles.sidebarFooter}>
-  Join {stats ? stats.activeFounders.toLocaleString() : '...'} founders active this month.
-</p>
+                            Join {stats ? stats.activeFounders.toLocaleString() : '...'} founders active this month.
+                        </p>
+                    </div>
 
                     <div className={styles.tipsCard}>
-    <h4>💡 VALIDATION TIPS</h4>
+                        <h4>💡 VALIDATION TIPS</h4>
 
-    {tipsLoading ? (
-        <p>Loading tips...</p>
-    ) : tips.length === 0 ? (
-        <p>No tips available.</p>
-    ) : (
-        <ol>
-            {tips.map(tip => (
-                <li key={tip._id}>
-                    <strong>{tip.title}</strong> {tip.content}
-                </li>
-            ))}
-        </ol>
-    )}
-</div>
+                        {tipsLoading ? (
+                            <p>Loading tips...</p>
+                        ) : tips.length === 0 ? (
+                            <p>No tips available.</p>
+                        ) : (
+                            <ol>
+                                {tips.map(tip => (
+                                    <li key={tip._id}>
+                                        <strong>{tip.title}</strong> {tip.content}
+                                    </li>
+                                ))}
+                            </ol>
+                        )}
+                    </div>
                 </aside>
             </div>
         </div>
