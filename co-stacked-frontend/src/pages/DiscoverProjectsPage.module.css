@@ -1,116 +1,93 @@
-/* PAGE CONTAINER */
+/* src/pages/DiscoverProjectsPage.module.css */
 
+/* 1. The full-width outer container.
+   It lets the body's background color show through and handles vertical spacing. */
 .pageContainer {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 3rem 1rem 4rem 1rem;
+  padding: 3rem 1rem;
 }
 
-/* HEADER / HERO */
+/* 2. The centered inner container for all content.
+   It sets the maximum width and centers itself on the page. */
+.contentWrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  /* Horizontal padding prevents content from touching screen edges */
+  padding: 0 2rem; 
+}
 
+/* 3. Header section containing the title and filters */
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--foreground);
+  letter-spacing: -0.05em;
+  margin-bottom: 2.5rem;
+}
+
+/* 4. Styles for the filter controls container (search bar and dropdowns) */
+.filters {
+  display: grid;
+  /* A 3-column layout: Search takes twice the space of the selects */
+  grid-template-columns: 2fr 1fr 1fr; 
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+/* 5. The grid for displaying all the project cards */
+.projectsGrid {
+  display: grid;
+  /* Creates a responsive grid of cards that adjust to screen size */
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
 .header {
   text-align: center;
   margin-bottom: 3rem;
 }
-
 .title {
-  font-size: 2.7rem;
+  font-size: 2.5rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--foreground);
-  margin-bottom: 0.5rem;
+  margin-bottom: 2rem;
+}
+/* Main content area */
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4rem; /* Space between sections */
+}
+.sectionTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+.noResults {
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 1.1rem;
+  padding: 3rem 0;
 }
 
 .subtitle {
   font-size: 1.1rem;
   color: var(--muted-foreground);
-  max-width: 640px;
-  margin: 0 auto 2rem auto;
+  max-width: 600px;
+  margin: 0 auto;
 }
-
-/* SEARCH BAR */
-
-.filtersWrapper {
-  max-width: 900px;
-  margin: 0 auto 1.5rem auto;
-}
-
-/* FILTER CHIPS */
-
-.filterBar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: .75rem;
-  margin-bottom: 2rem;
-}
-
-.filterChip {
-  padding: .45rem .9rem;
-  border-radius: 999px;
-  font-size: .85rem;
-  border: 1px solid var(--border);
-  background: var(--background);
-  cursor: pointer;
-  transition: all .15s ease;
-}
-
-.filterChip:hover {
-  background: var(--muted);
-}
-
-.activeChip {
-  background: #1e3a5f;
-  color: white;
-  border: none;
-}
-
-/* MAIN CONTENT */
-
-.mainContent {
-  display: flex;
-  flex-direction: column;
-  gap: 3rem;
-}
-
-/* SECTION TITLES */
-
-.sectionTitle {
-  font-size: 1.65rem;
-  font-weight: 700;
-  margin-bottom: 1.2rem;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: .6rem;
-}
-
-/* GRID */
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 1.6rem;
-}
-
-.latestSection {
-  margin-top: 1rem;
-}
-
-/* STATES */
-
 .loader {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  color: var(--muted-foreground);
   text-align: center;
   padding: 4rem 0;
-  color: var(--muted-foreground);
 }
-
-.noResults {
-  text-align: center;
-  color: var(--muted-foreground);
-  font-size: 1rem;
-  padding: 3rem 0;
-}
-
 .error {
   color: hsl(0, 70%, 50%);
   background-color: hsl(0, 80%, 97%);
@@ -121,30 +98,6 @@
   font-weight: 500;
 }
 
-/* PAGINATION */
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 3rem;
-  gap: .5rem;
-}
-
-.pageButton {
-  border: 1px solid var(--border);
-  padding: .4rem .7rem;
-  border-radius: 6px;
-  background: var(--background);
-  cursor: pointer;
-  font-size: .9rem;
-}
-
-.pageButton:hover {
-  background: var(--muted);
-}
-
-.activePage {
-  background: #1e3a5f;
-  color: white;
-  border: none;
+.latestSection {
+  margin-top: 2rem; /* Adds space between the carousel and the grid */
 }
