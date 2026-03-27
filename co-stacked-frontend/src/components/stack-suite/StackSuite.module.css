@@ -30,6 +30,14 @@
   background: var(--input-background);
   color: var(--foreground);
   border: none;
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .avatarSm {
@@ -203,8 +211,6 @@
 /* ===========================
    COMMENT THREAD
 =========================== */
-.commentThread {}
-
 .commentInput {
   background: var(--card-background);
   border: 1px solid var(--border);

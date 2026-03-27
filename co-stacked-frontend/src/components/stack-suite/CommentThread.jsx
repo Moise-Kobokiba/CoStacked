@@ -82,7 +82,11 @@ function SingleComment({ comment, depth = 0, onReplySubmit, parentType, parentId
       <div className={styles.commentItem}>
         <div style={{ display: 'flex', gap: 12 }}>
           <div className={`${styles.avatar} ${styles.avatarMd}`}>
-            {authorInitials}
+            {comment.author?.avatarUrl ? (
+              <img src={comment.author.avatarUrl} alt={authorName} />
+            ) : (
+              authorInitials
+            )}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className={styles.commentHeader}>

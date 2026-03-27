@@ -140,7 +140,13 @@ function ShowcaseDetail({ showcaseId, onBack }) {
             <div style={{ background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, marginBottom: 24 }}>
               <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Makers</h4>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div className={`${styles.avatar} ${styles.avatarLg}`}>{showcase.founder?.name ? showcase.founder.name.slice(0,2).toUpperCase() : 'U'}</div>
+                <div className={`${styles.avatar} ${styles.avatarLg}`}>
+                  {showcase.founder?.avatarUrl ? (
+                    <img src={showcase.founder.avatarUrl} alt={showcase.founder.name} />
+                  ) : (
+                    showcase.founder?.name ? showcase.founder.name.slice(0, 2).toUpperCase() : 'U'
+                  )}
+                </div>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--foreground)' }}>{showcase.founder?.name || 'Unknown'}</div>
                   <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{showcase.founder?.role || 'Founder'}</div>
@@ -312,7 +318,11 @@ export function ShowcasesTab({ search, stage }) {
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <div className={styles.avatarGroup} style={{ marginRight: -10 }}>
                     <div className={`${styles.avatar} ${styles.avatarSm}`} style={{ border: '2px solid var(--card-background)' }}>
-                      {showcase.founder?.name ? showcase.founder.name.slice(0,2).toUpperCase() : 'U'}
+                      {showcase.founder?.avatarUrl ? (
+                        <img src={showcase.founder.avatarUrl} alt={showcase.founder.name} />
+                      ) : (
+                        showcase.founder?.name ? showcase.founder.name.slice(0, 2).toUpperCase() : 'U'
+                      )}
                     </div>
                   </div>
                   {showcase.teamSize > 1 && (

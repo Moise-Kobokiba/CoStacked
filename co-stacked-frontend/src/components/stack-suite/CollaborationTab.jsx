@@ -90,7 +90,13 @@ function ThreadDetail({ threadId, onBack }) {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             {thread.team?.map((member, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--input-background)', padding: '6px 12px', borderRadius: 10 }}>
-                <div className={`${styles.avatar} ${styles.avatarSm}`}>{member.name ? member.name.slice(0, 2).toUpperCase() : 'U'}</div>
+                <div className={`${styles.avatar} ${styles.avatarSm}`}>
+                  {member.avatarUrl ? (
+                    <img src={member.avatarUrl} alt={member.name} />
+                  ) : (
+                    member.name ? member.name.slice(0, 2).toUpperCase() : 'U'
+                  )}
+                </div>
                 <div>
                   <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--foreground)' }}>{member.name || 'Unknown'}</p>
                   <p style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>{member.role || 'Member'}</p>
@@ -199,7 +205,11 @@ export function CollaborationTab({ search }) {
                       {thread.team?.slice(0, 3).map((member, i) => (
                         <div key={i} className={`${styles.avatar} ${styles.avatarSm}`}
                           style={{ border: '2px solid var(--card-background)', marginLeft: i > 0 ? -8 : 0 }}>
-                          {member.name ? member.name.slice(0, 2).toUpperCase() : 'U'}
+                          {member.avatarUrl ? (
+                            <img src={member.avatarUrl} alt={member.name} />
+                          ) : (
+                            member.name ? member.name.slice(0, 2).toUpperCase() : 'U'
+                          )}
                         </div>
                       ))}
                     </div>

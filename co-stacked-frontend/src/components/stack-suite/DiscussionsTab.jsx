@@ -125,7 +125,13 @@ function DiscussionDetail({ discussionId, onBack }) {
         </h1>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-          <div className={`${styles.avatar} ${styles.avatarLg}`}>{initials}</div>
+          <div className={`${styles.avatar} ${styles.avatarLg}`}>
+            {discussion.author?.avatarUrl ? (
+              <img src={discussion.author.avatarUrl} alt={discussion.author.name} />
+            ) : (
+              initials
+            )}
+          </div>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)' }}>{discussion.author?.name || 'Unknown User'}</span>
@@ -326,7 +332,11 @@ export function DiscussionsTab({ search, category }) {
               <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div className={`${styles.avatar} ${styles.avatarSm}`}>
-                    {post.author?.name ? post.author.name.slice(0, 2).toUpperCase() : 'U'}
+                    {post.author?.avatarUrl ? (
+                      <img src={post.author.avatarUrl} alt={post.author.name} />
+                    ) : (
+                      post.author?.name ? post.author.name.slice(0, 2).toUpperCase() : 'U'
+                    )}
                   </div>
                   <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--foreground)' }}>{post.author?.name || 'Unknown'}</span>
                   <span className={`${styles.badge} ${roleBadgeClass[post.author?.role] || styles.badgeDeveloper}`} style={{ fontSize: 10 }}>{post.author?.role || 'Developer'}</span>
