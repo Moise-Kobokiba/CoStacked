@@ -430,9 +430,39 @@ const deleteComment = async (req, res) => {
     if (!comment) return res.status(404).json({ message: 'Comment not found' });
     if (comment.author.toString() !== req.user._id.toString())
       return res.status(401).json({ message: 'Not authorized' });
+
+    // Mark comment as deleted
     comment.isDeleted = true;
     await comment.save();
-    res.json({ message: 'Comment deleted' });
+
+    // Identify parent models
+    const Model = comment.parentType === 'post' ? StackPost
+      : comment.parentType === 'showcase' ? Showcase
+      : CollabThread;
+
+    let totalDeleted = 1;
+
+    // If it was a top-level comment, logically delete its replies too
+    if (!comment.parentComment) {
+      const replies = await StackComment.find({ 
+        parentComment: comment._id, 
+        isDeleted: false 
+      });
+      if (replies.length > 0) {
+        totalDeleted += replies.length;
+        await StackComment.updateMany(
+          { _id: { $in: replies.map(r => r._id) } },
+          { isDeleted: true }
+        );
+      }
+    }
+
+    // Decrement count on parent
+    await Model.findByIdAndUpdate(comment.parentId, { 
+      $inc: { commentCount: -totalDeleted } 
+    });
+
+    res.json({ message: 'Comment deleted', totalDeleted });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
