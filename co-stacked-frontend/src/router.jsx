@@ -40,6 +40,7 @@ import { ArticleDetailPage } from "./pages/ArticleDetailPage";
 import { ValidationBoardPage } from "./pages/ValidationBoardPage";
 import { IdeaDetailPage } from "./pages/IdeaDetailPage";
 import { CreateIdeaPage } from "./pages/CreateIdeaPage";
+import { StackSuitePage } from "./pages/StackSuitePage";
 
 export const router = createBrowserRouter([
   {
@@ -63,10 +64,11 @@ export const router = createBrowserRouter([
       { path: "terms", element: <TermsOfServicePage /> },
       { path: "info-hub", element: <InfoHubPage /> },
       { path: "info-hub/:slug", element: <ArticleDetailPage /> },
-      { path: "auth/callback", element: <OAuthCallback /> }, // OAuth callback route
-      { path: "onboarding", element: <OnboardingPage /> }, // Onboarding for OAuth users
+      { path: "auth/callback", element: <OAuthCallback /> },
+      { path: "onboarding", element: <OnboardingPage /> },
       { path: "validation-board", element: <ValidationBoardPage /> },
       { path: "validation-board/:id", element: <IdeaDetailPage /> },
+      { path: "stack-suite", element: <StackSuitePage /> },
 
       // --- PROTECTED CHILDREN ROUTES ---
       {

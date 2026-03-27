@@ -66,6 +66,7 @@ export const Header = () => {
   const navigationLinks = [
     { label: 'Discover', path: '/projects' },
     { label: 'Validation Board', path: '/validation-board' },
+    { label: 'Stack Suite', path: '/stack-suite' },
     { label: 'Find Talent', path: '/users' },
     ...(isAuthenticated ? [{ label: 'Messages', path: '/messages' }] : [])
   ];

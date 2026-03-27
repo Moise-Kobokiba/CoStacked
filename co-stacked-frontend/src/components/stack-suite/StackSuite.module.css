@@ -1,0 +1,434 @@
+/* src/components/stack-suite/StackSuite.module.css */
+
+/* ===========================
+   SHARED CARD
+=========================== */
+.card {
+  background: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  border-color: rgba(79, 70, 229, 0.3);
+  box-shadow: var(--shadow-md);
+}
+
+/* ===========================
+   AVATAR
+=========================== */
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: var(--input-background);
+  color: var(--foreground);
+  border: none;
+}
+
+.avatarSm {
+  width: 28px;
+  height: 28px;
+  font-size: 10px;
+}
+
+.avatarMd {
+  width: 32px;
+  height: 32px;
+  font-size: 11px;
+}
+
+.avatarLg {
+  width: 36px;
+  height: 36px;
+  font-size: 12px;
+}
+
+.avatarPrimary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* ===========================
+   BADGE
+=========================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Category colour variants */
+.badgeValidation { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+.badgeTech       { background: #e0f2fe; color: #0c4a6e; border-color: #bae6fd; }
+.badgeEquity     { background: #d1fae5; color: #064e3b; border-color: #a7f3d0; }
+.badgeGrowth     { background: #ffe4e6; color: #9f1239; border-color: #fecdd3; }
+.badgeLegal      { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+.badgeGeneral    { background: var(--input-background); color: var(--muted-foreground); border-color: var(--border); }
+.badgePrimary    { background: rgba(79,70,229,0.08); color: var(--primary); border-color: rgba(79,70,229,0.2); }
+.badgePinned     { background: rgba(79,70,229,0.05); color: var(--primary); border-color: rgba(79,70,229,0.2); }
+
+/* Stage colour variants */
+.badgeIdea     { background: #f3e8ff; color: #6b21a8; border-color: #d8b4fe; }
+.badgeMvp      { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+.badgeBeta     { background: #e0f2fe; color: #0c4a6e; border-color: #bae6fd; }
+.badgeLaunched { background: #d1fae5; color: #064e3b; border-color: #a7f3d0; }
+
+/* Role variants */
+.badgeFounder   { background: rgba(79,70,229,0.08); color: var(--primary); border-color: rgba(79,70,229,0.2); }
+.badgeDeveloper { background: #f0f9ff; color: #0369a1; border-color: #bae6fd; }
+.badgeDesigner  { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+.badgeMentor    { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+
+/* Progress variants */
+.badgeCompleted   { background: #d1fae5; color: #064e3b; border-color: #a7f3d0; }
+.badgeInProgress  { background: #e0f2fe; color: #0c4a6e; border-color: #bae6fd; }
+.badgeNeedsReview { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+
+/* ===========================
+   UPVOTE BUTTON
+=========================== */
+.upvoteBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--input-background);
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.upvoteBtn:hover,
+.upvoteBtnActive {
+  border-color: rgba(79,70,229,0.4);
+  background: rgba(79,70,229,0.08);
+  color: var(--primary);
+}
+
+.upvoteBtnActive {
+  border-color: rgba(79,70,229,0.4);
+  background: rgba(79,70,229,0.08);
+  color: var(--primary);
+}
+
+/* small variant used on cards */
+.upvoteBtnSm {
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 7px;
+}
+
+/* ===========================
+   ICON BUTTON
+=========================== */
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.iconBtn:hover {
+  background: var(--input-background);
+  color: var(--foreground);
+}
+
+.iconBtnActive {
+  background: #fefce8;
+  color: #d97706;
+}
+
+/* ===========================
+   TECH / TAG CHIP
+=========================== */
+.chip {
+  display: inline-block;
+  background: var(--input-background);
+  color: var(--muted-foreground);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.chipPrimary {
+  background: rgba(79,70,229,0.05);
+  border: 1px solid rgba(79,70,229,0.2);
+  color: var(--primary);
+}
+
+/* ===========================
+   BACK BUTTON
+=========================== */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  margin-bottom: 24px;
+}
+
+.backBtn:hover { color: var(--foreground); }
+
+/* ===========================
+   COMMENT THREAD
+=========================== */
+.commentThread {}
+
+.commentInput {
+  background: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.commentInput:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+}
+
+.commentInputBody {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+}
+
+.commentInputBody textarea {
+  flex: 1;
+  resize: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: var(--foreground);
+  min-height: 60px;
+}
+
+.commentInputBody textarea::placeholder {
+  color: var(--muted-foreground);
+}
+
+.commentInputFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.commentInputFooter span {
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+.commentList {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+}
+
+.commentItem {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.commentItem:last-child { border-bottom: none; }
+
+.commentNested {
+  margin-left: 24px;
+  padding-left: 16px;
+  border-left: 2px solid var(--border);
+}
+
+.commentHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.commentAuthor {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.commentTime {
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+.commentBody {
+  font-size: 13px;
+  color: var(--foreground);
+  opacity: 0.9;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.commentActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.commentActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.commentActionBtn:hover {
+  background: var(--input-background);
+  color: var(--foreground);
+}
+
+.commentActionBtnActive {
+  background: rgba(79,70,229,0.08);
+  color: var(--primary);
+}
+
+.commentActionBtnLikedActive {
+  background: #fff1f2;
+  color: #e11d48;
+}
+
+.replyForm {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.replyInputWrap {
+  flex: 1;
+  background: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.replyInputWrap:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+}
+
+.replyTextarea {
+  display: block;
+  width: 100%;
+  resize: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--foreground);
+}
+
+.replyTextarea::placeholder { color: var(--muted-foreground); }
+
+.replyActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+}
+
+/* ===========================
+   SHARED BUTTON STYLES
+=========================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.btnPrimary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.btnPrimary:hover { background: var(--primary-hover); }
+
+.btnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnOutline {
+  background: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.btnOutline:hover { background: var(--input-background); }
+
+.btnGhost {
+  background: transparent;
+  color: var(--muted-foreground);
+  border: none;
+}
+
+.btnGhost:hover {
+  background: var(--input-background);
+  color: var(--foreground);
+}
+
+.btnSm {
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 6px;
+  gap: 4px;
+}
