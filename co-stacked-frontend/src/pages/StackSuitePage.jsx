@@ -77,65 +77,98 @@ export function StackSuitePage() {
     setCollabDesc('');
   };
 
-  const handleError = (error) => {
+  const handleError = (error, contextAction) => {
+    console.error(`[${contextAction}] Mutation ERROR!`, error);
     alert(`Failed to publish: ${error.response?.data?.message || error.message}`);
   };
 
   const createPostMutation = useMutation({
-    mutationFn: (data) => createStackPost(data),
-    onSuccess: () => {
+    mutationFn: (data) => {
+      console.log("[createPostMutation] Calling API with data:", data);
+      return createStackPost(data);
+    },
+    onMutate: () => console.log("[createPostMutation] Starting..."),
+    onSuccess: (res) => {
+      console.log("[createPostMutation] SUCCESS!", res);
       queryClient.invalidateQueries(['stackPosts']);
       setPostSubmitted(true);
       setTimeout(closeCreate, 1500);
     },
-    onError: handleError
+    onError: (err) => handleError(err, 'createPostMutation')
   });
 
   const createShowcaseMutation = useMutation({
-    mutationFn: (data) => createShowcase(data),
-    onSuccess: () => {
+    mutationFn: (data) => {
+      console.log("[createShowcaseMutation] Calling API with data:", data);
+      return createShowcase(data);
+    },
+    onMutate: () => console.log("[createShowcaseMutation] Starting..."),
+    onSuccess: (res) => {
+      console.log("[createShowcaseMutation] SUCCESS!", res);
       queryClient.invalidateQueries(['showcases']);
       setPostSubmitted(true);
       setTimeout(closeCreate, 1500);
     },
-    onError: handleError
+    onError: (err) => handleError(err, 'createShowcaseMutation')
   });
 
   const createCollabMutation = useMutation({
-    mutationFn: (data) => createCollabThread(data),
-    onSuccess: () => {
+    mutationFn: (data) => {
+      console.log("[createCollabMutation] Calling API with data:", data);
+      return createCollabThread(data);
+    },
+    onMutate: () => console.log("[createCollabMutation] Starting..."),
+    onSuccess: (res) => {
+      console.log("[createCollabMutation] SUCCESS!", res);
       queryClient.invalidateQueries(['threads']);
       setPostSubmitted(true);
       setTimeout(closeCreate, 1500);
     },
-    onError: handleError
+    onError: (err) => handleError(err, 'createCollabMutation')
   });
 
-  const handleCreateSubmit = () => {
+  const handleCreateSubmit = (e) => {
+    if (e) e.preventDefault();
+    console.log("=== SUBMIT INITIATED ===", { activeTab });
+
     if (activeTab === 'discussions') {
-      if (!postTitle.trim() || !postBody.trim()) return;
-      createPostMutation.mutate({
+      console.log("Checking discussion validation...", { postTitle, postBody });
+      if (!postTitle.trim() || !postBody.trim()) {
+        console.warn("Validation failed: Title or body is empty");
+        return;
+      }
+      const payload = {
         title: postTitle,
         body: postBody,
         category: postCategory,
         tags: postTags.split(',').map(t => t.trim()).filter(Boolean)
-      });
+      };
+      console.log("Dispatching Discussion Payload:", payload);
+      createPostMutation.mutate(payload);
+
     } else if (activeTab === 'showcases') {
+      console.log("Checking showcase validation...");
       if (!showcaseName.trim() || !showcaseDesc.trim()) return;
-      createShowcaseMutation.mutate({
+      const payload = {
         name: showcaseName,
         description: showcaseDesc,
         stage: showcaseStage,
         techStack: showcaseTech.split(',').map(t => t.trim()).filter(Boolean),
         looking: showcaseLooking.split(',').map(t => t.trim()).filter(Boolean)
-      });
+      };
+      console.log("Dispatching Showcase Payload:", payload);
+      createShowcaseMutation.mutate(payload);
+
     } else if (activeTab === 'collaboration') {
+      console.log("Checking collaboration validation...");
       if (!collabProject.trim() || !collabMilestone.trim() || !collabDesc.trim()) return;
-      createCollabMutation.mutate({
+      const payload = {
         project: collabProject,
         milestone: collabMilestone,
         description: collabDesc
-      });
+      };
+      console.log("Dispatching Collab Payload:", payload);
+      createCollabMutation.mutate(payload);
     }
   };
 
