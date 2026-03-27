@@ -25,6 +25,10 @@ require('./models/Transaction');
 require('./models/TempRegistration');
 require('./models/Article');
 require('./models/Idea');
+require('./models/StackPost');
+require('./models/Showcase');
+require('./models/CollabThread');
+require('./models/StackComment');
 
 // Start the subscription renewal cron job
 startSubscriptionCron();
@@ -87,6 +91,7 @@ const authRoutes = require('./routes/authRoutes');
 const emailRoutes = require('./routes/emailRoutes');
 const articleRoutes = require('./routes/articleRoutes');
 const ideaRoutes = require('./routes/ideaRoutes');
+const stackSuiteRoutes = require('./routes/stackSuiteRoutes');
 
 // Mount API routes
 app.use('/api/email', emailRoutes);
@@ -96,15 +101,16 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/interests', interestRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reports', reportRoutes);
-app.use('/api/payments', paymentRoutes); 
+app.use('/api/payments', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/connections', connectionRoutes);
-app.use('/api/conversations', conversationRoutes); // <-- MOUNT NEW ROUTE
+app.use('/api/conversations', conversationRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/ideas', ideaRoutes);
 app.use('/api/validation-tips', validationTipRoutes);
+app.use('/api/stack-suite', stackSuiteRoutes);
 
 // --- 6. DEFAULT ROUTE ---
 app.get('/', (req, res) => res.send('API is running successfully...'));

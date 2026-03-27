@@ -1,204 +1,331 @@
 // src/components/stack-suite/ShowcasesTab.jsx
 
 import { useState } from 'react';
-import { ArrowBigUp, MessageSquare, Handshake, ArrowLeft, Users, Calendar } from 'lucide-react';
+import { ArrowBigUp, MessageSquare, ArrowLeft, Bookmark, Share2, ExternalLink, Calendar, Code, Users, Target, Globe, Rocket, Loader2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getShowcases, upvoteShowcase, getStackComments } from '../../api/stackSuiteApi';
 import { CommentThread } from './CommentThread';
 import styles from './StackSuite.module.css';
 
-const stageBadgeClass = {
-  Idea:     styles.badgeIdea,
-  MVP:      styles.badgeMvp,
-  Beta:     styles.badgeBeta,
-  Launched: styles.badgeLaunched,
+const stageColorMap = {
+  Idea:       { bg: '#E0F2FE', text: '#0284C7' },  // Blue
+  MVP:        { bg: '#FEF3C7', text: '#D97706' },  // Amber
+  Beta:       { bg: '#F1F5F9', text: '#475569' },  // Slate
+  Launched:   { bg: '#DCFCE7', text: '#16A34A' },  // Green
 };
-
-/* Gradient pairs mapped via CSS vars compatible backgrounds */
-const gradients = {
-  'from-primary/10 to-amber-50':   'linear-gradient(135deg, rgba(79,70,229,0.08), #fffbeb)',
-  'from-emerald-50 to-sky-50':     'linear-gradient(135deg, #ecfdf5, #f0f9ff)',
-  'from-sky-50 to-violet-50':      'linear-gradient(135deg, #f0f9ff, #f5f3ff)',
-  'from-rose-50 to-primary/10':    'linear-gradient(135deg, #fff1f2, rgba(79,70,229,0.08))',
-  'from-amber-50 to-emerald-50':   'linear-gradient(135deg, #fffbeb, #ecfdf5)',
-  'from-violet-50 to-rose-50':     'linear-gradient(135deg, #f5f3ff, #fff1f2)',
-};
-
-const showcases = [
-  { id: 1, name: "PayFlex", description: "Split payments made simple for South African freelancers and small businesses.", longDescription: "PayFlex is building the Stripe for South Africa's gig economy. We enable freelancers and SMEs to accept split payments, automate invoicing, and manage cash flow - all from a single dashboard. Currently processing R2.3M in monthly transactions across 340 active merchants.\n\nWe're integrating with major SA banks for instant EFT settlements and building a mobile-first experience for merchants who run their businesses from their phones.", stage: "MVP", techStack: ["Next.js", "Supabase", "Stripe"], upvotes: 156, comments: 23, gradient: 'from-primary/10 to-amber-50', icon: "PF", founder: "Thando M.", founderInitials: "TM", teamSize: 3, launched: "Jan 2026", looking: ["Backend Developer", "Design Partner"], threadComments: [{ id: 1001, author: "Sipho K.", initials: "SK", role: "Developer", content: "Really impressive transaction volume for an MVP! How are you handling the reconciliation with SA banks?", time: "4h ago", upvotes: 12, likes: 7, replies: [{ id: 1002, author: "Thando M.", initials: "TM", role: "Founder", content: "Great question! We're using Stitch for bank integrations. Their webhook reliability is solid, but we had to build a custom reconciliation queue for edge cases.", time: "3h ago", upvotes: 8, likes: 5, replies: [] }] }, { id: 1003, author: "Naledi P.", initials: "NP", role: "Founder", content: "Love the focus on mobile-first for merchants. Have you considered adding WhatsApp invoicing?", time: "2h ago", upvotes: 15, likes: 10, replies: [] }] },
-  { id: 2, name: "FarmLink", description: "Connecting small-scale farmers directly with urban restaurants and markets.", longDescription: "FarmLink eliminates middlemen in the SA fresh produce supply chain. Small-scale farmers in Limpopo, KZN, and Eastern Cape can list their produce and connect directly with restaurants, hotels, and market traders in Joburg and Cape Town.\n\nWe handle logistics through partnerships with existing transport networks. Currently onboarding 120 farmers and 45 restaurant partners.", stage: "Beta", techStack: ["React Native", "Node.js", "PostgreSQL"], upvotes: 203, comments: 41, gradient: 'from-emerald-50 to-sky-50', icon: "FL", founder: "Naledi P.", founderInitials: "NP", teamSize: 5, launched: "Nov 2025", looking: ["Mobile Developer", "Logistics Partner"], threadComments: [{ id: 2001, author: "Kgosi R.", initials: "KR", role: "Founder", content: "The minibus taxi logistics angle is genius. How do you handle cold chain requirements for perishables?", time: "8h ago", upvotes: 19, likes: 11, replies: [] }] },
-  { id: 3, name: "StudyPal AI", description: "AI-powered study companion for South African university students.", longDescription: "StudyPal AI generates personalized study plans, practice questions, and explanations tailored to South African university curricula. We support content for all major SA universities.\n\nOur AI tutor understands the local curriculum structure. Currently 8,200 active students with a 73% weekly retention rate.", stage: "Launched", techStack: ["Next.js", "OpenAI", "Vercel"], upvotes: 312, comments: 67, gradient: 'from-sky-50 to-violet-50', icon: "SP", founder: "Zanele N.", founderInitials: "ZN", teamSize: 4, launched: "Aug 2025", looking: ["Content Creator", "University Partnerships"], threadComments: [{ id: 3001, author: "Amara D.", initials: "AD", role: "Developer", content: "73% weekly retention is outstanding for an education app. What's driving that engagement?", time: "6h ago", upvotes: 22, likes: 14, replies: [{ id: 3002, author: "Zanele N.", initials: "ZN", role: "Founder", content: "Honestly, it's the daily streak + the AI tutor combo. Students get addicted to their streak.", time: "5h ago", upvotes: 16, likes: 9, replies: [] }] }] },
-  { id: 4, name: "TaxiTrack", description: "Real-time minibus taxi tracking and payment platform for commuters.", longDescription: "TaxiTrack brings ride-hailing visibility to the minibus taxi industry. Commuters can see real-time taxi locations, estimated arrival times, and pay via mobile money or card.\n\nPiloting in Soweto with 25 taxis. Target: 200 taxis across Gauteng by Q2 2026.", stage: "Idea", techStack: ["Flutter", "Firebase", "Maps API"], upvotes: 89, comments: 15, gradient: 'from-rose-50 to-primary/10', icon: "TT", founder: "Kgosi R.", founderInitials: "KR", teamSize: 2, launched: "Feb 2026", looking: ["Flutter Developer", "Taxi Association Contacts"], threadComments: [{ id: 4001, author: "Sipho K.", initials: "SK", role: "Developer", content: "This could be massive if you crack the taxi association relationships. Have you spoken to SANTACO yet?", time: "1d ago", upvotes: 14, likes: 8, replies: [] }] },
-  { id: 5, name: "LoadShield", description: "Smart load-shedding management for homes and small businesses.", longDescription: "LoadShield combines IoT sensors with predictive algorithms to help homes and businesses optimize their energy usage during load-shedding. Currently in beta with 50 devices deployed across Johannesburg. Average users save 30% on backup power costs.", stage: "MVP", techStack: ["Python", "IoT", "React"], upvotes: 178, comments: 34, gradient: 'from-amber-50 to-emerald-50', icon: "LS", founder: "Amara D.", founderInitials: "AD", teamSize: 3, launched: "Dec 2025", looking: ["IoT Engineer", "Hardware Partners"], threadComments: [{ id: 5001, author: "Thando M.", initials: "TM", role: "Founder", content: "30% savings is a strong value prop. What's the unit economics looking like? Hardware + subscription model?", time: "2d ago", upvotes: 11, likes: 6, replies: [] }] },
-  { id: 6, name: "AfriLearn", description: "Micro-learning platform delivering skills training in local languages.", longDescription: "AfriLearn delivers bite-sized skills training in isiZulu, isiXhosa, Afrikaans, Sesotho, and English. Courses cover digital literacy, financial skills, and vocational training. 15,000 registered learners across 6 provinces.", stage: "Beta", techStack: ["Next.js", "Prisma", "AWS"], upvotes: 245, comments: 52, gradient: 'from-violet-50 to-rose-50', icon: "AL", founder: "Zanele N.", founderInitials: "ZN", teamSize: 6, launched: "Sep 2025", looking: ["Language Consultants", "NGO Partners"], threadComments: [{ id: 6001, author: "Naledi P.", initials: "NP", role: "Founder", content: "The low-bandwidth design is so important for reaching rural communities. Are the lessons available offline too?", time: "3d ago", upvotes: 18, likes: 12, replies: [{ id: 6002, author: "Zanele N.", initials: "ZN", role: "Founder", content: "Yes! Offline mode was our #1 feature request. Learners can download entire course modules over WiFi and complete them offline. Progress syncs when they reconnect.", time: "3d ago", upvotes: 13, likes: 9, replies: [] }] }] },
-];
 
 /* ─────────── Detail View ─────────── */
-function ShowcaseDetail({ project, onBack }) {
-  const [upvoted, setUpvoted]         = useState(false);
-  const [upvoteCount, setUpvoteCount] = useState(project.upvotes);
+function ShowcaseDetail({ showcaseId, onBack }) {
+  const queryClient = useQueryClient();
+  const [bookmarked, setBookmarked] = useState(false);
+
+  const { data: showcase, isLoading } = useQuery({
+    queryKey: ['showcase', showcaseId],
+    queryFn: () => getShowcases().then(items => items.find(i => i._id === showcaseId)),
+  });
+
+  const { data: comments = [], isLoading: commentsLoading } = useQuery({
+    queryKey: ['stackComments', 'showcase', showcaseId],
+    queryFn: () => getStackComments('showcase', showcaseId),
+    enabled: !!showcaseId,
+  });
+
+  const upvoteMutation = useMutation({
+    mutationFn: (id) => upvoteShowcase(id),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries(['showcase', id]);
+      const prev = queryClient.getQueryData(['showcase', id]);
+      if (prev) {
+        queryClient.setQueryData(['showcase', id], {
+          ...prev,
+          upvoteCount: prev.isUpvoted ? prev.upvoteCount - 1 : prev.upvoteCount + 1,
+          isUpvoted: !prev.isUpvoted,
+        });
+      }
+      return { prev };
+    },
+    onError: (err, id, context) => queryClient.setQueryData(['showcase', id], context.prev),
+    onSettled: (id) => {
+      queryClient.invalidateQueries(['showcase', id]);
+      queryClient.invalidateQueries(['showcases']);
+    }
+  });
+
+  if (isLoading || !showcase) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0', color: 'var(--muted-foreground)' }}>
+        <Loader2 className={styles.spinner} size={24} style={{ animation: 'spin 1s linear infinite' }} />
+      </div>
+    );
+  }
+
+  const stageStyle = stageColorMap[showcase.stage] || stageColorMap.Idea;
 
   return (
-    <div style={{ maxWidth: 768, margin: '0 auto' }}>
+    <div style={{ maxWidth: 900, margin: '0 auto' }}>
       <button className={styles.backBtn} onClick={onBack}>
         <ArrowLeft size={16} /> Back to Showcases
       </button>
 
-      <article className={styles.card} style={{ overflow: 'hidden' }}>
-        {/* Gradient hero */}
-        <div style={{ height: 176, display: 'flex', alignItems: 'center', justifyContent: 'center', background: gradients[project.gradient] || 'var(--input-background)' }}>
-          <div style={{ width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 16, background: 'var(--card-background)', fontSize: 22, fontWeight: 700, color: 'var(--foreground)', boxShadow: 'var(--shadow-md)' }}>
-            {project.icon}
-          </div>
-        </div>
-
-        <div style={{ padding: 24 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--foreground)' }}>{project.name}</h1>
-            <span className={`${styles.badge} ${stageBadgeClass[project.stage]}`}>{project.stage}</span>
-          </div>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20, fontSize: 13, color: 'var(--muted-foreground)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div className={`${styles.avatar} ${styles.avatarSm}`}>{project.founderInitials}</div>
-              <span style={{ fontWeight: 500, color: 'var(--foreground)' }}>{project.founder}</span>
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Users size={14} /> {project.teamSize} team members</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Calendar size={14} /> {project.launched}</span>
-          </div>
-
-          <div style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--foreground)', whiteSpace: 'pre-line', marginBottom: 20, opacity: 0.9 }}>
-            {project.longDescription}
-          </div>
-
-          <div style={{ marginBottom: 20 }}>
-            <h3 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted-foreground)', marginBottom: 8 }}>Tech Stack</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {project.techStack.map(tech => <span key={tech} className={styles.chip} style={{ padding: '6px 12px' }}>{tech}</span>)}
+      <div className={styles.card} style={{ overflow: 'hidden', marginBottom: 24 }}>
+        <div className={`bg-gradient-to-r ${showcase.gradient}`} style={{ padding: '40px 32px', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+            <div style={{ width: 80, height: 80, borderRadius: 20, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', fontSize: 32, fontWeight: 700, color: '#0F172A' }}>
+              {showcase.icon || showcase.name.slice(0, 2).toUpperCase()}
             </div>
-          </div>
-
-          <div style={{ marginBottom: 20 }}>
-            <h3 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted-foreground)', marginBottom: 8 }}>Looking For</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {project.looking.map(role => <span key={role} className={`${styles.chip} ${styles.chipPrimary}`} style={{ padding: '6px 12px' }}>{role}</span>)}
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--foreground)', margin: 0 }}>{showcase.name}</h1>
+                <span className={styles.badge} style={{ background: stageStyle.bg, color: stageStyle.text, fontWeight: 600 }}>{showcase.stage}</span>
+                {showcase.launched && (
+                  <span className={styles.badge} style={{ background: 'transparent', border: '1px solid var(--border)' }}>
+                    <Calendar size={12} style={{ marginRight: 4 }} /> Launched {showcase.launched}
+                  </span>
+                )}
+              </div>
+              <p style={{ fontSize: 16, color: 'var(--muted-foreground)', margin: 0, maxWidth: 600 }}>{showcase.description}</p>
             </div>
-          </div>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button
-                onClick={() => { setUpvoteCount(c => upvoted ? c-1 : c+1); setUpvoted(v=>!v); }}
-                className={`${styles.upvoteBtn} ${upvoted ? styles.upvoteBtnActive : ''}`}
-              >
-                <ArrowBigUp size={20} /> <span>{upvoteCount}</span>
+            <div>
+              <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px' }}>
+                <ExternalLink size={16} /> Visit Project
               </button>
-              <span style={{ fontSize: 13, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <MessageSquare size={15} /> {project.comments} comments
-              </span>
             </div>
-            <button className={`${styles.btn} ${styles.btnPrimary}`}>
-              <Handshake size={16} /> Request to Collaborate
-            </button>
           </div>
         </div>
-      </article>
 
-      <div style={{ marginTop: 24 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: 'var(--foreground)' }}>
-          Discussion ({project.threadComments.length})
-        </h2>
-        <CommentThread comments={project.threadComments} />
+        <div style={{ padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', background: 'var(--card-background)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button
+              onClick={() => upvoteMutation.mutate(showcase._id)}
+              className={`${styles.upvoteBtn} ${showcase.isUpvoted ? styles.upvoteBtnActive : ''}`}
+            >
+              <ArrowBigUp size={20} />
+              <span>{showcase.upvoteCount} Upvotes</span>
+            </button>
+            <div style={{ width: 1, height: 24, background: 'var(--border)' }}></div>
+            <span style={{ fontSize: 14, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <MessageSquare size={16} /> {showcase.commentCount || 0} Comments
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={() => setBookmarked(v=>!v)} className={`${styles.iconBtn} ${bookmarked ? styles.iconBtnActive : ''}`}><Bookmark size={18} fill={bookmarked ? 'currentColor' : 'none'} /></button>
+            <button className={styles.iconBtn}><Share2 size={18} /></button>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, padding: 32 }}>
+          <div>
+            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--foreground)' }}>About Project</h3>
+            <div style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--foreground)', whiteSpace: 'pre-line', opacity: 0.9 }}>
+              {showcase.longDescription || showcase.description}
+            </div>
+
+            <h3 style={{ fontSize: 18, fontWeight: 700, marginTop: 40, marginBottom: 16, color: 'var(--foreground)' }}>Tech Stack</h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              {showcase.techStack?.map(tech => (
+                <div key={tech} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 100, fontSize: 13, fontWeight: 500 }}>
+                  <Code size={14} color="var(--primary-color)" /> {tech}
+                </div>
+              ))}
+            </div>
+            
+            <div style={{ marginTop: 48, paddingTop: 32, borderTop: '1px solid var(--border)' }}>
+              <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20, color: 'var(--foreground)' }}>Discussion ({showcase.commentCount || 0})</h2>
+              {commentsLoading ? <p style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>Loading comments...</p> 
+               : <CommentThread comments={comments} parentType="showcase" parentId={showcase._id} />}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, marginBottom: 24 }}>
+              <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Makers</h4>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div className={`${styles.avatar} ${styles.avatarLg}`}>{showcase.founder?.name ? showcase.founder.name.slice(0,2).toUpperCase() : 'U'}</div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--foreground)' }}>{showcase.founder?.name || 'Unknown'}</div>
+                  <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{showcase.founder?.role || 'Founder'}</div>
+                </div>
+              </div>
+              {showcase.teamSize > 1 && (
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', fontSize: 13, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Users size={14} /> + {showcase.teamSize - 1} other team member(s)
+                </div>
+              )}
+            </div>
+
+            {showcase.looking?.length > 0 && (
+              <div style={{ background: 'rgba(var(--primary-rgb), 0.05)', border: '1px dashed rgba(var(--primary-rgb), 0.3)', borderRadius: 16, padding: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <Target size={18} color="var(--primary-color)" />
+                  <h4 style={{ fontSize: 15, fontWeight: 700, color: 'var(--foreground)' }}>Looking For</h4>
+                </div>
+                <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {showcase.looking.map(role => (
+                    <li key={role} style={{ fontSize: 13, color: 'var(--foreground)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--primary-color)', marginTop: 6 }}></div>
+                      {role}
+                    </li>
+                  ))}
+                </ul>
+                <button className="btn btn-outline" style={{ width: '100%', marginTop: 20, padding: '8px 0', fontSize: 13 }}>Collaborate</button>
+              </div>
+            )}
+            
+            <div style={{ marginTop: 24 }}>
+              <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground)', marginBottom: 12 }}>LINKS</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--foreground)', textDecoration: 'none' }}><Globe size={16} /> Website</a>
+                <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--foreground)', textDecoration: 'none' }}><Rocket size={16} /> Product Hunt</a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ─────────── Grid View ─────────── */
-export function ShowcasesTab() {
-  const [selected, setSelected]               = useState(null);
-  const [upvotedProjects, setUpvotedProjects] = useState(new Set());
-  const [upvoteCounts, setUpvoteCounts]       = useState(
-    Object.fromEntries(showcases.map(s => [s.id, s.upvotes]))
-  );
+/* ─────────── List View ─────────── */
+export function ShowcasesTab({ search, stage }) {
+  const [selectedId, setSelectedId] = useState(null);
+  const queryClient = useQueryClient();
 
-  if (selected) {
-    return <ShowcaseDetail project={selected} onBack={() => setSelected(null)} />;
+  const { data: showcases = [], isLoading } = useQuery({
+    queryKey: ['showcases', { search, stage }],
+    queryFn: () => getShowcases({ search, stage }),
+  });
+
+  const upvoteMutation = useMutation({
+    mutationFn: (id) => upvoteShowcase(id),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries(['showcases']);
+      const prev = queryClient.getQueryData(['showcases', { search, stage }]);
+      if (prev) {
+        queryClient.setQueryData(['showcases', { search, stage }], prev.map(s => {
+          if (s._id === id) {
+            return {
+              ...s,
+              upvoteCount: s.isUpvoted ? s.upvoteCount - 1 : s.upvoteCount + 1,
+              isUpvoted: !s.isUpvoted,
+            };
+          }
+          return s;
+        }));
+      }
+      return { prev };
+    },
+    onError: (err, id, context) => queryClient.setQueryData(['showcases', { search, stage }], context.prev),
+    onSettled: () => queryClient.invalidateQueries(['showcases'])
+  });
+
+  if (selectedId) {
+    return <ShowcaseDetail showcaseId={selectedId} onBack={() => setSelectedId(null)} />;
   }
 
-  const handleUpvote = (e, id) => {
-    e.stopPropagation();
-    setUpvotedProjects(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-    setUpvoteCounts(prev => ({
-      ...prev,
-      [id]: upvotedProjects.has(id) ? prev[id] - 1 : prev[id] + 1,
-    }));
-  };
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0', color: 'var(--muted-foreground)' }}>
+        <Loader2 className={styles.spinner} size={24} style={{ animation: 'spin 1s linear infinite' }} />
+      </div>
+    );
+  }
+
+  if (showcases.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--card-background)', borderRadius: '16px', border: '1px solid var(--border)' }}>
+        <Rocket size={32} style={{ color: 'var(--muted-foreground)', marginBottom: 16, opacity: 0.5 }} />
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--foreground)', marginBottom: 8 }}>No projects found</h3>
+        <p style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>Change your filters or launch the first project.</p>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-      {showcases.map(project => (
-        <article
-          key={project.id}
-          className={styles.card}
-          style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', cursor: 'pointer' }}
-          onClick={() => setSelected(project)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(project); }}}
-          aria-label={`View ${project.name} details`}
-        >
-          {/* Gradient preview */}
-          <div style={{ height: 144, display: 'flex', alignItems: 'center', justifyContent: 'center', background: gradients[project.gradient] || 'var(--input-background)' }}>
-            <div style={{ width: 64, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14, background: 'var(--card-background)', fontSize: 18, fontWeight: 700, color: 'var(--foreground)', boxShadow: 'var(--shadow-sm)', transition: 'transform 0.2s ease' }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              {project.icon}
-            </div>
-          </div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
+      {showcases.map(showcase => {
+        const stageStyle = stageColorMap[showcase.stage] || stageColorMap.Idea;
 
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--foreground)' }}>{project.name}</h3>
-              <span className={`${styles.badge} ${stageBadgeClass[project.stage]}`} style={{ fontSize: 10 }}>{project.stage}</span>
+        return (
+          <article 
+            key={showcase._id} 
+            className={styles.card} 
+            style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
+            onClick={() => setSelectedId(showcase._id)}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedId(showcase._id); }}}
+            tabIndex={0}
+            role="button"
+          >
+            <div className={`bg-gradient-to-br ${showcase.gradient}`} style={{ height: 120, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: 100, fontSize: 11, fontWeight: 700, color: stageStyle.text, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                {showcase.stage}
+              </div>
+              <div style={{ width: 64, height: 64, background: 'white', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 800, color: '#0F172A', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                {showcase.icon || showcase.name.slice(0, 2).toUpperCase()}
+              </div>
             </div>
 
-            <p style={{ fontSize: 13, color: 'var(--muted-foreground)', lineHeight: 1.5, flex: 1, marginBottom: 16 }}>
-              {project.description}
-            </p>
+            <div style={{ padding: 20, flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--foreground)' }}>{showcase.name}</h3>
+                {showcase.launched && (
+                  <span style={{ fontSize: 11, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Calendar size={11} /> {showcase.launched}
+                  </span>
+                )}
+              </div>
+              
+              <p style={{ fontSize: 13, color: 'var(--muted-foreground)', lineHeight: 1.5, marginBottom: 16, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>
+                {showcase.description}
+              </p>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
-              {project.techStack.map(tech => <span key={tech} className={styles.chip} style={{ fontSize: 11 }}>{tech}</span>)}
-            </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
+                {showcase.techStack?.slice(0, 3).map(tech => (
+                  <span key={tech} className={styles.chip} style={{ fontSize: 11, background: 'var(--background)' }}>{tech}</span>
+                ))}
+                {showcase.techStack?.length > 3 && (
+                  <span className={styles.chip} style={{ fontSize: 11, background: 'var(--background)' }}>+{showcase.techStack.length - 3}</span>
+                )}
+              </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <button
-                  onClick={e => handleUpvote(e, project.id)}
-                  className={`${styles.upvoteBtn} ${styles.upvoteBtnSm} ${upvotedProjects.has(project.id) ? styles.upvoteBtnActive : ''}`}
-                  aria-label={`Upvote ${project.name}, count ${upvoteCounts[project.id]}`}
-                >
-                  <ArrowBigUp size={15} />
-                  <span style={{ fontSize: 11 }}>{upvoteCounts[project.id]}</span>
-                </button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--muted-foreground)' }}>
-                  <MessageSquare size={13} />
-                  <span style={{ fontSize: 12, fontWeight: 500 }}>{project.comments}</span>
+              {showcase.looking?.length > 0 && (
+                <div style={{ background: 'rgba(var(--primary-rgb), 0.05)', padding: '10px 12px', borderRadius: 8, marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--primary-color)', marginBottom: 4, textTransform: 'uppercase' }}>Looking For</div>
+                  <div style={{ fontSize: 12, color: 'var(--foreground)' }}>{showcase.looking.slice(0, 2).join(', ')}{showcase.looking.length > 2 ? '...' : ''}</div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 16, borderTop: '1px solid var(--border)', marginTop: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); upvoteMutation.mutate(showcase._id); }}
+                    className={`${styles.upvoteBtn} ${showcase.isUpvoted ? styles.upvoteBtnActive : ''}`}
+                    style={{ padding: '6px 10px', fontSize: 13 }}
+                  >
+                    <ArrowBigUp size={16} />
+                    <span>{showcase.upvoteCount}</span>
+                  </button>
+                  <span style={{ fontSize: 13, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <MessageSquare size={14} /> {showcase.commentCount || 0}
+                  </span>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div className={styles.avatarGroup} style={{ marginRight: -10 }}>
+                    <div className={`${styles.avatar} ${styles.avatarSm}`} style={{ border: '2px solid var(--card-background)' }}>
+                      {showcase.founder?.name ? showcase.founder.name.slice(0,2).toUpperCase() : 'U'}
+                    </div>
+                  </div>
+                  {showcase.teamSize > 1 && (
+                    <div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginLeft: 16, fontWeight: 500 }}>
+                      +{showcase.teamSize - 1}
+                    </div>
+                  )}
                 </div>
               </div>
-              <button
-                className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`}
-                onClick={e => { e.stopPropagation(); setSelected(project); }}
-              >
-                <Handshake size={13} /> Collaborate
-              </button>
             </div>
-          </div>
-        </article>
-      ))}
+          </article>
+        );
+      })}
     </div>
   );
 }

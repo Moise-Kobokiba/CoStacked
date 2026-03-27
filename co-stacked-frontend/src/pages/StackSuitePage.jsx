@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import {
   Search, Plus, MessageCircle, Rocket, GitBranch,
-  ChevronDown, Sparkles, TrendingUp, Users, X, Send,
+  ChevronDown, Sparkles, TrendingUp, Users, X, Send, Loader2
 } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createStackPost, createShowcase, createCollabThread } from '../api/stackSuiteApi';
 import { DiscussionsTab }   from '../components/stack-suite/DiscussionsTab';
 import { ShowcasesTab }     from '../components/stack-suite/ShowcasesTab';
 import { CollaborationTab } from '../components/stack-suite/CollaborationTab';
@@ -12,6 +14,8 @@ import styles from './StackSuitePage.module.css';
 import sharedStyles from '../components/stack-suite/StackSuite.module.css';
 
 const CATEGORIES = ['Validation', 'Tech', 'Equity', 'Growth', 'Legal', 'General'];
+const STAGES = ['Idea', 'MVP', 'Beta', 'Launched'];
+
 const TABS = [
   { id: 'discussions',   label: 'Discussions',   shortLabel: 'Chat',   Icon: MessageCircle },
   { id: 'showcases',     label: 'Showcases',     shortLabel: 'Show',   Icon: Rocket        },
@@ -19,42 +23,120 @@ const TABS = [
 ];
 
 export function StackSuitePage() {
+  const queryClient = useQueryClient();
+
   const [search, setSearch]             = useState('');
   const [filter, setFilter]             = useState('all');
   const [filterOpen, setFilterOpen]     = useState(false);
   const [activeTab, setActiveTab]       = useState('discussions');
+  
+  // Shared modal state
   const [createOpen, setCreateOpen]     = useState(false);
+  const [postSubmitted, setPostSubmitted] = useState(false);
+
+  // Discussions Form State
   const [postTitle, setPostTitle]       = useState('');
   const [postBody, setPostBody]         = useState('');
   const [postCategory, setPostCategory] = useState('General');
   const [postTags, setPostTags]         = useState('');
-  const [postSubmitted, setPostSubmitted] = useState(false);
 
-  const filterLabel =
-    filter === 'founder' ? 'Founders' : filter === 'developer' ? 'Developers' : 'All Roles';
+  // Showcases Form State
+  const [showcaseName, setShowcaseName] = useState('');
+  const [showcaseDesc, setShowcaseDesc] = useState('');
+  const [showcaseStage, setShowcaseStage] = useState('Idea');
+  const [showcaseTech, setShowcaseTech] = useState('');
+  const [showcaseLooking, setShowcaseLooking] = useState('');
 
-  const handleCreatePost = () => {
-    if (postTitle.trim() && postBody.trim()) {
-      setPostSubmitted(true);
-      setTimeout(() => {
-        setCreateOpen(false);
-        setPostTitle('');
-        setPostBody('');
-        setPostCategory('General');
-        setPostTags('');
-        setPostSubmitted(false);
-      }, 1500);
-    }
-  };
+  // Collab Form State
+  const [collabProject, setCollabProject] = useState('');
+  const [collabMilestone, setCollabMilestone] = useState('');
+  const [collabDesc, setCollabDesc] = useState('');
+
+  const filterLabel = filter === 'founder' ? 'Founders' : filter === 'developer' ? 'Developers' : 'All Roles';
 
   const closeCreate = () => {
     setCreateOpen(false);
+    setPostSubmitted(false);
+    
+    // Reset posts
     setPostTitle('');
     setPostBody('');
     setPostCategory('General');
     setPostTags('');
-    setPostSubmitted(false);
+
+    // Reset showcases
+    setShowcaseName('');
+    setShowcaseDesc('');
+    setShowcaseStage('Idea');
+    setShowcaseTech('');
+    setShowcaseLooking('');
+
+    // Reset collab
+    setCollabProject('');
+    setCollabMilestone('');
+    setCollabDesc('');
   };
+
+  const createPostMutation = useMutation({
+    mutationFn: (data) => createStackPost(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['stackPosts']);
+      setPostSubmitted(true);
+      setTimeout(closeCreate, 1500);
+    }
+  });
+
+  const createShowcaseMutation = useMutation({
+    mutationFn: (data) => createShowcase(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['showcases']);
+      setPostSubmitted(true);
+      setTimeout(closeCreate, 1500);
+    }
+  });
+
+  const createCollabMutation = useMutation({
+    mutationFn: (data) => createCollabThread(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['threads']);
+      setPostSubmitted(true);
+      setTimeout(closeCreate, 1500);
+    }
+  });
+
+  const handleCreateSubmit = () => {
+    if (activeTab === 'discussions') {
+      if (!postTitle.trim() || !postBody.trim()) return;
+      createPostMutation.mutate({
+        title: postTitle,
+        body: postBody,
+        category: postCategory,
+        tags: postTags.split(',').map(t => t.trim()).filter(Boolean)
+      });
+    } else if (activeTab === 'showcases') {
+      if (!showcaseName.trim() || !showcaseDesc.trim()) return;
+      createShowcaseMutation.mutate({
+        name: showcaseName,
+        description: showcaseDesc,
+        stage: showcaseStage,
+        techStack: showcaseTech.split(',').map(t => t.trim()).filter(Boolean),
+        looking: showcaseLooking.split(',').map(t => t.trim()).filter(Boolean)
+      });
+    } else if (activeTab === 'collaboration') {
+      if (!collabProject.trim() || !collabMilestone.trim() || !collabDesc.trim()) return;
+      createCollabMutation.mutate({
+        project: collabProject,
+        milestone: collabMilestone,
+        description: collabDesc
+      });
+    }
+  };
+
+  const isSubmitting = createPostMutation.isLoading || createShowcaseMutation.isLoading || createCollabMutation.isLoading;
+
+  const btnLabel = activeTab === 'discussions' ? 'Create Post' : activeTab === 'showcases' ? 'Launch Showcase' : 'New Milestone';
+  const modalTitle = activeTab === 'discussions' ? 'Create a New Post' : activeTab === 'showcases' ? 'Launch Your Showcase' : 'Start a Collaboration Thread';
+  const modalDesc = activeTab === 'discussions' ? 'Share a question, insight, or update with the community.' : activeTab === 'showcases' ? 'Share what you are building, get feedback, and find collaborators.' : 'Create a milestone for your project and discuss progress with your team.';
 
   return (
     <div className={styles.page}>
@@ -152,7 +234,7 @@ export function StackSuitePage() {
             </div>
 
             <button className={styles.createBtn} onClick={() => setCreateOpen(true)}>
-              <Plus size={16} /> Create Post
+              <Plus size={16} /> {btnLabel}
             </button>
           </div>
         </section>
@@ -175,9 +257,9 @@ export function StackSuitePage() {
           </div>
 
           <div role="tabpanel">
-            {activeTab === 'discussions'   && <DiscussionsTab />}
-            {activeTab === 'showcases'     && <ShowcasesTab />}
-            {activeTab === 'collaboration' && <CollaborationTab />}
+            {activeTab === 'discussions'   && <DiscussionsTab search={search} />}
+            {activeTab === 'showcases'     && <ShowcasesTab search={search} />}
+            {activeTab === 'collaboration' && <CollaborationTab search={search} />}
           </div>
         </div>
       </main>
@@ -194,14 +276,14 @@ export function StackSuitePage() {
         </div>
       </footer>
 
-      {/* ── Create Post Dialog ── */}
+      {/* ── Create Modal ── */}
       {createOpen && (
         <div className={styles.dialogOverlay} onClick={closeCreate}>
           <div className={styles.dialog} onClick={e => e.stopPropagation()}>
             <div className={styles.dialogHeader}>
               <div>
-                <h2 className={styles.dialogTitle}>Create a New Post</h2>
-                <p className={styles.dialogDesc}>Share a question, insight, or update with the community.</p>
+                <h2 className={styles.dialogTitle}>{modalTitle}</h2>
+                <p className={styles.dialogDesc}>{modalDesc}</p>
               </div>
               <button className={styles.dialogClose} onClick={closeCreate} aria-label="Close dialog">
                 <X size={18} />
@@ -213,70 +295,92 @@ export function StackSuitePage() {
                 <div className={styles.successIcon}>
                   <Send size={22} />
                 </div>
-                <h3 className={styles.successTitle}>Post Published!</h3>
-                <p className={styles.successDesc}>Your post is now live in the community.</p>
+                <h3 className={styles.successTitle}>Successfully Published!</h3>
+                <p className={styles.successDesc}>Your item is now live in the community.</p>
               </div>
             ) : (
               <>
-                <div className={styles.formGroup}>
-                  {/* Title */}
-                  <div>
-                    <label className={styles.formLabel} htmlFor="post-title">Title</label>
-                    <input
-                      id="post-title"
-                      type="text"
-                      className={styles.formInput}
-                      value={postTitle}
-                      onChange={e => setPostTitle(e.target.value)}
-                      placeholder="What do you want to discuss?"
-                    />
-                  </div>
+                <div className={styles.formGroup} style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: 8 }}>
+                  
+                  {/* === DISCUSSIONS FORM === */}
+                  {activeTab === 'discussions' && (
+                    <>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="post-title">Title</label>
+                        <input id="post-title" type="text" className={styles.formInput} value={postTitle} onChange={e => setPostTitle(e.target.value)} placeholder="What do you want to discuss?" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel}>Category</label>
+                        <div className={styles.categoryGrid}>
+                          {CATEGORIES.map(cat => (
+                            <button key={cat} onClick={() => setPostCategory(cat)} className={`${styles.categoryChip} ${postCategory === cat ? styles.categoryChipActive : ''}`} type="button">
+                              {cat}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="post-body">Body</label>
+                        <textarea id="post-body" className={styles.formTextarea} value={postBody} onChange={e => setPostBody(e.target.value)} placeholder="Share your thoughts, questions, or insights..." rows={6} />
+                        <p className={styles.formHint}>Markdown supported</p>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="post-tags">Tags <span className={styles.formLabelMuted}>(comma separated)</span></label>
+                        <input id="post-tags" type="text" className={styles.formInput} value={postTags} onChange={e => setPostTags(e.target.value)} placeholder="saas, mvp, validation" />
+                      </div>
+                    </>
+                  )}
 
-                  {/* Category */}
-                  <div>
-                    <label className={styles.formLabel}>Category</label>
-                    <div className={styles.categoryGrid}>
-                      {CATEGORIES.map(cat => (
-                        <button
-                          key={cat}
-                          onClick={() => setPostCategory(cat)}
-                          className={`${styles.categoryChip} ${postCategory === cat ? styles.categoryChipActive : ''}`}
-                          type="button"
-                        >
-                          {cat}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  {/* === SHOWCASES FORM === */}
+                  {activeTab === 'showcases' && (
+                    <>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="showcase-name">Project Name</label>
+                        <input id="showcase-name" type="text" className={styles.formInput} value={showcaseName} onChange={e => setShowcaseName(e.target.value)} placeholder="e.g. Co-Stacked" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="showcase-desc">Description</label>
+                        <textarea id="showcase-desc" className={styles.formTextarea} value={showcaseDesc} onChange={e => setShowcaseDesc(e.target.value)} placeholder="Describe what you are building..." rows={4} />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel}>Stage at Launch</label>
+                        <div className={styles.categoryGrid}>
+                          {STAGES.map(stage => (
+                            <button key={stage} onClick={() => setShowcaseStage(stage)} className={`${styles.categoryChip} ${showcaseStage === stage ? styles.categoryChipActive : ''}`} type="button">
+                              {stage}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="showcase-tech">Tech Stack <span className={styles.formLabelMuted}>(comma separated)</span></label>
+                        <input id="showcase-tech" type="text" className={styles.formInput} value={showcaseTech} onChange={e => setShowcaseTech(e.target.value)} placeholder="React, Node.js, NextJS" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="showcase-looking">Roles Looking For <span className={styles.formLabelMuted}>(comma separated)</span></label>
+                        <input id="showcase-looking" type="text" className={styles.formInput} value={showcaseLooking} onChange={e => setShowcaseLooking(e.target.value)} placeholder="Backend Dev, UI/UX Designer, Marketing" />
+                      </div>
+                    </>
+                  )}
 
-                  {/* Body */}
-                  <div>
-                    <label className={styles.formLabel} htmlFor="post-body">Body</label>
-                    <textarea
-                      id="post-body"
-                      className={styles.formTextarea}
-                      value={postBody}
-                      onChange={e => setPostBody(e.target.value)}
-                      placeholder="Share your thoughts, questions, or insights..."
-                      rows={6}
-                    />
-                    <p className={styles.formHint}>Markdown supported</p>
-                  </div>
+                  {/* === COLLAB FORM === */}
+                  {activeTab === 'collaboration' && (
+                    <>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="collab-project">Project Name</label>
+                        <input id="collab-project" type="text" className={styles.formInput} value={collabProject} onChange={e => setCollabProject(e.target.value)} placeholder="Project you belong to..." />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="collab-milestone">Milestone / Thread Title</label>
+                        <input id="collab-milestone" type="text" className={styles.formInput} value={collabMilestone} onChange={e => setCollabMilestone(e.target.value)} placeholder="e.g. User onboarding flow redesigned" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="collab-desc">Description & Progress Updates</label>
+                        <textarea id="collab-desc" className={styles.formTextarea} value={collabDesc} onChange={e => setCollabDesc(e.target.value)} placeholder="Summarize what your team accomplished or needs review on..." rows={5} />
+                      </div>
+                    </>
+                  )}
 
-                  {/* Tags */}
-                  <div>
-                    <label className={styles.formLabel} htmlFor="post-tags">
-                      Tags <span className={styles.formLabelMuted}>(comma separated)</span>
-                    </label>
-                    <input
-                      id="post-tags"
-                      type="text"
-                      className={styles.formInput}
-                      value={postTags}
-                      onChange={e => setPostTags(e.target.value)}
-                      placeholder="saas, mvp, validation"
-                    />
-                  </div>
                 </div>
 
                 <div className={styles.dialogFooter}>
@@ -285,10 +389,16 @@ export function StackSuitePage() {
                   </button>
                   <button
                     className={`${sharedStyles.btn} ${sharedStyles.btnPrimary}`}
-                    onClick={handleCreatePost}
-                    disabled={!postTitle.trim() || !postBody.trim()}
+                    onClick={handleCreateSubmit}
+                    disabled={
+                      isSubmitting ||
+                      (activeTab === 'discussions' && (!postTitle.trim() || !postBody.trim())) ||
+                      (activeTab === 'showcases' && (!showcaseName.trim() || !showcaseDesc.trim())) ||
+                      (activeTab === 'collaboration' && (!collabProject.trim() || !collabMilestone.trim() || !collabDesc.trim()))
+                    }
                   >
-                    <Send size={15} /> Publish Post
+                    {isSubmitting ? <Loader2 size={15} className={styles.spinner} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={15} />}
+                    {isSubmitting ? 'Publishing...' : 'Publish'}
                   </button>
                 </div>
               </>

@@ -1,7 +1,9 @@
 // src/components/stack-suite/CommentThread.jsx
 
 import { useState } from 'react';
-import { ArrowBigUp, Reply, Heart, Send } from 'lucide-react';
+import { ArrowBigUp, Reply, Heart, Send, Loader2 } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { addStackComment, upvoteStackComment, likeStackComment } from '../../api/stackSuiteApi';
 import styles from './StackSuite.module.css';
 
 const roleBadgeClass = {
@@ -12,45 +14,63 @@ const roleBadgeClass = {
 };
 
 function SingleComment({ comment, depth = 0, onReplySubmit }) {
-  const [upvoted, setUpvoted]           = useState(false);
-  const [liked, setLiked]               = useState(false);
-  const [upvoteCount, setUpvoteCount]   = useState(comment.upvotes);
-  const [likeCount, setLikeCount]       = useState(comment.likes);
+  const [upvoted, setUpvoted]           = useState(comment.isUpvoted || false);
+  const [liked, setLiked]               = useState(comment.isLiked || false);
+  const [upvoteCount, setUpvoteCount]   = useState(comment.upvotes?.length || comment.upvoteCount || 0);
+  const [likeCount, setLikeCount]       = useState(comment.likes?.length || comment.likeCount || 0);
   const [showReply, setShowReply]       = useState(false);
   const [replyText, setReplyText]       = useState('');
 
-  const handleUpvote = () => {
+  const handleUpvote = async () => {
     setUpvoteCount(c => upvoted ? c - 1 : c + 1);
     setUpvoted(v => !v);
+    try {
+      await upvoteStackComment(comment._id || comment.id);
+    } catch (err) {
+      setUpvoteCount(c => upvoted ? c + 1 : c - 1);
+      setUpvoted(v => !v);
+    }
   };
 
-  const handleLike = () => {
+  const handleLike = async () => {
     setLikeCount(c => liked ? c - 1 : c + 1);
     setLiked(v => !v);
+    try {
+      await likeStackComment(comment._id || comment.id);
+    } catch (err) {
+      setLikeCount(c => liked ? c + 1 : c - 1);
+      setLiked(v => !v);
+    }
   };
 
   const handleSubmitReply = () => {
     if (replyText.trim()) {
-      onReplySubmit(comment.id, replyText.trim());
+      onReplySubmit(comment._id || comment.id, replyText.trim());
       setReplyText('');
       setShowReply(false);
     }
   };
+  
+  const authorName = comment.author?.name || comment.author || 'Unknown';
+  const authorInitials = authorName.slice(0, 2).toUpperCase();
+  const authorRole = comment.author?.role || comment.role || 'Member';
 
   return (
     <div className={depth > 0 ? styles.commentNested : ''}>
       <div className={styles.commentItem}>
         <div style={{ display: 'flex', gap: 12 }}>
           <div className={`${styles.avatar} ${styles.avatarMd}`}>
-            {comment.initials}
+            {authorInitials}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className={styles.commentHeader}>
-              <span className={styles.commentAuthor}>{comment.author}</span>
-              <span className={`${styles.badge} ${roleBadgeClass[comment.role] || styles.badgeGeneral}`} style={{ fontSize: 10 }}>
-                {comment.role}
+              <span className={styles.commentAuthor}>{authorName}</span>
+              <span className={`${styles.badge} ${roleBadgeClass[authorRole] || styles.badgeGeneral}`} style={{ fontSize: 10 }}>
+                {authorRole}
               </span>
-              <span className={styles.commentTime}>{comment.time}</span>
+              <span className={styles.commentTime}>
+                {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : comment.time || 'Just now'}
+              </span>
             </div>
 
             <p className={styles.commentBody}>{comment.content}</p>
@@ -88,9 +108,9 @@ function SingleComment({ comment, depth = 0, onReplySubmit }) {
                     className={styles.replyTextarea}
                     value={replyText}
                     onChange={e => setReplyText(e.target.value)}
-                    placeholder={`Reply to ${comment.author}...`}
+                    placeholder={`Reply to ${authorName}...`}
                     rows={2}
-                    aria-label={`Reply to ${comment.author}`}
+                    aria-label={`Reply to ${authorName}`}
                   />
                   <div className={styles.replyActions}>
                     <button
@@ -119,7 +139,7 @@ function SingleComment({ comment, depth = 0, onReplySubmit }) {
         <div>
           {comment.replies.map(reply => (
             <SingleComment
-              key={reply.id}
+              key={reply._id || reply.id}
               comment={reply}
               depth={depth + 1}
               onReplySubmit={onReplySubmit}
@@ -131,45 +151,25 @@ function SingleComment({ comment, depth = 0, onReplySubmit }) {
   );
 }
 
-export function CommentThread({ comments: initialComments }) {
-  const [comments, setComments] = useState(initialComments);
+export function CommentThread({ comments = [], parentType, parentId }) {
+  const queryClient = useQueryClient();
   const [newComment, setNewComment] = useState('');
+
+  const addCommentMutation = useMutation({
+    mutationFn: ({ content, parentCommentId }) => addStackComment(parentType, parentId, content, parentCommentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['stackComments', parentType, parentId]);
+      setNewComment('');
+    }
+  });
 
   const handleNewComment = () => {
     if (!newComment.trim()) return;
-    const newC = {
-      id: Date.now(),
-      author: 'You',
-      initials: 'YU',
-      role: 'Developer',
-      content: newComment.trim(),
-      time: 'Just now',
-      upvotes: 0,
-      likes: 0,
-      replies: [],
-    };
-    setComments(prev => [newC, ...prev]);
-    setNewComment('');
+    addCommentMutation.mutate({ content: newComment.trim() });
   };
 
-  const handleReplySubmit = (parentId, text) => {
-    const reply = {
-      id: Date.now(),
-      author: 'You',
-      initials: 'YU',
-      role: 'Developer',
-      content: text,
-      time: 'Just now',
-      upvotes: 0,
-      likes: 0,
-      replies: [],
-    };
-    const addReply = list => list.map(c => {
-      if (c.id === parentId) return { ...c, replies: [...(c.replies || []), reply] };
-      if (c.replies && c.replies.length > 0) return { ...c, replies: addReply(c.replies) };
-      return c;
-    });
-    setComments(prev => addReply(prev));
+  const handleReplySubmit = (parentCommentId, text) => {
+    addCommentMutation.mutate({ content: text, parentCommentId });
   };
 
   return (
@@ -178,7 +178,7 @@ export function CommentThread({ comments: initialComments }) {
       <div className={styles.commentInput}>
         <div className={styles.commentInputBody}>
           <div className={`${styles.avatar} ${styles.avatarMd} ${styles.avatarPrimary}`}>
-            YU
+            ME
           </div>
           <textarea
             value={newComment}
@@ -186,6 +186,7 @@ export function CommentThread({ comments: initialComments }) {
             placeholder="Add a comment..."
             rows={3}
             aria-label="Write a new comment"
+            disabled={addCommentMutation.isLoading}
           />
         </div>
         <div className={styles.commentInputFooter}>
@@ -193,10 +194,10 @@ export function CommentThread({ comments: initialComments }) {
           <button
             className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`}
             onClick={handleNewComment}
-            disabled={!newComment.trim()}
+            disabled={!newComment.trim() || addCommentMutation.isLoading}
           >
-            <Send size={13} />
-            Comment
+            {addCommentMutation.isLoading ? <Loader2 size={13} className={styles.spinner} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={13} />}
+            {addCommentMutation.isLoading ? 'Posting...' : 'Comment'}
           </button>
         </div>
       </div>
@@ -205,7 +206,7 @@ export function CommentThread({ comments: initialComments }) {
       <div className={styles.commentList}>
         {comments.map(comment => (
           <SingleComment
-            key={comment.id}
+            key={comment._id || comment.id}
             comment={comment}
             onReplySubmit={handleReplySubmit}
           />
