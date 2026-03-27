@@ -2,12 +2,17 @@
 
 import API from './axios';
 
+// Helper to strip undefined or null values before URL serialization
+const cleanFilters = (filters) => {
+  return Object.fromEntries(Object.entries(filters).filter(([_, v]) => v != null && v !== ''));
+};
+
 /* ═══════════════════════════════════════════════
    POSTS (DISCUSSIONS)
 ═══════════════════════════════════════════════ */
 
 export const getStackPosts = async (filters = {}) => {
-  const query = new URLSearchParams(filters).toString();
+  const query = new URLSearchParams(cleanFilters(filters)).toString();
   const res = await API.get(`/stack-suite/posts?${query}`);
   return res.data;
 };
@@ -37,7 +42,7 @@ export const deleteStackPost = async (id) => {
 ═══════════════════════════════════════════════ */
 
 export const getShowcases = async (filters = {}) => {
-  const query = new URLSearchParams(filters).toString();
+  const query = new URLSearchParams(cleanFilters(filters)).toString();
   const res = await API.get(`/stack-suite/showcases?${query}`);
   return res.data;
 };
@@ -62,7 +67,7 @@ export const upvoteShowcase = async (id) => {
 ═══════════════════════════════════════════════ */
 
 export const getCollabThreads = async (filters = {}) => {
-  const query = new URLSearchParams(filters).toString();
+  const query = new URLSearchParams(cleanFilters(filters)).toString();
   const res = await API.get(`/stack-suite/collab?${query}`);
   return res.data;
 };
