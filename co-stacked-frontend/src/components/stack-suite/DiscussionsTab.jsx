@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { ArrowBigUp, MessageSquare, ArrowLeft, Eye, Bookmark, Share2, Pin, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getStackPosts, upvoteStackPost, getStackComments, addStackComment, upvoteStackComment, likeStackComment } from '../../api/stackSuiteApi';
+import { useSelector } from 'react-redux';
+import { getStackPosts, upvoteStackPost, deleteStackPost, getStackComments, addStackComment, upvoteStackComment, likeStackComment } from '../../api/stackSuiteApi';
 import { CommentThread } from './CommentThread';
 import styles from './StackSuite.module.css';
 
@@ -27,7 +28,6 @@ function DiscussionDetail({ discussionId, onBack }) {
   const [bookmarked, setBookmarked] = useState(false);
   
   // Use Redux to detect current logged in user
-  const { useSelector } = require('react-redux');
   const currentUser = useSelector((state) => state.auth.user);
 
   // 1. Fetch the single post
@@ -68,7 +68,6 @@ function DiscussionDetail({ discussionId, onBack }) {
   });
 
   // 4. Delete Mutation
-  const { deleteStackPost } = require('../../api/stackSuiteApi');
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteStackPost(id),
     onSuccess: () => {
