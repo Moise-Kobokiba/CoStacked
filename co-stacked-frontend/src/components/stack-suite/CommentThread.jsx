@@ -1,10 +1,11 @@
 // src/components/stack-suite/CommentThread.jsx
 
 import { useState } from 'react';
-import { ArrowBigUp, Reply, Heart, Send, Loader2 } from 'lucide-react';
+import { ArrowBigUp, Reply, Heart, Send, Loader2, Trash2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { addStackComment, upvoteStackComment, likeStackComment } from '../../api/stackSuiteApi';
+import { addStackComment, upvoteStackComment, likeStackComment, deleteStackComment } from '../../api/stackSuiteApi';
 import styles from './StackSuite.module.css';
+import { useSelector } from 'react-redux';
 
 const roleBadgeClass = {
   Founder:   styles.badgeFounder,
@@ -13,7 +14,10 @@ const roleBadgeClass = {
   Mentor:    styles.badgeMentor,
 };
 
-function SingleComment({ comment, depth = 0, onReplySubmit }) {
+function SingleComment({ comment, depth = 0, onReplySubmit, parentType, parentId }) {
+  const queryClient = useQueryClient();
+  const currentUser = useSelector((state) => state.auth.user);
+  
   const [upvoted, setUpvoted]           = useState(comment.isUpvoted || false);
   const [liked, setLiked]               = useState(comment.isLiked || false);
   const [upvoteCount, setUpvoteCount]   = useState(comment.upvotes?.length || comment.upvoteCount || 0);
@@ -51,9 +55,27 @@ function SingleComment({ comment, depth = 0, onReplySubmit }) {
     }
   };
   
+  const deleteMutation = useMutation({
+    mutationFn: (id) => deleteStackComment(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['stackComments', parentType, parentId]);
+    },
+    onError: (err) => {
+      alert(`Failed to delete comment: ${err.response?.data?.message || err.message}`);
+    }
+  });
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this comment?")) {
+      deleteMutation.mutate(comment._id || comment.id);
+    }
+  };
+  
   const authorName = comment.author?.name || comment.author || 'Unknown';
   const authorInitials = authorName.slice(0, 2).toUpperCase();
   const authorRole = comment.author?.role || comment.role || 'Member';
+  
+  const isAuthor = currentUser && (currentUser._id === (comment.author?._id || comment.author) || currentUser.id === (comment.author?._id || comment.author));
 
   return (
     <div className={depth > 0 ? styles.commentNested : ''}>
@@ -99,6 +121,17 @@ function SingleComment({ comment, depth = 0, onReplySubmit }) {
                 <Reply size={14} />
                 <span>Reply</span>
               </button>
+              {isAuthor && (
+                <button
+                  onClick={handleDelete}
+                  className={styles.commentActionBtn}
+                  style={{ color: 'var(--destructive)', marginLeft: 'auto' }}
+                  disabled={deleteMutation.isLoading}
+                >
+                  {deleteMutation.isLoading ? <Loader2 size={13} className={styles.spinner} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={13} />}
+                  <span>Delete</span>
+                </button>
+              )}
             </div>
 
             {showReply && (
@@ -143,6 +176,8 @@ function SingleComment({ comment, depth = 0, onReplySubmit }) {
               comment={reply}
               depth={depth + 1}
               onReplySubmit={onReplySubmit}
+              parentType={parentType}
+              parentId={parentId}
             />
           ))}
         </div>
@@ -212,6 +247,8 @@ export function CommentThread({ comments = [], parentType, parentId }) {
             key={comment._id || comment.id}
             comment={comment}
             onReplySubmit={handleReplySubmit}
+            parentType={parentType}
+            parentId={parentId}
           />
         ))}
       </div>

@@ -25,11 +25,15 @@ const roleBadgeClass = {
 function DiscussionDetail({ discussionId, onBack }) {
   const queryClient = useQueryClient();
   const [bookmarked, setBookmarked] = useState(false);
+  
+  // Use Redux to detect current logged in user
+  const { useSelector } = require('react-redux');
+  const currentUser = useSelector((state) => state.auth.user);
 
   // 1. Fetch the single post
   const { data: discussion, isLoading } = useQuery({
     queryKey: ['stackPost', discussionId],
-    queryFn: () => getStackPosts().then(posts => posts.find(p => p._id === discussionId)), // For simplicity, grab from list or hit details
+    queryFn: () => getStackPosts().then(posts => posts.find(p => p._id === discussionId)), 
   });
 
   // 2. Fetch comments for this post
@@ -63,6 +67,25 @@ function DiscussionDetail({ discussionId, onBack }) {
     }
   });
 
+  // 4. Delete Mutation
+  const { deleteStackPost } = require('../../api/stackSuiteApi');
+  const deleteMutation = useMutation({
+    mutationFn: (id) => deleteStackPost(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['stackPosts']);
+      onBack();
+    },
+    onError: (err) => {
+      alert(`Failed to delete post: ${err.response?.data?.message || err.message}`);
+    }
+  });
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
+      deleteMutation.mutate(discussionId);
+    }
+  };
+
   if (isLoading || !discussion) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0', color: 'var(--muted-foreground)' }}>
@@ -72,6 +95,9 @@ function DiscussionDetail({ discussionId, onBack }) {
   }
 
   const initials = discussion.author?.name ? discussion.author.name.slice(0, 2).toUpperCase() : 'U';
+  
+  // Check if current user is the author
+  const isAuthor = currentUser && (currentUser._id === (discussion.author?._id || discussion.author) || currentUser.id === (discussion.author?._id || discussion.author));
 
   return (
     <div style={{ maxWidth: 768, margin: '0 auto' }}>
@@ -101,13 +127,35 @@ function DiscussionDetail({ discussionId, onBack }) {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
           <div className={`${styles.avatar} ${styles.avatarLg}`}>{initials}</div>
-          <div>
+          <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)' }}>{discussion.author?.name || 'Unknown User'}</span>
               <span className={`${styles.badge} ${roleBadgeClass[discussion.author?.role] || styles.badgeDeveloper}`} style={{ fontSize: 10 }}>{discussion.author?.role || 'Developer'}</span>
             </div>
             <p style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>Posted {discussion.time}</p>
           </div>
+          
+          {isAuthor && (
+            <button 
+              onClick={handleDelete}
+              disabled={deleteMutation.isLoading}
+              style={{
+                fontSize: 12, 
+                color: 'var(--destructive)',
+                background: 'var(--destructive-light, rgba(239, 68, 68, 0.1))',
+                border: 'none',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontWeight: 500
+              }}
+            >
+              {deleteMutation.isLoading ? <Loader2 size={12} className={styles.spinner} style={{ animation: 'spin 1s linear infinite' }} /> : 'Delete Post'}
+            </button>
+          )}
         </div>
 
         <div style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--foreground)', whiteSpace: 'pre-line', marginBottom: 20, opacity: 0.9 }}>
