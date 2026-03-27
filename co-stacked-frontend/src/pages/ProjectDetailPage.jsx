@@ -1,19 +1,28 @@
+// src/pages/ProjectDetailPage.jsx
+
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+
+// Import all necessary Redux actions
 import { sendInterestRequest, fetchSentInterests } from '../features/interests/interestsSlice';
 import { fetchProjects } from '../features/projects/projectsSlice';
 import { submitReport } from '../features/reports/reportsSlice';
+
+// Import all necessary UI Components
 import { Button } from '../components/shared/Button';
 import { Tag } from '../components/shared/Tag';
 import { ConnectNDAModal } from '../components/connect/ConnectNDAModal';
 import { ReportModal } from '../components/reports/ReportModal';
 import styles from './ProjectDetailPage.module.css';
-import { ArrowLeft, MapPin, Briefcase, Clock, Users, ShieldAlert } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+
+const LoadingSpinner = () => <div className={styles.loader}>Loading project details...</div>;
 
 export const ProjectDetailPage = () => {
   const dispatch = useDispatch();
   const { projectId } = useParams();
+
   const [isNdaModalOpen, setNdaModalOpen] = useState(false);
   const [isReportModalOpen, setReportModalOpen] = useState(false);
 
@@ -24,114 +33,165 @@ export const ProjectDetailPage = () => {
   const project = projects.find(p => p._id === projectId);
 
   useEffect(() => {
-    if (projectsStatus === 'idle') dispatch(fetchProjects());
-    if (currentUser?.role === 'developer') dispatch(fetchSentInterests());
+    if (projectsStatus === 'idle') {
+      dispatch(fetchProjects());
+    }
+    // Fetch sent interests for developers to check connection status
+    if (currentUser?.role === 'developer') {
+      dispatch(fetchSentInterests());
+    }
   }, [projectsStatus, currentUser?.role, dispatch]);
 
+  // Refetch sent interests when the page becomes visible (in case interest status changed)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && currentUser?.role === 'developer') {
+        dispatch(fetchSentInterests());
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [currentUser?.role, dispatch]);
+
   const handleConnectClick = () => {
-    if (!currentUser) return alert("Please log in to connect.");
+    if (!currentUser) {
+      alert("Please log in or sign up to connect with projects.");
+      return;
+    }
     setNdaModalOpen(true);
   };
 
   const handleConfirmNda = async () => {
     setNdaModalOpen(false);
     const resultAction = await dispatch(sendInterestRequest(projectId));
-    if (sendInterestRequest.fulfilled.match(resultAction)) alert("Success! Interest sent.");
+
+    if (sendInterestRequest.fulfilled.match(resultAction)) {
+      alert("Success! Your interest has been sent to the founder.");
+    } else {
+      alert(`Error: ${resultAction.payload || 'An unknown error occurred.'}`);
+    }
   };
 
-  if (projectsStatus === 'loading' || !project) return <div className={styles.loader}>Loading...</div>;
+  const handleSubmitReport = async (reportData) => {
+    const payload = { type: 'project', reportedId: projectId, ...reportData };
+    const resultAction = await dispatch(submitReport(payload));
+    
+    setReportModalOpen(false);
+    
+    if (submitReport.fulfilled.match(resultAction)) {
+      alert(resultAction.payload.message);
+    } else {
+      alert(`Error submitting report: ${resultAction.payload}`);
+    }
+  };
+
+  if (projectsStatus === 'loading' || (projectsStatus === 'idle' && !project)) {
+    return <div className={styles.pageContainer}><LoadingSpinner /></div>;
+  }
+  
+  if (!project) {
+    return (
+      <div className={styles.pageContainer}>
+        <div className={styles.contentWrapper}>
+          <h1>Project Not Found</h1>
+          <Link to="/projects" className={styles.backLink}>
+            <ArrowLeft size={16} /> Back to Projects
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const isFounderOfProject = project && currentUser && project.founderId === currentUser._id;
   const canConnect = currentUser && currentUser.role === 'developer' && !isFounderOfProject;
-  const existingInterest = sentItems.find(i => i.projectId?._id === projectId);
+
+  // Check if developer has already sent an interest for this project
+  const existingInterest = sentItems.find(interest => interest.projectId?._id === projectId);
   const interestStatusText = existingInterest ? existingInterest.status : null;
 
   return (
-    <div className={styles.pageContainer}>
+    <>
       <ConnectNDAModal open={isNdaModalOpen} onClose={() => setNdaModalOpen(false)} onConfirm={handleConfirmNda} />
-      <ReportModal open={isReportModalOpen} onClose={() => setReportModalOpen(false)} onSubmit={(data) => dispatch(submitReport(data))} itemType="Project" itemName={project.title} />
+      <ReportModal 
+        open={isReportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        onSubmit={handleSubmitReport}
+        itemType="Project"
+        itemName={project?.title}
+      />
 
-      {/* Hero Section */}
-      <div className={styles.heroWrapper}>
-        <div className={styles.heroBanner}>
-          <img src={project.coverImage || "https://lh3.googleusercontent.com/aida-public/AB6AXuAbTIXetbVsHe9qPqHjtWWDb-HqDAIwxsgBkjuTmVO5GD2ziH96oV4NljOk8_gWcUtEu1e1Im6k3q00gJx--s-6jYItj_wncZlbWczyaM218KKMfI_tmIM3KlD6YKqRIYB9LjcujmFb2aZcReJ5MqMB81R-bL4IUAoFbgNaU3AcWr2ueictaz4l6c3Vy_kPR9T_DJI_KbRD5UvmeHeSHhApqLdWyC_fhP0MjIl-Q2FNqOd6PXFFQ7EwalwieII4Tft5dIqXEx8gbLw"} alt="Project Cover" className={styles.coverImg} />
-          <div className={styles.heroOverlay}>
-            <div className={styles.heroText}>
-              <div className={styles.badgeRow}>
-                <span className={styles.statusBadge}>Active</span>
-                <span className={styles.phaseBadge}>{project.stage || "MVP Phase"}</span>
-              </div>
-              <h1 className={styles.heroTitle}>{project.title}</h1>
-              <p className={styles.heroTagline}>{project.tagline || "Building a sustainable future through innovation."}</p>
-            </div>
-            {canConnect && (
-              <Button onClick={handleConnectClick} className={styles.heroButton} disabled={interestStatus === 'loading' || interestStatusText === 'pending' || interestStatusText === 'approved'}>
-                {interestStatusText === 'pending' ? 'Request Sent' : interestStatusText === 'approved' ? 'Connected' : 'Request to Join'}
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.contentWrapper}>
-        {/* Breadcrumbs */}
-        <nav className={styles.breadcrumbNav}>
-          <Link to="/">Home</Link> <ArrowLeft size={12} className={styles.chevron} /> 
-          <Link to="/projects">Projects</Link> <ArrowLeft size={12} className={styles.chevron} /> 
-          <span className={styles.activeBreadcrumb}>{project.title}</span>
-        </nav>
-
-        <div className={styles.mainGrid}>
-          {/* Main Content */}
-          <div className={styles.leftColumn}>
-            <section className={styles.contentSection}>
-              <h2 className={styles.sectionHeading}>About the Project</h2>
-              <p className={styles.description}>{project.description}</p>
-              
-              {/* Performance Stats */}
-              <div className={styles.metricsGrid}>
-                <div className={styles.metricItem}><strong>4.2k</strong><span>Kg Recycled</span></div>
-                <div className={styles.metricItem}><strong>120+</strong><span>Active Users</span></div>
-                <div className={styles.metricItem}><strong>12</strong><span>Smart Bins</span></div>
-                <div className={styles.metricItem}><strong>98%</strong><span>Uptime</span></div>
-              </div>
-            </section>
+      <div className={styles.pageContainer}>
+        <div className={styles.contentWrapper}>
+          <Link to="/projects" className={styles.backLink}>
+            <ArrowLeft size={16} />
+            Back to Projects
+          </Link>
+          
+          <div className={styles.projectCard}>
             
-            <section className={styles.contentSection}>
-              <h2 className={styles.sectionHeading}>Skills Needed</h2>
-              <div className={styles.tagCloud}>
-                {project.skillsNeeded?.map(skill => <Tag key={skill}>{skill}</Tag>)}
-              </div>
-            </section>
-          </div>
+             <header className={styles.header}>
+               <h1 className={styles.title}>{project.title}</h1>
+               {canConnect && (
+                 <Button
+                   onClick={handleConnectClick}
+                   disabled={interestStatus === 'loading' || interestStatusText === 'pending' || interestStatusText === 'approved'}
+                 >
+                   {interestStatus === 'loading' ? 'Sending...' :
+                    interestStatusText === 'pending' ? 'Request Sent' :
+                    interestStatusText === 'approved' ? 'Connected' :
+                    'Connect'}
+                 </Button>
+               )}
+             </header>
 
-          {/* Sidebar */}
-          <aside className={styles.sidebar}>
-            <div className={styles.sidebarCard}>
-              <div className={styles.cardHeader}>
-                <div><p className={styles.smallLabel}>PROJECT STATS</p><p className={styles.tinyMuted}>Updated 2 days ago</p></div>
-              </div>
-              <div className={styles.infoRow}><span>Industry</span><strong>{project.industry || "CleanTech"}</strong></div>
-              <div className={styles.infoRow}><span>Location</span><strong>{project.location}</strong></div>
-              <div className={styles.progressArea}>
-                <div className={styles.progressLabel}><span>Completion</span><span>{project.completion || 45}%</span></div>
-                <div className={styles.progressBar}><div style={{ width: `${project.completion || 45}%` }} /></div>
-              </div>
-              <Button className={styles.sidebarAction}>Apply to Team</Button>
-            </div>
-
-            <div className={styles.sidebarCard}>
-              <h3 className={styles.sidebarTitle}>The Team</h3>
-              <div className={styles.teamList}>
-                <div className={styles.member}>
-                  <div className={styles.avatar}>{project.founder?.charAt(0)}</div>
-                  <div><p className={styles.memberName}>{project.founder}</p><p className={styles.memberRole}>Founder & CEO</p></div>
+            <hr className={styles.separator} />
+            
+            <div className={styles.contentGrid}>
+              <div className={styles.mainContent}>
+                <div className={styles.section}>
+                  <h2 className={styles.sectionTitle}>Project Description</h2>
+                  <p>{project.description}</p>
+                </div>
+                <div className={styles.section}>
+                  <h2 className={styles.sectionTitle}>Skills Needed</h2>
+                  <div className={styles.skillsContainer}>
+                    {project.skillsNeeded.map(skill => <Tag key={skill}>{skill}</Tag>)}
+                  </div>
                 </div>
               </div>
+
+              {/* --- THIS IS THE UPDATED JSX STRUCTURE --- */}
+              <aside className={styles.detailsSidebar}>
+                <div className={styles.detailItem}>
+                  <strong>Compensation</strong>
+                  <span>{project.compensation}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <strong>Stage</strong>
+                  <span>{project.stage}</span>
+                </div>
+                 <div className={styles.detailItem}>
+                  <strong>Founder</strong>
+                  <span>{project.founder}</span>
+                </div>
+                 <div className={styles.detailItem}>
+                  <strong>Location</strong>
+                  <span>{project.location}</span>
+                </div>
+              </aside>
             </div>
-          </aside>
+            
+            <footer className={styles.footer}>
+              {currentUser && !isFounderOfProject && (
+                <button className={styles.reportButton} onClick={() => setReportModalOpen(true)}>
+                  Report this project
+                </button>
+              )}
+            </footer>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
