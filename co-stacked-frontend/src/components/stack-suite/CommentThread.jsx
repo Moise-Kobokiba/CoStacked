@@ -160,6 +160,9 @@ export function CommentThread({ comments = [], parentType, parentId }) {
     onSuccess: () => {
       queryClient.invalidateQueries(['stackComments', parentType, parentId]);
       setNewComment('');
+    },
+    onError: (error) => {
+      alert(`Failed to post comment: ${error.response?.data?.message || error.message}`);
     }
   });
 

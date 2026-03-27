@@ -77,13 +77,18 @@ export function StackSuitePage() {
     setCollabDesc('');
   };
 
+  const handleError = (error) => {
+    alert(`Failed to publish: ${error.response?.data?.message || error.message}`);
+  };
+
   const createPostMutation = useMutation({
     mutationFn: (data) => createStackPost(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['stackPosts']);
       setPostSubmitted(true);
       setTimeout(closeCreate, 1500);
-    }
+    },
+    onError: handleError
   });
 
   const createShowcaseMutation = useMutation({
@@ -92,7 +97,8 @@ export function StackSuitePage() {
       queryClient.invalidateQueries(['showcases']);
       setPostSubmitted(true);
       setTimeout(closeCreate, 1500);
-    }
+    },
+    onError: handleError
   });
 
   const createCollabMutation = useMutation({
@@ -101,7 +107,8 @@ export function StackSuitePage() {
       queryClient.invalidateQueries(['threads']);
       setPostSubmitted(true);
       setTimeout(closeCreate, 1500);
-    }
+    },
+    onError: handleError
   });
 
   const handleCreateSubmit = () => {
