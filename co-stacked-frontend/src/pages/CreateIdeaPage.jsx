@@ -1,31 +1,30 @@
+// src/pages/CreateIdeaPage.jsx
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { createIdea } from '../api/ideasApi';
-import styles from './CreateIdeaPage.module.css';
+import { createStackPost } from '../api/stackSuiteApi';
+import { Rocket, Info, AlertCircle, Loader2, Target, Lightbulb, BarChart3, Tag } from 'lucide-react';
 
 export const CreateIdeaPage = () => {
-    const { user, token } = useSelector((state) => state.auth);
+    const { user } = useSelector((state) => state.auth);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const [formData, setFormData] = useState({
         title: '',
-        industry: '',
-        problemStatement: '',
-        targetAudience: '',
-        valueProposition: '',
-        monetizationModel: '',
-        risks: '',
-        assumptions: '',
-        visibility: 'public',
+        body: '',
+        phase: 'Problem',
+        confidenceScore: 50,
+        tags: '',
     });
 
     const handleChange = (e) => {
+        const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
-            [e.target.name]: e.target.value,
+            [name]: name === 'confidenceScore' ? parseInt(value) : value,
         }));
     };
 
@@ -35,156 +34,174 @@ export const CreateIdeaPage = () => {
         setError(null);
 
         try {
-            await createIdea(formData, token);
+            const payload = {
+                title: formData.title,
+                body: formData.body,
+                category: 'Validation',
+                tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+                phase: formData.phase,
+                confidenceScore: formData.confidenceScore,
+            };
+            await createStackPost(payload);
             navigate('/validation-board');
         } catch (err) {
             console.error(err);
-            setError(err.response?.data?.message || 'Failed to create idea');
+            setError(err.response?.data?.message || 'Failed to publish idea');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className={styles.container}>
-            <div className={styles.header}>
-                <h1>Validate Your Idea</h1>
-                <p>Fill out the canvas below to test your assumptions and gather feedback.</p>
+        <div className="max-w-4xl mx-auto px-4 py-12">
+            <div className="mb-10">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
+                    <Rocket size={14} />
+                    New Validation
+                </div>
+                <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-3">Validate Your Idea</h1>
+                <p className="text-lg text-slate-500">Share your vision with the community and get the feedback you need to build with confidence.</p>
             </div>
 
-            {error && <div className={styles.error}>{error}</div>}
+            {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl flex items-center gap-3">
+                    <AlertCircle size={20} />
+                    <span className="text-sm font-medium">{error}</span>
+                </div>
+            )}
 
-            <form onSubmit={handleSubmit} className={styles.form}>
-                <div className={styles.section}>
-                    <h2>Core Concept</h2>
-                    <div className={styles.formGroup}>
-                        <label>Idea Title</label>
+            <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Section 1: Core Concept */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm">
+                    <div className="flex items-center gap-2 mb-6 text-slate-900 dark:text-white">
+                        <Lightbulb className="text-blue-600" size={20} />
+                        <h2 className="text-xl font-bold">Core Concept</h2>
+                    </div>
+                    
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Idea Title</label>
+                            <input
+                                type="text"
+                                name="title"
+                                value={formData.title}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400"
+                                placeholder="e.g. AI-driven financial planning for creators"
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Pitch / Description</label>
+                            <textarea
+                                name="body"
+                                value={formData.body}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 min-h-[160px]"
+                                placeholder="Describe the problem you're solving and how your solution works..."
+                                required
+                            />
+                            <p className="mt-2 text-xs text-slate-400 flex items-center gap-1">
+                                <Info size={12} />
+                                Markdown is supported.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Section 2: Validation Status */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm">
+                    <div className="flex items-center gap-2 mb-6 text-slate-900 dark:text-white">
+                        <Target className="text-blue-600" size={20} />
+                        <h2 className="text-xl font-bold">Validation Status</h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Current Phase</label>
+                            <div className="flex flex-col gap-3">
+                                {[
+                                    { id: 'Problem', label: 'Problem Validation', desc: 'Confirming if the pain point is real.' },
+                                    { id: 'Solution', label: 'Solution Validation', desc: 'Testing if the idea solves the problem.' },
+                                    { id: 'MVP', label: 'MVP Phase', desc: 'Gathering early user feedback on product.' }
+                                ].map((phase) => (
+                                    <label key={phase.id} className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.phase === phase.id ? 'border-blue-600 bg-blue-50/50' : 'border-slate-100 dark:border-slate-800 hover:border-slate-200'}`}>
+                                        <input
+                                            type="radio"
+                                            name="phase"
+                                            value={phase.id}
+                                            checked={formData.phase === phase.id}
+                                            onChange={handleChange}
+                                            className="w-4 h-4 text-blue-600"
+                                        />
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900 dark:text-white">{phase.label}</p>
+                                            <p className="text-[11px] text-slate-500">{phase.desc}</p>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col justify-center">
+                            <div className="flex items-center justify-between mb-4">
+                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                    <BarChart3 size={16} />
+                                    Confidence Score
+                                </label>
+                                <span className="text-xl font-black text-blue-600">{formData.confidenceScore}%</span>
+                            </div>
+                            <input
+                                type="range"
+                                name="confidenceScore"
+                                min="0" max="100"
+                                value={formData.confidenceScore}
+                                onChange={handleChange}
+                                className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-600 mb-4"
+                            />
+                            <p className="text-xs text-slate-400">How much external validation have you received so far?</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Section 3: Classification */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm">
+                    <div className="flex items-center gap-2 mb-6 text-slate-900 dark:text-white">
+                        <Tag className="text-blue-600" size={20} />
+                        <h2 className="text-xl font-bold">Classification</h2>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Tags (Comma Separated)</label>
                         <input
                             type="text"
-                            name="title"
-                            value={formData.title}
+                            name="tags"
+                            value={formData.tags}
                             onChange={handleChange}
-                            placeholder="e.g. Uber for Dog Walking"
-                            required
-                        />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Industry</label>
-                        <select name="industry" value={formData.industry} onChange={handleChange} required>
-                            <option value="">Select Industry</option>
-                            <option value="Tech">Technology</option>
-                            <option value="Finance">Finance</option>
-                            <option value="Health">Health</option>
-                            <option value="Education">Education</option>
-                            <option value="Retail">Retail</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div className={styles.section}>
-                    <h2>The Problem & Solution</h2>
-                    <div className={styles.formGroup}>
-                        <label>Problem Statement</label>
-                        <textarea
-                            name="problemStatement"
-                            value={formData.problemStatement}
-                            onChange={handleChange}
-                            placeholder="What pain point are you solving?"
-                            required
-                            rows={4}
-                        />
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label>Target Audience</label>
-                        <textarea
-                            name="targetAudience"
-                            value={formData.targetAudience}
-                            onChange={handleChange}
-                            placeholder="Who experiences this problem?"
-                            required
-                            rows={3}
-                        />
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label>Value Proposition</label>
-                        <textarea
-                            name="valueProposition"
-                            value={formData.valueProposition}
-                            onChange={handleChange}
-                            placeholder="Why is your solution better?"
-                            required
-                            rows={4}
+                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400"
+                            placeholder="e.g. SaaS, Fintech, Creator Economy"
                         />
                     </div>
                 </div>
 
-                <div className={styles.section}>
-                    <h2>Business Viability</h2>
-                    <div className={styles.formGroup}>
-                        <label>Monetization Model</label>
-                        <textarea
-                            name="monetizationModel"
-                            value={formData.monetizationModel}
-                            onChange={handleChange}
-                            placeholder="How will you make money?"
-                            rows={3}
-                        />
-                    </div>
-                    <div className={styles.row}>
-                        <div className={styles.formGroup}>
-                            <label>Key Risks</label>
-                            <textarea
-                                name="risks"
-                                value={formData.risks}
-                                onChange={handleChange}
-                                placeholder="What could go wrong?"
-                                rows={3}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Core Assumptions</label>
-                            <textarea
-                                name="assumptions"
-                                value={formData.assumptions}
-                                onChange={handleChange}
-                                placeholder="What must be true for this to work?"
-                                rows={3}
-                            />
-                        </div>
-                    </div>
+                <div className="pt-6 flex items-center justify-between">
+                    <button 
+                        type="button" 
+                        onClick={() => navigate(-1)}
+                        className="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit" 
+                        disabled={loading}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-2xl shadow-xl shadow-blue-500/25 flex items-center gap-3 transition-transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        {loading ? <Loader2 size={20} className="animate-spin" /> : <Rocket size={20} />}
+                        {loading ? 'Publishing...' : 'Publish to Validation Board'}
+                    </button>
                 </div>
-
-                <div className={styles.section}>
-                    <h2>Visibility</h2>
-                    <div className={styles.radioGroup}>
-                        <label>
-                            <input
-                                type="radio"
-                                name="visibility"
-                                value="public"
-                                checked={formData.visibility === 'public'}
-                                onChange={handleChange}
-                            />
-                            Public (Visible to everyone)
-                        </label>
-                        <label>
-                            <input
-                                type="radio"
-                                name="visibility"
-                                value="private"
-                                checked={formData.visibility === 'private'}
-                                onChange={handleChange}
-                            />
-                            Private (Connections & Founders only - Coming Soon)
-                        </label>
-                    </div>
-                </div>
-
-                <button type="submit" className={styles.submitBtn} disabled={loading}>
-                    {loading ? 'Publishing...' : 'Publish to Validation Board'}
-                </button>
             </form>
         </div>
     );
