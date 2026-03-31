@@ -10,6 +10,7 @@ import { createStackPost, createShowcase, createCollabThread } from '../api/stac
 import { DiscussionsTab }   from '../components/stack-suite/DiscussionsTab';
 import { ShowcasesTab }     from '../components/stack-suite/ShowcasesTab';
 import { CollaborationTab } from '../components/stack-suite/CollaborationTab';
+import { ValidationBoardTab } from '../components/stack-suite/ValidationBoardTab';
 import styles from './StackSuitePage.module.css';
 import sharedStyles from '../components/stack-suite/StackSuite.module.css';
 
@@ -18,6 +19,7 @@ const STAGES = ['Idea', 'MVP', 'Beta', 'Launched'];
 
 const TABS = [
   { id: 'discussions',   label: 'Discussions',   shortLabel: 'Chat',   Icon: MessageCircle },
+  { id: 'validation',    label: 'Validation',    shortLabel: 'Valid',  Icon: Rocket        },
   { id: 'showcases',     label: 'Showcases',     shortLabel: 'Show',   Icon: Rocket        },
   { id: 'collaboration', label: 'Collaboration', shortLabel: 'Collab', Icon: GitBranch     },
 ];
@@ -39,6 +41,8 @@ export function StackSuitePage() {
   const [postBody, setPostBody]         = useState('');
   const [postCategory, setPostCategory] = useState('General');
   const [postTags, setPostTags]         = useState('');
+  const [postPhase, setPostPhase]       = useState('General');
+  const [postConfidence, setPostConfidence] = useState(0);
 
   // Showcases Form State
   const [showcaseName, setShowcaseName] = useState('');
@@ -63,6 +67,8 @@ export function StackSuitePage() {
     setPostBody('');
     setPostCategory('General');
     setPostTags('');
+    setPostPhase('General');
+    setPostConfidence(0);
 
     // Reset showcases
     setShowcaseName('');
@@ -141,7 +147,9 @@ export function StackSuitePage() {
         title: postTitle,
         body: postBody,
         category: postCategory,
-        tags: postTags.split(',').map(t => t.trim()).filter(Boolean)
+        tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
+        phase: postPhase,
+        confidenceScore: postConfidence,
       };
       console.log("Dispatching Discussion Payload:", payload);
       createPostMutation.mutate(payload);
@@ -298,6 +306,7 @@ export function StackSuitePage() {
 
           <div role="tabpanel">
             {activeTab === 'discussions'   && <DiscussionsTab search={search} />}
+            {activeTab === 'validation'    && <ValidationBoardTab search={search} />}
             {activeTab === 'showcases'     && <ShowcasesTab search={search} />}
             {activeTab === 'collaboration' && <CollaborationTab search={search} />}
           </div>
@@ -368,6 +377,37 @@ export function StackSuitePage() {
                         <label className={styles.formLabel} htmlFor="post-tags">Tags <span className={styles.formLabelMuted}>(comma separated)</span></label>
                         <input id="post-tags" type="text" className={styles.formInput} value={postTags} onChange={e => setPostTags(e.target.value)} placeholder="saas, mvp, validation" />
                       </div>
+                      
+                      {postCategory === 'Validation' && (
+                        <>
+                          <div>
+                            <label className={styles.formLabel}>Validation Phase</label>
+                            <div className={styles.categoryGrid}>
+                              {['Problem', 'Solution', 'MVP', 'General'].map(p => (
+                                <button 
+                                  key={p} 
+                                  onClick={() => setPostPhase(p)} 
+                                  className={`${styles.categoryChip} ${postPhase === p ? styles.categoryChipActive : ''}`} 
+                                  type="button"
+                                >
+                                  {p} Phase
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <label className={styles.formLabel} htmlFor="post-confidence">Confidence Score ({postConfidence}%)</label>
+                            <input 
+                              id="post-confidence" 
+                              type="range" 
+                              min="0" max="100" 
+                              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" 
+                              value={postConfidence} 
+                              onChange={e => setPostConfidence(parseInt(e.target.value))} 
+                            />
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
 

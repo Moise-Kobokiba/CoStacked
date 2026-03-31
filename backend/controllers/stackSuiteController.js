@@ -28,9 +28,10 @@ function timeAgo(date) {
 // GET /api/stack-suite/posts
 const getPosts = async (req, res) => {
   try {
-    const { category, sort, search } = req.query;
+    const { category, sort, search, phase } = req.query;
     let query = { isDeleted: false };
     if (category && category !== 'all') query.category = category;
+    if (phase && phase !== 'all') query.phase = phase;
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -85,7 +86,7 @@ const getPostById = async (req, res) => {
 // POST /api/stack-suite/posts  (auth required)
 const createPost = async (req, res) => {
   try {
-    const { title, body, category, tags } = req.body;
+    const { title, body, category, tags, phase, confidenceScore } = req.body;
     if (!title || !body) return res.status(400).json({ message: 'Title and body are required' });
 
     const tagList = typeof tags === 'string'
@@ -98,6 +99,8 @@ const createPost = async (req, res) => {
       body,
       category: category || 'General',
       tags: tagList,
+      phase: phase || 'General',
+      confidenceScore: confidenceScore || 0,
     });
 
     await post.populate('author', 'name avatarUrl role');
