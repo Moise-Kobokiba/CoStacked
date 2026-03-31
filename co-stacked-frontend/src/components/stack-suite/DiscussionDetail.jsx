@@ -72,8 +72,8 @@ export function DiscussionDetail({ discussionId, onBack }) {
 
   if (isLoading || !discussion) {
     return (
-      <div className="flex justify-center py-20 text-slate-400">
-        <Loader2 className="animate-spin" size={24} />
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem 0', color: 'var(--muted-foreground)' }}>
+        <Loader2 className="animate-spin" size={24} style={{ animation: 'spin 1s linear infinite' }} />
       </div>
     );
   }
@@ -82,109 +82,109 @@ export function DiscussionDetail({ discussionId, onBack }) {
   const isAuthor = currentUser && (currentUser._id === (discussion.author?._id || discussion.author) || currentUser.id === (discussion.author?._id || discussion.author));
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <button className="flex items-center gap-2 mb-6 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors" onClick={onBack}>
+    <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
+      <button 
+        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.875rem', fontWeight: '500', color: 'var(--muted-foreground)', background: 'none', border: 'none', cursor: 'pointer' }} 
+        onClick={onBack}
+      >
         <ArrowLeft size={16} /> Back to List
       </button>
 
-      <article className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 mb-8">
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${categoryBadgeClass[discussion.category] || styles.badgeGeneral}`}>
+      <article style={{ background: 'var(--card-background)', border: '1px solid var(--border)', borderRadius: '0.75rem', padding: '2rem', marginBottom: '2rem', boxShadow: 'var(--shadow-sm)' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+          <span className={`${styles.badge} ${categoryBadgeClass[discussion.category] || styles.badgeGeneral}`}>
             {discussion.category}
           </span>
           {discussion.pinned && (
-            <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded text-[10px] font-bold uppercase">
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '2px 8px', background: 'rgba(245, 158, 11, 0.1)', color: '#d97706', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: '99px', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase' }}>
               <Pin size={10} /> Pinned
             </span>
           )}
-          <span className="text-xs text-slate-400">{discussion.time}</span>
-          <span className="flex items-center gap-1 text-xs text-slate-400">
+          <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{discussion.time}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
             <Eye size={12} /> {discussion.viewCount || 0} views
           </span>
         </div>
 
-        <h1 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white leading-tight">
+        <h1 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--foreground)', lineHeight: '1.25' }}>
           {discussion.title}
         </h1>
 
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-sm font-bold overflow-hidden">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+          <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%', background: 'var(--input-background)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', fontWeight: '700', overflow: 'hidden' }}>
             {discussion.author?.avatarUrl ? (
-              <img src={discussion.author.avatarUrl} alt={discussion.author.name} />
+              <img src={discussion.author.avatarUrl} alt={discussion.author.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               initials
             )}
           </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-900 dark:text-white">{discussion.author?.name || 'Unknown User'}</span>
-              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${roleBadgeClass[discussion.author?.role] || styles.badgeDeveloper}`}>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--foreground)' }}>{discussion.author?.name || 'Unknown User'}</span>
+              <span className={`${styles.badge} ${roleBadgeClass[discussion.author?.role] || styles.badgeDeveloper}`} style={{ fontSize: '10px' }}>
                 {discussion.author?.role || 'Developer'}
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">Posted {discussion.time}</p>
+            <p style={{ fontSize: '11px', color: 'var(--muted-foreground)' }}>Posted {discussion.time}</p>
           </div>
           
           {isAuthor && (
             <button 
               onClick={handleDelete}
               disabled={deleteMutation.isLoading}
-              className="text-xs font-semibold text-red-600 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+              style={{ fontSize: '12px', fontWeight: '600', color: 'var(--destructive)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               {deleteMutation.isLoading ? <Loader2 size={12} className="animate-spin" /> : 'Delete Post'}
             </button>
           )}
         </div>
 
-        <div className="text-sm leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-line mb-8">
+        <div style={{ fontSize: '0.875rem', lineHeight: '1.6', color: 'var(--foreground)', whiteSpace: 'pre-line', marginBottom: '2rem', opacity: 0.9 }}>
           {discussion.body}
         </div>
 
         {discussion.tags && discussion.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-8">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '2rem' }}>
             {discussion.tags.map(tag => (
-              <span key={tag} className="text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded">#{tag}</span>
+              <span key={tag} className={styles.chip} style={{ fontSize: '11px' }}>#{tag}</span>
             ))}
           </div>
         )}
 
-        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-6">
-          <div className="flex items-center gap-6">
+        <div style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '1.5rem', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
             <button
               onClick={() => upvoteMutation.mutate(discussion._id)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${
-                discussion.isUpvoted 
-                  ? 'bg-blue-50 border-blue-200 text-blue-600' 
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
+              className={`${styles.upvoteBtn} ${discussion.isUpvoted ? styles.upvoteBtnActive : ''}`}
             >
               <ArrowBigUp size={20} />
-              <span className="font-bold">{discussion.upvoteCount}</span>
+              <span style={{ fontWeight: '700' }}>{discussion.upvoteCount}</span>
             </button>
-            <span className="flex items-center gap-2 text-sm text-slate-400">
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>
               <MessageSquare size={16} /> {discussion.commentCount || 0} comments
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <button
               onClick={() => setBookmarked(v=>!v)}
-              className={`p-2 rounded-lg transition-colors ${bookmarked ? 'text-blue-600 bg-blue-50' : 'text-slate-400 hover:bg-slate-100'}`}
+              className={styles.iconBtn}
+              style={{ color: bookmarked ? 'var(--star-color)' : 'var(--muted-foreground)' }}
             >
               <Bookmark size={18} fill={bookmarked ? 'currentColor' : 'none'} />
             </button>
-            <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg">
+            <button className={styles.iconBtn}>
               <Share2 size={18} />
             </button>
           </div>
         </div>
       </article>
 
-      <div className="mt-8">
-        <h2 className="text-lg font-bold mb-6 text-slate-900 dark:text-white">
+      <div style={{ marginTop: '2rem' }}>
+        <h2 style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--foreground)' }}>
           Comments ({discussion.commentCount || 0})
         </h2>
         {commentsLoading ? (
-           <p className="text-sm text-slate-400">Loading comments...</p>
+           <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Loading comments...</p>
         ) : (
            <CommentThread 
              comments={comments} 
