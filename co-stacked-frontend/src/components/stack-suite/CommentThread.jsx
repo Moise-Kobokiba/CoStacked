@@ -14,7 +14,7 @@ const roleBadgeClass = {
   Mentor:    styles.badgeMentor,
 };
 
-function SingleComment({ comment, depth = 0, onReplySubmit, parentType, parentId }) {
+function SingleComment({ comment, depth = 0, onReplySubmit, parentType, parentId, invalidateParent }) {
   const queryClient = useQueryClient();
   const currentUser = useSelector((state) => state.auth.user);
   
@@ -59,6 +59,7 @@ function SingleComment({ comment, depth = 0, onReplySubmit, parentType, parentId
     mutationFn: (id) => deleteStackComment(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['stackComments', parentType, parentId]);
+      invalidateParent();
     },
     onError: (err) => {
       alert(`Failed to delete comment: ${err.response?.data?.message || err.message}`);
@@ -182,6 +183,7 @@ function SingleComment({ comment, depth = 0, onReplySubmit, parentType, parentId
               onReplySubmit={onReplySubmit}
               parentType={parentType}
               parentId={parentId}
+              invalidateParent={invalidateParent}
             />
           ))}
         </div>
@@ -194,10 +196,26 @@ export function CommentThread({ comments = [], parentType, parentId }) {
   const queryClient = useQueryClient();
   const [newComment, setNewComment] = useState('');
 
+  // Helper to invalidate parent queries when comment count changes
+  const invalidateParent = () => {
+    // 1. Invalidate the specific detail query
+    const detailKey = parentType === 'post' ? 'stackPost' 
+                    : parentType === 'showcase' ? 'showcase' 
+                    : 'thread';
+    queryClient.invalidateQueries([detailKey, parentId]);
+
+    // 2. Invalidate the list query
+    const listKey = parentType === 'post' ? 'stackPosts'
+                  : parentType === 'showcase' ? 'showcases'
+                  : 'threads';
+    queryClient.invalidateQueries({ queryKey: [listKey] });
+  };
+
   const addCommentMutation = useMutation({
     mutationFn: ({ content, parentCommentId }) => addStackComment(parentType, parentId, content, parentCommentId),
     onSuccess: () => {
       queryClient.invalidateQueries(['stackComments', parentType, parentId]);
+      invalidateParent();
       setNewComment('');
     },
     onError: (error) => {
@@ -253,6 +271,7 @@ export function CommentThread({ comments = [], parentType, parentId }) {
             onReplySubmit={handleReplySubmit}
             parentType={parentType}
             parentId={parentId}
+            invalidateParent={invalidateParent}
           />
         ))}
       </div>
