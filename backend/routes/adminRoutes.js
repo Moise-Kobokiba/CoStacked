@@ -19,6 +19,7 @@ const {
     getAdminNotifications,
     markAdminNotificationsAsRead,
     updateReportStatus,
+    addAdminReportMessage,
       getAdminProfile,
     updateAdminProfile,
     changeAdminPassword,

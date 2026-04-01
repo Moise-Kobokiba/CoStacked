@@ -1,5 +1,5 @@
-// src/pages/SupportPage.jsx
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { submitReport } from '../features/reports/reportsSlice';
 import { Accordion } from '../components/shared/Accordion';
@@ -69,8 +69,17 @@ export const SupportPage = () => {
   return (
     <div className={styles.pageContainer}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Support Center</h1>
-        <p className={styles.subtitle}>How can we help you today?</p>
+        <div>
+          <h1 className={styles.title}>Support Center</h1>
+          <p className={styles.subtitle}>How can we help you today?</p>
+        </div>
+        {isAuthenticated && (
+          <div style={{ marginTop: '1rem' }}>
+            <Link to="/support/tickets" style={{ background: 'var(--primary-accent)', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold' }}>
+              View My Tickets
+            </Link>
+          </div>
+        )}
       </header>
 
       {/* --- FAQ Section --- */}

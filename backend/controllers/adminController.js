@@ -371,7 +371,11 @@ const deleteProjectByAdmin = async (req, res) => {
  */
 const getReports = async (req, res) => {
   try {
-    const reports = await Report.find({ status: "open" })
+    const reports = await Report.find({ status: { $ne: 'dismissed' } })
+      .populate("reporter", "name email avatarUrl")
+      .populate("reportedUser", "name email")
+      .populate("reportedProject", "title")
+      .populate("messages.sender", "name email role avatarUrl")
       .populate("reporter", "name email")
       .populate("reportedUser", "name email")
       .populate("reportedProject", "title")
@@ -657,6 +661,7 @@ module.exports = {
   getAdminNotifications,
   markAdminNotificationsAsRead,
   updateReportStatus,
+  addAdminReportMessage,
   getAdminProfile,
   updateAdminProfile,
   changeAdminPassword,
