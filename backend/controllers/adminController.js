@@ -474,6 +474,47 @@ const updateReportStatus = async (req, res) => {
 };
 
 /**
+ * @desc    Add a message to a report as an admin
+ * @route   POST /api/admin/reports/:id/messages
+ * @access  Private/Admin
+ */
+const addAdminReportMessage = async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ message: 'Message content is required.' });
+
+    const report = await Report.findById(req.params.id);
+    if (!report) return res.status(404).json({ message: 'Report not found' });
+
+    report.messages.push({
+      sender: req.user.id,
+      senderModel: 'User', // Admins are in the User model with isAdmin flag
+      content
+    });
+
+    await report.save();
+    await report.populate('messages.sender', 'name email avatarUrl role');
+
+    // Create a notification for the reporting user in the user frontend
+    const Notification = require('../models/Notification'); // Assuming standard user notification model exists
+    if (Notification) {
+      await Notification.create({
+        recipient: report.reporter,
+        sender: req.user.id,
+        type: 'REPORT_UPDATE',
+        content: `CoStacked Support replied to your ticket.`,
+        link: '/support/tickets',
+      });
+    }
+
+    res.json(report);
+  } catch (error) {
+    console.error(`[ADD ADMIN REPORT MSG ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server error while adding admin reply.' });
+  }
+};
+
+/**
  * @desc    Get the logged-in admin's profile data
  * @route   GET /api/admin/profile
  * @access  Private/Admin
