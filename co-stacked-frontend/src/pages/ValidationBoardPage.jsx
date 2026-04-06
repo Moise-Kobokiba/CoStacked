@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { 
   Search, PlusCircle, Lightbulb, ChevronLeft, ChevronRight, Loader2,
-  ThumbsUp, MessageSquare
+  ThumbsUp, MessageSquare, X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getStackPosts } from '../api/stackSuiteApi';
 import { DiscussionDetail } from '../components/stack-suite/DiscussionDetail';
+import { useDebounce } from '../hooks/useDebounce';
 import styles from './ValidationBoard.module.css';
 
 const PHASE_BADGE_CLASS = {
@@ -20,12 +21,14 @@ const PHASE_BADGE_CLASS = {
 
 export function ValidationBoardPage() {
   const [phaseFilter, setPhaseFilter] = useState('all');
-  const [search, setSearch] = useState('');
-  const [selectedId, setSelectedId]   = useState(null);
+  const [search, setSearch]             = useState('');
+  const [selectedId, setSelectedId]     = useState(null);
 
-  const { data: posts = [], isLoading } = useQuery({
-    queryKey: ['stackPosts', { category: 'Validation', search, phase: phaseFilter }],
-    queryFn: () => getStackPosts({ category: 'Validation', search, phase: phaseFilter }),
+  const debouncedSearch = useDebounce(search, 500);
+
+  const { data: posts = [], isLoading, isFetching } = useQuery({
+    queryKey: ['stackPosts', { category: 'Validation', search: debouncedSearch, phase: phaseFilter }],
+    queryFn: () => getStackPosts({ category: 'Validation', search: debouncedSearch, phase: phaseFilter }),
   });
 
   const phases = [
@@ -72,7 +75,9 @@ export function ValidationBoardPage() {
             ))}
           </nav>
           <div className={styles.searchWrapper}>
-            <div className={styles.searchIcon}><Search size={14} /></div>
+            <div className={styles.searchIcon}>
+              {isFetching ? <Loader2 className="animate-spin" size={14} /> : <Search size={14} />}
+            </div>
             <input 
               className={styles.searchInput}
               placeholder="Search ideas..." 
@@ -80,6 +85,15 @@ export function ValidationBoardPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
+            {search && (
+              <button 
+                className={styles.clearSearch}
+                onClick={() => setSearch('')}
+                aria-label="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
         </div>
       </div>

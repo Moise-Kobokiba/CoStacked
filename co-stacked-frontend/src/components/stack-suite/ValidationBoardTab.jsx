@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { 
   Search, PlusCircle, Lightbulb, TrendingUp, Users, Rocket, 
   MessageSquare, ThumbsUp, ChevronLeft, ChevronRight, Loader2,
-  AlertCircle
+  AlertCircle, X
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getStackPosts } from '../../api/stackSuiteApi';
 import { DiscussionDetail } from './DiscussionDetail';
+import { useDebounce } from '../../hooks/useDebounce';
 import styles from './StackSuite.module.css';
 
 const PHASE_COLORS = {
@@ -24,9 +25,10 @@ export function ValidationBoardTab({ search: globalSearch }) {
   const [selectedId, setSelectedId]   = useState(null);
   const queryClient = useQueryClient();
 
-  const finalSearch = localSearch || globalSearch;
+  const debouncedSearch = useDebounce(localSearch, 500);
+  const finalSearch     = debouncedSearch || globalSearch;
 
-  const { data: posts = [], isLoading } = useQuery({
+  const { data: posts = [], isLoading, isFetching } = useQuery({
     queryKey: ['stackPosts', { category: 'Validation', search: finalSearch, phase: phaseFilter }],
     queryFn: () => getStackPosts({ category: 'Validation', search: finalSearch, phase: phaseFilter }),
   });
@@ -72,15 +74,24 @@ export function ValidationBoardTab({ search: globalSearch }) {
           </nav>
           <div className="relative w-full md:w-72 mb-4 md:mb-0">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-              <Search size={14} />
+              {isFetching ? <Loader2 className="animate-spin" size={14} /> : <Search size={14} />}
             </div>
             <input 
-              className="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+              className="block w-full pl-10 pr-10 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
               placeholder="Search ideas..." 
               type="text"
               value={localSearch}
               onChange={e => setLocalSearch(e.target.value)}
             />
+            {localSearch && (
+              <button 
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                onClick={() => setLocalSearch('')}
+                aria-label="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
         </div>
       </div>

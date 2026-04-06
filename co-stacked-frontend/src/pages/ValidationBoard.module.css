@@ -132,7 +132,8 @@
 
 .searchIcon {
   position: absolute;
-  inset-y: 0;
+  top: 0;
+  bottom: 0;
   left: 0;
   display: flex;
   align-items: center;
@@ -162,6 +163,26 @@
   border-color: var(--primary);
 }
 
+.clearSearch {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.clearSearch:hover {
+  color: var(--foreground);
+}
+
 /* Layout Grid */
 .mainContent {
   display: flex;
@@ -181,7 +202,7 @@
 
 .grid {
   display: grid;
-  grid-template-cols: 1fr;
+  grid-template-columns: 1fr;
   gap: 1.5rem;
 }
 
@@ -279,6 +300,7 @@
   margin-bottom: 1rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
