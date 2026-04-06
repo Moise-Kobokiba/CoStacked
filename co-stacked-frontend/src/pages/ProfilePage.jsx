@@ -146,7 +146,20 @@ export const ProfilePage = () => {
   const userProjects = userToDisplay.role === "founder" ? allProjects.filter((p) => p.founderId === userToDisplay._id) : [];
   const averageRating = developerReviews.length > 0 ? developerReviews.reduce((acc, r) => acc + r.rating, 0) / developerReviews.length : 0;
   
-  const canLeaveReview = !isOwnProfile && loggedInUser?.role === "founder" && userToDisplay.role === "developer";
+  const reviewableProjects =
+    founderConnections && Array.isArray(founderConnections)
+      ? founderConnections.filter(c =>
+        c.senderId?._id === userToDisplay._id &&
+        c.status === 'approved' &&
+        !developerReviews.some(review => review.projectId?._id === c.projectId?._id)
+      )
+      : [];
+
+  const canLeaveReview =
+    !isOwnProfile &&
+    loggedInUser?.role === "founder" &&
+    userToDisplay.role === "developer" &&
+    reviewableProjects.length > 0;
 
   // Redesign Mock Data (Fallback if empty in DB)
   const experience = userToDisplay.experience && userToDisplay.experience.length > 0 ? userToDisplay.experience : [
@@ -183,7 +196,7 @@ export const ProfilePage = () => {
   return (
     <>
       <ProfileBoostModal user={userToDisplay} open={isBoostModalOpen} onClose={() => setBoostModalOpen(false)} />
-      <LeaveReviewModal developer={userToDisplay} open={isReviewModalOpen} onClose={() => setReviewModalOpen(false)} />
+      <LeaveReviewModal developer={userToDisplay} reviewableProjects={reviewableProjects} open={isReviewModalOpen} onClose={() => setReviewModalOpen(false)} />
       <AvatarUploadModal open={isAvatarModalOpen} onClose={() => setAvatarModalOpen(false)} />
 
       {/* Image Viewer Modal */}
