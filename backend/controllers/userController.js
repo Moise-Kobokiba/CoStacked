@@ -339,6 +339,7 @@ const updateUserProfile = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (user) {
       user.name = req.body.name || user.name;
+      user.headline = req.body.headline ?? user.headline;
       user.bio = req.body.bio ?? user.bio;
       user.availability = req.body.availability ?? user.availability;
       user.location = req.body.location ?? user.location;
@@ -357,6 +358,15 @@ const updateUserProfile = async (req, res) => {
       if (req.body.socials) {
         user.socials = { ...user.socials, ...req.body.socials };
       }
+
+      // --- NEW: Handle Career & Educational History ---
+      if (req.body.experience) {
+        user.experience = req.body.experience;
+      }
+      if (req.body.education) {
+        user.education = req.body.education;
+      }
+
       const updatedUser = await user.save();
       res.json(updatedUser);
     } else {
@@ -586,6 +596,7 @@ const completeProfile = async (req, res) => {
 
     // Update all profile fields from onboarding
     if (req.body.role) user.role = req.body.role;
+    if (req.body.headline !== undefined) user.headline = req.body.headline;
     if (req.body.bio !== undefined) user.bio = req.body.bio;
     if (req.body.location !== undefined) user.location = req.body.location;
     if (req.body.availability !== undefined) user.availability = req.body.availability;

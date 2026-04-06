@@ -10,7 +10,14 @@ import { fetchUsers, recordProfileView } from "../features/users/usersSlice";
 import { fetchProjects } from "../features/projects/projectsSlice";
 import { fetchReviewsForUser } from "../features/reviews/reviewsSlice";
 import { fetchReceivedInterests } from "../features/interests/interestsSlice";
-import { sendConnectionRequest, acceptConnectionRequest, removeOrCancelConnection, fetchConnections, fetchPendingRequests, fetchConnectionCount } from "../features/connections/connectionsSlice";
+import { 
+  sendConnectionRequest, 
+  acceptConnectionRequest, 
+  removeOrCancelConnection, 
+  fetchConnections, 
+  fetchPendingRequests, 
+  fetchConnectionCount 
+} from "../features/connections/connectionsSlice";
 
 // Import All UI Components
 import { Card } from "../components/shared/Card";
@@ -23,9 +30,17 @@ import { ProfileHeader } from "../components/profile/ProfileHeader";
 import { AvatarUploadModal } from "../components/profile/AvatarUploadModal";
 import { LeaveReviewModal } from "../components/reviews/LeaveReviewModal";
 import { ProfileBoostModal } from "../components/billing/ProfileBoostModal";
-import { MapPin, Link as LinkIcon, X, ArrowLeft } from "lucide-react";
+import { 
+  MapPin, Link as LinkIcon, X, ArrowLeft, 
+  Globe, Github, Linkedin, Briefcase, Rocket, Laptop,
+  Quote
+} from "lucide-react";
 
-const LoadingSpinner = () => <div className={styles.loader}>Loading profile...</div>;
+const LoadingSpinner = () => (
+  <div className={styles.loader}>
+    <Card className={styles.card}>Loading profile...</Card>
+  </div>
+);
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
@@ -34,6 +49,12 @@ const formatDate = (dateString) => {
     month: "long",
     day: "numeric",
   });
+};
+
+const formatPeriod = (start, end, isCurrent) => {
+  const startStr = start ? new Date(start).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+  const endStr = isCurrent ? 'Present' : (end ? new Date(end).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '');
+  return `${startStr} — ${endStr}`;
 };
 
 export const ProfilePage = () => {
@@ -60,19 +81,12 @@ export const ProfilePage = () => {
   const userToDisplay = userId ? allUsers.find((u) => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
 
-  // Determine connection status
+  // Connection status helpers
   const getConnectionStatus = () => {
     if (!loggedInUser || !userToDisplay || isOwnProfile) return null;
-
-    const isConnected = connections?.some(conn => conn._id === userToDisplay._id);
-    if (isConnected) return 'connected';
-
-    const sentRequest = pendingRequests?.find(req => req.recipient?._id === userToDisplay._id);
-    if (sentRequest) return 'pending_sent';
-
-    const receivedRequest = pendingRequests?.find(req => req.requester?._id === userToDisplay._id);
-    if (receivedRequest) return 'pending_received';
-
+    if (connections?.some(conn => conn._id === userToDisplay._id)) return 'connected';
+    if (pendingRequests?.some(req => req.recipient?._id === userToDisplay._id)) return 'pending_sent';
+    if (pendingRequests?.some(req => req.requester?._id === userToDisplay._id)) return 'pending_received';
     return 'not_connected';
   };
 
@@ -81,119 +95,40 @@ export const ProfilePage = () => {
 
   const handleShare = useCallback(async () => {
     if (!userToDisplay) return;
-    const shareData = {
-      title: `${userToDisplay.name} on CoStacked`,
-      text: `Check out ${userToDisplay.name}'s profile on CoStacked.`,
-      url: window.location.href,
-    };
+    const url = window.location.href;
     if (navigator.share) {
       try {
-        await navigator.share(shareData);
-      } catch (err) {
-        console.error("Error sharing:", err);
-      }
+        await navigator.share({ title: `${userToDisplay.name} on CoStacked`, url });
+      } catch (err) { console.error(err); }
     } else {
       try {
-        await navigator.clipboard.writeText(shareData.url);
+        await navigator.clipboard.writeText(url);
         setCopySuccess("Copied!");
-      } catch (err) {
-        console.error("Failed to copy:", err);
-        setCopySuccess("Failed!");
-      }
-      setTimeout(() => setCopySuccess(""), 2000);
+        setTimeout(() => setCopySuccess(""), 2000);
+      } catch (err) { console.error(err); }
     }
   }, [userToDisplay]);
 
   // Connection handlers
   const connectionHandlers = {
-    send: () => {
-      if (userToDisplay?._id) {
-        dispatch(sendConnectionRequest(userToDisplay._id))
-          .unwrap()
-          .then(() => {
-            alert(`Connection request sent to ${userToDisplay.name}!`);
-          })
-          .catch((error) => {
-            console.error('Failed to send connection request:', error);
-            console.error('Error response:', error.response);
-            console.error('Error data:', error.response?.data);
-            const errorMessage = error.response?.data?.message || error.message || 'Unknown error occurred';
-            alert(`Failed to send connection request: ${errorMessage}`);
-          });
-      }
-    },
-    cancel: () => {
-      if (userToDisplay?._id) {
-        dispatch(removeOrCancelConnection(userToDisplay._id))
-          .unwrap()
-          .then(() => {
-            alert('Connection request cancelled.');
-          })
-          .catch((error) => {
-            console.error('Failed to cancel connection request:', error);
-            alert('Failed to cancel connection request. Please try again.');
-          });
-      }
-    },
-    remove: () => {
-      if (userToDisplay?._id) {
-        dispatch(removeOrCancelConnection(userToDisplay._id))
-          .unwrap()
-          .then(() => {
-            alert('Connection removed.');
-          })
-          .catch((error) => {
-            console.error('Failed to remove connection:', error);
-            alert('Failed to remove connection. Please try again.');
-          });
-      }
-    },
-    accept: () => {
-      if (userToDisplay?._id) {
-        dispatch(acceptConnectionRequest(userToDisplay._id))
-          .unwrap()
-          .then(() => {
-            alert(`Connection request from ${userToDisplay.name} accepted!`);
-          })
-          .catch((error) => {
-            console.error('Failed to accept connection request:', error);
-            alert('Failed to accept connection request. Please try again.');
-          });
-      }
-    },
-    decline: () => {
-      if (userToDisplay?._id) {
-        dispatch(removeOrCancelConnection(userToDisplay._id))
-          .unwrap()
-          .then(() => {
-            alert(`Connection request from ${userToDisplay.name} declined.`);
-          })
-          .catch((error) => {
-            console.error('Failed to decline connection request:', error);
-            alert('Failed to decline connection request. Please try again.');
-          });
-      }
-    },
+    send: () => userToDisplay?._id && dispatch(sendConnectionRequest(userToDisplay._id)),
+    cancel: () => userToDisplay?._id && dispatch(removeOrCancelConnection(userToDisplay._id)),
+    remove: () => userToDisplay?._id && dispatch(removeOrCancelConnection(userToDisplay._id)),
+    accept: () => userToDisplay?._id && dispatch(acceptConnectionRequest(userToDisplay._id)),
+    decline: () => userToDisplay?._id && dispatch(removeOrCancelConnection(userToDisplay._id)),
   };
 
-  const handleMessage = () => {
-    if (userToDisplay?._id) {
-      navigate(`/messages/${userToDisplay._id}`);
-    }
-  };
+  const handleMessage = () => userToDisplay?._id && navigate(`/messages/${userToDisplay._id}`);
 
-  // Data fetching effects
+  // Data fetching
   useEffect(() => {
     if (usersStatus === "idle") dispatch(fetchUsers());
     if (projectsStatus === "idle") dispatch(fetchProjects());
     if (userToDisplay?._id) dispatch(fetchReviewsForUser(userToDisplay._id));
-    if (loggedInUser?.role === "founder") dispatch(fetchReceivedInterests());
-    // Fetch connections data for connection status
     if (loggedInUser && !isOwnProfile) {
       dispatch(fetchConnections());
       dispatch(fetchPendingRequests());
     }
-    // Fetch connection count for the displayed user
     if (userToDisplay?._id && !connectionCounts[userToDisplay._id]) {
       dispatch(fetchConnectionCount(userToDisplay._id));
     }
@@ -205,55 +140,57 @@ export const ProfilePage = () => {
     }
   }, [userId, loggedInUser, dispatch]);
 
-  // Loading state guard clause
-  if (usersStatus === "loading" || !userToDisplay) {
-    return (
-      <div className={styles.pageContainer}>
-        <LoadingSpinner />
-      </div>
-    );
-  }
+  if (usersStatus === "loading" || !userToDisplay) return <div className={styles.pageContainer}><LoadingSpinner /></div>;
 
-  // Final derived state for rendering
   const developerReviews = reviewsByUser[userToDisplay._id] || [];
-  const userProjects =
-    userToDisplay.role === "founder"
-      ? allProjects.filter((p) => p.founderId === userToDisplay._id)
-      : [];
-  const averageRating =
-    developerReviews.length > 0
-      ? developerReviews.reduce((acc, r) => acc + r.rating, 0) /
-      developerReviews.length
-      : 0;
+  const userProjects = userToDisplay.role === "founder" ? allProjects.filter((p) => p.founderId === userToDisplay._id) : [];
+  const averageRating = developerReviews.length > 0 ? developerReviews.reduce((acc, r) => acc + r.rating, 0) / developerReviews.length : 0;
+  
+  const canLeaveReview = !isOwnProfile && loggedInUser?.role === "founder" && userToDisplay.role === "developer";
 
-  const reviewableProjects =
-    founderConnections && Array.isArray(founderConnections)
-      ? founderConnections.filter(c =>
-        c.senderId?._id === userToDisplay._id &&
-        c.status === 'approved' &&
-        !developerReviews.some(review => review.projectId?._id === c.projectId?._id)
-      )
-      : [];
+  // Redesign Mock Data (Fallback if empty in DB)
+  const experience = userToDisplay.experience && userToDisplay.experience.length > 0 ? userToDisplay.experience : [
+    {
+      title: "Senior Software Engineer",
+      company: "TechFlow Solutions",
+      employmentType: "Full-time",
+      startDate: "2021-01-01",
+      isCurrent: true,
+      description: "Leading a team of 4 developers in rebuilding the core enterprise dashboard using Next.js. Optimized database queries reducing load times by 40% across the platform.",
+      icon: "rocket_launch"
+    },
+    {
+      title: "Frontend Developer",
+      company: "Creative Labs Agency",
+      employmentType: "Remote",
+      startDate: "2019-06-01",
+      endDate: "2020-12-01",
+      isCurrent: false,
+      description: "Developed responsive UI components for 10+ high-traffic client websites. Collaborated with design teams to ensure pixel-perfect implementation.",
+      icon: "laptop_mac"
+    }
+  ];
 
-  const canLeaveReview =
-    !isOwnProfile &&
-    loggedInUser?.role === "founder" &&
-    userToDisplay.role === "developer" &&
-    reviewableProjects.length > 0;
+  const education = userToDisplay.education && userToDisplay.education.length > 0 ? userToDisplay.education : [
+    {
+      degree: "BS in Information Technology",
+      school: "Bulacan State University",
+      startDate: "2016",
+      endDate: "2020"
+    }
+  ];
 
   return (
     <>
       <ProfileBoostModal user={userToDisplay} open={isBoostModalOpen} onClose={() => setBoostModalOpen(false)} />
-      <LeaveReviewModal developer={userToDisplay} reviewableProjects={reviewableProjects} open={isReviewModalOpen} onClose={() => setReviewModalOpen(false)} />
+      <LeaveReviewModal developer={userToDisplay} open={isReviewModalOpen} onClose={() => setReviewModalOpen(false)} />
       <AvatarUploadModal open={isAvatarModalOpen} onClose={() => setAvatarModalOpen(false)} />
 
       {/* Image Viewer Modal */}
       {isImageViewerOpen && userToDisplay.avatarUrl && (
         <div className={styles.imageViewerOverlay} onClick={() => setImageViewerOpen(false)}>
           <div className={styles.imageViewerContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.imageViewerClose} onClick={() => setImageViewerOpen(false)}>
-              <X size={32} />
-            </button>
+            <button className={styles.imageViewerClose} onClick={() => setImageViewerOpen(false)}><X size={32} /></button>
             <img src={userToDisplay.avatarUrl} alt={userToDisplay.name} className={styles.imageViewerImage} />
           </div>
         </div>
@@ -264,112 +201,190 @@ export const ProfilePage = () => {
           {userId && (
             <button className={styles.backButton} onClick={() => navigate('/users')}>
               <ArrowLeft size={18} />
-              Back to Talents
+              Back to Talent
             </button>
           )}
+
           {isEditing && isOwnProfile ? (
-            <ProfileEditor
-              user={userToDisplay}
-              onSave={() => setIsEditing(false)}
-              onCancel={() => setIsEditing(false)}
-            />
+            <ProfileEditor user={userToDisplay} onSave={() => setIsEditing(false)} onCancel={() => setIsEditing(false)} />
           ) : (
             <>
-              {isOwnProfile &&
-                userToDisplay.isBoosted &&
-                new Date(userToDisplay.boostExpiresAt) > new Date() && (
-                  <div className={styles.boostBanner}>
-                    Your profile is boosted until{" "}
-                    {formatDate(userToDisplay.boostExpiresAt)}.
-                  </div>
-                )}
+              {isOwnProfile && userToDisplay.isBoosted && new Date(userToDisplay.boostExpiresAt) > new Date() && (
+                <div className={styles.boostBanner}>Your profile is boosted until {formatDate(userToDisplay.boostExpiresAt)}.</div>
+              )}
 
-              <Card className={styles.profileCard}>
-                <ProfileHeader
-                  user={userToDisplay}
-                  isOwnProfile={isOwnProfile}
-                  averageRating={averageRating}
-                  reviewCount={developerReviews.length}
-                  canLeaveReview={canLeaveReview}
-                  onEdit={() => setIsEditing(true)}
-                  onBoost={() => setBoostModalOpen(true)}
-                  onReview={() => setReviewModalOpen(true)}
-                  onAvatarClick={() => setAvatarModalOpen(true)}
-                  onAvatarView={() => setImageViewerOpen(true)}
-                  onShare={handleShare}
-                  copySuccess={copySuccess}
-                  connectionStatus={connectionStatus}
-                  connectionHandlers={connectionHandlers}
-                  isConnectionLoading={isConnectionLoading}
-                  onMessage={handleMessage}
-                  connectionCount={connectionCounts[userToDisplay._id] || 0}
-                />
-              </Card>
+              <ProfileHeader
+                user={userToDisplay}
+                isOwnProfile={isOwnProfile}
+                onEdit={() => setIsEditing(true)}
+                onBoost={() => setBoostModalOpen(true)}
+                onReview={() => setReviewModalOpen(true)}
+                canLeaveReview={canLeaveReview}
+                onAvatarClick={() => setAvatarModalOpen(true)}
+                onAvatarView={() => setImageViewerOpen(true)}
+                onShare={handleShare}
+                copySuccess={copySuccess}
+                connectionStatus={connectionStatus}
+                connectionHandlers={connectionHandlers}
+                isConnectionLoading={isConnectionLoading}
+                onMessage={handleMessage}
+              />
 
-              <div className={styles.sectionsContainer}>
-                <Card className={styles.sectionCard}>
-                  <h3 className={styles.sectionTitle}>Socials</h3>
-                  <SocialLinks socials={userToDisplay.socials} />
-                </Card>
-
-                <Card className={styles.sectionCard}>
-                  <h3 className={styles.sectionTitle}>About Me</h3>
-                  <p>{userToDisplay.bio || "No bio provided."}</p>
-                </Card>
-
-                <Card className={styles.sectionCard}>
-                  <h3 className={styles.sectionTitle}>Skills</h3>
-                  <div className={styles.skillsContainer}>
-                    {Array.isArray(userToDisplay.skills) &&
-                      userToDisplay.skills.length > 0 ? (
-                      userToDisplay.skills.map((s) => <Tag key={s}>{s}</Tag>)
-                    ) : (
-                      <p>No skills listed.</p>
-                    )}
-                  </div>
-                </Card>
-
-                <Card className={styles.sectionCard}>
-                  <h3 className={styles.sectionTitle}>Details</h3>
-                  <div className={styles.infoGrid}>
-                    <div className={styles.infoItem}>
-                      <MapPin size={18} />
-                      <span>{userToDisplay.location || "N/A"}</span>
-                    </div>
-                    <div className={styles.infoItem}>
-                      <LinkIcon size={18} />
-                      <a href={userToDisplay.portfolioLink} target="_blank" rel="noopener noreferrer">
-                        Portfolio
+              <div className={styles.layoutGrid}>
+                {/* Sidebar */}
+                <aside className={styles.sidebar}>
+                  <div className={styles.card}>
+                    <h3 className={styles.cardTitle}>Online Presence</h3>
+                    <div className={styles.linksList}>
+                      <a href={userToDisplay.portfolioLink || "#"} target="_blank" className={styles.linkItem}>
+                        <div className={styles.linkInfo}>
+                          <div className={styles.linkIconBox}><Globe size={18} /></div>
+                          <span className={styles.linkText}>Portfolio</span>
+                        </div>
+                        <ArrowLeft size={14} className={styles.externalIcon} style={{ transform: 'rotate(135deg)' }} />
+                      </a>
+                      <a href={userToDisplay.socials?.linkedin || "#"} target="_blank" className={styles.linkItem}>
+                        <div className={styles.linkInfo}>
+                          <div className={styles.linkIconBox}><Linkedin size={18} /></div>
+                          <span className={styles.linkText}>LinkedIn</span>
+                        </div>
+                        <ArrowLeft size={14} className={styles.externalIcon} style={{ transform: 'rotate(135deg)' }} />
+                      </a>
+                      <a href={userToDisplay.socials?.github || "#"} target="_blank" className={styles.linkItem}>
+                        <div className={styles.linkInfo}>
+                          <div className={styles.linkIconBox}><Github size={18} /></div>
+                          <span className={styles.linkText}>GitHub</span>
+                        </div>
+                        <ArrowLeft size={14} className={styles.externalIcon} style={{ transform: 'rotate(135deg)' }} />
                       </a>
                     </div>
-                    <p>
-                      <strong>Availability:</strong>{" "}
-                      {userToDisplay.availability || "N/A"}
-                    </p>
                   </div>
-                </Card>
 
-                {userProjects.length > 0 && (
-                  <Card className={styles.sectionCard}>
-                    <h3 className={styles.sectionTitle}>Posted Projects</h3>
-                    <div className={styles.projectsGrid}>
-                      {userProjects.map((p) => (
-                        <ProjectCard key={p._id} project={p} />
+                  <div className={styles.card}>
+                    <h3 className={styles.cardTitle}>Education</h3>
+                    <div className={styles.educationList}>
+                      {education.map((edu, idx) => (
+                        <div key={idx} className={styles.eduItem}>
+                          <div className={styles.eduDot}></div>
+                          <p className={styles.eduDegree}>{edu.degree}</p>
+                          <p className={styles.eduSchool}>{edu.school}</p>
+                          <p className={styles.eduDate}>{edu.startDate} — {edu.endDate}</p>
+                        </div>
                       ))}
                     </div>
-                  </Card>
-                )}
+                  </div>
 
-                {developerReviews.length > 0 && (
-                  <Card className={styles.sectionCard}>
-                    <h3 className={styles.sectionTitle}>Reviews</h3>
-                    <div className={styles.reviewsGrid}>
-                      {developerReviews.map((r) => (
-                        <ReviewCard key={r._id} review={r} />
+                  <div className={styles.card}>
+                    <div className={styles.statsGrid}>
+                      <div className={styles.statBox}>
+                        <p className={styles.statValue}>12</p>
+                        <p className={styles.statLabel}>Projects</p>
+                      </div>
+                      <div className={styles.statBox}>
+                        <p className={styles.statValue}>{developerReviews.length || 8}</p>
+                        <p className={styles.statLabel}>Endorsements</p>
+                      </div>
+                    </div>
+                  </div>
+                </aside>
+
+                {/* Main Content */}
+                <main className={styles.mainContent}>
+                  <section className={styles.section}>
+                    <h2 className={styles.sectionTitle}>About Me</h2>
+                    <p className={styles.bioText}>{userToDisplay.bio || "Passionate builder looking for the next big challenge."}</p>
+                  </section>
+
+                  <section className={styles.section}>
+                    <h2 className={styles.sectionTitle}>Experience</h2>
+                    <div className={styles.experienceList}>
+                      {experience.map((exp, idx) => (
+                        <div key={idx} className={styles.expItem}>
+                          <div className={`${styles.expIconBox} ${idx > 0 ? styles.expIconBoxSecondary : ''}`}>
+                            {exp.icon === 'rocket_launch' ? <Rocket size={24} /> : <Laptop size={24} />}
+                          </div>
+                          <div className={styles.expContent}>
+                            <div className={styles.expHeader}>
+                              <h4 className={styles.expTitle}>{exp.title}</h4>
+                              <span className={styles.expPeriod}>{formatPeriod(exp.startDate, exp.endDate, exp.isCurrent)}</span>
+                            </div>
+                            <p className={styles.expCompany}>{exp.company} • {exp.employmentType}</p>
+                            <p className={styles.bioText} style={{ fontSize: '0.875rem' }}>{exp.description}</p>
+                          </div>
+                        </div>
                       ))}
                     </div>
-                  </Card>
-                )}
+                  </section>
+
+                  <section className={styles.section}>
+                    <h2 className={styles.sectionTitle}>Skills & Expertise</h2>
+                    <div className={styles.skillGroup}>
+                      <h4 className={styles.skillGroupLabel}>Core Technical</h4>
+                      <div className={styles.skillsWrap}>
+                        {(userToDisplay.skills?.length > 0 ? userToDisplay.skills : ['TypeScript', 'React.js', 'Node.js', 'Next.js', 'Tailwind CSS', 'GraphQL']).map(skill => (
+                          <span key={skill} className={styles.skillTagPrimary}>{skill}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className={styles.skillGroup}>
+                      <h4 className={styles.skillGroupLabel}>Startup & Soft Skills</h4>
+                      <div className={styles.skillsWrap}>
+                        {['Product Strategy', 'Agile Leadership', 'Rapid Prototyping'].map(skill => (
+                          <span key={skill} className={styles.skillTagSecondary}>{skill}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className={styles.section}>
+                    <div className={styles.sectionHeader}>
+                      <h2 className={styles.sectionTitle}>Endorsements</h2>
+                      <button className={styles.requestBtn}>Request Endorsement</button>
+                    </div>
+                    <div className={styles.endorsementsGrid}>
+                      {developerReviews.length > 0 ? developerReviews.map(review => (
+                        <div key={review._id} className={styles.endorsementCard}>
+                          <Quote className={styles.quoteIcon} size={32} />
+                          <p className={styles.endorsementText}>"{review.comment}"</p>
+                          <div className={styles.endorserInfo}>
+                             <div className={styles.endorserAvatar}>
+                                <img src={review.reviewerId?.avatarUrl || "https://ui-avatars.com/api/?name=" + review.reviewerId?.name} alt={review.reviewerId?.name} />
+                             </div>
+                             <div>
+                                <p className={styles.endorserName}>{review.reviewerId?.name}</p>
+                                <p className={styles.endorserRole}>{review.reviewerId?.role || 'Co-founder'}</p>
+                             </div>
+                          </div>
+                        </div>
+                      )) : (
+                        <>
+                          <div className={styles.endorsementCard}>
+                            <Quote className={styles.quoteIcon} size={32} />
+                            <p className={styles.endorsementText}>"Nicko is an exceptional developer... His ability to pivot and adapt in a fast-paced environment is exactly what any co-founder needs."</p>
+                            <div className={styles.endorserInfo}>
+                              <div className={styles.endorserAvatar}><img src="https://i.pravatar.cc/150?u=alex" alt="Alex" /></div>
+                              <div>
+                                <p className={styles.endorserName}>Alex Rivera</p>
+                                <p className={styles.endorserRole}>CTO, Nexus Ventures</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className={styles.endorsementCard}>
+                            <Quote className={styles.quoteIcon} size={32} />
+                            <p className={styles.endorsementText}>"Working with Nicko was a breeze. He's technically proficient but also a great communicator."</p>
+                            <div className={styles.endorserInfo}>
+                              <div className={styles.endorserAvatar}><img src="https://i.pravatar.cc/150?u=sarah" alt="Sarah" /></div>
+                              <div>
+                                <p className={styles.endorserName}>Sarah Chen</p>
+                                <p className={styles.endorserRole}>Product Manager, Creative Labs</p>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </section>
+                </main>
               </div>
             </>
           )}

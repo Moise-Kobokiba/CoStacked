@@ -59,6 +59,7 @@ const userSchema = mongoose.Schema(
     portfolioLink: { type: String, default: "" },
     avatarUrl: { type: String, default: "" },
     phoneNumber: { type: String, default: "" },
+    headline: { type: String, default: "" }, // e.g., 'Full-Stack Developer'
 
     // --- User Preference Fields ---
     profileVisibility: { type: String, enum: ["public", "connections-only"], default: "public" },
@@ -92,6 +93,31 @@ const userSchema = mongoose.Schema(
 
     // --- Profile Completion Tracking ---
     profileCompleted: { type: Boolean, default: false },
+
+    // --- NEW: Professional & Academic History ---
+    experience: [
+      {
+        title: { type: String, required: true },
+        company: { type: String, required: true },
+        employmentType: { type: String }, // 'Full-time', 'Part-time', 'Freelance', 'Remote', etc.
+        location: { type: String },
+        startDate: { type: Date, required: true },
+        endDate: { type: Date }, // Null if currently working there
+        isCurrent: { type: Boolean, default: false },
+        description: { type: String },
+        icon: { type: String }, // 'rocket_launch', 'laptop_mac', etc.
+      }
+    ],
+    education: [
+      {
+        degree: { type: String, required: true },
+        school: { type: String, required: true },
+        location: { type: String },
+        startDate: { type: Date },
+        endDate: { type: Date },
+        description: { type: String },
+      }
+    ],
 
   },
   {
