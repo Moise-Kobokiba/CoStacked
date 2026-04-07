@@ -230,6 +230,15 @@ const authSlice = createSlice({
       state.error = null;
       state.successMessage = null;
     },
+    // NEW: Sync online status
+    updateUserStatus: (state, action) => {
+      const { userId, isOnline, lastActiveAt } = action.payload;
+      if (state.user && state.user._id === userId) {
+        state.user.isOnline = isOnline;
+        state.user.lastActiveAt = lastActiveAt;
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(state.user));
+      }
+    },
     // NEW: Manually update user state (e.g., after external payment verification)
     setUser: (state, action) => {
       state.user = action.payload;
@@ -449,6 +458,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearAuthMessages, setUser } = authSlice.actions;
+export const { logout, clearAuthMessages, setUser, updateUserStatus } = authSlice.actions;
 
 export default authSlice.reducer;

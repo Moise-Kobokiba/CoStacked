@@ -6,7 +6,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addMessage, updateMessageStatus, updateMessagesStatus } from '../features/messages/messagesSlice';
 import { fetchNotifications } from '../features/notifications/notificationsSlice';
 import { fetchSentInterests } from '../features/interests/interestsSlice';
-import { updateUserStatus } from '../features/users/usersSlice';
+import { updateUserStatus as updateUsersStatus } from '../features/users/usersSlice';
+import { updateUserStatus as updateAuthStatus } from '../features/auth/authSlice';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
@@ -74,7 +75,8 @@ export const useSocket = (userId) => {
     // Listen for user presence changes
     newSocket.on('user_status_changed', (data) => {
       console.log('User status changed:', data);
-      dispatch(updateUserStatus(data));
+      dispatch(updateUsersStatus(data));
+      dispatch(updateAuthStatus(data));
     });
 
     newSocket.on('disconnect', (reason) => {
