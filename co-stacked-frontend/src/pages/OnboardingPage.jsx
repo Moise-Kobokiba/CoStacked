@@ -106,6 +106,14 @@ export const OnboardingPage = () => {
     return Math.min(100, Math.round((completed / 7) * 100));
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name.startsWith("socials.")) {
+      const key = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        socials: { ...prev.socials, [key]: value },
+      }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
