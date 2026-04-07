@@ -373,7 +373,7 @@ export const ProfilePage = () => {
                         <>
                           <div className={styles.endorsementCard}>
                             <Quote className={styles.quoteIcon} size={32} />
-                            <p className={styles.endorsementText}>"Nicko is an exceptional developer... His ability to pivot and adapt in a fast-paced environment is exactly what any co-founder needs."</p>
+                            <p className={styles.endorsementText}>"Moise is an exceptional developer... His ability to pivot and adapt in a fast-paced environment is exactly what any co-founder needs."</p>
                             <div className={styles.endorserInfo}>
                               <div className={styles.endorserAvatar}><img src="https://i.pravatar.cc/150?u=alex" alt="Alex" /></div>
                               <div>
@@ -384,7 +384,7 @@ export const ProfilePage = () => {
                           </div>
                           <div className={styles.endorsementCard}>
                             <Quote className={styles.quoteIcon} size={32} />
-                            <p className={styles.endorsementText}>"Working with Nicko was a breeze. He's technically proficient but also a great communicator."</p>
+                            <p className={styles.endorsementText}>"Working with Moise was a breeze. He's technically proficient but also a great communicator."</p>
                             <div className={styles.endorserInfo}>
                               <div className={styles.endorserAvatar}><img src="https://i.pravatar.cc/150?u=sarah" alt="Sarah" /></div>
                               <div>
