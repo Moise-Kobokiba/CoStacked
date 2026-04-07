@@ -11,6 +11,7 @@ import styles from './DashboardPage.module.css';
 // Import our specialized dashboard components
 import { FounderDashboard } from '../components/dashboard/FounderDashboard';
 import { DeveloperDashboard } from '../components/dashboard/DeveloperDashboard';
+import { ProfileCompletionModal } from '../components/profile/ProfileCompletionModal';
 
 /**
  * The DashboardPage is a "smart" container component that fetches all necessary
@@ -71,6 +72,9 @@ export const DashboardPage = () => {
           pendingConnections={pendingRequests} // 4. Pass down pending requests to DeveloperDashboard
         />
       )}
+
+      {/* Profile Completion Modal for Existing Users */}
+      <ProfileCompletionModal user={currentUser} />
     </div>
   );
 };

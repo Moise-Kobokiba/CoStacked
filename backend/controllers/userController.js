@@ -609,6 +609,14 @@ const completeProfile = async (req, res) => {
       user.socials = { ...user.socials, ...req.body.socials };
     }
     
+    // --- NEW: Add and Update Career & Educational History ---
+    if (req.body.experience) {
+      user.experience = req.body.experience;
+    }
+    if (req.body.education) {
+      user.education = req.body.education;
+    }
+    
     // Mark profile as completed
     user.profileCompleted = true;
 

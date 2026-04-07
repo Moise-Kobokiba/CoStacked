@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Loader2, CheckCircle, User, Briefcase, Link, Camera, ChevronRight, ChevronLeft } from "lucide-react";
+import { Loader2, CheckCircle, User, Briefcase, Link, Camera, ChevronRight, ChevronLeft, Plus, Trash2, Rocket, Laptop, GraduationCap } from "lucide-react";
 import API from "../api/axios";
 import { setUser, getUserProfile } from "../features/auth/authSlice";
 import { Card } from "../components/shared/Card";
@@ -23,8 +23,10 @@ const roleOptions = [
 const STEPS = [
   { id: 1, title: "Role", icon: Briefcase, description: "Choose your role" },
   { id: 2, title: "Basics", icon: User, description: "Tell us about yourself" },
-  { id: 3, title: "Details", icon: Link, description: "Add your details" },
-  { id: 4, title: "Photo", icon: Camera, description: "Upload a photo" },
+  { id: 3, title: "Experience", icon: Rocket, description: "Professional history (Optional)" },
+  { id: 4, title: "Education", icon: GraduationCap, description: "Academic history (Optional)" },
+  { id: 5, title: "Details", icon: Link, description: "Add your details" },
+  { id: 6, title: "Photo", icon: Camera, description: "Upload a photo" },
 ];
 
 export const OnboardingPage = () => {
@@ -52,6 +54,8 @@ export const OnboardingPage = () => {
       facebook: "",
       tiktok: "",
     },
+    experience: [],
+    education: [],
   });
 
   // Check for pending user from email verification
@@ -94,21 +98,70 @@ export const OnboardingPage = () => {
     ];
     completed = fields.filter(Boolean).length;
     if (formData.avatarUrl) completed += 1;
-    return Math.round((completed / 6) * 100);
+    // Experience/Education are optional, so we don't strictly require them for 100%
+    // but they contribute to completeness if present.
+    if (formData.experience.length > 0) completed += 1;
+    if (formData.education.length > 0) completed += 1;
+    
+    return Math.min(100, Math.round((completed / 7) * 100));
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name.startsWith("socials.")) {
-      const key = name.split(".")[1];
-      setFormData((prev) => ({
-        ...prev,
-        socials: { ...prev.socials, [key]: value },
-      }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
     if (error) setError("");
+  };
+
+  // Experience Management
+  const addExperience = () => {
+    setFormData(prev => ({
+      ...prev,
+      experience: [
+        ...prev.experience,
+        { title: '', company: '', employmentType: 'Full-time', startDate: '', endDate: '', isCurrent: false, description: '', icon: 'rocket_launch' }
+      ]
+    }));
+  };
+
+  const removeExperience = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      experience: prev.experience.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleExperienceChange = (index, field, value) => {
+    setFormData(prev => {
+      const newExp = [...prev.experience];
+      newExp[index] = { ...newExp[index], [field]: value };
+      return { ...prev, experience: newExp };
+    });
+  };
+
+  // Education Management
+  const addEducation = () => {
+    setFormData(prev => ({
+      ...prev,
+      education: [
+        ...prev.education,
+        { degree: '', school: '', startDate: '', endDate: '', description: '' }
+      ]
+    }));
+  };
+
+  const removeEducation = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      education: prev.education.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleEducationChange = (index, field, value) => {
+    setFormData(prev => {
+      const newEdu = [...prev.education];
+      newEdu[index] = { ...newEdu[index], [field]: value };
+      return { ...prev, education: newEdu };
+    });
   };
 
   const handleNext = () => {
@@ -127,7 +180,7 @@ export const OnboardingPage = () => {
         return;
       }
     }
-    if (currentStep === 3) {
+    if (currentStep === 5) {
       if (!formData.location) {
         setError("Please enter your location");
         return;
@@ -341,8 +394,125 @@ export const OnboardingPage = () => {
               </div>
             )}
 
-            {/* Step 3: Details */}
+            {/* Step 3: Experience */}
             {currentStep === 3 && (
+              <div className={styles.stepContent}>
+                <div className={styles.sectionHeader}>
+                  <p className={styles.hint}>Optional: Add your past or current roles.</p>
+                  <Button type="button" variant="outline" size="sm" onClick={addExperience} className={styles.addItemBtn}>
+                    <Plus size={16} /> Add Position
+                  </Button>
+                </div>
+
+                <div className={styles.dynamicList}>
+                  {formData.experience.length === 0 && (
+                    <div className={styles.emptyDynamicState}>
+                      <Briefcase size={40} />
+                      <p>No experience added yet.</p>
+                    </div>
+                  )}
+                  {formData.experience.map((exp, idx) => (
+                    <div key={idx} className={styles.dynamicItem}>
+                      <div className={styles.dynamicItemHeader}>
+                        <div className={styles.iconSelection}>
+                          <Rocket 
+                            size={20} 
+                            className={exp.icon === 'rocket_launch' ? styles.iconActive : styles.iconInactive}
+                            onClick={() => handleExperienceChange(idx, 'icon', 'rocket_launch')}
+                          />
+                          <Laptop 
+                            size={20} 
+                            className={exp.icon === 'laptop_mac' ? styles.iconActive : styles.iconInactive}
+                            onClick={() => handleExperienceChange(idx, 'icon', 'laptop_mac')}
+                          />
+                        </div>
+                        <button type="button" onClick={() => removeExperience(idx)} className={styles.removeBtn}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      <div className={styles.formGrid}>
+                        <div className={styles.formGroup}>
+                          <Label>Job Title</Label>
+                          <Input value={exp.title} onChange={e => handleExperienceChange(idx, 'title', e.target.value)} placeholder="e.g. Senior Developer" required />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <Label>Company</Label>
+                          <Input value={exp.company} onChange={e => handleExperienceChange(idx, 'company', e.target.value)} placeholder="e.g. Acme Corp" required />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <Label>Start Date</Label>
+                          <Input type="date" value={exp.startDate ? exp.startDate.split('T')[0] : ''} onChange={e => handleExperienceChange(idx, 'startDate', e.target.value)} required />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <Label>End Date</Label>
+                          <Input type="date" value={exp.endDate ? exp.endDate.split('T')[0] : ''} onChange={e => handleExperienceChange(idx, 'endDate', e.target.value)} disabled={exp.isCurrent} />
+                        </div>
+                        <div className={styles.checkboxGroup}>
+                          <input type="checkbox" checked={exp.isCurrent} onChange={e => handleExperienceChange(idx, 'isCurrent', e.target.checked)} />
+                          <Label>I currently work here</Label>
+                        </div>
+                        <div className={styles.formGroupFull}>
+                          <Label>Description</Label>
+                          <Textarea value={exp.description} onChange={e => handleExperienceChange(idx, 'description', e.target.value)} rows={2} placeholder="What did you do there?" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Education */}
+            {currentStep === 4 && (
+              <div className={styles.stepContent}>
+                <div className={styles.sectionHeader}>
+                  <p className={styles.hint}>Optional: Add your educational background.</p>
+                  <Button type="button" variant="outline" size="sm" onClick={addEducation} className={styles.addItemBtn}>
+                    <Plus size={16} /> Add School
+                  </Button>
+                </div>
+
+                <div className={styles.dynamicList}>
+                  {formData.education.length === 0 && (
+                    <div className={styles.emptyDynamicState}>
+                      <GraduationCap size={40} />
+                      <p>No education added yet.</p>
+                    </div>
+                  )}
+                  {formData.education.map((edu, idx) => (
+                    <div key={idx} className={styles.dynamicItem}>
+                      <div className={styles.dynamicItemHeader}>
+                        <GraduationCap size={20} className={styles.iconActive} />
+                        <button type="button" onClick={() => removeEducation(idx)} className={styles.removeBtn}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      <div className={styles.formGrid}>
+                        <div className={styles.formGroup}>
+                          <Label>Degree / Program</Label>
+                          <Input value={edu.degree} onChange={e => handleEducationChange(idx, 'degree', e.target.value)} placeholder="e.g. BS Computer Science" required />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <Label>School / University</Label>
+                          <Input value={edu.school} onChange={e => handleEducationChange(idx, 'school', e.target.value)} placeholder="e.g. Stanford University" required />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <Label>Start Date</Label>
+                          <Input value={edu.startDate} onChange={e => handleEducationChange(idx, 'startDate', e.target.value)} placeholder="e.g. 2016" />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <Label>End Date</Label>
+                          <Input value={edu.endDate} onChange={e => handleEducationChange(idx, 'endDate', e.target.value)} placeholder="e.g. 2020" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 5: Details */}
+            {currentStep === 5 && (
               <div className={styles.stepContent}>
                 <div className={styles.formGrid}>
                   <div className={styles.formGroup}>
@@ -421,8 +591,8 @@ export const OnboardingPage = () => {
               </div>
             )}
 
-            {/* Step 4: Photo Upload */}
-            {currentStep === 4 && (
+            {/* Step 6: Photo Upload */}
+            {currentStep === 6 && (
               <div className={styles.stepContent}>
                 <div className={styles.avatarUpload}>
                   {formData.avatarUrl ? (

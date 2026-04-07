@@ -161,37 +161,8 @@ export const ProfilePage = () => {
     userToDisplay.role === "developer" &&
     reviewableProjects.length > 0;
 
-  // Redesign Mock Data (Fallback if empty in DB)
-  const experience = userToDisplay.experience && userToDisplay.experience.length > 0 ? userToDisplay.experience : [
-    {
-      title: "Senior Software Engineer",
-      company: "TechFlow Solutions",
-      employmentType: "Full-time",
-      startDate: "2021-01-01",
-      isCurrent: true,
-      description: "Leading a team of 4 developers in rebuilding the core enterprise dashboard using Next.js. Optimized database queries reducing load times by 40% across the platform.",
-      icon: "rocket_launch"
-    },
-    {
-      title: "Frontend Developer",
-      company: "Creative Labs Agency",
-      employmentType: "Remote",
-      startDate: "2019-06-01",
-      endDate: "2020-12-01",
-      isCurrent: false,
-      description: "Developed responsive UI components for 10+ high-traffic client websites. Collaborated with design teams to ensure pixel-perfect implementation.",
-      icon: "laptop_mac"
-    }
-  ];
-
-  const education = userToDisplay.education && userToDisplay.education.length > 0 ? userToDisplay.education : [
-    {
-      degree: "BS in Information Technology",
-      school: "Bulacan State University",
-      startDate: "2016",
-      endDate: "2020"
-    }
-  ];
+  const experience = userToDisplay.experience || [];
+  const education = userToDisplay.education || [];
 
   return (
     <>
@@ -276,14 +247,19 @@ export const ProfilePage = () => {
                   <div className={styles.card}>
                     <h3 className={styles.cardTitle}>Education</h3>
                     <div className={styles.educationList}>
-                      {education.map((edu, idx) => (
+                      {education.length > 0 ? education.map((edu, idx) => (
                         <div key={idx} className={styles.eduItem}>
                           <div className={styles.eduDot}></div>
                           <p className={styles.eduDegree}>{edu.degree}</p>
                           <p className={styles.eduSchool}>{edu.school}</p>
                           <p className={styles.eduDate}>{edu.startDate} — {edu.endDate}</p>
                         </div>
-                      ))}
+                      )) : (
+                        <div className={styles.emptyStateContainer}>
+                          <p className={styles.emptyStateText}>No education history added.</p>
+                          {isOwnProfile && <button className={styles.emptyStateBtn} onClick={() => setIsEditing(true)}>Add Education</button>}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -311,7 +287,7 @@ export const ProfilePage = () => {
                   <section className={styles.section}>
                     <h2 className={styles.sectionTitle}>Experience</h2>
                     <div className={styles.experienceList}>
-                      {experience.map((exp, idx) => (
+                      {experience.length > 0 ? experience.map((exp, idx) => (
                         <div key={idx} className={styles.expItem}>
                           <div className={`${styles.expIconBox} ${idx > 0 ? styles.expIconBoxSecondary : ''}`}>
                             {exp.icon === 'rocket_launch' ? <Rocket size={24} /> : <Laptop size={24} />}
@@ -325,7 +301,12 @@ export const ProfilePage = () => {
                             <p className={styles.bioText} style={{ fontSize: '0.875rem' }}>{exp.description}</p>
                           </div>
                         </div>
-                      ))}
+                      )) : (
+                        <div className={styles.emptyStateContainer}>
+                          <p className={styles.emptyStateText}>No professional experience added yet.</p>
+                          {isOwnProfile && <button className={styles.emptyStateBtn} onClick={() => setIsEditing(true)}>Add Experience</button>}
+                        </div>
+                      )}
                     </div>
                   </section>
 
