@@ -8,7 +8,7 @@ import { ConversationList } from '../components/messaging/ConversationList';
 import { ChatWindow } from '../components/messaging/ChatWindow';
 
 // Import hooks and actions
-import { useSocket } from '../hooks/useSocket';
+import { useSocketContext } from '../context/SocketContext';
 import { fetchConversations, fetchMessages, accessConversation } from '../features/messages/messagesSlice';
 
 const LoadingSpinner = () => <div className={styles.placeholder}><p>Loading conversations...</p></div>;
@@ -37,7 +37,7 @@ export const MessagesPage = () => {
     status: messagesStatus
   } = useSelector(state => state.messages);
 
-  const socket = useSocket(currentUser?._id);
+  const socket = useSocketContext();
 
   const [selectedConversationId, setSelectedConversationId] = useState(null);
 

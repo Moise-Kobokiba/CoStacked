@@ -6,6 +6,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { router } from './router'; // 1. Import the router configuration object
 import { getUserProfile } from './features/auth/authSlice';
 
+import { SocketProvider } from './context/SocketContext';
+
 /**
  * The root component of the application.
  * It handles app-wide logic like session verification and renders the router.
@@ -23,8 +25,12 @@ function App() {
     }
   }, [token, dispatch]);
 
-  // 2. Render the RouterProvider directly, passing it the router object.
-  return <RouterProvider router={router} />;
+  // 2. Render the RouterProvider wrapped in SocketProvider for global presence.
+  return (
+    <SocketProvider>
+      <RouterProvider router={router} />
+    </SocketProvider>
+  );
 }
 
 export default App;
