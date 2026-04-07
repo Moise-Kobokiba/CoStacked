@@ -15,6 +15,34 @@
   margin-bottom: 0.75rem;
 }
 
+.avatarContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.onlineIndicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background-color: #22c55e;
+  border: 2px solid var(--card-background);
+  border-radius: 9999px;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2);
+}
+
+.offlineIndicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background-color: #94a3b8;
+  border: 2px solid var(--card-background);
+  border-radius: 9999px;
+}
+
 .nameWrapper {
   display: flex;
   align-items: center;

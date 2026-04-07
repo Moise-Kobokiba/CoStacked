@@ -11,6 +11,8 @@ import {
   MessageSquare 
 } from 'lucide-react';
 
+import { formatDistanceToNow } from 'date-fns';
+
 export const ProfileHeader = ({ 
   user, 
   isOwnProfile, 
@@ -26,7 +28,13 @@ export const ProfileHeader = ({
   connectionHandlers,
   isConnectionLoading,
   onMessage,
-}) => (
+}) => {
+  const isOnline = user.isOnline;
+  const lastActiveText = user.lastActiveAt 
+    ? `Last active ${formatDistanceToNow(new Date(user.lastActiveAt), { addSuffix: true })}`
+    : 'Offline';
+
+  return (
   <div className={styles.profileHeaderCard}>
     <div className={styles.headerCover}></div>
     <div className={styles.headerContent}>
@@ -40,7 +48,10 @@ export const ProfileHeader = ({
               onClick={isOwnProfile ? onAvatarClick : onAvatarView}
             />
           </div>
-          <div className={styles.onlineBadge} title="Online now"></div>
+          <div 
+            className={isOnline ? styles.onlineBadge : styles.offlineBadge} 
+            title={isOnline ? 'Online now' : lastActiveText}
+          ></div>
           {isOwnProfile && (
             <button className={styles.avatarEditButton} onClick={onAvatarClick} aria-label="Change profile picture">
               <Edit size={16} />
@@ -117,7 +128,8 @@ export const ProfileHeader = ({
       </div>
     </div>
   </div>
-);
+  );
+};
 
 ProfileHeader.propTypes = {
   user: PropTypes.object.isRequired,

@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addMessage, updateMessageStatus, updateMessagesStatus } from '../features/messages/messagesSlice';
 import { fetchNotifications } from '../features/notifications/notificationsSlice';
 import { fetchSentInterests } from '../features/interests/interestsSlice';
+import { updateUserStatus } from '../features/users/usersSlice';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
@@ -65,6 +66,15 @@ export const useSocket = (userId) => {
     newSocket.on('connect', () => {
       console.log('✅ Connected to Socket.IO server with ID:', newSocket.id);
       console.log('📡 Socket ready for real-time messaging');
+      
+      // Setup presence
+      newSocket.emit('setup', userId);
+    });
+
+    // Listen for user presence changes
+    newSocket.on('user_status_changed', (data) => {
+      console.log('User status changed:', data);
+      dispatch(updateUserStatus(data));
     });
 
     newSocket.on('disconnect', (reason) => {

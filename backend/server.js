@@ -128,6 +128,33 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
+  // --- Presence & Setup ---
+  socket.on('setup', async (userId) => {
+    if (!userId) return;
+    
+    socket.userId = userId;
+    socket.join(userId); // Join a personal room for targeted notifications
+    
+    try {
+      const User = require('./models/User');
+      await User.findByIdAndUpdate(userId, { 
+        isOnline: true,
+        lastActiveAt: new Date()
+      });
+      
+      // Broadcast to everyone that this user is now online
+      io.emit('user_status_changed', {
+        userId,
+        isOnline: true,
+        lastActiveAt: new Date()
+      });
+      
+      console.log(`User ${userId} is now online (Socket: ${socket.id})`);
+    } catch (error) {
+      console.error('Error in socket setup:', error);
+    }
+  });
+
   // Join conversation room
   socket.on('joinConversation', (conversationId) => {
     socket.join(conversationId);
@@ -278,8 +305,31 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     console.log('User disconnected:', socket.id);
+    
+    if (socket.userId) {
+      try {
+        const User = require('./models/User');
+        const lastActiveAt = new Date();
+        
+        await User.findByIdAndUpdate(socket.userId, { 
+          isOnline: false,
+          lastActiveAt
+        });
+        
+        // Broadcast to everyone that this user is now offline
+        io.emit('user_status_changed', {
+          userId: socket.userId,
+          isOnline: false,
+          lastActiveAt
+        });
+        
+        console.log(`User ${socket.userId} is now offline`);
+      } catch (error) {
+        console.error('Error in socket disconnect:', error);
+      }
+    }
   });
 });
 

@@ -48,7 +48,16 @@ const usersSlice = createSlice({
     status: 'idle',  // Tracks the data fetching status
     error: null,
   },
-  reducers: {},
+  reducers: {
+    updateUserStatus: (state, action) => {
+      const { userId, isOnline, lastActiveAt } = action.payload;
+      const userIndex = state.items.findIndex((u) => u._id === userId);
+      if (userIndex !== -1) {
+        state.items[userIndex].isOnline = isOnline;
+        state.items[userIndex].lastActiveAt = lastActiveAt;
+      }
+    },
+  },
   // This handles the state changes for our async thunks
   extraReducers: (builder) => {
     builder
@@ -88,5 +97,7 @@ const usersSlice = createSlice({
       });
   },
 });
+
+export const { updateUserStatus } = usersSlice.actions;
 
 export default usersSlice.reducer;

@@ -93,6 +93,8 @@ const userSchema = mongoose.Schema(
 
     // --- Profile Completion Tracking ---
     profileCompleted: { type: Boolean, default: false },
+    isOnline: { type: Boolean, default: false },
+    lastActiveAt: { type: Date, default: Date.now },
 
     // --- NEW: Professional & Academic History ---
     experience: [
