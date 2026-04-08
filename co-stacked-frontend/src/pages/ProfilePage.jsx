@@ -266,11 +266,11 @@ export const ProfilePage = () => {
                   <div className={styles.card}>
                     <div className={styles.statsGrid}>
                       <div className={styles.statBox}>
-                        <p className={styles.statValue}>12</p>
+                        <p className={styles.statValue}>{userProjects.length}</p>
                         <p className={styles.statLabel}>Projects</p>
                       </div>
                       <div className={styles.statBox}>
-                        <p className={styles.statValue}>{developerReviews.length || 8}</p>
+                        <p className={styles.statValue}>{developerReviews.length}</p>
                         <p className={styles.statLabel}>Endorsements</p>
                       </div>
                     </div>
@@ -315,17 +315,25 @@ export const ProfilePage = () => {
                     <div className={styles.skillGroup}>
                       <h4 className={styles.skillGroupLabel}>Core Technical</h4>
                       <div className={styles.skillsWrap}>
-                        {(userToDisplay.skills?.length > 0 ? userToDisplay.skills : ['TypeScript', 'React.js', 'Node.js', 'Next.js', 'Tailwind CSS', 'GraphQL']).map(skill => (
-                          <span key={skill} className={styles.skillTagPrimary}>{skill}</span>
-                        ))}
+                        {userToDisplay.skills?.length > 0 ? (
+                          userToDisplay.skills.map(skill => (
+                            <span key={skill} className={styles.skillTagPrimary}>{skill}</span>
+                          ))
+                        ) : (
+                          <p className={styles.emptyStateText} style={{ margin: 0 }}>No skills listed yet.</p>
+                        )}
                       </div>
                     </div>
                     <div className={styles.skillGroup}>
                       <h4 className={styles.skillGroupLabel}>Startup & Soft Skills</h4>
                       <div className={styles.skillsWrap}>
-                        {['Product Strategy', 'Agile Leadership', 'Rapid Prototyping'].map(skill => (
-                          <span key={skill} className={styles.skillTagSecondary}>{skill}</span>
-                        ))}
+                        {userToDisplay.softSkills?.length > 0 ? (
+                          userToDisplay.softSkills.map(skill => (
+                            <span key={skill} className={styles.skillTagSecondary}>{skill}</span>
+                          ))
+                        ) : (
+                          <p className={styles.emptyStateText} style={{ margin: 0 }}>No soft skills listed yet.</p>
+                        )}
                       </div>
                     </div>
                   </section>
@@ -351,30 +359,10 @@ export const ProfilePage = () => {
                           </div>
                         </div>
                       )) : (
-                        <>
-                          <div className={styles.endorsementCard}>
-                            <Quote className={styles.quoteIcon} size={32} />
-                            <p className={styles.endorsementText}>"Moise is an exceptional developer... His ability to pivot and adapt in a fast-paced environment is exactly what any co-founder needs."</p>
-                            <div className={styles.endorserInfo}>
-                              <div className={styles.endorserAvatar}><img src="https://i.pravatar.cc/150?u=alex" alt="Alex" /></div>
-                              <div>
-                                <p className={styles.endorserName}>Alex Rivera</p>
-                                <p className={styles.endorserRole}>CTO, Nexus Ventures</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className={styles.endorsementCard}>
-                            <Quote className={styles.quoteIcon} size={32} />
-                            <p className={styles.endorsementText}>"Working with Moise was a breeze. He's technically proficient but also a great communicator."</p>
-                            <div className={styles.endorserInfo}>
-                              <div className={styles.endorserAvatar}><img src="https://i.pravatar.cc/150?u=sarah" alt="Sarah" /></div>
-                              <div>
-                                <p className={styles.endorserName}>Sarah Chen</p>
-                                <p className={styles.endorserRole}>Product Manager, Creative Labs</p>
-                              </div>
-                            </div>
-                          </div>
-                        </>
+                        <div className={styles.emptyStateContainer} style={{ gridColumn: '1 / -1' }}>
+                          <p className={styles.emptyStateText}>No endorsements received yet.</p>
+                          {isOwnProfile && <button className={styles.emptyStateBtn} onClick={() => setCopySuccess("Ask for Endorsement copied!")}>Request Endorsement</button>}
+                        </div>
                       )}
                     </div>
                   </section>
