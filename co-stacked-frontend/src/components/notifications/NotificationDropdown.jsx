@@ -1,7 +1,6 @@
-// src/components/notifications/NotificationDropdown.jsx
-
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { NotificationItem } from './NotificationItem'; // <-- CRITICAL FIX: Import with curly braces {}
+import { NotificationItem } from './NotificationItem';
 import styles from './NotificationDropdown.module.css';
 import PropTypes from 'prop-types';
 import { X } from 'lucide-react';
