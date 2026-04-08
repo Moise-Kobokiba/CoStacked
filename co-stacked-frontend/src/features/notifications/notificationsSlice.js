@@ -19,6 +19,27 @@ export const fetchNotifications = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response.data?.message || 'Failed to load notifications.');
     }
+// src/features/notifications/notificationsSlice.js
+
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import API from '../../api/axios';
+
+// ===================================================================
+// ASYNC THUNKS
+// ===================================================================
+
+/**
+ * Fetches the logged-in user's unread notifications.
+ */
+export const fetchNotifications = createAsyncThunk(
+  'notifications/fetch',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await API.get('/notifications');
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data?.message || 'Failed to load notifications.');
+    }
   }
 );
 
@@ -37,13 +58,30 @@ export const markNotificationsAsRead = createAsyncThunk(
   }
 );
 
+/**
+ * Fetches all notifications (read and unread) for the dedicated page.
+ */
+export const fetchAllNotifications = createAsyncThunk(
+  'notifications/fetchAll',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await API.get('/notifications/all');
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data?.message || 'Failed to load notification history.');
+    }
+  }
+);
+
+
 
 // ===================================================================
 // THE NOTIFICATIONS SLICE
 // ===================================================================
 
 const initialState = {
-  items: [],
+  items: [],      // Unread notifications for dropdown
+  allItems: [],   // Full notification history for dedicated page
   status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
 };
@@ -94,6 +132,19 @@ const notificationsSlice = createSlice({
           item.isRead = false;
         });
         // We could also add an error message here for the user
+      })
+      
+      // Cases for fetching all notifications (history)
+      .addCase(fetchAllNotifications.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchAllNotifications.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.allItems = action.payload;
+      })
+      .addCase(fetchAllNotifications.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
       });
   },
 });

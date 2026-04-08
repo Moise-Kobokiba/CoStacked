@@ -35,9 +35,9 @@ const NotificationDropdown = ({ notifications, onClose, onMarkAsRead }) => {
           )}
         </div>
         <div className={styles.footer}>
-          <button className={styles.viewAllBtn} onClick={onClose}>
+          <Link to="/notifications" className={styles.viewAllBtn} onClick={onClose}>
             View all notifications
-          </button>
+          </Link>
         </div>
       </motion.div>
     </div>

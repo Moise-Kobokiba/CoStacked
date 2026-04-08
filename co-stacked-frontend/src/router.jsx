@@ -41,6 +41,7 @@ import { ValidationBoardPage } from "./pages/ValidationBoardPage";
 import { IdeaDetailPage } from "./pages/IdeaDetailPage";
 import { CreateIdeaPage } from "./pages/CreateIdeaPage";
 import { StackSuitePage } from "./pages/StackSuitePage";
+import { NotificationsPage } from "./pages/NotificationsPage";
 
 export const router = createBrowserRouter([
   {
@@ -89,6 +90,7 @@ export const router = createBrowserRouter([
           { path: "payment/success", element: <PaymentSuccessPage /> },
           { path: "payment/cancel", element: <PaymentCancelPage /> },
           { path: "my-network", element: <MyNetworkPage /> },
+          { path: "notifications", element: <NotificationsPage /> },
         ]
       }
     ]
