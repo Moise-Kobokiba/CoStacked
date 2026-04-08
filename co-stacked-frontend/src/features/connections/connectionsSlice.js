@@ -119,44 +119,55 @@ const connectionsSlice = createSlice({
       })
       .addCase(fetchPendingRequests.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload.message; })
 
+       // --- WRITE OPERATIONS STATUS ---
+       .addCase(sendConnectionRequest.pending, (state) => { state.actionStatus = 'loading'; })
+       .addCase(acceptConnectionRequest.pending, (state) => { state.actionStatus = 'loading'; })
+       .addCase(removeOrCancelConnection.pending, (state) => { state.actionStatus = 'loading'; })
+
+       .addCase(sendConnectionRequest.rejected, (state, action) => { state.actionStatus = 'failed'; state.error = action.payload?.message || 'Failed to send request'; })
+       .addCase(acceptConnectionRequest.rejected, (state, action) => { state.actionStatus = 'failed'; state.error = action.payload?.message || 'Failed to accept request'; })
+       .addCase(removeOrCancelConnection.rejected, (state, action) => { state.actionStatus = 'failed'; state.error = action.payload?.message || 'Failed to update connection'; })
+
+       // Sending a request
+       .addCase(sendConnectionRequest.fulfilled, (state, action) => {
+         state.actionStatus = 'succeeded';
+         const recipientId = action.meta.arg;
+         if (!state.pendingRequests.some(req => (req.recipient?._id === recipientId || req.recipient === recipientId))) {
+           state.pendingRequests.push({
+             recipient: { _id: recipientId },
+             status: 'pending',
+             createdAt: new Date().toISOString()
+           });
+         }
+       })
+
        // Accepting a request
        .addCase(acceptConnectionRequest.fulfilled, (state, action) => {
+         state.actionStatus = 'succeeded';
          const { requesterId } = action.payload;
-         // Find the accepted request to get the user object
-         const acceptedRequest = state.pendingRequests.find(req => req.requester._id === requesterId);
+         const acceptedRequest = state.pendingRequests.find(req => (req.requester?._id === requesterId || req.requester === requesterId));
          if (acceptedRequest) {
-           // Add the user to the main connections list
            state.connections.unshift(acceptedRequest.requester);
-           // Remove the request from the pending list
-           state.pendingRequests = state.pendingRequests.filter(req => req.requester._id !== requesterId);
-           // Increment connection count for both users
+           state.pendingRequests = state.pendingRequests.filter(req => (req.requester?._id !== requesterId && req.requester !== requesterId));
            if (state.connectionCounts[requesterId]) {
              state.connectionCounts[requesterId] += 1;
            } else {
              state.connectionCounts[requesterId] = 1;
            }
-           // Also increment the logged-in user's count
-           // Assuming the logged-in user is the one accepting
-           const loggedInUserId = action.meta?.arg; // This might not be available, so perhaps fetch again
-           // For now, we'll skip updating the logged-in user's count here, as it's harder to track
          }
        })
 
        // Removing a connection OR declining/canceling a request
        .addCase(removeOrCancelConnection.fulfilled, (state, action) => {
+         state.actionStatus = 'succeeded';
          const { otherUserId } = action.payload;
-         // Remove from main connections list
          state.connections = state.connections.filter(user => user._id !== otherUserId);
-         // Remove from pending requests list (if they were the requester)
-         state.pendingRequests = state.pendingRequests.filter(req => req.requester._id !== otherUserId);
-         // Decrement connection count for both users
+         state.pendingRequests = state.pendingRequests.filter(req => 
+           (req.requester?._id !== otherUserId && req.requester !== otherUserId) && 
+           (req.recipient?._id !== otherUserId && req.recipient !== otherUserId)
+         );
          if (state.connectionCounts[otherUserId]) {
            state.connectionCounts[otherUserId] -= 1;
-         }
-         // Also decrement the logged-in user's count if it exists
-         const loggedInUserId = state.connections.find(u => u._id !== otherUserId)?._id;
-         if (loggedInUserId && state.connectionCounts[loggedInUserId]) {
-           state.connectionCounts[loggedInUserId] -= 1;
          }
        })
 
@@ -168,4 +179,5 @@ const connectionsSlice = createSlice({
   },
 });
 
+export const { } = connectionsSlice.actions;
 export default connectionsSlice.reducer;
