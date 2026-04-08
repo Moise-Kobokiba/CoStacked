@@ -19,26 +19,26 @@ const NotificationDropdown = ({ notifications, onClose, onMarkAsRead }) => {
       >
         <div className={styles.header}>
           <h3>Notifications</h3>
-          <button onClick={onClose} className={styles.closeButton}>
-            <X size={20} />
-          </button>
-        </div>
-        <div className={styles.list}>
-          {notifications.length > 0 ? (
-            notifications.map(notif => (
-              <NotificationItem key={notif._id} notification={notif} />
-            ))
-          ) : (
-            <p className={styles.emptyMessage}>You have no new notifications.</p>
-          )}
-        </div>
-        {notifications.length > 0 && (
-          <div className={styles.footer}>
+          {notifications.length > 0 && (
             <button onClick={onMarkAsRead} className={styles.markReadButton}>
               Mark all as read
             </button>
-          </div>
-        )}
+          )}
+        </div>
+        <div className={styles.list}>
+          {notifications.length > 0 ? (
+            notifications.map((notif) => (
+              <NotificationItem key={notif._id} notification={notif} onClose={onClose} />
+            ))
+          ) : (
+            <p className={styles.emptyMessage}>You have no unread notifications.</p>
+          )}
+        </div>
+        <div className={styles.footer}>
+          <button className={styles.viewAllBtn} onClick={onClose}>
+            View all notifications
+          </button>
+        </div>
       </motion.div>
     </div>
   );
