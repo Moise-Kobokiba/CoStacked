@@ -116,9 +116,9 @@ export const ProfileHeader = ({
             </>
           )}
           
-          <Button onClick={onShare} variant="secondary" title="Share Profile">
+          <Button onClick={onShare} variant="secondary" title="Share Profile" className={styles.shareBtn}>
             <Share2 size={16} />
-            {copySuccess && <span>Copied!</span>}
+            <span>{copySuccess ? 'Copied!' : 'Share'}</span>
           </Button>
 
           {canLeaveReview && (
