@@ -19,27 +19,6 @@ export const fetchNotifications = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response.data?.message || 'Failed to load notifications.');
     }
-// src/features/notifications/notificationsSlice.js
-
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import API from '../../api/axios';
-
-// ===================================================================
-// ASYNC THUNKS
-// ===================================================================
-
-/**
- * Fetches the logged-in user's unread notifications.
- */
-export const fetchNotifications = createAsyncThunk(
-  'notifications/fetch',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await API.get('/notifications');
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data?.message || 'Failed to load notifications.');
-    }
   }
 );
 
