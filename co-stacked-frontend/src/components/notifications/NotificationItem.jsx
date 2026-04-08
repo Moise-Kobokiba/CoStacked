@@ -1,6 +1,6 @@
 // src/components/notifications/NotificationItem.jsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { formatDistanceToNow } from 'date-fns';
@@ -10,7 +10,8 @@ import {
   CheckCircle, 
   FileText, 
   Rocket, 
-  Layers 
+  Layers,
+  Loader2
 } from 'lucide-react';
 import { Avatar } from '../shared/Avatar';
 import { acceptConnectionRequest, removeOrCancelConnection } from '../../features/connections/connectionsSlice';
@@ -19,22 +20,37 @@ import PropTypes from 'prop-types';
 
 export const NotificationItem = ({ notification, onClose }) => {
   const dispatch = useDispatch();
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleAcceptConnection = (e) => {
+  const handleAcceptConnection = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (notification.sender?._id) {
-      dispatch(acceptConnectionRequest(notification.sender._id));
-      onClose();
+    if (notification.sender?._id && !isProcessing) {
+      setIsProcessing(true);
+      try {
+        await dispatch(acceptConnectionRequest(notification.sender._id)).unwrap();
+        onClose();
+      } catch (err) {
+        console.error('Failed to accept connection:', err);
+      } finally {
+        setIsProcessing(false);
+      }
     }
   };
 
-  const handleDeclineConnection = (e) => {
+  const handleDeclineConnection = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (notification.sender?._id) {
-      dispatch(removeOrCancelConnection(notification.sender._id));
-      onClose();
+    if (notification.sender?._id && !isProcessing) {
+      setIsProcessing(true);
+      try {
+        await dispatch(removeOrCancelConnection(notification.sender._id)).unwrap();
+        onClose();
+      } catch (err) {
+        console.error('Failed to decline connection:', err);
+      } finally {
+        setIsProcessing(false);
+      }
     }
   };
 
@@ -195,8 +211,20 @@ export const NotificationItem = ({ notification, onClose }) => {
 
         {config.showActions && (
           <div className={styles.actions}>
-            <button className={styles.primaryBtn} onClick={handleAcceptConnection}>Accept</button>
-            <button className={styles.secondaryBtn} onClick={handleDeclineConnection}>Decline</button>
+            <button 
+              className={styles.primaryBtn} 
+              onClick={handleAcceptConnection}
+              disabled={isProcessing}
+            >
+              {isProcessing ? <Loader2 size={12} className={styles.spinner} /> : 'Accept'}
+            </button>
+            <button 
+              className={styles.secondaryBtn} 
+              onClick={handleDeclineConnection}
+              disabled={isProcessing}
+            >
+              Decline
+            </button>
           </div>
         )}
 

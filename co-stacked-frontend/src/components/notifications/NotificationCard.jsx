@@ -1,12 +1,13 @@
 // src/components/notifications/NotificationCard.jsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { formatDistanceToNow, format } from 'date-fns';
 import { 
   UserPlus, MessageSquare, CheckCircle, 
-  FileText, Rocket, Layers, Shield, ChevronDown
+  FileText, Rocket, Layers, Shield, ChevronDown,
+  Loader2, Check
 } from 'lucide-react';
 import { Avatar } from '../shared/Avatar';
 import { acceptConnectionRequest, removeOrCancelConnection } from '../../features/connections/connectionsSlice';
@@ -15,20 +16,40 @@ import PropTypes from 'prop-types';
 
 export const NotificationCard = ({ notification }) => {
   const dispatch = useDispatch();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [actionResult, setActionResult] = useState(null); // 'accepted' | 'declined' | 'error'
 
-  const handleAcceptConnection = (e) => {
+  const handleAcceptConnection = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (notification.sender?._id) {
-      dispatch(acceptConnectionRequest(notification.sender._id));
+    if (notification.sender?._id && !isProcessing) {
+      setIsProcessing(true);
+      try {
+        await dispatch(acceptConnectionRequest(notification.sender._id)).unwrap();
+        setActionResult('accepted');
+      } catch (err) {
+        console.error('Failed to accept connection:', err);
+        setActionResult('error');
+      } finally {
+        setIsProcessing(false);
+      }
     }
   };
 
-  const handleDeclineConnection = (e) => {
+  const handleDeclineConnection = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (notification.sender?._id) {
-      dispatch(removeOrCancelConnection(notification.sender._id));
+    if (notification.sender?._id && !isProcessing) {
+      setIsProcessing(true);
+      try {
+        await dispatch(removeOrCancelConnection(notification.sender._id)).unwrap();
+        setActionResult('declined');
+      } catch (err) {
+        console.error('Failed to decline connection:', err);
+        setActionResult('error');
+      } finally {
+        setIsProcessing(false);
+      }
     }
   };
 
@@ -128,10 +149,30 @@ export const NotificationCard = ({ notification }) => {
 
           <div className={styles.actionsRow}>
             {config.showActions ? (
-              <>
-                <button className={styles.primaryBtn} onClick={handleAcceptConnection}>Accept</button>
-                <button className={styles.secondaryBtn} onClick={handleDeclineConnection}>Decline</button>
-              </>
+              actionResult ? (
+                <div className={`${styles.resultBadge} ${styles[actionResult]}`}>
+                  {actionResult === 'accepted' && <Check size={14} />}
+                  {actionResult === 'accepted' ? 'Connection Accepted' : 
+                   actionResult === 'declined' ? 'Request Declined' : 'Something went wrong'}
+                </div>
+              ) : (
+                <>
+                  <button 
+                    className={styles.primaryBtn} 
+                    onClick={handleAcceptConnection}
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? <Loader2 size={16} className={styles.spinner} /> : 'Accept'}
+                  </button>
+                  <button 
+                    className={styles.secondaryBtn} 
+                    onClick={handleDeclineConnection}
+                    disabled={isProcessing}
+                  >
+                    Decline
+                  </button>
+                </>
+              )
             ) : (
               config.actionLabel && (
                 <Link to={config.linkTo} className={styles.actionBtn}>
