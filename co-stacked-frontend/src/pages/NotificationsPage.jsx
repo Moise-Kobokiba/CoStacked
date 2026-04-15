@@ -6,6 +6,7 @@ import {
   fetchAllNotifications, 
   markNotificationsAsRead 
 } from '../features/notifications/notificationsSlice';
+import { fetchConnections, fetchPendingRequests } from '../features/connections/connectionsSlice';
 import { NotificationCard } from '../components/notifications/NotificationCard';
 import { Bell, Check, ChevronDown } from 'lucide-react';
 import styles from './NotificationsPage.module.css';
@@ -25,6 +26,8 @@ export const NotificationsPage = () => {
 
   useEffect(() => {
     dispatch(fetchAllNotifications());
+    dispatch(fetchConnections());
+    dispatch(fetchPendingRequests());
   }, [dispatch]);
 
   const handleMarkAllRead = () => {

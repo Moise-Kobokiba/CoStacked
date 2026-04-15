@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { formatDistanceToNow } from 'date-fns';
 import { 
   UserPlus, 
@@ -21,6 +21,8 @@ import PropTypes from 'prop-types';
 export const NotificationItem = ({ notification, onClose }) => {
   const dispatch = useDispatch();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [actionDone, setActionDone] = useState(false);
+  const { connections, pendingRequests, status: connectionsStatus } = useSelector(state => state.connections);
 
   const handleAcceptConnection = async (e) => {
     e.preventDefault();
@@ -29,7 +31,7 @@ export const NotificationItem = ({ notification, onClose }) => {
       setIsProcessing(true);
       try {
         await dispatch(acceptConnectionRequest(notification.sender._id)).unwrap();
-        onClose();
+        setActionDone(true);
       } catch (err) {
         console.error('Failed to accept connection:', err);
       } finally {
@@ -45,7 +47,7 @@ export const NotificationItem = ({ notification, onClose }) => {
       setIsProcessing(true);
       try {
         await dispatch(removeOrCancelConnection(notification.sender._id)).unwrap();
-        onClose();
+        setActionDone(true);
       } catch (err) {
         console.error('Failed to decline connection:', err);
       } finally {
@@ -174,6 +176,16 @@ export const NotificationItem = ({ notification, onClose }) => {
       config.message = notification.message || 'You have a new notification.';
   }
 
+  let isResolved = actionDone;
+  if (!isResolved && config.showActions && connectionsStatus === 'succeeded') {
+      const isPendingGlobally = pendingRequests?.some(req => req.requester?._id === notification.sender?._id || req.requester === notification.sender?._id);
+      const isConnectedGlobally = connections?.some(c => c._id === notification.sender?._id);
+      
+      if (isConnectedGlobally || !isPendingGlobally) {
+          isResolved = true;
+      }
+  }
+
   const timeAgo = formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
     .replace('about ', '')
     .replace(' minutes', 'm')
@@ -209,7 +221,7 @@ export const NotificationItem = ({ notification, onClose }) => {
           </div>
         )}
 
-        {config.showActions && (
+        {config.showActions && !isResolved && (
           <div className={styles.actions}>
             <button 
               className={styles.primaryBtn} 

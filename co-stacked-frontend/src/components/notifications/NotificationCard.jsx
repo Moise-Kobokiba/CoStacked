@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { formatDistanceToNow, format } from 'date-fns';
 import { 
   UserPlus, MessageSquare, CheckCircle, 
@@ -18,6 +18,7 @@ export const NotificationCard = ({ notification }) => {
   const dispatch = useDispatch();
   const [isProcessing, setIsProcessing] = useState(false);
   const [actionResult, setActionResult] = useState(null); // 'accepted' | 'declined' | 'error'
+  const { connections, pendingRequests, status: connectionsStatus } = useSelector(state => state.connections);
 
   const handleAcceptConnection = async (e) => {
     e.preventDefault();
@@ -119,6 +120,18 @@ export const NotificationCard = ({ notification }) => {
       config.message = notification.message || 'New activity in your workspace';
   }
 
+  let resolvedStatus = actionResult;
+  if (!resolvedStatus && config.showActions && connectionsStatus === 'succeeded') {
+     const isPendingGlobally = pendingRequests?.some(req => req.requester?._id === notification.sender?._id || req.requester === notification.sender?._id);
+     const isConnectedGlobally = connections?.some(c => c._id === notification.sender?._id);
+     
+     if (isConnectedGlobally) {
+         resolvedStatus = 'accepted';
+     } else if (!isPendingGlobally) {
+         resolvedStatus = 'declined';
+     }
+  }
+
   const exactDate = format(new Date(notification.createdAt), 'PPPP p');
 
   return (
@@ -149,11 +162,11 @@ export const NotificationCard = ({ notification }) => {
 
           <div className={styles.actionsRow}>
             {config.showActions ? (
-              actionResult ? (
-                <div className={`${styles.resultBadge} ${styles[actionResult]}`}>
-                  {actionResult === 'accepted' && <Check size={14} />}
-                  {actionResult === 'accepted' ? 'Connection Accepted' : 
-                   actionResult === 'declined' ? 'Request Declined' : 'Something went wrong'}
+              resolvedStatus ? (
+                <div className={`${styles.resultBadge} ${styles[resolvedStatus]}`}>
+                  {resolvedStatus === 'accepted' && <Check size={14} />}
+                  {resolvedStatus === 'accepted' ? 'Connection Accepted' : 
+                   resolvedStatus === 'declined' ? 'Request Declined' : 'Something went wrong'}
                 </div>
               ) : (
                 <>

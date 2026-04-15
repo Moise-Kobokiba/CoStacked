@@ -1,11 +1,21 @@
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { NotificationItem } from './NotificationItem';
 import styles from './NotificationDropdown.module.css';
 import PropTypes from 'prop-types';
 import { X } from 'lucide-react';
+import { fetchConnections, fetchPendingRequests } from '../../features/connections/connectionsSlice';
 
 const NotificationDropdown = ({ notifications, onClose, onMarkAsRead }) => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchConnections());
+    dispatch(fetchPendingRequests());
+  }, [dispatch]);
+
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <motion.div
