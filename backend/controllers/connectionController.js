@@ -113,7 +113,7 @@ const acceptRequest = async (req, res) => {
       { requester: requesterId, recipient: recipientId, status: 'pending' },
       { status: 'accepted' },
       { new: true }
-    );
+    ).populate('requester', 'name role avatarUrl bio isAdmin');
 
     if (!connection) {
       return res.status(404).json({ message: 'Request not found or already handled.' });
@@ -125,7 +125,7 @@ const acceptRequest = async (req, res) => {
       type: 'CONNECTION_ACCEPTED',
     });
 
-    res.json({ status: 'connected' });
+    res.json({ status: 'connected', user: connection.requester });
   } catch (error) { res.status(500).json({ message: 'Server Error' }); }
 };
 
@@ -144,13 +144,12 @@ const removeOrCancelConnection = async (req, res) => {
     });
 
     if (result.deletedCount === 0) {
-      return res.status(404).json({ message: 'Connection not found.' });
+      return res.json({ status: 'not_connected' });
     }
 
     res.json({ status: 'not_connected' });
   } catch (error) { res.status(500).json({ message: 'Server Error' }); }
 };
-
 /**
  * @desc    Get a user's connections
  * @route   GET /api/connections

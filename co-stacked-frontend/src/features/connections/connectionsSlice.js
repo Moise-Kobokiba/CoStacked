@@ -63,7 +63,7 @@ export const acceptConnectionRequest = createAsyncThunk(
     try {
       const response = await API.put('/connections/accept', { requesterId });
       // We return the original requesterId to know which request to remove from the pending list
-      return { status: response.data.status, requesterId };
+      return { status: response.data.status, requesterId, user: response.data.user };
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
@@ -144,16 +144,21 @@ const connectionsSlice = createSlice({
        // Accepting a request
        .addCase(acceptConnectionRequest.fulfilled, (state, action) => {
          state.actionStatus = 'succeeded';
-         const { requesterId } = action.payload;
+         const { requesterId, user } = action.payload;
          const acceptedRequest = state.pendingRequests.find(req => (req.requester?._id === requesterId || req.requester === requesterId));
-         if (acceptedRequest) {
-           state.connections.unshift(acceptedRequest.requester);
-           state.pendingRequests = state.pendingRequests.filter(req => (req.requester?._id !== requesterId && req.requester !== requesterId));
-           if (state.connectionCounts[requesterId]) {
-             state.connectionCounts[requesterId] += 1;
-           } else {
-             state.connectionCounts[requesterId] = 1;
-           }
+         
+         const userToAdd = acceptedRequest?.requester || user || { _id: requesterId };
+         
+         if (userToAdd && !state.connections.some(c => c._id === userToAdd._id)) {
+           state.connections.unshift(userToAdd);
+         }
+         
+         state.pendingRequests = state.pendingRequests.filter(req => (req.requester?._id !== requesterId && req.requester !== requesterId));
+         
+         if (state.connectionCounts[requesterId]) {
+           state.connectionCounts[requesterId] += 1;
+         } else {
+           state.connectionCounts[requesterId] = 1;
          }
        })
 
