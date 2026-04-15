@@ -18,7 +18,7 @@ export const NotificationCard = ({ notification }) => {
   const dispatch = useDispatch();
   const [isProcessing, setIsProcessing] = useState(false);
   const [actionResult, setActionResult] = useState(null); // 'accepted' | 'declined' | 'error'
-  const { connections, pendingRequests, status: connectionsStatus } = useSelector(state => state.connections);
+  const { connections, pendingRequests, status: connectionsStatus, pendingRequestsStatus } = useSelector(state => state.connections);
 
   const handleAcceptConnection = async (e) => {
     e.preventDefault();
@@ -121,7 +121,7 @@ export const NotificationCard = ({ notification }) => {
   }
 
   let resolvedStatus = actionResult;
-  if (!resolvedStatus && config.showActions && connectionsStatus === 'succeeded') {
+  if (!resolvedStatus && config.showActions && connectionsStatus === 'succeeded' && pendingRequestsStatus === 'succeeded') {
      const isPendingGlobally = pendingRequests?.some(req => req.requester?._id === notification.sender?._id || req.requester === notification.sender?._id);
      const isConnectedGlobally = connections?.some(c => c._id === notification.sender?._id);
      

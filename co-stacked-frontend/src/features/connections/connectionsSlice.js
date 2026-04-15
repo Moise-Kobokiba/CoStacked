@@ -93,6 +93,7 @@ const initialState = {
   pendingRequests: [],
   connectionCounts: {},
   status: 'idle',
+  pendingRequestsStatus: 'idle',
   actionStatus: 'idle',
   error: null,
 };
@@ -112,12 +113,12 @@ const connectionsSlice = createSlice({
       .addCase(fetchConnections.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload.message; })
 
       // Fetching pending requests
-      .addCase(fetchPendingRequests.pending, (state) => { state.status = 'loading'; })
+      .addCase(fetchPendingRequests.pending, (state) => { state.pendingRequestsStatus = 'loading'; })
       .addCase(fetchPendingRequests.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.pendingRequestsStatus = 'succeeded';
         state.pendingRequests = action.payload;
       })
-      .addCase(fetchPendingRequests.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload.message; })
+      .addCase(fetchPendingRequests.rejected, (state, action) => { state.pendingRequestsStatus = 'failed'; state.error = action.payload.message; })
 
        // --- WRITE OPERATIONS STATUS ---
        .addCase(sendConnectionRequest.pending, (state) => { state.actionStatus = 'loading'; })
