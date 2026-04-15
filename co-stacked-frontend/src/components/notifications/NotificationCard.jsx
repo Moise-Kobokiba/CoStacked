@@ -7,7 +7,7 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { 
   UserPlus, MessageSquare, CheckCircle, 
   FileText, Rocket, Layers, Shield, ChevronDown,
-  Loader2, Check
+  Loader2, Check, XCircle, Quote, AlertTriangle, Briefcase
 } from 'lucide-react';
 import { Avatar } from '../shared/Avatar';
 import { acceptConnectionRequest, removeOrCancelConnection } from '../../features/connections/connectionsSlice';
@@ -114,6 +114,138 @@ export const NotificationCard = ({ notification }) => {
         ),
         linkTo: '/settings',
         actionLabel: 'Review Security Activity'
+      };
+      break;
+    case 'CONNECTION_ACCEPTED':
+      config = {
+        icon: <UserPlus size={18} />,
+        iconBg: '#10b981',
+        message: (
+          <><span className="font-bold">{senderName}</span> accepted your connection request</>
+        ),
+        linkTo: '/my-network',
+        actionLabel: 'View Network'
+      };
+      break;
+    case 'INTEREST_APPROVED':
+      config = {
+        icon: <CheckCircle size={18} />,
+        iconBg: '#10b981',
+        message: (
+          <>Your request for project <span className="font-bold">"{notification.projectId?.title || 'Design System'}"</span> was approved</>
+        ),
+        linkTo: '/messages',
+        actionLabel: 'Send a Message'
+      };
+      break;
+    case 'INTEREST_REJECTED':
+      config = {
+        icon: <div className={styles.projectIcon}><XCircle size={18} /></div>,
+        iconBg: '#ef4444',
+        message: (
+          <>Your request for project <span className="font-bold">"{notification.projectId?.title || 'Design System'}"</span> was declined</>
+        ),
+        linkTo: '/requests'
+      };
+      break;
+    case 'NEW_MESSAGE':
+      config = {
+        icon: <Avatar src={notification.sender?.avatarUrl} size="medium" />,
+        iconBg: 'transparent',
+        message: (
+          <><span className="font-bold">{senderName}</span> sent you a new message</>
+        ),
+        linkTo: '/messages',
+        actionLabel: 'Reply'
+      };
+      break;
+    case 'BOOST_SUCCESS':
+      config = {
+        icon: <Rocket size={18} />,
+        iconBg: '#8b5cf6',
+        message: (
+          <>
+            <span className="font-bold">Boost Success: </span>
+            {notification.projectId 
+              ? `Your project "${notification.projectId.title}" is now boosted.` 
+              : 'Your profile has been successfully boosted!'}
+          </>
+        ),
+        linkTo: notification.projectId ? '/my-projects' : '/profile'
+      };
+      break;
+    case 'IDEA_VOTE':
+      config = {
+        icon: <Rocket size={18} />,
+        iconBg: '#f59e0b',
+        message: (
+          <><span className="font-bold">{senderName}</span> voted on your idea</>
+        ),
+        linkTo: '/stack-suite'
+      };
+      break;
+    case 'PAYMENT_SUCCESS':
+      config = {
+        icon: <CheckCircle size={18} />,
+        iconBg: '#10b981',
+        message: (
+          <><span className="font-bold">Payment Successful</span> - Your purchase has been processed.</>
+        ),
+        linkTo: '/settings/billing',
+        actionLabel: 'View Receipt'
+      };
+      break;
+    case 'NEW_PROJECT_POSTED':
+      config = {
+        icon: <Briefcase size={18} />,
+        iconBg: '#10b981',
+        message: (
+          <><span className="font-bold">{senderName}</span> posted a new project: <span className="text-primary font-medium">"{notification.projectId?.title || 'Untitled Project'}"</span></>
+        ),
+        linkTo: `/projects/${notification.projectId?._id}`,
+        actionLabel: 'View Project'
+      };
+      break;
+    case 'NEW_REVIEW':
+      config = {
+        icon: <Quote size={18} />,
+        iconBg: '#f59e0b',
+        message: (
+          <><span className="font-bold">{senderName}</span> left you a review</>
+        ),
+        linkTo: '/profile'
+      };
+      break;
+    case 'NEW_REPORT_SUBMITTED':
+      config = {
+        icon: <AlertTriangle size={18} />,
+        iconBg: '#ef4444',
+        message: (
+          <><span className="font-bold">{senderName}</span> submitted a new report</>
+        ),
+        linkTo: '/admin/reports'
+      };
+      break;
+    case 'REPORT_REPLY':
+    case 'REPORT_UPDATE':
+      config = {
+        icon: <MessageSquare size={18} />,
+        iconBg: '#3b82f6',
+        message: (
+          <>There is an update on your recent report</>
+        ),
+        linkTo: '/support'
+      };
+      break;
+    case 'NEW_ADMIN_REGISTERED':
+    case 'NEW_USER_REGISTERED':
+      config = {
+        icon: <UserPlus size={18} />,
+        iconBg: '#8b5cf6',
+        message: (
+          <><span className="font-bold">{senderName}</span> just registered an account</>
+        ),
+        linkTo: `/users/${notification.sender?._id}`
       };
       break;
     default:
