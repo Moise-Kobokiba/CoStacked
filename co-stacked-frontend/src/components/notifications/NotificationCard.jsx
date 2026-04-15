@@ -121,14 +121,11 @@ export const NotificationCard = ({ notification }) => {
   }
 
   let resolvedStatus = actionResult;
-  if (!resolvedStatus && config.showActions && connectionsStatus === 'succeeded' && pendingRequestsStatus === 'succeeded') {
-     const isPendingGlobally = pendingRequests?.some(req => req.requester?._id === notification.sender?._id || req.requester === notification.sender?._id);
+  if (!resolvedStatus && config.showActions && connectionsStatus === 'succeeded') {
      const isConnectedGlobally = connections?.some(c => c._id === notification.sender?._id);
      
      if (isConnectedGlobally) {
          resolvedStatus = 'accepted';
-     } else if (!isPendingGlobally) {
-         resolvedStatus = 'declined';
      }
   }
 

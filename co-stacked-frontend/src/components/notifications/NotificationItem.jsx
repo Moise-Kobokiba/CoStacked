@@ -177,11 +177,10 @@ export const NotificationItem = ({ notification, onClose }) => {
   }
 
   let isResolved = actionDone;
-  if (!isResolved && config.showActions && connectionsStatus === 'succeeded' && pendingRequestsStatus === 'succeeded') {
-      const isPendingGlobally = pendingRequests?.some(req => req.requester?._id === notification.sender?._id || req.requester === notification.sender?._id);
+  if (!isResolved && config.showActions && connectionsStatus === 'succeeded') {
       const isConnectedGlobally = connections?.some(c => c._id === notification.sender?._id);
       
-      if (isConnectedGlobally || !isPendingGlobally) {
+      if (isConnectedGlobally) {
           isResolved = true;
       }
   }
