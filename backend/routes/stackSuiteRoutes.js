@@ -9,10 +9,17 @@ const {
   getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase,
   getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread,
   getComments, addComment, upvoteComment, likeComment, deleteComment,
-  getBookmarks,
+  getBookmarks, getStats,
 } = require('../controllers/stackSuiteController');
 
 // ── Optional auth: attach user if token present, but don't block public reads ──
+// ... (omitting middleware but it's there)
+// ...
+
+/* ─── Stats ─── */
+router.get('/stats', getStats);
+
+/* ─── Bookmarks ─── */
 const optionalProtect = (req, res, next) => {
   const auth = req.headers.authorization;
   if (auth && auth.startsWith('Bearer')) {

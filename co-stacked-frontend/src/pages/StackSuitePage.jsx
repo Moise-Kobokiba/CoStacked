@@ -5,8 +5,8 @@ import {
   Search, Plus, MessageCircle, Rocket, GitBranch,
   ChevronDown, Sparkles, TrendingUp, Users, X, Send, Loader2
 } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createStackPost, createShowcase, createCollabThread } from '../api/stackSuiteApi';
+import { createStackPost, createShowcase, createCollabThread, getStackSuiteStats } from '../api/stackSuiteApi';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DiscussionsTab }   from '../components/stack-suite/DiscussionsTab';
 import { ShowcasesTab }     from '../components/stack-suite/ShowcasesTab';
 import { CollaborationTab } from '../components/stack-suite/CollaborationTab';
@@ -202,6 +202,11 @@ export function StackSuitePage() {
   const modalTitle = activeTab === 'discussions' ? 'Create a New Post' : activeTab === 'showcases' ? 'Launch Your Showcase' : 'Start a Collaboration Thread';
   const modalDesc = activeTab === 'discussions' ? 'Share a question, insight, or update with the community.' : activeTab === 'showcases' ? 'Share what you are building, get feedback, and find collaborators.' : 'Create a milestone for your project and discuss progress with your team.';
 
+  const { data: stats } = useQuery({
+    queryKey: ['stackSuiteStats'],
+    queryFn: getStackSuiteStats,
+  });
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
@@ -228,7 +233,7 @@ export function StackSuitePage() {
                   <TrendingUp size={20} />
                 </div>
                 <div>
-                  <p className={styles.statValue}>2.4k</p>
+                  <p className={styles.statValue}>{stats ? stats.totalPosts + stats.totalValidations : '...'}</p>
                   <p className={styles.statLabel}>Active Posts</p>
                 </div>
               </div>
@@ -237,7 +242,7 @@ export function StackSuitePage() {
                   <Users size={20} />
                 </div>
                 <div>
-                  <p className={styles.statValue}>890</p>
+                  <p className={styles.statValue}>{stats ? stats.totalMembers : '...'}</p>
                   <p className={styles.statLabel}>Members</p>
                 </div>
               </div>
@@ -246,7 +251,7 @@ export function StackSuitePage() {
                   <Rocket size={20} />
                 </div>
                 <div>
-                  <p className={styles.statValue}>156</p>
+                  <p className={styles.statValue}>{stats ? stats.totalShowcases : '...'}</p>
                   <p className={styles.statLabel}>Projects</p>
                 </div>
               </div>

@@ -4,6 +4,7 @@ const StackPost    = require('../models/StackPost');
 const Showcase     = require('../models/Showcase');
 const CollabThread = require('../models/CollabThread');
 const StackComment = require('../models/StackComment');
+const User         = require('../models/User');
 
 /* ═══════════════════════════════════════════════
    HELPER — format time ago
@@ -609,11 +610,40 @@ const getBookmarks = async (req, res) => {
   }
 };
 
+// GET /api/stack-suite/stats
+const getStats = async (req, res) => {
+  try {
+    const [
+      totalPosts,
+      totalValidations,
+      totalShowcases,
+      totalCollabThreads,
+      totalMembers
+    ] = await Promise.all([
+      StackPost.countDocuments({ category: { $ne: 'Validation' }, isDeleted: false }),
+      StackPost.countDocuments({ category: 'Validation', isDeleted: false }),
+      Showcase.countDocuments({ isDeleted: false }),
+      CollabThread.countDocuments({ isDeleted: false }),
+      User.countDocuments({})
+    ]);
+
+    res.json({
+      totalPosts,
+      totalValidations,
+      totalShowcases,
+      totalCollabThreads,
+      totalMembers
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   getPosts, getPostById, createPost, upvotePost, deletePost,
   getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase,
   getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread,
   getComments, addComment, upvoteComment, likeComment, deleteComment,
-  getBookmarks,
+  getBookmarks, getStats,
 };
 

@@ -139,3 +139,12 @@ export const getSavedItems = async () => {
   const res = await API.get('/stack-suite/bookmarks');
   return res.data;
 };
+
+/* ═══════════════════════════════════════════════
+   STATS
+   ═══════════════════════════════════════════════ */
+
+export const getStackSuiteStats = async () => {
+  const res = await API.get('/stack-suite/stats');
+  return res.data;
+};

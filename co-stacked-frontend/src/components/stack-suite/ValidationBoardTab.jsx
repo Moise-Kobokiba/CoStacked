@@ -7,7 +7,7 @@ import {
   AlertCircle, X
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getStackPosts } from '../../api/stackSuiteApi';
+import { getStackPosts, getStackSuiteStats } from '../../api/stackSuiteApi';
 import { DiscussionDetail } from './DiscussionDetail';
 import { useDebounce } from '../../hooks/useDebounce';
 import styles from './StackSuite.module.css';
@@ -31,6 +31,11 @@ export function ValidationBoardTab({ search: globalSearch }) {
   const { data: posts = [], isLoading, isFetching } = useQuery({
     queryKey: ['stackPosts', { category: 'Validation', search: finalSearch, phase: phaseFilter }],
     queryFn: () => getStackPosts({ category: 'Validation', search: finalSearch, phase: phaseFilter }),
+  });
+
+  const { data: stats } = useQuery({
+    queryKey: ['stackSuiteStats'],
+    queryFn: getStackSuiteStats,
   });
 
   const phases = [
@@ -184,16 +189,16 @@ export function ValidationBoardTab({ search: globalSearch }) {
         <aside className="w-full lg:w-80 flex flex-col gap-6">
           {/* Community Stats */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Community Stats</h4>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Board Stats</h4>
             <div className="space-y-4">
               <div>
-                <p className="text-3xl font-black text-slate-900 dark:text-white">1,240</p>
+                <p className="text-3xl font-black text-slate-900 dark:text-white">{stats ? stats.totalValidations : '...'}</p>
                 <p className="text-sm text-slate-500">Total Ideas Validated</p>
               </div>
               <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                <div className="bg-blue-600 h-full w-3/4"></div>
+                <div className="bg-blue-600 h-full" style={{ width: stats ? `${Math.min((stats.totalValidations / 50) * 100, 100)}%` : '0%' }}></div>
               </div>
-              <p className="text-xs text-slate-400">Join 5,000+ founders active this month.</p>
+              <p className="text-xs text-slate-400">Join {stats ? stats.totalMembers : '...'} builders active on CoStacked.</p>
             </div>
           </div>
 
@@ -226,28 +231,19 @@ export function ValidationBoardTab({ search: globalSearch }) {
             <a className="mt-6 inline-block text-sm font-bold text-blue-600 hover:underline" href="#">Read full guide →</a>
           </div>
 
-          {/* Top Contributors Widget */}
+          {/* Get Feedback Widget */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Top Contributors</h4>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Get Feedback</h4>
             <div className="space-y-4">
-              {[
-                { name: 'Sarah G.', validations: 14, rank: 1 },
-                { name: 'David L.', validations: 12, rank: 2 },
-                { name: 'Marcus T.', validations: 10, rank: 3 },
-              ].map(contributor => (
-                <div key={contributor.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold">
-                      {contributor.name.slice(0, 2).toUpperCase()}
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold">{contributor.name}</span>
-                      <span className="text-xs text-slate-400">{contributor.validations} validations</span>
-                    </div>
-                  </div>
-                  <span className="text-blue-600 text-xs font-bold">#{contributor.rank}</span>
-                </div>
-              ))}
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Share your idea today and get direct feedback from our community of builders and founders.
+              </p>
+              <button 
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="w-full py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-lg text-sm font-bold transition-colors"
+              >
+                Post New Idea
+              </button>
             </div>
           </div>
         </aside>
