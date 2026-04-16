@@ -86,7 +86,7 @@ const getPostById = async (req, res) => {
 // POST /api/stack-suite/posts  (auth required)
 const createPost = async (req, res) => {
   try {
-    const { title, body, category, tags, phase, confidenceScore } = req.body;
+    const { title, body, category, tags, phase, confidenceScore, links } = req.body;
     if (!title || !body) return res.status(400).json({ message: 'Title and body are required' });
 
     const tagList = typeof tags === 'string'
@@ -101,6 +101,7 @@ const createPost = async (req, res) => {
       tags: tagList,
       phase: phase || 'General',
       confidenceScore: confidenceScore || 0,
+      links: links || []
     });
 
     await post.populate('author', 'name avatarUrl role');
@@ -200,7 +201,7 @@ const getShowcaseById = async (req, res) => {
 // POST /api/stack-suite/showcases  (auth)
 const createShowcase = async (req, res) => {
   try {
-    const { name, description, longDescription, stage, techStack, looking, teamSize, launched, icon, gradient } = req.body;
+    const { name, description, longDescription, stage, techStack, looking, teamSize, launched, icon, gradient, links } = req.body;
     if (!name || !description) return res.status(400).json({ message: 'Name and description are required' });
 
     const toArr = v => (typeof v === 'string' ? v.split(',').map(x => x.trim()).filter(Boolean) : Array.isArray(v) ? v : []);
@@ -216,6 +217,7 @@ const createShowcase = async (req, res) => {
       launched:  launched || '',
       icon:      icon || name.slice(0, 2).toUpperCase(),
       gradient:  gradient || 'from-primary/10 to-amber-50',
+      links:     links || []
     });
 
     await showcase.populate('founder', 'name avatarUrl role');
@@ -252,7 +254,7 @@ const updateShowcase = async (req, res) => {
 
     const toArr = v => (typeof v === 'string' ? v.split(',').map(x => x.trim()).filter(Boolean) : Array.isArray(v) ? v : []);
 
-    const { name, description, longDescription, stage, techStack, looking, teamSize, launched, icon, gradient } = req.body;
+    const { name, description, longDescription, stage, techStack, looking, teamSize, launched, icon, gradient, links } = req.body;
     
     if (name) showcase.name = name;
     if (description) showcase.description = description;
@@ -264,6 +266,7 @@ const updateShowcase = async (req, res) => {
     if (launched !== undefined) showcase.launched = launched;
     if (icon !== undefined) showcase.icon = icon;
     if (gradient) showcase.gradient = gradient;
+    if (links !== undefined) showcase.links = links;
 
     await showcase.save();
     await showcase.populate('founder', 'name avatarUrl role');
@@ -333,7 +336,7 @@ const getCollabThreadById = async (req, res) => {
 // POST /api/stack-suite/collab  (auth)
 const createCollabThread = async (req, res) => {
   try {
-    const { project, milestone, description, longDescription, team, progress, attachment, branch, deadline } = req.body;
+    const { project, milestone, description, longDescription, team, progress, attachment, branch, deadline, links } = req.body;
     if (!project || !milestone || !description)
       return res.status(400).json({ message: 'Project, milestone, and description are required' });
 
@@ -346,6 +349,7 @@ const createCollabThread = async (req, res) => {
       attachment: attachment || '',
       branch: branch || '',
       deadline: deadline || '',
+      links: links || []
     });
 
     await thread.populate('author', 'name avatarUrl role');
@@ -364,7 +368,7 @@ const updateCollabThread = async (req, res) => {
     if (thread.author.toString() !== req.user._id.toString())
       return res.status(401).json({ message: 'Not authorized' });
 
-    const { project, milestone, description, longDescription, team, progress, attachment, branch, deadline } = req.body;
+    const { project, milestone, description, longDescription, team, progress, attachment, branch, deadline, links } = req.body;
     
     if (project) thread.project = project;
     if (milestone) thread.milestone = milestone;
@@ -375,6 +379,7 @@ const updateCollabThread = async (req, res) => {
     if (attachment !== undefined) thread.attachment = attachment;
     if (branch !== undefined) thread.branch = branch;
     if (deadline !== undefined) thread.deadline = deadline;
+    if (links !== undefined) thread.links = links;
 
     await thread.save();
     await thread.populate('author', 'name avatarUrl role');

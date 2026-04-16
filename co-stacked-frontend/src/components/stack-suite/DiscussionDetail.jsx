@@ -7,7 +7,14 @@ import { useSelector, useDispatch } from 'react-redux';
 import { getStackPostById, getStackPosts, upvoteStackPost, deleteStackPost, getStackComments } from '../../api/stackSuiteApi';
 import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
+import { ConnectionButton } from '../profile/ConnectionButton';
+import { 
+  sendConnectionRequest, 
+  acceptConnectionRequest, 
+  removeOrCancelConnection 
+} from '../../features/connections/connectionsSlice';
 import styles from './StackSuite.module.css';
+import { Globe, Rocket, ExternalLink } from 'lucide-react';
 
 const categoryBadgeClass = {
   Validation: styles.badgeValidation,
@@ -27,7 +34,11 @@ export function DiscussionDetail({ discussionId, onBack }) {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   
-  const currentUser = useSelector((state) => state.auth.user);
+  const { user: currentUser } = useSelector((state) => state.auth);
+
+  // Connection states
+  const { connections, pendingRequests, actionStatus } = useSelector(state => state.connections);
+  const isConnectionLoading = actionStatus === 'loading';
 
   // Fetch single post
   const { data: discussion, isLoading } = useQuery({
@@ -91,6 +102,41 @@ export function DiscussionDetail({ discussionId, onBack }) {
   };
 
   const isBookmarked = currentUser?.bookmarks?.some(b => b.itemId === discussionId && b.itemType === 'post');
+
+  // Connection Helpers
+  const getConnectionStatus = () => {
+    if (!currentUser || !discussion.author || currentUser._id === (discussion.author?._id || discussion.author)) return null;
+    const authorId = discussion.author?._id || discussion.author;
+    if (connections?.some(conn => conn._id === authorId)) return 'connected';
+    if (pendingRequests?.some(req => req.recipient?._id === authorId)) return 'pending_sent';
+    if (pendingRequests?.some(req => req.requester?._id === authorId)) return 'pending_received';
+    return 'not_connected';
+  };
+
+  const connectionStatus = getConnectionStatus();
+
+  const connectionHandlers = {
+    onConnect: () => {
+      const authorId = discussion.author?._id || discussion.author;
+      authorId && dispatch(sendConnectionRequest(authorId));
+    },
+    onCancel:  () => {
+      const authorId = discussion.author?._id || discussion.author;
+      authorId && dispatch(removeOrCancelConnection(authorId));
+    },
+    onRemove:  () => {
+      const authorId = discussion.author?._id || discussion.author;
+      authorId && dispatch(removeOrCancelConnection(authorId));
+    },
+    onAccept:  () => {
+      const authorId = discussion.author?._id || discussion.author;
+      authorId && dispatch(acceptConnectionRequest(authorId));
+    },
+    onDecline: () => {
+      const authorId = discussion.author?._id || discussion.author;
+      authorId && dispatch(removeOrCancelConnection(authorId));
+    },
+  };
 
   if (isLoading || !discussion) {
     return (
@@ -164,6 +210,52 @@ export function DiscussionDetail({ discussionId, onBack }) {
         <div style={{ fontSize: '0.875rem', lineHeight: '1.6', color: 'var(--foreground)', whiteSpace: 'pre-line', marginBottom: '2rem', opacity: 0.9 }}>
           {discussion.body}
         </div>
+
+        {discussion.links && discussion.links.length > 0 && (
+          <div style={{ marginBottom: '2rem' }}>
+            <h4 style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted-foreground)', marginBottom: '0.75rem' }}>Related Links</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+              {discussion.links.map((link, idx) => (
+                <a 
+                  key={idx} 
+                  href={link.url.startsWith('http') ? link.url : `https://${link.url}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.5rem', 
+                    padding: '0.5rem 0.75rem', 
+                    background: 'var(--background)', 
+                    border: '1px solid var(--border)', 
+                    borderRadius: '0.5rem', 
+                    fontSize: '0.8125rem', 
+                    color: 'var(--foreground)', 
+                    textDecoration: 'none' 
+                  }}
+                >
+                  <Globe size={14} color="var(--primary-color)" />
+                  <span style={{ fontWeight: '500' }}>{link.name}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {connectionStatus && (
+          <div style={{ padding: '1.5rem', background: 'rgba(var(--primary-rgb), 0.03)', border: '1px solid var(--border)', borderRadius: '0.75rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+            <div>
+              <p style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--foreground)', marginBottom: '0.25rem' }}>Want to connect with the author?</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', margin: 0 }}>Collaborate and share ideas directly.</p>
+            </div>
+            <ConnectionButton 
+              status={connectionStatus}
+              targetUserId={discussion.author?._id || discussion.author}
+              isLoading={isConnectionLoading}
+              {...connectionHandlers}
+            />
+          </div>
+        )}
 
         {discussion.tags && discussion.tags.length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '2rem' }}>

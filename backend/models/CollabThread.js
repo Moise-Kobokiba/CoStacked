@@ -66,6 +66,12 @@ const collabThreadSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    links: [
+      {
+        name: { type: String, maxlength: 50 },
+        url:  { type: String, maxlength: 500 }
+      }
+    ]
   },
   { timestamps: true }
 );

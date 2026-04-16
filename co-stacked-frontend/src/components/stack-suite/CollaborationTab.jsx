@@ -8,6 +8,12 @@ import { getCollabThreads, getStackComments, deleteCollabThread } from '../../ap
 import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
 import { EditCollabModal } from './EditCollabModal';
+import { ConnectionButton } from '../profile/ConnectionButton';
+import { 
+  sendConnectionRequest, 
+  acceptConnectionRequest, 
+  removeOrCancelConnection 
+} from '../../features/connections/connectionsSlice';
 import styles from './StackSuite.module.css';
 
 const progressConfig = {
@@ -21,7 +27,11 @@ function ThreadDetail({ threadId, onBack }) {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const user = useSelector(state => state.auth.user);
+  const { user } = useSelector(state => state.auth);
+
+  // Connection states
+  const { connections, pendingRequests, actionStatus } = useSelector(state => state.connections);
+  const isConnectionLoading = actionStatus === 'loading';
 
   const { data: thread, isLoading } = useQuery({
     queryKey: ['thread', threadId],
@@ -74,6 +84,25 @@ function ThreadDetail({ threadId, onBack }) {
   };
 
   const isBookmarked = user?.bookmarks?.some(b => b.itemId === threadId && b.itemType === 'collabThread');
+
+  // Connection Helpers
+  const getConnectionStatus = () => {
+    if (!user || !thread.author || user._id === thread.author._id) return null;
+    if (connections?.some(conn => conn._id === thread.author._id)) return 'connected';
+    if (pendingRequests?.some(req => req.recipient?._id === thread.author._id)) return 'pending_sent';
+    if (pendingRequests?.some(req => req.requester?._id === thread.author._id)) return 'pending_received';
+    return 'not_connected';
+  };
+
+  const connectionStatus = getConnectionStatus();
+
+  const connectionHandlers = {
+    onConnect: () => thread.author?._id && dispatch(sendConnectionRequest(thread.author._id)),
+    onCancel:  () => thread.author?._id && dispatch(removeOrCancelConnection(thread.author._id)),
+    onRemove:  () => thread.author?._id && dispatch(removeOrCancelConnection(thread.author._id)),
+    onAccept:  () => thread.author?._id && dispatch(acceptConnectionRequest(thread.author._id)),
+    onDecline: () => thread.author?._id && dispatch(removeOrCancelConnection(thread.author._id)),
+  };
 
   return (
     <div style={{ maxWidth: 768, margin: '0 auto' }}>
@@ -133,6 +162,40 @@ function ThreadDetail({ threadId, onBack }) {
           </div>
         )}
 
+        {thread.links?.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+            <h3 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted-foreground)', marginBottom: 4 }}>External Resources</h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+              {thread.links.map((link, idx) => (
+                <a 
+                  key={idx} 
+                  href={link.url.startsWith('http') ? link.url : `https://${link.url}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 8, 
+                    fontSize: 13, 
+                    color: 'var(--foreground)', 
+                    textDecoration: 'none',
+                    padding: '8px 14px',
+                    background: 'var(--card-background)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 10,
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary-color)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                >
+                  <Rocket size={14} color="var(--primary-color)" />
+                  <span style={{ fontWeight: 500 }}>{link.name}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
           <h3 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted-foreground)', marginBottom: 12 }}>Team</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
@@ -153,6 +216,23 @@ function ThreadDetail({ threadId, onBack }) {
             ))}
           </div>
         </div>
+
+        {!isOwner && connectionStatus && (
+          <div style={{ padding: '24px', borderTop: '1px solid var(--border)', background: 'rgba(var(--primary-rgb), 0.02)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+              <div>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)', marginBottom: 4 }}>Want to collaborate?</h4>
+                <p style={{ fontSize: 12, color: 'var(--muted-foreground)', margin: 0 }}>Connect with {thread.author?.name} to discuss this project further.</p>
+              </div>
+              <ConnectionButton 
+                status={connectionStatus}
+                targetUserId={thread.author?._id}
+                isLoading={isConnectionLoading}
+                {...connectionHandlers}
+              />
+            </div>
+          </div>
+        )}
 
         <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', background: 'var(--card-background)', marginTop: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>

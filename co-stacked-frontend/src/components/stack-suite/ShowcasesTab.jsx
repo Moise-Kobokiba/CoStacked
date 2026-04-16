@@ -8,6 +8,12 @@ import { getShowcases, upvoteShowcase, getStackComments, deleteShowcase } from '
 import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
 import { EditShowcaseModal } from './EditShowcaseModal';
+import { ConnectionButton } from '../profile/ConnectionButton';
+import { 
+  sendConnectionRequest, 
+  acceptConnectionRequest, 
+  removeOrCancelConnection 
+} from '../../features/connections/connectionsSlice';
 import styles from './StackSuite.module.css';
 
 const stageColorMap = {
@@ -22,7 +28,11 @@ function ShowcaseDetail({ showcaseId, onBack }) {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const user = useSelector(state => state.auth.user);
+  const { user } = useSelector(state => state.auth);
+  
+  // Connection states
+  const { connections, pendingRequests, actionStatus } = useSelector(state => state.connections);
+  const isConnectionLoading = actionStatus === 'loading';
 
   const { data: showcase, isLoading } = useQuery({
     queryKey: ['showcase', showcaseId],
@@ -84,6 +94,25 @@ function ShowcaseDetail({ showcaseId, onBack }) {
   };
 
   const isBookmarked = user?.bookmarks?.some(b => b.itemId === showcase._id && b.itemType === 'showcase');
+
+  // Connection Helpers
+  const getConnectionStatus = () => {
+    if (!user || !showcase.founder || user._id === showcase.founder._id) return null;
+    if (connections?.some(conn => conn._id === showcase.founder._id)) return 'connected';
+    if (pendingRequests?.some(req => req.recipient?._id === showcase.founder._id)) return 'pending_sent';
+    if (pendingRequests?.some(req => req.requester?._id === showcase.founder._id)) return 'pending_received';
+    return 'not_connected';
+  };
+
+  const connectionStatus = getConnectionStatus();
+
+  const connectionHandlers = {
+    onConnect: () => showcase.founder?._id && dispatch(sendConnectionRequest(showcase.founder._id)),
+    onCancel:  () => showcase.founder?._id && dispatch(removeOrCancelConnection(showcase.founder._id)),
+    onRemove:  () => showcase.founder?._id && dispatch(removeOrCancelConnection(showcase.founder._id)),
+    onAccept:  () => showcase.founder?._id && dispatch(acceptConnectionRequest(showcase.founder._id)),
+    onDecline: () => showcase.founder?._id && dispatch(removeOrCancelConnection(showcase.founder._id)),
+  };
 
   if (isLoading || !showcase) {
     return (
@@ -227,17 +256,55 @@ function ShowcaseDetail({ showcaseId, onBack }) {
                     </li>
                   ))}
                 </ul>
-                <button className="btn btn-outline" style={{ width: '100%', marginTop: 20, padding: '8px 0', fontSize: 13 }}>Collaborate</button>
+                
+                {!isOwner && connectionStatus && (
+                  <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
+                    <p style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 12, fontWeight: 500 }}>READY TO HELP?</p>
+                    <ConnectionButton 
+                      status={connectionStatus}
+                      targetUserId={showcase.founder?._id}
+                      isLoading={isConnectionLoading}
+                      {...connectionHandlers}
+                    />
+                  </div>
+                )}
               </div>
             )}
             
-            <div style={{ marginTop: 24 }}>
-              <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground)', marginBottom: 12 }}>LINKS</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--foreground)', textDecoration: 'none' }}><Globe size={16} /> Website</a>
-                <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--foreground)', textDecoration: 'none' }}><Rocket size={16} /> Product Hunt</a>
+            {showcase.links?.length > 0 && (
+              <div style={{ marginTop: 24 }}>
+                <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Links</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {showcase.links.map((link, idx) => (
+                    <a 
+                      key={idx} 
+                      href={link.url.startsWith('http') ? link.url : `https://${link.url}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 10, 
+                        fontSize: 14, 
+                        color: 'var(--foreground)', 
+                        textDecoration: 'none',
+                        padding: '10px 14px',
+                        background: 'var(--background)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 10,
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary-color)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                    >
+                      <Globe size={16} color="var(--primary-color)" />
+                      <span style={{ fontWeight: 500 }}>{link.name}</span>
+                      <ExternalLink size={12} style={{ marginLeft: 'auto', opacity: 0.5 }} />
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

@@ -60,6 +60,12 @@ const showcaseSchema = mongoose.Schema(
       type: String,
       default: 'from-primary/10 to-amber-50',
     },
+    links: [
+      {
+        name: { type: String, maxlength: 50 },
+        url:  { type: String, maxlength: 500 }
+      }
+    ],
     isDeleted: {
       type: Boolean,
       default: false,

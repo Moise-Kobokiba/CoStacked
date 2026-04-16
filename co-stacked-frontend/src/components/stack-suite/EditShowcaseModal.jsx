@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Plus, Sparkles } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateShowcase } from '../../api/stackSuiteApi';
 import styles from './StackSuite.module.css';
@@ -15,7 +15,28 @@ export function EditShowcaseModal({ showcase, onClose }) {
     looking: '',
     teamSize: 1,
     launched: '',
+    links: [],
   });
+
+  const [newLinkName, setNewLinkName] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
+
+  const addLink = () => {
+    if (!newLinkName.trim() || !newLinkUrl.trim()) return;
+    setFormData(prev => ({
+      ...prev,
+      links: [...prev.links, { name: newLinkName.trim(), url: newLinkUrl.trim() }]
+    }));
+    setNewLinkName('');
+    setNewLinkUrl('');
+  };
+
+  const removeLink = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      links: prev.links.filter((_, i) => i !== index)
+    }));
+  };
 
   useEffect(() => {
     if (showcase) {
@@ -28,6 +49,7 @@ export function EditShowcaseModal({ showcase, onClose }) {
         looking: showcase.looking ? showcase.looking.join(', ') : '',
         teamSize: showcase.teamSize || 1,
         launched: showcase.launched || '',
+        links: showcase.links || [],
       });
     }
   }, [showcase]);
@@ -115,6 +137,52 @@ export function EditShowcaseModal({ showcase, onClose }) {
             <div>
               <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--foreground)' }}>Long Description</label>
               <textarea name="longDescription" value={formData.longDescription} onChange={handleChange} rows={5} className="form-control" style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--input-background)', color: 'var(--foreground)', resize: 'vertical' }} />
+            </div>
+
+            {/* Links Management UI */}
+            <div style={{ marginTop: 8, padding: 16, background: 'var(--background)', borderRadius: 12, border: '1px solid var(--border)' }}>
+              <label style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--foreground)' }}>
+                <Sparkles size={14} color="var(--primary-color)" />
+                External Links <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--muted-foreground)' }}>(Websites, Demos, Docs)</span>
+              </label>
+              
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+                {formData.links.map((link, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--card-background)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13, color: 'var(--foreground)' }}>
+                    <span>{link.name}</span>
+                    <button type="button" onClick={() => removeLink(idx)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--destructive)', marginLeft: 4, display: 'flex', alignItems: 'center' }}>
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--input-background)', color: 'var(--foreground)' }} 
+                  placeholder="Label (e.g. Website)" 
+                  value={newLinkName} 
+                  onChange={e => setNewLinkName(e.target.value)} 
+                />
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  style={{ flex: 2, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--input-background)', color: 'var(--foreground)' }} 
+                  placeholder="URL (https://...)" 
+                  value={newLinkUrl} 
+                  onChange={e => setNewLinkUrl(e.target.value)} 
+                />
+                <button 
+                  type="button" 
+                  onClick={addLink}
+                  className="btn btn-outline"
+                  style={{ padding: '0 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--foreground)', cursor: 'pointer' }}
+                >
+                  Add
+                </button>
+              </div>
             </div>
           </form>
         </div>

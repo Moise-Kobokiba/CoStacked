@@ -52,6 +52,22 @@ export function StackSuitePage() {
   const [collabMilestone, setCollabMilestone] = useState('');
   const [collabDesc, setCollabDesc] = useState('');
 
+  // Links state
+  const [links, setLinks] = useState([]);
+  const [newLinkName, setNewLinkName] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
+
+  const addLink = () => {
+    if (!newLinkName.trim() || !newLinkUrl.trim()) return;
+    setLinks([...links, { name: newLinkName.trim(), url: newLinkUrl.trim() }]);
+    setNewLinkName('');
+    setNewLinkUrl('');
+  };
+
+  const removeLink = (index) => {
+    setLinks(links.filter((_, i) => i !== index));
+  };
+
   const filterLabel = filter === 'founder' ? 'Founders' : filter === 'developer' ? 'Developers' : 'All Roles';
 
   const closeCreate = () => {
@@ -75,6 +91,11 @@ export function StackSuitePage() {
     setCollabProject('');
     setCollabMilestone('');
     setCollabDesc('');
+
+    // Reset links
+    setLinks([]);
+    setNewLinkName('');
+    setNewLinkUrl('');
   };
 
   const handleError = (error, contextAction) => {
@@ -142,6 +163,7 @@ export function StackSuitePage() {
         body: postBody,
         category: postCategory,
         tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
+        links: links
       };
       console.log("Dispatching Discussion Payload:", payload);
       createPostMutation.mutate(payload);
@@ -154,7 +176,8 @@ export function StackSuitePage() {
         description: showcaseDesc,
         stage: showcaseStage,
         techStack: showcaseTech.split(',').map(t => t.trim()).filter(Boolean),
-        looking: showcaseLooking.split(',').map(t => t.trim()).filter(Boolean)
+        looking: showcaseLooking.split(',').map(t => t.trim()).filter(Boolean),
+        links: links
       };
       console.log("Dispatching Showcase Payload:", payload);
       createShowcaseMutation.mutate(payload);
@@ -165,7 +188,8 @@ export function StackSuitePage() {
       const payload = {
         project: collabProject,
         milestone: collabMilestone,
-        description: collabDesc
+        description: collabDesc,
+        links: links
       };
       console.log("Dispatching Collab Payload:", payload);
       createCollabMutation.mutate(payload);
@@ -420,6 +444,52 @@ export function StackSuitePage() {
                       </div>
                     </>
                   )}
+
+                  {/* === SHARED LINKS SECTION === */}
+                  <div style={{ marginTop: 24, padding: 16, background: 'var(--background)', borderRadius: 12, border: '1px solid var(--border)' }}>
+                    <label className={styles.formLabel} style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Sparkles size={14} color="var(--primary)" />
+                      External Links <span className={styles.formLabelMuted}>(Websites, Demos, Docs)</span>
+                    </label>
+                    
+                    <div className={styles.categoryGrid} style={{ marginBottom: 12 }}>
+                      {links.map((link, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--card-background)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13 }}>
+                          <span>{link.name}</span>
+                          <button onClick={() => removeLink(idx)} style={{ color: 'var(--destructive)', marginLeft: 4, display: 'flex', alignItems: 'center' }}>
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input 
+                        type="text" 
+                        className={styles.formInput} 
+                        style={{ flex: 1 }} 
+                        placeholder="Label (e.g. GitHub)" 
+                        value={newLinkName} 
+                        onChange={e => setNewLinkName(e.target.value)} 
+                      />
+                      <input 
+                        type="text" 
+                        className={styles.formInput} 
+                        style={{ flex: 2 }} 
+                        placeholder="URL (https://...)" 
+                        value={newLinkUrl} 
+                        onChange={e => setNewLinkUrl(e.target.value)} 
+                      />
+                      <button 
+                        type="button" 
+                        onClick={addLink}
+                        className={`${sharedStyles.btn} ${sharedStyles.btnOutline}`}
+                        style={{ padding: '0 12px' }}
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
 
                 </div>
 
