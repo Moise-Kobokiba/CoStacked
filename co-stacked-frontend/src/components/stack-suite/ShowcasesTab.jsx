@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ArrowBigUp, MessageSquare, ArrowLeft, Bookmark, Share2, ExternalLink, Calendar, Code, Users, Target, Globe, Rocket, Loader2, Edit2, Trash2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSelector, useDispatch } from 'react-redux';
 import { getShowcases, upvoteShowcase, getStackComments, deleteShowcase } from '../../api/stackSuiteApi';
 import { toggleBookmark } from '../../features/auth/authSlice';
