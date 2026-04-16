@@ -155,8 +155,6 @@ function ShowcaseDetail({ showcaseId, onBack }) {
               <MessageSquare size={16} /> {showcase.commentCount || 0} Comments
             </span>
           </div>
-            </span>
-          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button 
               onClick={() => dispatch(toggleBookmark({ itemId: showcase._id, itemType: 'showcase' }))} 
