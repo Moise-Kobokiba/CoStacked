@@ -44,14 +44,6 @@ function ThreadDetail({ threadId, onBack }) {
     enabled: !!threadId,
   });
 
-  if (isLoading || !thread) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0', color: 'var(--muted-foreground)' }}>
-        <Loader2 className={styles.spinner} size={24} style={{ animation: 'spin 1s linear infinite' }} />
-      </div>
-    );
-  }
-
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteCollabThread(id),
     onSuccess: () => {
@@ -59,6 +51,14 @@ function ThreadDetail({ threadId, onBack }) {
       onBack();
     }
   });
+
+  if (isLoading || !thread) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0', color: 'var(--muted-foreground)' }}>
+        <Loader2 className={styles.spinner} size={24} style={{ animation: 'spin 1s linear infinite' }} />
+      </div>
+    );
+  }
 
   const cfg = progressConfig[thread.progress] || progressConfig['In Progress'];
   const ProgressIcon = cfg.Icon;
