@@ -563,10 +563,52 @@ const deleteComment = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get all bookmarked items for the logged-in user
+ * @route   GET /api/stack-suite/bookmarks
+ * @access  Private
+ */
+const getBookmarks = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user || !user.bookmarks || user.bookmarks.length === 0) {
+      return res.json([]);
+    }
+
+    const itemPromises = user.bookmarks.map(async (b) => {
+      let item = null;
+      if (b.itemType === 'post') {
+        item = await StackPost.findById(b.itemId).populate('author', 'name avatarUrl role').lean();
+      } else if (b.itemType === 'showcase') {
+        item = await Showcase.findById(b.itemId).populate('founder', 'name avatarUrl role').lean();
+      } else if (b.itemType === 'collabThread') {
+        item = await CollabThread.findById(b.itemId).populate('author', 'name avatarUrl role').lean();
+      }
+
+      if (!item || item.isDeleted) return null;
+
+      // Unify the response structure for the frontend
+      return {
+        ...item,
+        bookmarkType: b.itemType,
+        time: timeAgo(item.createdAt),
+        upvoteCount: item.upvotes ? item.upvotes.length : 0,
+        isUpvoted: item.upvotes ? item.upvotes.some(id => id.toString() === req.user._id.toString()) : false,
+      };
+    });
+
+    const items = (await Promise.all(itemPromises)).filter(Boolean);
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   getPosts, getPostById, createPost, upvotePost, deletePost,
   getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase,
   getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread,
   getComments, addComment, upvoteComment, likeComment, deleteComment,
+  getBookmarks,
 };
 

@@ -9,6 +9,7 @@ const {
   getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase,
   getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread,
   getComments, addComment, upvoteComment, likeComment, deleteComment,
+  getBookmarks,
 } = require('../controllers/stackSuiteController');
 
 // ── Optional auth: attach user if token present, but don't block public reads ──
@@ -28,6 +29,9 @@ const optionalProtect = (req, res, next) => {
     next();
   }
 };
+
+/* ─── Bookmarks ─── */
+router.get('/bookmarks', protect, getBookmarks);
 
 /* ─── Posts / Discussions ─── */
 router.route('/posts')

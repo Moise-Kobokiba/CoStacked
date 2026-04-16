@@ -130,3 +130,12 @@ export const deleteStackComment = async (id) => {
   const res = await API.delete(`/stack-suite/comments/${id}`);
   return res.data;
 };
+
+/* ═══════════════════════════════════════════════
+   BOOKMARKS / SAVED ITEMS
+   ═══════════════════════════════════════════════ */
+
+export const getSavedItems = async () => {
+  const res = await API.get('/stack-suite/bookmarks');
+  return res.data;
+};

@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { ArrowLeft, Eye, Pin, Loader2, ArrowBigUp, MessageSquare, Bookmark, Share2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { getStackPostById, getStackPosts, upvoteStackPost, deleteStackPost, getStackComments } from '../../api/stackSuiteApi';
+import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
 import styles from './StackSuite.module.css';
 
@@ -24,7 +25,7 @@ const roleBadgeClass = {
 
 export function DiscussionDetail({ discussionId, onBack }) {
   const queryClient = useQueryClient();
-  const [bookmarked, setBookmarked] = useState(false);
+  const dispatch = useDispatch();
   
   const currentUser = useSelector((state) => state.auth.user);
 
@@ -69,6 +70,27 @@ export function DiscussionDetail({ discussionId, onBack }) {
       deleteMutation.mutate(discussionId);
     }
   };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: discussion.title,
+      text: discussion.body,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+    }
+  };
+
+  const isBookmarked = currentUser?.bookmarks?.some(b => b.itemId === discussionId && b.itemType === 'post');
 
   if (isLoading || !discussion) {
     return (
@@ -166,13 +188,13 @@ export function DiscussionDetail({ discussionId, onBack }) {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <button
-              onClick={() => setBookmarked(v=>!v)}
+              onClick={() => dispatch(toggleBookmark({ itemId: discussionId, itemType: 'post' }))}
               className={styles.iconBtn}
-              style={{ color: bookmarked ? 'var(--star-color)' : 'var(--muted-foreground)' }}
+              style={{ color: isBookmarked ? 'var(--star-color)' : 'var(--muted-foreground)' }}
             >
-              <Bookmark size={18} fill={bookmarked ? 'currentColor' : 'none'} />
+              <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
             </button>
-            <button className={styles.iconBtn}>
+            <button onClick={handleShare} className={styles.iconBtn}>
               <Share2 size={18} />
             </button>
           </div>

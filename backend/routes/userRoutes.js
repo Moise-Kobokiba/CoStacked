@@ -20,7 +20,8 @@ const {
   cancelSubscription,
   updateUserAvatar,
   deleteUserAccount,
-  completeProfile
+  completeProfile,
+  toggleBookmark
 } = require('../controllers/userController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -39,6 +40,11 @@ router.route('/cancel-subscription').put(protect, cancelSubscription);
 router.route('/profile/avatar').put(protect, upload.single('avatar'), updateUserAvatar);
 
 // === PROTECTED ROUTES ===
+router.put('/reset-password/:token', resetPassword);
+router.route('/cancel-subscription').put(protect, cancelSubscription); 
+router.route('/profile/avatar').put(protect, upload.single('avatar'), updateUserAvatar);
+
+// === PROTECTED ROUTES ===
 // These routes require a valid token (the 'protect' middleware).
 // Grouping profile-related routes together.
 router
@@ -47,6 +53,7 @@ router
   .put(protect, updateUserProfile)
   .delete(protect, deleteUserAccount);
 
+router.route('/profile/bookmarks').put(protect, toggleBookmark);
 router.route('/profile/change-password').put(protect, changeUserPassword);
 router.route('/complete-profile').put(protect, completeProfile);
 

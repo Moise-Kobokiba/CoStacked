@@ -208,6 +208,23 @@ export const deleteAccount = createAsyncThunk(
   }
 );
 
+export const toggleBookmark = createAsyncThunk(
+  "auth/toggleBookmark",
+  async ({ itemId, itemType }, { rejectWithValue }) => {
+    try {
+      const response = await API.put("/users/profile/bookmarks", { itemId, itemType });
+      const updatedUser = response.data;
+
+      // Sync with localStorage
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(updatedUser));
+
+      return updatedUser;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: "Failed to toggle bookmark." });
+    }
+  }
+);
+
 
 // ===================================================================
 // THE AUTH SLICE
@@ -454,6 +471,17 @@ const authSlice = createSlice({
       .addCase(uploadAvatar.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload.message || 'Failed to upload avatar.';
+      })
+      
+      // --- NEW: Cases for Toggle Bookmark ---
+      .addCase(toggleBookmark.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(toggleBookmark.fulfilled, (state, action) => {
+        state.user = action.payload;
+      })
+      .addCase(toggleBookmark.rejected, (state, action) => {
+        state.error = action.payload?.message || "Failed to toggle bookmark.";
       });
   },
 });

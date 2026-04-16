@@ -91,6 +91,12 @@ const userSchema = mongoose.Schema(
       tiktok: { type: String, default: '' },
     },
 
+    // --- Bookmarks / Saved Items ---
+    bookmarks: [{
+      itemType: { type: String, enum: ['post', 'showcase', 'collabThread'] },
+      itemId: { type: mongoose.Schema.Types.ObjectId }
+    }],
+
     // --- Profile Completion Tracking ---
     profileCompleted: { type: Boolean, default: false },
     isOnline: { type: Boolean, default: false },

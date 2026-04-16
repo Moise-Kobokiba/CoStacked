@@ -1,10 +1,11 @@
 // src/components/stack-suite/CollaborationTab.jsx
 
 import { useState } from 'react';
-import { MessageSquare, Paperclip, CheckCircle2, Clock, AlertCircle, ArrowLeft, GitBranch, CalendarDays, Rocket, Loader2, Edit2, Trash2 } from 'lucide-react';
+import { MessageSquare, Paperclip, CheckCircle2, Clock, AlertCircle, ArrowLeft, GitBranch, CalendarDays, Rocket, Loader2, Edit2, Trash2, Bookmark, Share2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { getCollabThreads, getStackComments, deleteCollabThread } from '../../api/stackSuiteApi';
+import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
 import { EditCollabModal } from './EditCollabModal';
 import styles from './StackSuite.module.css';
@@ -18,6 +19,7 @@ const progressConfig = {
 /* ─────────── Detail View ─────────── */
 function ThreadDetail({ threadId, onBack }) {
   const queryClient = useQueryClient();
+  const dispatch = useDispatch();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const user = useSelector(state => state.auth.user);
 
@@ -51,6 +53,27 @@ function ThreadDetail({ threadId, onBack }) {
   const cfg = progressConfig[thread.progress] || progressConfig['In Progress'];
   const ProgressIcon = cfg.Icon;
   const isOwner = user && thread.author && user._id === thread.author._id;
+
+  const handleShare = async () => {
+    const shareData = {
+      title: thread.milestone,
+      text: thread.description,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+    }
+  };
+
+  const isBookmarked = user?.bookmarks?.some(b => b.itemId === threadId && b.itemType === 'collabThread');
 
   return (
     <div style={{ maxWidth: 768, margin: '0 auto' }}>
@@ -128,6 +151,25 @@ function ThreadDetail({ threadId, onBack }) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', background: 'var(--card-background)', marginTop: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--muted-foreground)' }}>
+               <MessageSquare size={16} />
+               <span style={{ fontSize: 13, fontWeight: 500 }}>{thread.commentCount || 0} Comments</span>
+             </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button 
+              onClick={() => dispatch(toggleBookmark({ itemId: threadId, itemType: 'collabThread' }))} 
+              className={styles.iconBtn}
+              style={{ color: isBookmarked ? 'var(--star-color)' : 'var(--muted-foreground)' }}
+            >
+              <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
+            </button>
+            <button onClick={handleShare} className={styles.iconBtn}><Share2 size={18} /></button>
           </div>
         </div>
       </article>

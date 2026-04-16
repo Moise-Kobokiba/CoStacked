@@ -2,7 +2,7 @@
 
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, User, Settings, LogOut, MessageSquare, LifeBuoy, Users } from 'lucide-react';
+import { LayoutDashboard, User, Settings, LogOut, MessageSquare, LifeBuoy, Users, Bookmark } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import styles from './DropdownMenu.module.css';
 import PropTypes from 'prop-types';
@@ -39,6 +39,10 @@ const DropdownMenu = ({ onLogout }) => {
         <Link to="/messages" className={styles.menuItem}>
           <MessageSquare className={styles.icon} />
           <span>Messages</span>
+        </Link>
+        <Link to="/saved-items" className={styles.menuItem}>
+          <Bookmark className={styles.icon} />
+          <span>Saved Items</span>
         </Link>
       </div>
 

@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { ArrowBigUp, MessageSquare, ArrowLeft, Bookmark, Share2, ExternalLink, Calendar, Code, Users, Target, Globe, Rocket, Loader2, Edit2, Trash2 } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { getShowcases, upvoteShowcase, getStackComments, deleteShowcase } from '../../api/stackSuiteApi';
+import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
 import { EditShowcaseModal } from './EditShowcaseModal';
 import styles from './StackSuite.module.css';
@@ -19,7 +19,7 @@ const stageColorMap = {
 /* ─────────── Detail View ─────────── */
 function ShowcaseDetail({ showcaseId, onBack }) {
   const queryClient = useQueryClient();
-  const [bookmarked, setBookmarked] = useState(false);
+  const dispatch = useDispatch();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const user = useSelector(state => state.auth.user);
 
@@ -62,6 +62,27 @@ function ShowcaseDetail({ showcaseId, onBack }) {
       onBack();
     }
   });
+
+  const handleShare = async () => {
+    const shareData = {
+      title: showcase.name,
+      text: showcase.description,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+    }
+  };
+
+  const isBookmarked = user?.bookmarks?.some(b => b.itemId === showcase._id && b.itemType === 'showcase');
 
   if (isLoading || !showcase) {
     return (
@@ -134,9 +155,16 @@ function ShowcaseDetail({ showcaseId, onBack }) {
               <MessageSquare size={16} /> {showcase.commentCount || 0} Comments
             </span>
           </div>
+            </span>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button onClick={() => setBookmarked(v=>!v)} className={`${styles.iconBtn} ${bookmarked ? styles.iconBtnActive : ''}`}><Bookmark size={18} fill={bookmarked ? 'currentColor' : 'none'} /></button>
-            <button className={styles.iconBtn}><Share2 size={18} /></button>
+            <button 
+              onClick={() => dispatch(toggleBookmark({ itemId: showcase._id, itemType: 'showcase' }))} 
+              className={`${styles.iconBtn} ${isBookmarked ? styles.iconBtnActive : ''}`}
+            >
+              <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
+            </button>
+            <button onClick={handleShare} className={styles.iconBtn}><Share2 size={18} /></button>
           </div>
         </div>
 

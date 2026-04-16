@@ -696,6 +696,49 @@ const resendVerificationEmail = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Toggle a bookmark (Save) on an item
+ * @route   PUT /api/users/profile/bookmarks
+ * @access  Private
+ */
+const toggleBookmark = async (req, res) => {
+  try {
+    const { itemId, itemType } = req.body;
+    
+    if (!itemId || !itemType) {
+      return res.status(400).json({ message: 'itemId and itemType are required' });
+    }
+
+    const validTypes = ['post', 'showcase', 'collabThread'];
+    if (!validTypes.includes(itemType)) {
+      return res.status(400).json({ message: 'Invalid itemType' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    const bookmarkIndex = user.bookmarks.findIndex(
+      (b) => b.itemId.toString() === itemId.toString() && b.itemType === itemType
+    );
+
+    if (bookmarkIndex > -1) {
+      // Remove bookmark
+      user.bookmarks.splice(bookmarkIndex, 1);
+    } else {
+      // Add bookmark
+      user.bookmarks.push({ itemId, itemType });
+    }
+
+    const updatedUser = await user.save();
+    res.json(updatedUser);
+  } catch (error) {
+    console.error(`[TOGGLE BOOKMARK ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server Error: Could not toggle bookmark.' });
+  }
+};
+
 module.exports = {
   registerUser,
   authUser,
@@ -712,4 +755,5 @@ module.exports = {
   updateUserAvatar,
   deleteUserAccount,
   completeProfile,
+  toggleBookmark,
 };

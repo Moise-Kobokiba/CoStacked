@@ -42,6 +42,7 @@ import { IdeaDetailPage } from "./pages/IdeaDetailPage";
 import { CreateIdeaPage } from "./pages/CreateIdeaPage";
 import { StackSuitePage } from "./pages/StackSuitePage";
 import { NotificationsPage } from "./pages/NotificationsPage";
+import { SavedItemsPage } from "./pages/SavedItemsPage";
 
 export const router = createBrowserRouter([
   {
@@ -91,6 +92,7 @@ export const router = createBrowserRouter([
           { path: "payment/cancel", element: <PaymentCancelPage /> },
           { path: "my-network", element: <MyNetworkPage /> },
           { path: "notifications", element: <NotificationsPage /> },
+          { path: "saved-items", element: <SavedItemsPage /> },
         ]
       }
     ]
