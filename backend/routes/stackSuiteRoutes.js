@@ -6,8 +6,8 @@ const { protect } = require('../middleware/authMiddleware');
 
 const {
   getPosts, getPostById, createPost, upvotePost, deletePost,
-  getShowcases, getShowcaseById, createShowcase, upvoteShowcase,
-  getCollabThreads, getCollabThreadById, createCollabThread,
+  getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase,
+  getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread,
   getComments, addComment, upvoteComment, likeComment, deleteComment,
 } = require('../controllers/stackSuiteController');
 
@@ -46,7 +46,9 @@ router.route('/showcases')
   .post(protect, createShowcase);
 
 router.route('/showcases/:id')
-  .get(optionalProtect, getShowcaseById);
+  .get(optionalProtect, getShowcaseById)
+  .put(protect, updateShowcase)
+  .delete(protect, deleteShowcase);
 
 router.put('/showcases/:id/upvote', protect, upvoteShowcase);
 
@@ -56,7 +58,9 @@ router.route('/collab')
   .post(protect, createCollabThread);
 
 router.route('/collab/:id')
-  .get(optionalProtect, getCollabThreadById);
+  .get(optionalProtect, getCollabThreadById)
+  .put(protect, updateCollabThread)
+  .delete(protect, deleteCollabThread);
 
 /* ─── Comments (shared) ─── */
 router.route('/comments/:parentType/:parentId')

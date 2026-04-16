@@ -1,10 +1,12 @@
 // src/components/stack-suite/ShowcasesTab.jsx
 
 import { useState } from 'react';
-import { ArrowBigUp, MessageSquare, ArrowLeft, Bookmark, Share2, ExternalLink, Calendar, Code, Users, Target, Globe, Rocket, Loader2 } from 'lucide-react';
+import { ArrowBigUp, MessageSquare, ArrowLeft, Bookmark, Share2, ExternalLink, Calendar, Code, Users, Target, Globe, Rocket, Loader2, Edit2, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getShowcases, upvoteShowcase, getStackComments } from '../../api/stackSuiteApi';
+import { useSelector } from 'react-redux';
+import { getShowcases, upvoteShowcase, getStackComments, deleteShowcase } from '../../api/stackSuiteApi';
 import { CommentThread } from './CommentThread';
+import { EditShowcaseModal } from './EditShowcaseModal';
 import styles from './StackSuite.module.css';
 
 const stageColorMap = {
@@ -18,6 +20,8 @@ const stageColorMap = {
 function ShowcaseDetail({ showcaseId, onBack }) {
   const queryClient = useQueryClient();
   const [bookmarked, setBookmarked] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const user = useSelector(state => state.auth.user);
 
   const { data: showcase, isLoading } = useQuery({
     queryKey: ['showcase', showcaseId],
@@ -51,6 +55,14 @@ function ShowcaseDetail({ showcaseId, onBack }) {
     }
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => deleteShowcase(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['showcases']);
+      onBack();
+    }
+  });
+
   if (isLoading || !showcase) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0', color: 'var(--muted-foreground)' }}>
@@ -60,6 +72,7 @@ function ShowcaseDetail({ showcaseId, onBack }) {
   }
 
   const stageStyle = stageColorMap[showcase.stage] || stageColorMap.Idea;
+  const isOwner = user && showcase.founder && user._id === showcase.founder._id;
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto' }}>
@@ -85,13 +98,27 @@ function ShowcaseDetail({ showcaseId, onBack }) {
               </div>
               <p style={{ fontSize: 16, color: 'var(--muted-foreground)', margin: 0, maxWidth: 600 }}>{showcase.description}</p>
             </div>
-            <div>
-              <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {isOwner && (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => setIsEditModalOpen(true)} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: 'var(--card-background)', color: 'var(--foreground)' }}>
+                    <Edit2 size={16} /> Edit
+                  </button>
+                  <button onClick={() => { if(window.confirm('Are you sure you want to delete this showcase?')) deleteMutation.mutate(showcase._id); }} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', color: 'var(--destructive)', borderColor: 'var(--destructive)', background: 'var(--card-background)' }}>
+                    <Trash2 size={16} /> Delete
+                  </button>
+                </div>
+              )}
+              <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 20px' }}>
                 <ExternalLink size={16} /> Visit Project
               </button>
             </div>
           </div>
         </div>
+
+        {isEditModalOpen && (
+          <EditShowcaseModal showcase={showcase} onClose={() => setIsEditModalOpen(false)} />
+        )}
 
         <div style={{ padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', background: 'var(--card-background)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>

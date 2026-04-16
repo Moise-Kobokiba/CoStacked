@@ -242,6 +242,54 @@ const upvoteShowcase = async (req, res) => {
   }
 };
 
+// PUT /api/stack-suite/showcases/:id  (auth)
+const updateShowcase = async (req, res) => {
+  try {
+    const showcase = await Showcase.findById(req.params.id);
+    if (!showcase || showcase.isDeleted) return res.status(404).json({ message: 'Showcase not found' });
+    if (showcase.founder.toString() !== req.user._id.toString())
+      return res.status(401).json({ message: 'Not authorized' });
+
+    const toArr = v => (typeof v === 'string' ? v.split(',').map(x => x.trim()).filter(Boolean) : Array.isArray(v) ? v : []);
+
+    const { name, description, longDescription, stage, techStack, looking, teamSize, launched, icon, gradient } = req.body;
+    
+    if (name) showcase.name = name;
+    if (description) showcase.description = description;
+    if (longDescription !== undefined) showcase.longDescription = longDescription;
+    if (stage) showcase.stage = stage;
+    if (techStack !== undefined) showcase.techStack = toArr(techStack);
+    if (looking !== undefined) showcase.looking = toArr(looking);
+    if (teamSize !== undefined) showcase.teamSize = teamSize;
+    if (launched !== undefined) showcase.launched = launched;
+    if (icon !== undefined) showcase.icon = icon;
+    if (gradient) showcase.gradient = gradient;
+
+    await showcase.save();
+    await showcase.populate('founder', 'name avatarUrl role');
+    
+    res.json({ ...showcase.toObject(), upvoteCount: showcase.upvotes.length, time: timeAgo(showcase.createdAt), isUpvoted: showcase.upvotes.some(id => id.toString() === req.user._id.toString()) });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// DELETE /api/stack-suite/showcases/:id  (auth — author only)
+const deleteShowcase = async (req, res) => {
+  try {
+    const showcase = await Showcase.findById(req.params.id);
+    if (!showcase) return res.status(404).json({ message: 'Showcase not found' });
+    if (showcase.founder.toString() !== req.user._id.toString())
+      return res.status(401).json({ message: 'Not authorized' });
+      
+    showcase.isDeleted = true;
+    await showcase.save();
+    res.json({ message: 'Showcase deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 /* ═══════════════════════════════════════════════
    COLLAB THREADS
 ═══════════════════════════════════════════════ */
@@ -305,6 +353,50 @@ const createCollabThread = async (req, res) => {
     res.status(201).json({ ...t, time: 'just now' });
   } catch (err) {
     res.status(400).json({ message: err.message });
+  }
+};
+
+// PUT /api/stack-suite/collab/:id  (auth)
+const updateCollabThread = async (req, res) => {
+  try {
+    const thread = await CollabThread.findById(req.params.id);
+    if (!thread || thread.isDeleted) return res.status(404).json({ message: 'Thread not found' });
+    if (thread.author.toString() !== req.user._id.toString())
+      return res.status(401).json({ message: 'Not authorized' });
+
+    const { project, milestone, description, longDescription, team, progress, attachment, branch, deadline } = req.body;
+    
+    if (project) thread.project = project;
+    if (milestone) thread.milestone = milestone;
+    if (description) thread.description = description;
+    if (longDescription !== undefined) thread.longDescription = longDescription;
+    if (team !== undefined) thread.team = Array.isArray(team) ? team : [];
+    if (progress) thread.progress = progress;
+    if (attachment !== undefined) thread.attachment = attachment;
+    if (branch !== undefined) thread.branch = branch;
+    if (deadline !== undefined) thread.deadline = deadline;
+
+    await thread.save();
+    await thread.populate('author', 'name avatarUrl role');
+    res.json({ ...thread.toObject(), time: timeAgo(thread.createdAt) });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// DELETE /api/stack-suite/collab/:id  (auth — author only)
+const deleteCollabThread = async (req, res) => {
+  try {
+    const thread = await CollabThread.findById(req.params.id);
+    if (!thread) return res.status(404).json({ message: 'Thread not found' });
+    if (thread.author.toString() !== req.user._id.toString())
+      return res.status(401).json({ message: 'Not authorized' });
+      
+    thread.isDeleted = true;
+    await thread.save();
+    res.json({ message: 'Thread deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -473,7 +565,8 @@ const deleteComment = async (req, res) => {
 
 module.exports = {
   getPosts, getPostById, createPost, upvotePost, deletePost,
-  getShowcases, getShowcaseById, createShowcase, upvoteShowcase,
-  getCollabThreads, getCollabThreadById, createCollabThread,
+  getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase,
+  getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread,
   getComments, addComment, upvoteComment, likeComment, deleteComment,
 };
+

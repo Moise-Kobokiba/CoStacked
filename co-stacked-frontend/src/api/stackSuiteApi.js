@@ -62,6 +62,16 @@ export const upvoteShowcase = async (id) => {
   return res.data;
 };
 
+export const updateShowcase = async (id, showcaseData) => {
+  const res = await API.put(`/stack-suite/showcases/${id}`, showcaseData);
+  return res.data;
+};
+
+export const deleteShowcase = async (id) => {
+  const res = await API.delete(`/stack-suite/showcases/${id}`);
+  return res.data;
+};
+
 /* ═══════════════════════════════════════════════
    COLLABORATION THREADS
 ═══════════════════════════════════════════════ */
@@ -79,6 +89,16 @@ export const getCollabThreadById = async (id) => {
 
 export const createCollabThread = async (threadData) => {
   const res = await API.post('/stack-suite/collab', threadData);
+  return res.data;
+};
+
+export const updateCollabThread = async (id, threadData) => {
+  const res = await API.put(`/stack-suite/collab/${id}`, threadData);
+  return res.data;
+};
+
+export const deleteCollabThread = async (id) => {
+  const res = await API.delete(`/stack-suite/collab/${id}`);
   return res.data;
 };
 

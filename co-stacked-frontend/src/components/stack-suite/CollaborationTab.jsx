@@ -1,10 +1,12 @@
 // src/components/stack-suite/CollaborationTab.jsx
 
 import { useState } from 'react';
-import { MessageSquare, Paperclip, CheckCircle2, Clock, AlertCircle, ArrowLeft, GitBranch, CalendarDays, Rocket, Loader2 } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getCollabThreads, getStackComments } from '../../api/stackSuiteApi';
+import { MessageSquare, Paperclip, CheckCircle2, Clock, AlertCircle, ArrowLeft, GitBranch, CalendarDays, Rocket, Loader2, Edit2, Trash2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
+import { getCollabThreads, getStackComments, deleteCollabThread } from '../../api/stackSuiteApi';
 import { CommentThread } from './CommentThread';
+import { EditCollabModal } from './EditCollabModal';
 import styles from './StackSuite.module.css';
 
 const progressConfig = {
@@ -16,6 +18,8 @@ const progressConfig = {
 /* ─────────── Detail View ─────────── */
 function ThreadDetail({ threadId, onBack }) {
   const queryClient = useQueryClient();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const user = useSelector(state => state.auth.user);
 
   const { data: thread, isLoading } = useQuery({
     queryKey: ['thread', threadId],
@@ -36,8 +40,17 @@ function ThreadDetail({ threadId, onBack }) {
     );
   }
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => deleteCollabThread(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['threads']);
+      onBack();
+    }
+  });
+
   const cfg = progressConfig[thread.progress] || progressConfig['In Progress'];
   const ProgressIcon = cfg.Icon;
+  const isOwner = user && thread.author && user._id === thread.author._id;
 
   return (
     <div style={{ maxWidth: 768, margin: '0 auto' }}>
@@ -57,9 +70,21 @@ function ThreadDetail({ threadId, onBack }) {
           </span>
         </div>
 
-        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16, lineHeight: 1.3, color: 'var(--foreground)' }}>
-          {thread.milestone}
-        </h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, lineHeight: 1.3, color: 'var(--foreground)' }}>
+            {thread.milestone}
+          </h1>
+          {isOwner && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setIsEditModalOpen(true)} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', fontSize: 13, background: 'var(--card-background)', color: 'var(--foreground)' }}>
+                <Edit2 size={14} /> Edit
+              </button>
+              <button onClick={() => { if(window.confirm('Are you sure you want to delete this thread?')) deleteMutation.mutate(thread._id); }} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', fontSize: 13, color: 'var(--destructive)', borderColor: 'var(--destructive)', background: 'var(--card-background)' }}>
+                <Trash2 size={14} /> Delete
+              </button>
+            </div>
+          )}
+        </div>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20, fontSize: 13 }}>
           {thread.branch && (
@@ -106,6 +131,10 @@ function ThreadDetail({ threadId, onBack }) {
           </div>
         </div>
       </article>
+
+      {isEditModalOpen && (
+        <EditCollabModal thread={thread} onClose={() => setIsEditModalOpen(false)} />
+      )}
 
       <div style={{ marginTop: 24 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: 'var(--foreground)' }}>
