@@ -438,3 +438,214 @@
   border-radius: 6px;
   gap: 4px;
 }
+
+/* ===========================
+   RESPONSIVE LAYOUTS
+=========================== */
+.showcaseGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.detailContainer {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.detailHeader {
+  padding: 40px 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.detailHeaderInner {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.detailIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  font-size: 32px;
+  font-weight: 700;
+  color: #0F172A;
+  flex-shrink: 0;
+}
+
+.detailMainInfo {
+  flex: 1;
+}
+
+.detailTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.detailTitle {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.detailDescription {
+  font-size: 16px;
+  color: var(--muted-foreground);
+  margin: 0;
+  max-width: 600px;
+}
+
+.detailHeaderActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detailSubHeader {
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: var(--card-background);
+}
+
+.detailLayout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 32px;
+  padding: 32px;
+}
+
+.sideCard {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.makerRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Spinner */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ===========================
+   MEDIA QUERIES
+=========================== */
+@media (max-width: 768px) {
+  .detailHeader {
+    padding: 24px 20px;
+  }
+  
+  .detailHeaderInner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .detailIcon {
+    width: 64px;
+    height: 64px;
+    font-size: 24px;
+    border-radius: 16px;
+  }
+  
+  .detailTitle {
+    font-size: 22px;
+  }
+  
+  .detailDescription {
+    font-size: 14px;
+  }
+  
+  .detailHeaderActions {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .detailHeaderActions button {
+    flex: 1;
+    min-width: 140px;
+  }
+  
+  .detailSubHeader {
+    padding: 12px 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .detailSubHeader > div {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .detailLayout {
+    grid-template-columns: 1fr;
+    padding: 20px;
+    gap: 24px;
+  }
+  
+  .detailDescription {
+    max-width: 100%;
+  }
+}
+
+.modalContent {
+  background: var(--card-background);
+  width: 100%;
+  max-width: 600px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+@media (max-width: 480px) {
+  .showcaseGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .detailHeaderActions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .detailHeaderActions button, 
+  .detailHeaderActions .btn {
+    width: 100%;
+  }
+
+  .modalContent {
+    width: 95%;
+    max-height: 95vh;
+  }
+}
+
+
+

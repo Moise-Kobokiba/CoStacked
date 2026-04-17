@@ -79,11 +79,8 @@ export function EditShowcaseModal({ showcase, onClose }) {
       backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999,
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
     }}>
-      <div style={{
-        background: 'var(--card-background)', width: '100%', maxWidth: 600,
-        borderRadius: 16, border: '1px solid var(--border)', display: 'flex',
-        flexDirection: 'column', maxHeight: '90vh'
-      }}>
+      <div className={styles.modalContent}>
+
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--foreground)' }}>Edit Showcase</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-foreground)' }}>

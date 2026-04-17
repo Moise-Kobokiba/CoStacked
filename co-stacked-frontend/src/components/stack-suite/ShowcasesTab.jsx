@@ -126,20 +126,20 @@ function ShowcaseDetail({ showcaseId, onBack }) {
   const isOwner = user && showcase.founder && user._id === showcase.founder._id;
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto' }}>
+    <div className={styles.detailContainer}>
       <button className={styles.backBtn} onClick={onBack}>
         <ArrowLeft size={16} /> Back to Showcases
       </button>
 
       <div className={styles.card} style={{ overflow: 'hidden', marginBottom: 24 }}>
-        <div className={`bg-gradient-to-r ${showcase.gradient}`} style={{ padding: '40px 32px', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
-            <div style={{ width: 80, height: 80, borderRadius: 20, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', fontSize: 32, fontWeight: 700, color: '#0F172A' }}>
+        <div className={`${styles.detailHeader} bg-gradient-to-r ${showcase.gradient}`}>
+          <div className={styles.detailHeaderInner}>
+            <div className={styles.detailIcon}>
               {showcase.icon || showcase.name.slice(0, 2).toUpperCase()}
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--foreground)', margin: 0 }}>{showcase.name}</h1>
+            <div className={styles.detailMainInfo}>
+              <div className={styles.detailTitleRow}>
+                <h1 className={styles.detailTitle}>{showcase.name}</h1>
                 <span className={styles.badge} style={{ background: stageStyle.bg, color: stageStyle.text, fontWeight: 600 }}>{showcase.stage}</span>
                 {showcase.launched && (
                   <span className={styles.badge} style={{ background: 'transparent', border: '1px solid var(--border)' }}>
@@ -147,20 +147,20 @@ function ShowcaseDetail({ showcaseId, onBack }) {
                   </span>
                 )}
               </div>
-              <p style={{ fontSize: 16, color: 'var(--muted-foreground)', margin: 0, maxWidth: 600 }}>{showcase.description}</p>
+              <p className={styles.detailDescription}>{showcase.description}</p>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className={styles.detailHeaderActions}>
               {isOwner && (
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => setIsEditModalOpen(true)} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: 'var(--card-background)', color: 'var(--foreground)' }}>
+                  <button onClick={() => setIsEditModalOpen(true)} className={`${styles.btn} ${styles.btnOutline}`} style={{ display: 'flex', flex: 1, alignItems: 'center', gap: 8, padding: '10px 16px', background: 'var(--card-background)', color: 'var(--foreground)' }}>
                     <Edit2 size={16} /> Edit
                   </button>
-                  <button onClick={() => { if(window.confirm('Are you sure you want to delete this showcase?')) deleteMutation.mutate(showcase._id); }} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', color: 'var(--destructive)', borderColor: 'var(--destructive)', background: 'var(--card-background)' }}>
+                  <button onClick={() => { if(window.confirm('Are you sure you want to delete this showcase?')) deleteMutation.mutate(showcase._id); }} className={`${styles.btn} ${styles.btnOutline}`} style={{ display: 'flex', flex: 1, alignItems: 'center', gap: 8, padding: '10px 16px', color: 'var(--destructive)', borderColor: 'var(--destructive)', background: 'var(--card-background)' }}>
                     <Trash2 size={16} /> Delete
                   </button>
                 </div>
               )}
-              <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 20px' }}>
+              <button className={`${styles.btn} ${styles.btnPrimary}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 20px' }}>
                 <ExternalLink size={16} /> Visit Project
               </button>
             </div>
@@ -171,7 +171,7 @@ function ShowcaseDetail({ showcaseId, onBack }) {
           <EditShowcaseModal showcase={showcase} onClose={() => setIsEditModalOpen(false)} />
         )}
 
-        <div style={{ padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', background: 'var(--card-background)' }}>
+        <div className={styles.detailSubHeader}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <button
               onClick={() => upvoteMutation.mutate(showcase._id)}
@@ -196,7 +196,7 @@ function ShowcaseDetail({ showcaseId, onBack }) {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, padding: 32 }}>
+        <div className={styles.detailLayout}>
           <div>
             <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--foreground)' }}>About Project</h3>
             <div style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--foreground)', whiteSpace: 'pre-line', opacity: 0.9 }}>
@@ -220,9 +220,9 @@ function ShowcaseDetail({ showcaseId, onBack }) {
           </div>
 
           <div>
-            <div style={{ background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, marginBottom: 24 }}>
+            <div className={styles.sideCard}>
               <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Makers</h4>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div className={styles.makerRow}>
                 <div className={`${styles.avatar} ${styles.avatarLg}`}>
                   {showcase.founder?.avatarUrl ? (
                     <img src={showcase.founder.avatarUrl} alt={showcase.founder.name} />
@@ -243,7 +243,7 @@ function ShowcaseDetail({ showcaseId, onBack }) {
             </div>
 
             {showcase.looking?.length > 0 && (
-              <div style={{ background: 'rgba(var(--primary-rgb), 0.05)', border: '1px dashed rgba(var(--primary-rgb), 0.3)', borderRadius: 16, padding: 24 }}>
+              <div style={{ background: 'rgba(var(--primary-rgb), 0.05)', border: '1px dashed rgba(var(--primary-rgb), 0.3)', borderRadius: 16, padding: 24, marginBottom: 24 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                   <Target size={18} color="var(--primary-color)" />
                   <h4 style={{ fontSize: 15, fontWeight: 700, color: 'var(--foreground)' }}>Looking For</h4>
@@ -368,7 +368,7 @@ export function ShowcasesTab({ search, stage }) {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
+    <div className={styles.showcaseGrid}>
       {showcases.map(showcase => {
         const stageStyle = stageColorMap[showcase.stage] || stageColorMap.Idea;
 
