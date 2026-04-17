@@ -243,6 +243,7 @@ export const fetchProfileViews = createAsyncThunk(
 // THE AUTH SLICE
 // ===================================================================
 
+const authSlice = createSlice({
   name: "auth",
   initialState: {
     ...loadInitialState(),
