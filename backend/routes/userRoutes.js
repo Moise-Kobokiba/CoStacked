@@ -56,6 +56,7 @@ router
 router.route('/profile/bookmarks').put(protect, toggleBookmark);
 router.route('/profile/change-password').put(protect, changeUserPassword);
 router.route('/complete-profile').put(protect, completeProfile);
+router.route('/profile/views').get(protect, getProfileViews);
 
 // Dynamic routes like ':id' should be placed last to avoid conflicts
 // with static routes like '/profile'.

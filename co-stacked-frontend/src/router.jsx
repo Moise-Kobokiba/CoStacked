@@ -43,6 +43,7 @@ import { CreateIdeaPage } from "./pages/CreateIdeaPage";
 import { StackSuitePage } from "./pages/StackSuitePage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { SavedItemsPage } from "./pages/SavedItemsPage";
+import { ProfileViewsPage } from "./pages/ProfileViewsPage";
 
 export const router = createBrowserRouter([
   {
@@ -93,6 +94,7 @@ export const router = createBrowserRouter([
           { path: "my-network", element: <MyNetworkPage /> },
           { path: "notifications", element: <NotificationsPage /> },
           { path: "saved-items", element: <SavedItemsPage /> },
+          { path: "profile/views", element: <ProfileViewsPage /> },
         ]
       }
     ]

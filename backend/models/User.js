@@ -102,6 +102,14 @@ const userSchema = mongoose.Schema(
     isOnline: { type: Boolean, default: false },
     lastActiveAt: { type: Date, default: Date.now },
 
+    // --- NEW: Account Views History ---
+    viewHistory: [
+      {
+        viewerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        viewedAt: { type: Date, default: Date.now },
+      }
+    ],
+
     // --- NEW: Professional & Academic History ---
     experience: [
       {

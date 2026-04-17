@@ -225,14 +225,36 @@ export const toggleBookmark = createAsyncThunk(
   }
 );
 
+export const fetchProfileViews = createAsyncThunk(
+  "auth/fetchProfileViews",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await API.get("/users/profile/views");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: "Failed to fetch profile views." });
+    }
+  }
+);
+
+
 
 // ===================================================================
 // THE AUTH SLICE
 // ===================================================================
 
-const authSlice = createSlice({
   name: "auth",
-  initialState: loadInitialState(),
+  initialState: {
+    ...loadInitialState(),
+    profileViews: {
+      total: 0,
+      history: [],
+      isRestricted: false,
+      isSubscribed: false,
+      status: 'idle',
+      error: null
+    }
+  },
   reducers: {
     logout: (state) => {
       localStorage.removeItem(TOKEN_KEY);
@@ -473,15 +495,25 @@ const authSlice = createSlice({
         state.error = action.payload.message || 'Failed to upload avatar.';
       })
       
-      // --- NEW: Cases for Toggle Bookmark ---
-      .addCase(toggleBookmark.pending, (state) => {
-        state.error = null;
-      })
-      .addCase(toggleBookmark.fulfilled, (state, action) => {
-        state.user = action.payload;
-      })
       .addCase(toggleBookmark.rejected, (state, action) => {
         state.error = action.payload?.message || "Failed to toggle bookmark.";
+      })
+      
+      // --- NEW: Cases for Profile Views ---
+      .addCase(fetchProfileViews.pending, (state) => {
+        state.profileViews.status = 'loading';
+        state.profileViews.error = null;
+      })
+      .addCase(fetchProfileViews.fulfilled, (state, action) => {
+        state.profileViews.status = 'succeeded';
+        state.profileViews.total = action.payload.totalViews;
+        state.profileViews.history = action.payload.history;
+        state.profileViews.isRestricted = action.payload.isRestricted;
+        state.profileViews.isSubscribed = action.payload.isSubscribed;
+      })
+      .addCase(fetchProfileViews.rejected, (state, action) => {
+        state.profileViews.status = 'failed';
+        state.profileViews.error = action.payload?.message || "Failed to fetch views.";
       });
   },
 });

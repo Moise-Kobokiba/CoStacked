@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchReceivedInterests, fetchSentInterests } from '../features/interests/interestsSlice';
 import { fetchMyProjects } from '../features/projects/projectsSlice';
 import { fetchReviewsForUser } from '../features/reviews/reviewsSlice';
+import { fetchProfileViews } from '../features/auth/authSlice';
 import { fetchPendingRequests } from '../features/connections/connectionsSlice'; // 1. Import action for pending requests
 import styles from './DashboardPage.module.css';
 
@@ -27,10 +28,14 @@ export const DashboardPage = () => {
   const { myItems: userProjects = [] } = useSelector(state => state.projects || {});
   const { reviewsByUser = {} } = useSelector(state => state.reviews || {});
   const { pendingRequests = [] } = useSelector(state => state.connections || {}); // 2. Get pending connections
+  const { profileViews } = useSelector((state) => state.auth);
 
   // This effect runs when the user is available and dispatches all data-fetching actions.
   useEffect(() => {
     if (currentUser) {
+      // Always fetch profile views
+      dispatch(fetchProfileViews());
+
       if (currentUser.role === 'founder') {
         dispatch(fetchReceivedInterests());
         dispatch(fetchMyProjects());
@@ -58,18 +63,19 @@ export const DashboardPage = () => {
     <div className={styles.pageContainer}>
       {/* This switcher logic cleanly separates the UI for each role */}
       {currentUser.role === 'founder' ? (
-        <FounderDashboard
-          currentUser={currentUser}
-          interests={receivedItems} // These are project interests
-          userProjects={userProjects}
-          pendingConnections={pendingRequests} // 4. Pass down pending requests to FounderDashboard
+           currentUser={currentUser}
+           interests={receivedItems} // These are project interests
+           userProjects={userProjects}
+           pendingConnections={pendingRequests} // 4. Pass down pending requests to FounderDashboard
+           profileViews={profileViews}
         />
       ) : (
-        <DeveloperDashboard
-          currentUser={currentUser}
-          sentItems={sentItems} // These are project interests
-          developerReviews={developerReviews}
-          pendingConnections={pendingRequests} // 4. Pass down pending requests to DeveloperDashboard
+         <DeveloperDashboard
+           currentUser={currentUser}
+           sentItems={sentItems} // These are project interests
+           developerReviews={developerReviews}
+           pendingConnections={pendingRequests} // 4. Pass down pending requests to DeveloperDashboard
+           profileViews={profileViews}
         />
       )}
 

@@ -418,21 +418,82 @@ const changeUserPassword = async (req, res) => {
  */
 const recordProfileView = async (req, res) => {
   try {
-    if (req.params.id === req.user._id.toString()) {
+    const targetUserId = req.params.id;
+    const currentUserId = req.user._id;
+
+    if (targetUserId === currentUserId.toString()) {
       return res.status(400).json({ message: "You cannot view your own profile." });
     }
-    const viewedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { profileViews: 1 } },
-      { new: true }
-    ).select('-password');
+
+    const viewedUser = await User.findById(targetUserId);
     if (!viewedUser) {
       return res.status(404).json({ message: 'User not found.' });
     }
-    res.json(viewedUser);
+
+    // --- NEW: 12-hour Cool-down Logic ---
+    // Check if this user has viewed this profile in the last 12 hours
+    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+    const recentView = viewedUser.viewHistory.find(
+      (view) => 
+        view.viewerId && 
+        view.viewerId.toString() === currentUserId.toString() && 
+        view.viewedAt > twelveHoursAgo
+    );
+
+    if (!recentView) {
+      // Add record to viewHistory and increment total count
+      viewedUser.viewHistory.push({ viewerId: currentUserId });
+      viewedUser.profileViews = (viewedUser.profileViews || 0) + 1;
+      await viewedUser.save();
+    }
+
+    res.json({ success: true, profileViews: viewedUser.profileViews });
   } catch (error) {
     console.error(`[RECORD VIEW ERROR]: ${error.message}`);
     res.status(500).json({ message: 'Server error while recording profile view.' });
+  }
+};
+
+/**
+ * @desc    Get the profile view history for the logged-in user
+ * @route   GET /api/users/profile/views
+ * @access  Private
+ */
+const getProfileViews = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+      .populate({
+        path: 'viewHistory.viewerId',
+        select: 'name avatarUrl role headline'
+      });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Sort history by date (most recent first)
+    let history = [...user.viewHistory].sort((a, b) => b.viewedAt - a.viewedAt);
+
+    // Subscription Check
+    const isSubscribed = user.subscriptionExpiresAt && new Date(user.subscriptionExpiresAt) > new Date();
+    
+    let isRestricted = false;
+    if (!isSubscribed) {
+      if (history.length > 6) {
+        isRestricted = true;
+        history = history.slice(0, 6);
+      }
+    }
+
+    res.json({
+      totalViews: user.profileViews,
+      history,
+      isRestricted,
+      isSubscribed
+    });
+  } catch (error) {
+    console.error(`[GET VIEW HISTORY ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server error while fetching view history.' });
   }
 };
 
@@ -756,4 +817,5 @@ module.exports = {
   deleteUserAccount,
   completeProfile,
   toggleBookmark,
+  getProfileViews,
 };

@@ -15,9 +15,32 @@ import { ConnectionRequestCard } from '../connections/ConnectionRequestCard';
 import { BoostModal } from '../billing/BoostModal';
 import { ConfirmationModal } from '../shared/ConfirmationModal';
 import { ConnectionCard } from './ConnectionCard';
-import { Bell, Briefcase, MessageSquare, Search, Rocket, UserPlus } from 'lucide-react';
+import { Bell, Briefcase, MessageSquare, Search, Rocket, UserPlus, Eye } from 'lucide-react';
 import { ProfileCompletionBadge } from "../profile/ProfileCompletionBadge";
 import PropTypes from 'prop-types';
+
+const StatCard = ({ title, value, description, Icon, to }) => {
+  const cardContent = (
+    <Card className={styles.statCardContent}>
+      <div className={styles.statHeader}>
+        <h3 className={styles.statCardTitle}>{title}</h3>
+        <Icon size={16} color="var(--muted-foreground)" />
+      </div>
+      <p className={styles.statValue}>{value}</p>
+      {description && <p className={styles.statDescription}>{description}</p>}
+    </Card>
+  );
+  if (to) { return <Link to={to} className={styles.statCardLink}>{cardContent}</Link>; }
+  return cardContent;
+};
+
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+    });
+};
+
 
 const StatCard = ({ title, value, description, Icon, to }) => {
   const cardContent = (
@@ -48,7 +71,8 @@ export const FounderDashboard = ({
   currentUser, 
   interests = [], 
   userProjects = [], 
-  pendingConnections = [] 
+  pendingConnections = [],
+  profileViews = { total: 0 }
 }) => {
   const dispatch = useDispatch();
   
@@ -100,6 +124,7 @@ export const FounderDashboard = ({
         <StatCard to="/requests" title="Project Interests" value={`${incomingInterests.length} New`} Icon={Bell} />
         <StatCard to="/my-projects" title="My Projects" value={`${userProjects.length} Active`} Icon={Briefcase} />
         <StatCard to="/my-network" title="My Network" value={`${pendingConnections.length} New`} description="Connection requests" Icon={UserPlus} />
+        <StatCard to="/profile/views" title="Profile Views" value={profileViews.total} description="Who is looking?" Icon={Eye} />
         <StatCard to="/users" title="Find Talent" value="Search Now" Icon={Search} />
       </div>
       
@@ -188,4 +213,5 @@ FounderDashboard.propTypes = {
   interests: PropTypes.array,
   userProjects: PropTypes.array,
   pendingConnections: PropTypes.array,
+  profileViews: PropTypes.object,
 };

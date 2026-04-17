@@ -10,9 +10,25 @@ import { Card } from "../shared/Card";
 import { ProjectCard } from "../shared/ProjectCard";
 import { ConnectionRequestCard } from "../connections/ConnectionRequestCard";
 import { ConfirmationModal } from "../shared/ConfirmationModal";
-import { Search, Send, UserPlus, Star } from "lucide-react";
+import { Search, Send, UserPlus, Star, Eye } from "lucide-react";
 import { ProfileCompletionBadge } from "../profile/ProfileCompletionBadge";
 import PropTypes from "prop-types";
+
+const StatCard = ({ title, value, description, Icon, to }) => {
+  const cardContent = (
+    <Card className={styles.statCardContent}>
+      <div className={styles.statHeader}>
+        <h3 className={styles.statCardTitle}>{title}</h3>
+        <Icon size={16} color="var(--muted-foreground)" />
+      </div>
+      <p className={styles.statValue}>{value}</p>
+      {description && <p className={styles.statDescription}>{description}</p>}
+    </Card>
+  );
+  if (to) { return <Link to={to} className={styles.statCardLink}>{cardContent}</Link>; }
+  return cardContent;
+};
+
 
 const StatCard = ({ title, value, description, Icon, to }) => {
   const cardContent = (
@@ -37,6 +53,7 @@ export const DeveloperDashboard = ({
   sentItems = [],
   developerReviews = [],
   pendingConnections = [], // Accept the new prop with a default value
+  profileViews = { total: 0 }
 }) => {
   const dispatch = useDispatch();
 
@@ -88,6 +105,7 @@ export const DeveloperDashboard = ({
         <StatCard to="/projects" title="Discover Projects" value="Browse Latest" Icon={Search} />
         <StatCard to="/my-applications" title="My Applications" value={sentItems.length} description="Project interests sent" Icon={Send} />
         <StatCard to="/my-network" title="My Network" value={`${pendingConnections.length} New`} description="Connection requests" Icon={UserPlus} />
+        <StatCard to="/profile/views" title="Profile Views" value={profileViews.total} description="Who is looking?" Icon={Eye} />
         <StatCard to="/profile" title="Your Reviews" value={developerReviews.length} description="Total feedback received" Icon={Star} />
       </div>
 
@@ -142,4 +160,5 @@ DeveloperDashboard.propTypes = {
   sentItems: PropTypes.array,
   developerReviews: PropTypes.array,
   pendingConnections: PropTypes.array, // Add the new prop type
+  profileViews: PropTypes.object,
 };
