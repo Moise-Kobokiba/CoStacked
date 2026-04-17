@@ -74,6 +74,14 @@ function ShowcaseDetail({ showcaseId, onBack }) {
     }
   });
 
+  if (isLoading || !showcase) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0', color: 'var(--muted-foreground)' }}>
+        <Loader2 className={styles.spinner} size={24} style={{ animation: 'spin 1s linear infinite' }} />
+      </div>
+    );
+  }
+
   const handleShare = async () => {
     const shareData = {
       title: showcase.name,
@@ -113,14 +121,6 @@ function ShowcaseDetail({ showcaseId, onBack }) {
     onAccept:  () => showcase.founder?._id && dispatch(acceptConnectionRequest(showcase.founder._id)),
     onDecline: () => showcase.founder?._id && dispatch(removeOrCancelConnection(showcase.founder._id)),
   };
-
-  if (isLoading || !showcase) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0', color: 'var(--muted-foreground)' }}>
-        <Loader2 className={styles.spinner} size={24} style={{ animation: 'spin 1s linear infinite' }} />
-      </div>
-    );
-  }
 
   const stageStyle = stageColorMap[showcase.stage] || stageColorMap.Idea;
   const isOwner = user && showcase.founder && user._id === showcase.founder._id;

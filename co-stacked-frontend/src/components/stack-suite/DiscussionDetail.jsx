@@ -82,6 +82,14 @@ export function DiscussionDetail({ discussionId, onBack }) {
     }
   };
 
+  if (isLoading || !discussion) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem 0', color: 'var(--muted-foreground)' }}>
+        <Loader2 className="animate-spin" size={24} style={{ animation: 'spin 1s linear infinite' }} />
+      </div>
+    );
+  }
+
   const handleShare = async () => {
     const shareData = {
       title: discussion.title,
@@ -137,14 +145,6 @@ export function DiscussionDetail({ discussionId, onBack }) {
       authorId && dispatch(removeOrCancelConnection(authorId));
     },
   };
-
-  if (isLoading || !discussion) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem 0', color: 'var(--muted-foreground)' }}>
-        <Loader2 className="animate-spin" size={24} style={{ animation: 'spin 1s linear infinite' }} />
-      </div>
-    );
-  }
 
   const initials = discussion.author?.name ? discussion.author.name.slice(0, 2).toUpperCase() : 'U';
   const isAuthor = currentUser && (currentUser._id === (discussion.author?._id || discussion.author) || currentUser.id === (discussion.author?._id || discussion.author));
