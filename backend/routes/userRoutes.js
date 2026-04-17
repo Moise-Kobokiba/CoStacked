@@ -21,7 +21,8 @@ const {
   updateUserAvatar,
   deleteUserAccount,
   completeProfile,
-  toggleBookmark
+  toggleBookmark,
+  getProfileViews
 } = require('../controllers/userController');
 
 const { protect } = require('../middleware/authMiddleware');
