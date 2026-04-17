@@ -221,7 +221,7 @@ function ShowcaseDetail({ showcaseId, onBack }) {
 
           <div>
             <div className={styles.sideCard}>
-              <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Makers</h4>
+              <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Post By:</h4>
               <div className={styles.makerRow}>
                 <div className={`${styles.avatar} ${styles.avatarLg}`}>
                   {showcase.founder?.avatarUrl ? (
