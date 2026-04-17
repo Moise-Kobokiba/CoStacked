@@ -28,19 +28,6 @@ const StatCard = ({ title, value, description, Icon, to }) => {
       </div>
       <p className={styles.statValue}>{value}</p>
       {description && <p className={styles.statDescription}>{description}</p>}
-    </Card>
-  );
-  if (to) { return <Link to={to} className={styles.statCardLink}>{cardContent}</Link>; }
-  return cardContent;
-};
-
-const formatDate = (dateString) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'long', day: 'numeric'
-    });
-};
-
 
 const StatCard = ({ title, value, description, Icon, to }) => {
   const cardContent = (

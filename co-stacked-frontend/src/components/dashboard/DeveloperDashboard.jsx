@@ -29,22 +29,6 @@ const StatCard = ({ title, value, description, Icon, to }) => {
   return cardContent;
 };
 
-
-const StatCard = ({ title, value, description, Icon, to }) => {
-  const cardContent = (
-    <Card className={styles.statCardContent}>
-      <div className={styles.statHeader}>
-        <h3 className={styles.statCardTitle}>{title}</h3>
-        <Icon size={16} color="var(--muted-foreground)" />
-      </div>
-      <p className={styles.statValue}>{value}</p>
-      {description && <p className={styles.statDescription}>{description}</p>}
-    </Card>
-  );
-  if (to) { return <Link to={to} className={styles.statCardLink}>{cardContent}</Link>; }
-  return cardContent;
-};
-
 /**
  * The main UI component for the Developer's dashboard view.
  */

@@ -63,19 +63,20 @@ export const DashboardPage = () => {
     <div className={styles.pageContainer}>
       {/* This switcher logic cleanly separates the UI for each role */}
       {currentUser.role === 'founder' ? (
-           currentUser={currentUser}
-           interests={receivedItems} // These are project interests
-           userProjects={userProjects}
-           pendingConnections={pendingRequests} // 4. Pass down pending requests to FounderDashboard
-           profileViews={profileViews}
+        <FounderDashboard
+          currentUser={currentUser}
+          interests={receivedItems}
+          userProjects={userProjects}
+          pendingConnections={pendingRequests}
+          profileViews={profileViews}
         />
       ) : (
-         <DeveloperDashboard
-           currentUser={currentUser}
-           sentItems={sentItems} // These are project interests
-           developerReviews={developerReviews}
-           pendingConnections={pendingRequests} // 4. Pass down pending requests to DeveloperDashboard
-           profileViews={profileViews}
+        <DeveloperDashboard
+          currentUser={currentUser}
+          sentItems={sentItems}
+          developerReviews={developerReviews}
+          pendingConnections={pendingRequests}
+          profileViews={profileViews}
         />
       )}
 
