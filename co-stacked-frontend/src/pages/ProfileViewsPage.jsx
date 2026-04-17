@@ -3,14 +3,10 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  Users, 
   Eye, 
   Lock, 
   ArrowLeft, 
-  Crown,
   Loader2,
-  Calendar,
-  Briefcase
 } from 'lucide-react';
 import { fetchProfileViews } from '../features/auth/authSlice';
 import styles from './ProfileViewsPage.module.css';
@@ -19,7 +15,7 @@ import { formatDistanceToNow } from 'date-fns';
 export function ProfileViewsPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { profileViews, user } = useSelector((state) => state.auth);
+  const { profileViews } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchProfileViews());
@@ -30,7 +26,10 @@ export function ProfileViewsPage() {
 
   return (
     <div className={styles.pageContainer}>
-      <button className={styles.backBtn} onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer', marginBottom: 24, padding: 0 }}>
+      <button
+        onClick={() => navigate(-1)}
+        style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer', marginBottom: 24, padding: 0 }}
+      >
         <ArrowLeft size={16} /> Back
       </button>
 
@@ -52,12 +51,12 @@ export function ProfileViewsPage() {
 
       {isLoading ? (
         <div className={styles.spinner}>
-          <Loader2 size={40} className="animate-spin" style={{ color: 'var(--primary)' }} />
+          <Loader2 size={40} style={{ color: 'var(--primary)' }} />
         </div>
       ) : !hasHistory ? (
         <div className={styles.emptyState}>
           <div style={{ background: 'var(--input-background)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-            <Eye size={32} style={{ color: var('--muted-foreground') }} />
+            <Eye size={32} style={{ color: 'var(--muted-foreground)' }} />
           </div>
           <h3>No views yet</h3>
           <p className={styles.subtitle}>Try boosting your profile or sharing your link to get more traction!</p>
@@ -108,7 +107,7 @@ export function ProfileViewsPage() {
             </div>
           )}
 
-          {/* Placeholder for blurred items if restricted */}
+          {/* Placeholder blurred items when restricted */}
           {profileViews.isRestricted && [1, 2].map((i) => (
             <div key={`blur-${i}`} className={`${styles.viewerCard} ${styles.blurredCard}`}>
               <div className={styles.viewerAvatar}>?</div>
