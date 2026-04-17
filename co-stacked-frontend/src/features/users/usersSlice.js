@@ -29,11 +29,24 @@ export const recordProfileView = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await API.put(`/users/${userId}/view`);
-      return response.data; // Returns the full updated user object from the backend
+      return response.data;
     } catch (error) {
-      // We don't need to show a big error for this, so we can fail silently
-      // but still reject the promise for debugging purposes.
       return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+/**
+ * Async Thunk to fetch the response rate for a single user.
+ */
+export const fetchResponseRate = createAsyncThunk(
+  'users/fetchResponseRate',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await API.get(`/users/${userId}/response-rate`);
+      return { userId, data: response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Could not fetch response rate');
     }
   }
 );
@@ -44,9 +57,10 @@ export const recordProfileView = createAsyncThunk(
 const usersSlice = createSlice({
   name: 'users',
   initialState: {
-    items: [],       // Holds the array of all users
-    status: 'idle',  // Tracks the data fetching status
+    items: [],
+    status: 'idle',
     error: null,
+    responseRates: {}, // Keyed by userId: { rate, label, totalDataPoints }
   },
   reducers: {
     updateUserStatus: (state, action) => {
@@ -88,12 +102,17 @@ const usersSlice = createSlice({
       // NEW: Case for synchronizing state after a profile view is recorded
       .addCase(recordProfileView.fulfilled, (state, action) => {
         const updatedUser = action.payload;
+        if (!updatedUser?._id) return;
         const userIndex = state.items.findIndex(user => user._id === updatedUser._id);
-
-        // Replace the old user data with the new data containing the incremented view count
         if (userIndex !== -1) {
           state.items[userIndex] = updatedUser;
         }
+      })
+
+      // NEW: Store response rate keyed by userId
+      .addCase(fetchResponseRate.fulfilled, (state, action) => {
+        const { userId, data } = action.payload;
+        state.responseRates[userId] = data;
       });
   },
 });

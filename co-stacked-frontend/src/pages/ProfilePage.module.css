@@ -370,6 +370,23 @@
   letter-spacing: -0.025em;
 }
 
+.rateHigh {
+  color: #22c55e !important;
+}
+
+.rateMedium {
+  color: #eab308 !important;
+}
+
+.rateLow {
+  color: #ef4444 !important;
+}
+
+.rateNew {
+  color: var(--muted-foreground) !important;
+  font-size: 1.125rem;
+}
+
 /* --- Main Content Sections --- */
 .mainContent {
   display: flex;

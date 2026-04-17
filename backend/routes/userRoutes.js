@@ -22,7 +22,8 @@ const {
   deleteUserAccount,
   completeProfile,
   toggleBookmark,
-  getProfileViews
+  getProfileViews,
+  getResponseRate
 } = require('../controllers/userController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -61,6 +62,7 @@ router.route('/profile/views').get(protect, getProfileViews);
 
 // Dynamic routes like ':id' should be placed last to avoid conflicts
 // with static routes like '/profile'.
+router.route('/:id/response-rate').get(getResponseRate);
 router.route('/:id/view').put(protect, recordProfileView);
 
 

@@ -1,8 +1,11 @@
 // backend/controllers/userController.js
 
-const User = require('../models/User'); // Correct casing
-const AdminNotification = require('../models/AdminNotification'); // For admin panel notifications
+const User = require('../models/User');
+const AdminNotification = require('../models/AdminNotification');
 const TempRegistration = require('../models/TempRegistration');
+const Conversation = require('../models/Conversation');
+const Message = require('../models/Message');
+const Connection = require('../models/Connection');
 const generateToken = require('../utils/generateToken');
 const { sendEmail } = require('../utils/sendEmail');
 const crypto = require('crypto');
@@ -800,6 +803,75 @@ const toggleBookmark = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Calculate the response rate for a given user profile (public)
+ * @route   GET /api/users/:id/response-rate
+ * @access  Public
+ */
+const getResponseRate = async (req, res) => {
+  try {
+    const targetUserId = req.params.id;
+
+    // --- 1. Message Reply Rate ---
+    // Find all conversations this user is in
+    const conversations = await Conversation.find({ participants: targetUserId });
+
+    let conversationsReceivedMessage = 0;
+    let conversationsReplied = 0;
+
+    for (const conv of conversations) {
+      // Find the first message in this conv NOT sent by the target user
+      const firstIncoming = await Message.findOne({
+        conversationId: conv._id,
+        sender: { $ne: targetUserId }
+      }).sort({ createdAt: 1 });
+
+      if (!firstIncoming) continue; // No one messaged them in this conv
+      conversationsReceivedMessage++;
+
+      // Check if the target user replied at any point after that first message
+      const reply = await Message.findOne({
+        conversationId: conv._id,
+        sender: targetUserId,
+        createdAt: { $gt: firstIncoming.createdAt }
+      });
+
+      if (reply) conversationsReplied++;
+    }
+
+    // --- 2. Connection Accept Rate ---
+    const totalConnectionRequests = await Connection.countDocuments({ recipient: targetUserId });
+    const acceptedConnections = await Connection.countDocuments({ recipient: targetUserId, status: 'accepted' });
+
+    // --- 3. Combine ---
+    const totalDataPoints = conversationsReceivedMessage + totalConnectionRequests;
+
+    // Not enough data to compute a meaningful rate
+    if (totalDataPoints < 3) {
+      return res.json({ rate: null, label: 'New', totalDataPoints });
+    }
+
+    const messageRate = conversationsReceivedMessage > 0
+      ? (conversationsReplied / conversationsReceivedMessage) * 100
+      : 100; // If never messaged, don't penalise
+
+    const connectionRate = totalConnectionRequests > 0
+      ? (acceptedConnections / totalConnectionRequests) * 100
+      : 100;
+
+    const combinedRate = Math.round((messageRate + connectionRate) / 2);
+
+    let label = 'Low';
+    if (combinedRate >= 80) label = 'High';
+    else if (combinedRate >= 50) label = 'Medium';
+
+    res.json({ rate: combinedRate, label, totalDataPoints });
+  } catch (error) {
+    console.error(`[GET RESPONSE RATE ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server error while computing response rate.' });
+  }
+};
+
 module.exports = {
   registerUser,
   authUser,
@@ -818,4 +890,5 @@ module.exports = {
   completeProfile,
   toggleBookmark,
   getProfileViews,
+  getResponseRate,
 };

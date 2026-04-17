@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import styles from "./ProfilePage.module.css";
 
 // Import Redux Actions
-import { fetchUsers, recordProfileView } from "../features/users/usersSlice";
+import { fetchUsers, recordProfileView, fetchResponseRate } from "../features/users/usersSlice";
 import { fetchProjects } from "../features/projects/projectsSlice";
 import { fetchReviewsForUser } from "../features/reviews/reviewsSlice";
 import { fetchReceivedInterests } from "../features/interests/interestsSlice";
@@ -72,7 +72,7 @@ export const ProfilePage = () => {
 
   // State from Redux
   const { user: loggedInUser } = useSelector((state) => state.auth);
-  const { items: allUsers, status: usersStatus } = useSelector((state) => state.users);
+  const { items: allUsers, status: usersStatus, responseRates } = useSelector((state) => state.users);
   const { items: allProjects, status: projectsStatus } = useSelector((state) => state.projects);
   const { reviewsByUser, status: reviewsStatus } = useSelector((state) => state.reviews);
   const { receivedItems: founderConnections } = useSelector((state) => state.interests);
@@ -132,7 +132,10 @@ export const ProfilePage = () => {
     if (userToDisplay?._id && !connectionCounts[userToDisplay._id]) {
       dispatch(fetchConnectionCount(userToDisplay._id));
     }
-  }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, isOwnProfile, dispatch, connectionCounts]);
+    if (userToDisplay?._id && !responseRates[userToDisplay._id]) {
+      dispatch(fetchResponseRate(userToDisplay._id));
+    }
+  }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, isOwnProfile, dispatch, connectionCounts, responseRates]);
 
   useEffect(() => {
     if (userId && loggedInUser && userId !== loggedInUser._id) {
@@ -272,6 +275,16 @@ export const ProfilePage = () => {
                       <div className={styles.statBox}>
                         <p className={styles.statValue}>{developerReviews.length}</p>
                         <p className={styles.statLabel}>Endorsements</p>
+                      </div>
+                      <div className={styles.statBox}>
+                        <div className={styles.responseRateContainer}>
+                          <p className={`${styles.statValue} ${styles[`rate${responseRates[userToDisplay._id]?.label || 'New'}`]}`}>
+                            {responseRates[userToDisplay._id]?.rate !== null && responseRates[userToDisplay._id]?.rate !== undefined 
+                              ? `${responseRates[userToDisplay._id].rate}%` 
+                              : 'New'}
+                          </p>
+                        </div>
+                        <p className={styles.statLabel}>Response Rate</p>
                       </div>
                     </div>
                   </div>
