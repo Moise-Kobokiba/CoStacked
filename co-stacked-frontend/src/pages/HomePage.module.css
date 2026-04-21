@@ -1,94 +1,877 @@
+Here is the updated CSS module that styles the new landing page sections while preserving the existing logged-in dashboard styles and dark mode support.
+
+```css
+/* ======================================== */
+/* 1. BASE CONTAINER & THEME SWITCHING      */
+/* ======================================== */
 .pageContainer {
   width: 100%;
-  background-color: #fcfdfe;
-  color: #0b1c30;
-  transition: all 0.3s ease;
+  background-color: #ffffff;
+  color: #0f172a;
+  transition: background-color 0.33s ease, color 0.33s ease;
+  overflow-x: hidden;
 }
 
+/* Global Dark Mode Override */
 .pageContainer[data-theme='dark'] {
   background-color: #0b1120;
   color: #f8fafc;
 }
 
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ======================================== */
+/* 2. HERO SECTION (Redesigned)             */
+/* ======================================== */
 .hero {
+  position: relative;
+  overflow: hidden;
+  padding: 4rem 1.5rem 6rem;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    padding: 6rem 2rem 8rem;
+  }
+}
+
+.heroContainer {
+  max-width: 1280px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
+  gap: 3rem;
   align-items: center;
-  padding: 5rem 1.5rem 0;
+}
+
+@media (min-width: 1024px) {
+  .heroContainer {
+    flex-direction: row;
+    gap: 4rem;
+  }
+}
+
+.heroContent {
+  flex: 1;
   text-align: center;
-  /* Technical Blueprint Grid */
-  background-image: radial-gradient(#d1d5db 0.5px, transparent 0.5px);
-  background-size: 32px 32px;
 }
 
-.pageContainer[data-theme='dark'] .hero {
-  background-image: radial-gradient(#1e293b 0.5px, transparent 0.5px);
+@media (min-width: 1024px) {
+  .heroContent {
+    text-align: left;
+  }
 }
 
-.topBadge {
+.badge {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #eef2ff;
-  color: #2563eb;
-  padding: 0.5rem 1.25rem;
-  border-radius: 99px;
-  font-weight: 800;
-  font-size: 0.7rem;
-  text-transform: uppercase;
+  background-color: #eef2ff;
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
   letter-spacing: 0.05em;
-  margin-bottom: 2rem;
+  text-transform: uppercase;
+  color: #2563eb;
+  margin-bottom: 1.5rem;
+}
+
+.pageContainer[data-theme='dark'] .badge {
+  background-color: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
 }
 
 .heroTitle {
-  font-size: 3.5rem;
-  font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: -0.04em;
+  font-size: 2.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
   margin-bottom: 1.5rem;
 }
 
-.accentText {
-  color: #2563eb;
-  font-style: italic;
-  text-decoration: underline;
+@media (min-width: 768px) {
+  .heroTitle {
+    font-size: 4rem;
+  }
 }
 
-.heroSubtitle {
-  font-size: 1.2rem;
+@media (min-width: 1024px) {
+  .heroTitle {
+    font-size: 4.5rem;
+  }
+}
+
+.heroTitle span {
+  color: #2563eb;
+  font-style: italic;
+}
+
+.heroDescription {
+  font-size: 1.125rem;
   color: #475569;
-  max-width: 680px;
-  margin: 0 auto 3rem;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+@media (min-width: 1024px) {
+  .heroDescription {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+.pageContainer[data-theme='dark'] .heroDescription {
+  color: #94a3b8;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .heroActions {
+    justify-content: flex-start;
+  }
+}
+
+.primaryBtn,
+.secondaryBtn {
+  padding: 0.75rem 1.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+.primaryBtn {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+}
+
+.primaryBtn:hover {
+  transform: scale(0.98);
+  box-shadow: 0 15px 25px -8px rgba(37, 99, 235, 0.4);
+}
+
+.secondaryBtn {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+.pageContainer[data-theme='dark'] .secondaryBtn {
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+
+.secondaryBtn:hover {
+  transform: scale(0.98);
+  background-color: #e2e8f0;
+}
+
+.heroVisual {
+  flex: 1;
+  position: relative;
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .heroVisual {
+    display: block;
+  }
+}
+
+.heroImageWrapper {
+  background-color: #f8fafc;
+  border-radius: 1.5rem;
+  padding: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.pageContainer[data-theme='dark'] .heroImageWrapper {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+.heroImageWrapper img {
+  width: 100%;
+  border-radius: 1rem;
+  display: block;
+}
+
+.glowOrb1,
+.glowOrb2 {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  z-index: -1;
+}
+
+.glowOrb1 {
+  width: 300px;
+  height: 300px;
+  background-color: rgba(37, 99, 235, 0.15);
+  top: -50px;
+  right: -50px;
+}
+
+.glowOrb2 {
+  width: 200px;
+  height: 200px;
+  background-color: rgba(0, 98, 66, 0.1);
+  bottom: -40px;
+  left: -40px;
+}
+
+/* ======================================== */
+/* 3. LOGGED IN DASHBOARD (preserved)       */
+/* ======================================== */
+.loggedInContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 1.25rem;
+}
+
+.dashboardSection {
+  margin-bottom: 4rem;
+}
+
+.dashboardTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.seeAll {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .contentGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ======================================== */
+/* 4. TRANSFORMATION (Chaos into Architecture) */
+/* ======================================== */
+.transformationSection {
+  padding: 5rem 1.5rem;
+  background-color: #f8fafc;
+}
+
+.pageContainer[data-theme='dark'] .transformationSection {
+  background-color: #0f172a;
+}
+
+.sectionHeaderCentered {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.sectionLabel {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #2563eb;
+  background-color: #eef2ff;
+  padding: 0.25rem 1rem;
+  border-radius: 9999px;
+  margin-bottom: 1rem;
+}
+
+.pageContainer[data-theme='dark'] .sectionLabel {
+  background-color: rgba(37, 99, 235, 0.2);
+  color: #60a5fa;
+}
+
+.sectionTitleLarge {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .sectionTitleLarge {
+    font-size: 2.75rem;
+  }
+}
+
+.phaseGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .phaseGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+.phaseCard {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+.pageContainer[data-theme='dark'] .phaseCard {
+  background-color: #1e293b;
+}
+
+.phaseCardActive {
+  border: 2px solid #2563eb;
+  transform: scale(1.02);
+}
+
+.phaseIcon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.5rem;
+  background-color: #eef2ff;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563eb;
+}
+
+.activeIcon {
+  background-color: #2563eb;
+  color: white;
+  box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+}
+
+.pageContainer[data-theme='dark'] .phaseIcon {
+  background-color: #334155;
+}
+
+.phaseCard h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.phaseCard p {
+  color: #475569;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.pageContainer[data-theme='dark'] .phaseCard p {
+  color: #94a3b8;
+}
+
+/* ======================================== */
+/* 5. MISALIGNMENT SECTION                 */
+/* ======================================== */
+.misalignmentSection {
+  padding: 5rem 1.5rem;
+}
+
+.misalignmentGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .misalignmentGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+}
+
+.misalignmentTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.3;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .misalignmentTitle {
+    font-size: 2.5rem;
+  }
+}
+
+.misalignmentTitle span {
+  color: #dc2626;
+}
+
+.misalignmentText {
+  font-size: 1.125rem;
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.pageContainer[data-theme='dark'] .misalignmentText {
+  color: #94a3b8;
+}
+
+.featureList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.featureItem {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.featureItem svg {
+  color: #2563eb;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.featureItem h4 {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.featureItem p {
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.pageContainer[data-theme='dark'] .featureItem p {
+  color: #94a3b8;
+}
+
+.misalignmentVisual {
+  position: relative;
+  min-height: 300px;
+  background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
+  border-radius: 1.5rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 2rem;
+}
+
+.pageContainer[data-theme='dark'] .misalignmentVisual {
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+}
+
+.statCard {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  max-width: 280px;
+}
+
+.pageContainer[data-theme='dark'] .statCard {
+  background: rgba(30, 41, 59, 0.9);
+}
+
+.statPulse {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse 1.5s infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.statLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #10b981;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.statValue {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.statValue span {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2563eb;
+  margin-right: 0.25rem;
+}
+
+/* ======================================== */
+/* 6. EXECUTION LAYER (Bento Grid)         */
+/* ======================================== */
+.executionSection {
+  padding: 5rem 1.5rem;
+  background-color: #f8fafc;
+}
+
+.pageContainer[data-theme='dark'] .executionSection {
+  background-color: #0f172a;
+}
+
+.executionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+@media (min-width: 768px) {
+  .executionHeader {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+}
+
+.exploreBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  font-weight: 600;
+}
+
+.pageContainer[data-theme='dark'] .exploreBtn {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+.bentoGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .bentoGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .bentoGrid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.bentoCard {
+  background-color: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  transition: all 0.2s;
+}
+
+.pageContainer[data-theme='dark'] .bentoCard {
+  background-color: #1e293b;
+}
+
+.bentoWide {
+  grid-column: span 2;
+}
+
+.bentoFull {
+  grid-column: span 4;
+}
+
+.bentoHighlight {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.bentoCard svg {
+  margin-bottom: 1.5rem;
+}
+
+.bentoCard h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.bentoCard p {
+  color: #475569;
+  line-height: 1.5;
+}
+
+.pageContainer[data-theme='dark'] .bentoCard p {
+  color: #cbd5e1;
+}
+
+.bentoHighlight p {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.teamBadge {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #2563eb;
+}
+
+.progressBar {
+  margin-top: 1.5rem;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  height: 6px;
+  overflow: hidden;
+}
+
+.progressFill {
+  background-color: #10b981;
+  height: 100%;
+  border-radius: 9999px;
+}
+
+.progressLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.collabContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .collabContent {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.collabPreview {
+  width: 100%;
+  height: 160px;
+  background-color: #e2e8f0;
+  border-radius: 0.5rem;
+  background-image: radial-gradient(#94a3b8 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.resultBtn {
+  background-color: white;
+  color: #1d4ed8;
+  padding: 0.5rem 1.5rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  margin-top: 1rem;
+}
+
+/* ======================================== */
+/* 7. VERIFIED NETWORK SECTION             */
+/* ======================================== */
+.networkSection {
+  padding: 5rem 1.5rem;
+}
+
+.networkHeader {
+  max-width: 800px;
+  margin-bottom: 3rem;
+}
+
+.networkTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.3;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .networkTitle {
+    font-size: 2.5rem;
+  }
+}
+
+.networkSubtitle {
+  font-size: 1.125rem;
+  color: #475569;
   line-height: 1.6;
 }
 
-.heroIllustration {
-  width: 100%;
-  max-width: 1150px;
-  margin-top: 5rem;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 24px 24px 0 0;
-  background: white;
-  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.12);
+.trustGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
-.ctaCard {
-  background: #0b1c30;
+@media (min-width: 640px) {
+  .trustGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .trustGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.trustCard {
+  background-color: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  transition: all 0.2s;
+}
+
+.pageContainer[data-theme='dark'] .trustCard {
+  background-color: #1e293b;
+}
+
+.trustCard svg {
+  color: #2563eb;
+  margin-bottom: 1rem;
+}
+
+.trustCard h4 {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.trustCard p {
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.pageContainer[data-theme='dark'] .trustCard p {
+  color: #94a3b8;
+}
+
+/* ======================================== */
+/* 8. FINAL CTA SECTION                    */
+/* ======================================== */
+.finalCta {
+  padding: 5rem 1.5rem;
+  background-color: #0f172a;
   color: white;
-  border-radius: 40px;
-  padding: 6rem 2rem;
   text-align: center;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
-.ctaHeading {
-  font-size: 3.5rem;
-  font-weight: 900;
-  margin-bottom: 1.5rem;
+.finalCta .container {
+  max-width: 800px;
 }
 
-@media (max-width: 1024px) {
-  .heroTitle { font-size: 2.75rem; }
-  .ctaHeading { font-size: 2.5rem; }
+.ctaTitle {
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 1rem;
 }
+
+@media (min-width: 768px) {
+  .ctaTitle {
+    font-size: 3rem;
+  }
+}
+
+.ctaTitle span {
+  color: #60a5fa;
+}
+
+.ctaText {
+  font-size: 1.125rem;
+  color: #cbd5e1;
+  margin-bottom: 2rem;
+}
+
+.ctaButton {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  padding: 0.875rem 2.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.ctaButton:hover {
+  transform: scale(0.98);
+}
+
+/* ======================================== */
+/* 9. RESPONSIVE UTILITIES                 */
+/* ======================================== */
+@media (max-width: 767px) {
+  .container {
+    padding: 0 1rem;
+  }
+  
+  .bentoWide,
+  .bentoFull,
+  .bentoHighlight {
+    grid-column: span 1;
+  }
+  
+  .phaseCardActive {
+    transform: none;
+  }
+}
+```
