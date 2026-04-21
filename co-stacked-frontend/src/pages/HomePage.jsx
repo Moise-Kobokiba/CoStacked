@@ -11,7 +11,7 @@ import { FeatureCard } from '../components/shared/FeatureCard';
 import { ProjectCard } from '../components/shared/ProjectCard';
 import { UserCard } from '../components/shared/UserCard';
 import { Carousel } from '../components/shared/Carousel';
-import { Lightbulb, Users, ShieldCheck, ArrowRight, Zap } from 'lucide-react';
+import { Lightbulb, Users, ShieldCheck, ArrowRight, Zap, Target } from 'lucide-react';
 
 import heroLight from '../assets/hero-light.png';
 import heroDark from '../assets/hero-dark.png';
@@ -60,18 +60,18 @@ export const HomePage = () => {
   return (
     <div className={styles.pageContainer} data-theme={theme}>
       
-      {/* Hero Section - Preserving Original Actions + New Structural Copy */}
+      {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroContent}>
-          <div className={styles.badge}>
-            <Zap size={14} className={styles.badgeIcon} />
-            <span>Connect, Collaborate, Create</span>
+          <div className={styles.topBadge}>
+            <Zap size={14} className={styles.badgeIcon} /> 
+            <span>The Startup Operating System</span>
           </div>
           <h1 className={styles.heroTitle}>
-            Build startups with <span className={styles.italicText}>structure</span>, not randomness.
+            Build startups with <span className={styles.accentText}>structure</span>, not randomness.
           </h1>
           <p className={styles.heroSubtitle}>
-            CoStacked is the platform where ambitious founders and talented developers unite to build the future. Your next project starts here.
+            CoStacked is the platform where ambitious founders and talented developers unite to build the future through verified alignment.
           </p>
           <div className={styles.heroActions}>
             <Button to="/projects" variant="primary">Discover Projects</Button>
@@ -83,15 +83,13 @@ export const HomePage = () => {
           </div>
         </div>
         <div className={styles.heroIllustration}>
-          <img src={heroBgImage} alt="CoStacked Blueprint Interface" />
+          <img src={heroBgImage} alt="CoStacked Interface" />
         </div>
       </section>
 
-      {/* Logged In Dashboard - REMAINS IDENTICAL IN FUNCTION */}
+      {/* Logged In Dashboard */}
       {isLoggedIn && (
         <div className={styles.loggedInContent}>
-          
-          {/* 1. Featured Projects */}
           {featuredProjects.length > 0 && (
             <div className={styles.dashboardSection}>
               <h2 className={styles.dashboardTitle}>Featured Projects</h2>
@@ -101,17 +99,6 @@ export const HomePage = () => {
             </div>
           )}
 
-          {/* 2. Featured Talent */}
-          {featuredUsers.length > 0 && (
-            <div className={styles.dashboardSection}>
-              <h2 className={styles.dashboardTitle}>Featured Talent</h2>
-              <Carousel>
-                {featuredUsers.map(u => <UserCard key={u._id} user={u} />)}
-              </Carousel>
-            </div>
-          )}
-
-          {/* 3. Latest Projects */}
           <div className={styles.dashboardSection}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.dashboardTitle}>Latest Projects</h2>
@@ -121,35 +108,24 @@ export const HomePage = () => {
               {latestProjects.map(p => <ProjectCard key={p._id} project={p} />)}
             </div>
           </div>
-
-          {/* 4. Latest Talent */}
-          <div className={styles.dashboardSection}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.dashboardTitle}>Newest Talent</h2>
-              <Link to="/users" className={styles.seeAll}>See all <ArrowRight size={16}/></Link>
-            </div>
-            <div className={styles.contentGrid}>
-              {latestUsers.map(u => <UserCard key={u._id} user={u} />)}
-            </div>
-          </div>
         </div>
       )}
 
-      {/* Workflow Section - Visual Refinement only */}
+      {/* Workflow Section */}
       <section className={styles.workflowSection}>
         <div className={styles.centeredHeader}>
-          <span className={styles.workflowLabel}>The Workflow</span>
-          <h2 className={styles.sectionTitle}>How CoStacked Works</h2>
+          <span className={styles.workflowLabel}>The Methodology</span>
+          <h2 className={styles.sectionTitle}>Chaos into Architecture.</h2>
         </div>
         <div className={styles.featuresGrid}>
           {features.map((f) => <FeatureCard key={f.title} {...f} />)}
         </div>
       </section>
 
-      {/* CTA Section - Fixed Button Label */}
+      {/* Footer CTA */}
       <section className={styles.ctaSection}>
         <div className={styles.ctaCard}>
-          <h2 className={styles.ctaHeading}>Ready to build the future?</h2>
+          <h2 className={styles.ctaHeading}>Ready to build properly?</h2>
           <p className={styles.ctaText}>Stop browsing for people. Start executing with a system designed for startup formation.</p>
           <Button to="/signup" variant="primary">Get Started Now</Button>
         </div>
