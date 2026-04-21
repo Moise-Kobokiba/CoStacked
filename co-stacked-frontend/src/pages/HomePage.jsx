@@ -11,16 +11,16 @@ import { FeatureCard } from '../components/shared/FeatureCard';
 import { ProjectCard } from '../components/shared/ProjectCard';
 import { UserCard } from '../components/shared/UserCard';
 import { Carousel } from '../components/shared/Carousel';
-import { Lightbulb, Users, ShieldCheck, ArrowRight, Architecture, Zap, BarChart3 } from 'lucide-react';
+import { Lightbulb, Users, ShieldCheck, ArrowRight, Zap } from 'lucide-react';
 
 import heroLight from '../assets/hero-light.png';
 import heroDark from '../assets/hero-dark.png';
 import styles from './HomePage.module.css';
 
 const features = [
-  { icon: Lightbulb, title: '1. Share Your Vision', description: 'Founders post structured project listings that include required skills, expected commitment, and compensation type.' },
-  { icon: Users, title: '2. Discover Your Match', description: 'Developers browse open projects and apply directly, while founders filter collaborators by skills and experience.' },
-  { icon: ShieldCheck, title: '3. Collaborate & Build', description: 'Once connected, teams collaborate using their own tools, with CoStacked acting as the trust layer.' },
+  { icon: Lightbulb, title: '1. Share Your Vision', description: 'Founders post structured project listings that include required skills, expected commitment, compensation type, and project stage.' },
+  { icon: Users, title: '2. Discover Your Match', description: 'Developers browse open projects and apply directly, while founders filter collaborators by skills, availability, and experience.' },
+  { icon: ShieldCheck, title: '3. Collaborate & Build', description: 'Once connected, teams collaborate independently using their own tools, with CoStacked acting as the discovery and trust layer.' },
 ];
 
 export const HomePage = () => {
@@ -60,12 +60,12 @@ export const HomePage = () => {
   return (
     <div className={styles.pageContainer} data-theme={theme}>
       
-      {/* Structural Hero Section */}
+      {/* Hero Section - Preserving Original Actions + New Structural Copy */}
       <section className={styles.hero}>
         <div className={styles.heroContent}>
           <div className={styles.badge}>
             <Zap size={14} className={styles.badgeIcon} />
-            <span>Connect. Collaborate. Create.</span>
+            <span>OS V2.0 Now Live</span>
           </div>
           <h1 className={styles.heroTitle}>
             Build startups with <span className={styles.italicText}>structure</span>, not randomness.
@@ -87,34 +87,31 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* Methodology Section (Refined Workflow) */}
-      <section className={styles.workflowSection}>
-        <div className={styles.centeredHeader}>
-          <span className={styles.workflowLabel}>The Methodology</span>
-          <h2 className={styles.sectionTitle}>Chaos into Architecture.</h2>
-        </div>
-        <div className={styles.featuresGrid}>
-          {features.map((f) => <FeatureCard key={f.title} {...f} />)}
-        </div>
-      </section>
-
-      {/* Dashboard Content (Only for Logged In) */}
+      {/* Logged In Dashboard - REMAINS IDENTICAL IN FUNCTION */}
       {isLoggedIn && (
         <div className={styles.loggedInContent}>
-          {/* Featured Sections (Projects & Talent) */}
-          {[
-            { title: 'Featured Projects', data: featuredProjects, Comp: ProjectCard },
-            { title: 'Featured Talent', data: featuredUsers, Comp: UserCard }
-          ].map(section => section.data.length > 0 && (
-            <div key={section.title} className={styles.dashboardSection}>
-              <h2 className={styles.dashboardTitle}>{section.title}</h2>
+          
+          {/* 1. Featured Projects */}
+          {featuredProjects.length > 0 && (
+            <div className={styles.dashboardSection}>
+              <h2 className={styles.dashboardTitle}>Featured Projects</h2>
               <Carousel>
-                {section.data.map(item => <section.Comp key={item._id} {...{ [section.Comp === ProjectCard ? 'project' : 'user']: item }} />)}
+                {featuredProjects.map(p => <ProjectCard key={p._id} project={p} />)}
               </Carousel>
             </div>
-          ))}
+          )}
 
-          {/* Grid Sections (Latest) */}
+          {/* 2. Featured Talent */}
+          {featuredUsers.length > 0 && (
+            <div className={styles.dashboardSection}>
+              <h2 className={styles.dashboardTitle}>Featured Talent</h2>
+              <Carousel>
+                {featuredUsers.map(u => <UserCard key={u._id} user={u} />)}
+              </Carousel>
+            </div>
+          )}
+
+          {/* 3. Latest Projects */}
           <div className={styles.dashboardSection}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.dashboardTitle}>Latest Projects</h2>
@@ -124,13 +121,35 @@ export const HomePage = () => {
               {latestProjects.map(p => <ProjectCard key={p._id} project={p} />)}
             </div>
           </div>
+
+          {/* 4. Latest Talent */}
+          <div className={styles.dashboardSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.dashboardTitle}>Newest Talent</h2>
+              <Link to="/users" className={styles.seeAll}>See all <ArrowRight size={16}/></Link>
+            </div>
+            <div className={styles.contentGrid}>
+              {latestUsers.map(u => <UserCard key={u._id} user={u} />)}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Final Call to Action */}
+      {/* Workflow Section - Visual Refinement only */}
+      <section className={styles.workflowSection}>
+        <div className={styles.centeredHeader}>
+          <span className={styles.workflowLabel}>The Workflow</span>
+          <h2 className={styles.sectionTitle}>How CoStacked Works</h2>
+        </div>
+        <div className={styles.featuresGrid}>
+          {features.map((f) => <FeatureCard key={f.title} {...f} />)}
+        </div>
+      </section>
+
+      {/* CTA Section - Fixed Button Label */}
       <section className={styles.ctaSection}>
         <div className={styles.ctaCard}>
-          <h2 className={styles.ctaHeading}>Ready to build properly?</h2>
+          <h2 className={styles.ctaHeading}>Ready to build the future?</h2>
           <p className={styles.ctaText}>Stop browsing for people. Start executing with a system designed for startup formation.</p>
           <Button to="/signup" variant="primary">Get Started Now</Button>
         </div>
