@@ -65,7 +65,7 @@ export const HomePage = () => {
         <div className={styles.heroContent}>
           <div className={styles.badge}>
             <Zap size={14} className={styles.badgeIcon} />
-            <span>OS V2.0 Now Live</span>
+            <span>Connect, Collaborate, Create</span>
           </div>
           <h1 className={styles.heroTitle}>
             Build startups with <span className={styles.italicText}>structure</span>, not randomness.
