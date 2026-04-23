@@ -1,0 +1,30 @@
+# CoStacked
+
+CoStacked is a platform for founders to validate ideas, find developers, and build scalable startups.
+
+It combines:
+- A validation board for testing ideas
+- A developer-founder collaboration hub
+- A startup toolkit (StackSuite)
+- A public project showcase system
+
+Primary audience:
+Early-stage founders, indie hackers, and startup builders.
+
+## Core Pages
+https://www.costacked.co.za/
+https://www.costacked.co.za/projects
+https://www.costacked.co.za/validation-board
+https://www.costacked.co.za/stack-suite
+https://www.costacked.co.za/info-hub
+
+## Key Topics Covered
+- MVP development
+- Startup validation
+- Finding technical co-founders
+- Product launches
+- Fundraising strategy
+
+## Featured Guides
+- Complete App Launch Guide: https://www.costacked.co.za/info-hub/complete-app-launch
+- Startup Validation Framework: https://www.costacked.co.za/info-hub/validation-guide
