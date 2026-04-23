@@ -1,255 +1,257 @@
-/* src/pages/HomePage.module.css */
-
+/* ======================================== */
+/* 1. BASE CONTAINER & THEME SWITCHING      */
+/* ======================================== */
 .pageContainer {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  overflow-x: hidden;
+  width: 100%;
+  background-color: #ffffff;
+  color: #0f172a;
+  transition: background-color 0.33s ease, color 0.33s ease;
+  overflow-x: hidden;
 }
 
-/* --- Hero Section --- */
-.heroSection {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 6rem 1.5rem 4rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  gap: 3rem;
-  z-index: 1;
+/* Global Dark Mode Override */
+.pageContainer[data-theme='dark'] {
+  background-color: #0b1120; /* Deep navy/black */
+  color: #f8fafc;
 }
 
-.heroContent {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 800px;
-  animation: fadeUp 0.6s ease-out forwards;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 1rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 1.5rem;
-  background-color: var(--bg-secondary, rgba(0, 112, 243, 0.1));
-  color: var(--text-primary, #0070F3);
-  border: 1px solid var(--border-color, rgba(0, 112, 243, 0.2));
-}
-
-.badgeDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #0070F3;
-  box-shadow: 0 0 8px #0070F3;
+/* ======================================== */
+/* 2. HERO SECTION (Adaptive & Mobile)      */
+/* ======================================== */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3.5rem 1.25rem 0;
+  text-align: center;
 }
 
 .heroTitle {
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-  margin-bottom: 1.25rem;
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.02em;
 }
 
-.textHighlight {
-  color: #0070F3;
-  background: linear-gradient(135deg, #0070F3 0%, #00c6ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.heroTitle span {
+  color: #2563eb;
 }
 
-.heroDescription {
-  font-size: clamp(1.125rem, 2vw, 1.25rem);
-  color: var(--text-secondary);
-  max-width: 600px;
-  line-height: 1.6;
-  margin-bottom: 2.5rem;
+.heroSubtitle {
+  color: #64748b;
+  font-size: 1rem;
+  max-width: 600px;
+  line-height: 1.6;
+  margin: 0 auto 2rem;
 }
 
-.ctaGroup {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
+.pageContainer[data-theme='dark'] .heroTitle { color: #ffffff; }
+.pageContainer[data-theme='dark'] .heroSubtitle { color: #94a3b8; }
+
+.heroActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
 }
 
-.primaryBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: #0070F3;
-  color: white;
-  border-radius: 8px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.heroIllustration {
+  width: 100%;
+  max-width: 1050px;
+  margin-top: 3rem;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f1f5f9;
 }
 
-.primaryBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 112, 243, 0.3);
+.pageContainer[data-theme='dark'] .heroIllustration {
+  border-color: #1e293b;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-.secondaryBtn {
-  border-radius: 8px;
-  transition: background-color 0.2s ease;
+.heroIllustration img {
+  width: 100%;
+  display: block;
 }
 
-/* Hero Image & Glow */
-.heroImageWrapper {
-  position: relative;
-  width: 100%;
-  max-width: 1000px;
-  border-radius: 16px;
-  margin-top: 2rem;
-  perspective: 1000px;
+/* ======================================== */
+/* 3. LOGGED IN DASHBOARD CONTENT           */
+/* ======================================== */
+.loggedInContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 1.25rem;
 }
 
-.imageGlow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 80%;
-  height: 80%;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(0, 112, 243, 0.15) 0%, rgba(0,0,0,0) 70%);
-  z-index: -1;
-  filter: blur(60px);
+.dashboardSection {
+  margin-bottom: 4rem;
 }
 
-.heroImage {
-  width: 100%;
-  height: auto;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  transform: rotateX(2deg);
-  transition: transform 0.5s ease;
-}
-
-.heroImageWrapper:hover .heroImage {
-  transform: rotateX(0deg) translateY(-5px);
-}
-
-/* --- Sections Common --- */
-.featuresSection,
-.showcaseSection {
-  padding: 6rem 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.altBackground {
-  background-color: var(--bg-secondary);
-  max-width: 100%;
-  padding: 6rem calc((100vw - 1200px) / 2 + 1.5rem);
+.dashboardTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: left;
 }
 
 .sectionHeader {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin-bottom: 4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
-.showcaseSection .sectionHeader {
-  flex-direction: row;
-  justify-content: space-between;
-  text-align: left;
-  align-items: flex-end;
-  margin-bottom: 3rem;
+.seeAll {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+/* ======================================== */
+/* 4. THE WORKFLOW (Improved Spacing)       */
+/* ======================================== */
+.workflowSection {
+  padding: 5rem 1.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.workflowLabel {
+  display: inline-block;
+  color: #2563eb;
+  background: #eff6ff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.5rem 1.25rem;
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+}
+
+/* Dark mode workflow label */
+.pageContainer[data-theme='dark'] .workflowLabel {
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
 }
 
 .sectionTitle {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.01em;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: #0f172a;
+}
+
+.pageContainer[data-theme='dark'] .sectionTitle {
+  color: #ffffff;
 }
 
 .sectionSubtitle {
-  font-size: 1.125rem;
-  color: var(--text-secondary);
+  color: #64748b;
+  font-size: 1rem;
+  margin-bottom: 3.5rem;
+  max-width: 550px;
 }
 
-.viewAllLink {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #0070F3;
-  font-weight: 500;
-  font-size: 0.95rem;
-  transition: gap 0.2s ease;
+.pageContainer[data-theme='dark'] .sectionSubtitle {
+  color: #94a3b8;
 }
 
-.viewAllLink:hover {
-  gap: 0.75rem;
+.featuresGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  width: 100%;
 }
 
-/* --- Feature Grid --- */
-.featureGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  width: 100%;
+/* ======================================== */
+/* 5. CTA SECTION                           */
+/* ======================================== */
+.ctaSection {
+  padding: 2rem 1.25rem 6rem;
 }
 
-.featureCardWrapper {
-  display: flex;
-  height: 100%;
-  transition: transform 0.3s ease;
+.ctaCard {
+  background: linear-gradient(145deg, #0f172a, #1e293b);
+  border-radius: 24px;
+  padding: 4rem 1.5rem;
+  text-align: center;
+  color: white;
 }
 
-.featureCardWrapper:hover {
-  transform: translateY(-5px);
+.ctaCard h2 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
 }
 
-.carouselWrapper {
-  width: 100%;
-  padding: 1rem 0;
+.ctaCard p {
+  color: #cbd5e1;
+  margin-bottom: 2rem;
+  font-size: 1rem;
 }
 
-/* --- Animations --- */
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* ======================================== */
+/* 6. DESKTOP RESPONSIVENESS                */
+/* ======================================== */
+@media (min-width: 768px) {
+  .hero {
+    padding: 7rem 1.5rem 0;
+  }
 
-/* --- Responsive Adjustments --- */
-@media (max-width: 768px) {
-  .heroSection {
-    padding: 4rem 1.5rem 2rem;
-  }
-  
-  .showcaseSection .sectionHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-  
-  .ctaGroup {
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .primaryBtn, .secondaryBtn {
-    width: 100%;
-    justify-content: center;
-  }
-}
+  .heroTitle {
+    font-size: 4.5rem;
+  }
+
+  .heroActions {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .heroActions > * {
+    width: auto;
+    min-width: 200px;
+  }
+
+  .dashboardTitle {
+    font-size: 1.85rem;
+  }
+
+  .contentGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .sectionTitle {
+    font-size: 2.75rem;
+  }
+
+  .featuresGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    max-width: 1200px;
+  }
+
+  .ctaCard {
+    padding: 6rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .ctaCard h2 {
+    font-size: 3rem;
+  }
+} 
