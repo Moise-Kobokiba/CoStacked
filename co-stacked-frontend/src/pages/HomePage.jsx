@@ -9,9 +9,9 @@ import { Button } from '../components/shared/Button';
 import { ProjectCard } from '../components/shared/ProjectCard';
 import { UserCard } from '../components/shared/UserCard';
 import { Carousel } from '../components/shared/Carousel';
-import { ArrowRight, Architecture, CloudOff, RebaseEdit, AccountTree, VerifiedUser, RuleFolder, Groups, Inventory, Hub, IdCard, DeveloperBoard, HistoryEdu, Shield } from 'lucide-react';
+import { ArrowRight, Layers, CloudOff, GitPullRequestArrow, Network, BadgeCheck, FolderOpen, Shield } from 'lucide-react';
 
-import heroImg from '../assets/hero-illustration.png'; // Update with your new dashboard asset
+import heroImg from '../assets/hero-light.png';
 import styles from './HomePage.module.css';
 
 export const HomePage = () => {
@@ -55,7 +55,7 @@ export const HomePage = () => {
           <div className={styles.heroGrid}>
             <div className={styles.heroText}>
               <div className={styles.badge}>
-                <Architecture size={14} />
+                <Layers size={14} />
                 <span>OS V2.0 Now Live</span>
               </div>
               <h1 className={styles.heroTitle}>
@@ -99,21 +99,21 @@ export const HomePage = () => {
           </div>
           <div className={styles.transformationGrid}>
             <div className={styles.transformCard}>
-              <div className={styles.iconCircle}><CloudOff /></div>
+              <div className={styles.iconCircle}><CloudOff size={24} /></div>
               <div className={styles.cardContent}>
                 <h3>Idea Chaos</h3>
                 <p>Disjointed documents and "finding a tech co-founder" guesswork.</p>
               </div>
             </div>
             <div className={`${styles.transformCard} ${styles.activeCard}`}>
-              <div className={styles.iconCircleLarge}><RebaseEdit /></div>
+              <div className={styles.iconCircleLarge}><GitPullRequestArrow size={24} /></div>
               <div className={styles.cardContent}>
                 <h3>Structured Execution</h3>
                 <p>Automated workflows for formation and technical audits.</p>
               </div>
             </div>
             <div className={styles.transformCard}>
-              <div className={styles.iconCircleTertiary}><AccountTree /></div>
+              <div className={styles.iconCircleTertiary}><Network size={24} /></div>
               <div className={styles.cardContent}>
                 <h3>Real Startup Build</h3>
                 <p>A verified company structure and team aligned by the Ledger.</p>
@@ -136,14 +136,14 @@ export const HomePage = () => {
               </p>
               <div className={styles.featureList}>
                 <div className={styles.featureItem}>
-                  <div className={styles.smallIcon}><VerifiedUser /></div>
+                  <div className={styles.smallIcon}><BadgeCheck size={20} /></div>
                   <div>
                     <h4>Identity Verification</h4>
                     <p>Every builder goes through a structural audit. No ghost profiles.</p>
                   </div>
                 </div>
                 <div className={styles.featureItem}>
-                  <div className={styles.smallIcon}><RuleFolder /></div>
+                  <div className={styles.smallIcon}><FolderOpen size={20} /></div>
                   <div>
                     <h4>Formation Protocol</h4>
                     <p>Automated legal foundations so you build on solid ground.</p>
