@@ -1,257 +1,392 @@
-/* ======================================== */
-/* 1. BASE CONTAINER & THEME SWITCHING      */
-/* ======================================== */
+ src/pages/HomePage.module.css */
+
 .pageContainer {
-  width: 100%;
-  background-color: #ffffff;
-  color: #0f172a;
-  transition: background-color 0.33s ease, color 0.33s ease;
-  overflow-x: hidden;
-}
-
-/* Global Dark Mode Override */
-.pageContainer[data-theme='dark'] {
-  background-color: #0b1120; /* Deep navy/black */
-  color: #f8fafc;
+  width: 100%;
 }
 
 /* ======================================== */
-/* 2. HERO SECTION (Adaptive & Mobile)      */
+/*               HERO SECTION               */
 /* ======================================== */
 .hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 3.5rem 1.25rem 0;
-  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 4rem 1.5rem;
+  text-align: center;
+  
+  /* --- KEY IMPLEMENTATION --- */
+  /* This uses the CSS variable passed from the HomePage component */
+  background-image: var(--hero-bg-image);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  transition: background-image 0.3s ease-in-out; /* Smooth transition for the image swap */
+}
+
+.heroOverlay {
+  content: "";
+  position: absolute;
+  inset: 0; /* Covers the entire hero section */
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay for text readability */
+  z-index: 1;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2; /* Ensures content is above the overlay */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 800px;
 }
 
 .heroTitle {
-  font-size: 2.5rem;
-  font-weight: 800;
-  line-height: 1.1;
-  margin-bottom: 1.25rem;
-  letter-spacing: -0.02em;
-}
-
-.heroTitle span {
-  color: #2563eb;
+  color: #ffffff; /* White text looks good on a dark overlay */
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1.2;
+  margin-bottom: 1rem;
 }
 
 .heroSubtitle {
-  color: #64748b;
-  font-size: 1rem;
-  max-width: 600px;
-  line-height: 1.6;
-  margin: 0 auto 2rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  max-width: 600px;
+  line-height: 1.6;
+  margin-bottom: 2rem;
 }
-
-.pageContainer[data-theme='dark'] .heroTitle { color: #ffffff; }
-.pageContainer[data-theme='dark'] .heroSubtitle { color: #94a3b8; }
 
 .heroActions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  width: 100%;
+  display: flex;
+  flex-direction: column; /* Stack buttons vertically on mobile */
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
 }
 
-.heroIllustration {
-  width: 100%;
-  max-width: 1050px;
-  margin-top: 3rem;
-  border-radius: 12px 12px 0 0;
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  border: 1px solid #f1f5f9;
+.heroActions > * {
+  width: 100%;
+  max-width: 280px;
 }
 
-.pageContainer[data-theme='dark'] .heroIllustration {
-  border-color: #1e293b;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+.joinCommunityBtn {
+  background-color: #ffffff !important; 
+  color: #0f172a !important; /* Dark slate color for good readability */
+  border-color: #ffffff !important;
+  font-weight: 700 !important;
 }
 
-.heroIllustration img {
-  width: 100%;
-  display: block;
+.joinCommunityBtn:hover {
+  background-color: #f1f5f9 !important; /* Slightly off-white for hover */
+  border-color: #f1f5f9 !important;
 }
 
-/* ======================================== */
-/* 3. LOGGED IN DASHBOARD CONTENT           */
-/* ======================================== */
-.loggedInContent {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 4rem 1.25rem;
-}
-
-.dashboardSection {
-  margin-bottom: 4rem;
-}
-
-.dashboardTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  text-align: left;
-}
-
-.sectionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.seeAll {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: #2563eb;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-decoration: none;
-}
-
-.contentGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
 
 /* ======================================== */
-/* 4. THE WORKFLOW (Improved Spacing)       */
+/*        FEATURES & TESTIMONIALS           */
 /* ======================================== */
-.workflowSection {
-  padding: 5rem 1.25rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.howItWorksSection, .testimonialsSection {
+  width: 100%;
+  padding: 4rem 1.5rem;
 }
 
-.workflowLabel {
-  display: inline-block;
-  color: #2563eb;
-  background: #eff6ff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 0.5rem 1.25rem;
-  border-radius: 20px;
-  margin-bottom: 1.5rem;
-}
-
-/* Dark mode workflow label */
-.pageContainer[data-theme='dark'] .workflowLabel {
-  background: rgba(37, 99, 235, 0.15);
-  color: #60a5fa;
+.testimonialsSection {
+  background-color: var(--card-background); /* Adapts to theme */
 }
 
 .sectionTitle {
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: 1rem;
-  color: #0f172a;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: var(--foreground);
+  margin: 0 auto 3rem auto;
+  max-width: 600px;
 }
 
-.pageContainer[data-theme='dark'] .sectionTitle {
-  color: #ffffff;
+.featuresGrid, .testimonialsGrid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
-.sectionSubtitle {
-  color: #64748b;
-  font-size: 1rem;
-  margin-bottom: 3.5rem;
-  max-width: 550px;
-}
-
-.pageContainer[data-theme='dark'] .sectionSubtitle {
-  color: #94a3b8;
-}
-
-.featuresGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-  width: 100%;
-}
 
 /* ======================================== */
-/* 5. CTA SECTION                           */
+/*            RESPONSIVE QUERIES            */
 /* ======================================== */
-.ctaSection {
-  padding: 2rem 1.25rem 6rem;
-}
 
-.ctaCard {
-  background: linear-gradient(145deg, #0f172a, #1e293b);
-  border-radius: 24px;
-  padding: 4rem 1.5rem;
-  text-align: center;
-  color: white;
-}
-
-.ctaCard h2 {
-  font-size: 1.85rem;
-  font-weight: 800;
-  margin-bottom: 1.25rem;
-}
-
-.ctaCard p {
-  color: #cbd5e1;
-  margin-bottom: 2rem;
-  font-size: 1rem;
-}
-
-/* ======================================== */
-/* 6. DESKTOP RESPONSIVENESS                */
-/* ======================================== */
+/* --- Medium Screens / Tablets (768px and up) --- */
 @media (min-width: 768px) {
-  .hero {
-    padding: 7rem 1.5rem 0;
-  }
+  .hero {
+    min-height: 70vh;
+  }
+  .heroTitle {
+    font-size: 3.5rem;
+  }
+  .heroSubtitle {
+    font-size: 1.25rem;
+  }
+  .heroActions {
+    flex-direction: row; /* Place buttons side-by-side */
+    justify-content: center;
+    gap: 1.25rem;
+  }
+  .heroActions > * {
+    width: auto; /* Allow buttons to size to their content */
+    max-width: none;
+  }
+  .featuresGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .testimonialsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .sectionTitle {
+    font-size: 2.5rem;
+  }
+}
 
-  .heroTitle {
-    font-size: 4.5rem;
-  }
+/* --- Large Screens / Desktops (1024px and up) --- */
+@media (min-width: 1024px) {
+  .howItWorksSection, .testimonialsSection {
+    padding: 6rem 2rem;
+  }
+  .heroTitle {
+    font-size: 4rem;
+  }
+}
 
-  .heroActions {
-    flex-direction: row;
-    justify-content: center;
-  }
+/* ======================================== */
+/*           LOGGED IN CONTENT              */
+/* ======================================== */
+.loggedInContent {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
 
-  .heroActions > * {
-    width: auto;
-    min-width: 200px;
-  }
+.contentSection {
+  width: 100%;
+}
 
-  .dashboardTitle {
-    font-size: 1.85rem;
-  }
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
 
-  .contentGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+.sectionHeader .sectionTitle {
+  margin: 0;
+  text-align: left;
+  font-size: 1.75rem;
+}
 
-  .sectionTitle {
-    font-size: 2.75rem;
-  }
+.seeAllLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
 
-  .featuresGrid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    max-width: 1200px;
-  }
+.seeAllLink:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
 
-  .ctaCard {
-    padding: 6rem 4rem;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
 
-  .ctaCard h2 {
-    font-size: 3rem;
-  }
-} 
+The current jsx is:
+
+// src/pages/HomePage.jsx
+
+import { useEffect, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
+import { fetchProjects } from '../features/projects/projectsSlice';
+import { fetchUsers } from '../features/users/usersSlice';
+
+// Import components
+import { Button } from '../components/shared/Button';
+import { FeatureCard } from '../components/shared/FeatureCard';
+import { ProjectCard } from '../components/shared/ProjectCard';
+import { UserCard } from '../components/shared/UserCard';
+import { Carousel } from '../components/shared/Carousel';
+import { Lightbulb, Users, ShieldCheck, ArrowRight } from 'lucide-react';
+
+// Import assets and styles
+import heroLight from '../assets/hero-light.jpg';
+import heroDark from '../assets/hero-dark.png';
+import styles from './HomePage.module.css';
+
+// Data can remain outside the component
+const features = [
+  { icon: Lightbulb, title: '1. Share Your Vision', description: 'Founders post structured project listings that include required skills, expected commitment, compensation type, and project stage.' },
+  { icon: Users, title: '2. Discover Your Match', description: 'Developers browse open projects and apply directly, while founders filter collaborators by skills, availability, and experience.' },
+  { icon: ShieldCheck, title: '3. Collaborate & Build', description: 'Once connected, teams collaborate independently using their own tools, with CoStacked acting as the discovery and trust layer.' },
+];
+
+export const HomePage = () => {
+  const dispatch = useDispatch();
+  const { theme } = useTheme();
+  
+  // Auth state
+  const { token } = useSelector((state) => state.auth);
+  const isLoggedIn = !!token;
+
+  // Data state
+  const { items: allProjects = [] } = useSelector((state) => state.projects || {});
+  const { items: allUsers = [] } = useSelector((state) => state.users || {});
+
+  // Fetch data if logged in
+  useEffect(() => {
+    if (isLoggedIn) {
+      dispatch(fetchProjects());
+      dispatch(fetchUsers());
+    }
+  }, [dispatch, isLoggedIn]);
+
+  // Filter and sort logic
+  const { featuredProjects, latestProjects, featuredUsers, latestUsers } = useMemo(() => {
+    if (!isLoggedIn) return { featuredProjects: [], latestProjects: [], featuredUsers: [], latestUsers: [] };
+
+    const now = new Date();
+
+    // Projects
+    const sortedProjects = [...allProjects].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const fProjects = sortedProjects.filter(p => p.isBoosted && new Date(p.boostExpiresAt) > now);
+    const lProjects = sortedProjects.filter(p => !p.isBoosted || new Date(p.boostExpiresAt) <= now).slice(0, 4);
+
+    // Users
+    const sortedUsers = [...allUsers].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const fUsers = sortedUsers.filter(u => u.isBoosted && new Date(u.boostExpiresAt) > now);
+    const lUsers = sortedUsers.filter(u => !u.isBoosted || new Date(u.boostExpiresAt) <= now).slice(0, 4);
+
+    return { 
+      featuredProjects: fProjects, 
+      latestProjects: lProjects, 
+      featuredUsers: fUsers, 
+      latestUsers: lUsers 
+    };
+  }, [allProjects, allUsers, isLoggedIn]);
+
+  // Conditionally select the correct image source based on the theme
+  const heroBgImage = theme === 'light' ? heroLight : heroDark;
+
+  return (
+    <div className={styles.pageContainer}>
+      {/* Hero Section - Always Visible */}
+      <section 
+        className={styles.hero} 
+        style={{ '--hero-bg-image': `url(${heroBgImage})` }}
+      >
+        <div className={styles.heroOverlay}></div>
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>
+            Connect, Collaborate, Create. <br /> Your Next Project Starts Here.
+          </h1>
+          <p className={styles.heroSubtitle}>
+            CoStacked is the platform where ambitious founders and talented developers unite to build the future. Find your perfect match and bring your ideas to life.
+          </p>
+          <div className={styles.heroActions}>
+            <Button to="/projects" variant="primary">Discover Projects</Button>
+            {!isLoggedIn && <Button to="/signup" variant="outline" className={styles.joinCommunityBtn}>Join the Community</Button>}
+          </div>
+        </div>
+      </section>
+
+      {/* Logged In Content */}
+      {isLoggedIn && (
+        <div className={styles.loggedInContent}>
+          
+          {/* Featured Projects */}
+          {featuredProjects.length > 0 && (
+            <section className={styles.contentSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Featured Projects</h2>
+              </div>
+              <Carousel>
+                {featuredProjects.map((project) => <ProjectCard key={project._id} project={project} />)}
+              </Carousel>
+            </section>
+          )}
+
+          {/* Featured Talent */}
+          {featuredUsers.length > 0 && (
+            <section className={styles.contentSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Featured Talent</h2>
+              </div>
+              <Carousel>
+                {featuredUsers.map((user) => <UserCard key={user._id} user={user} />)}
+              </Carousel>
+            </section>
+          )}
+
+          {/* Latest Projects */}
+          {latestProjects.length > 0 && (
+            <section className={styles.contentSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Latest Projects</h2>
+                <Link to="/projects" className={styles.seeAllLink}>
+                  See All <ArrowRight size={16} />
+                </Link>
+              </div>
+              <div className={styles.grid}>
+                {latestProjects.map((project) => <ProjectCard key={project._id} project={project} />)}
+              </div>
+            </section>
+          )}
+
+          {/* Latest Talent */}
+          {latestUsers.length > 0 && (
+            <section className={styles.contentSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Newest Talent</h2>
+                <Link to="/users" className={styles.seeAllLink}>
+                  See All <ArrowRight size={16} />
+                </Link>
+              </div>
+              <div className={styles.grid}>
+                {latestUsers.map((user) => <UserCard key={user._id} user={user} />)}
+              </div>
+            </section>
+          )}
+        </div>
+      )}
+
+      {/* How It Works - Always Visible */}
+      <section className={styles.howItWorksSection}>
+        <h2 className={styles.sectionTitle}>How CoStacked Works</h2>
+        <div className={styles.featuresGrid}>
+          {features.map((feature) => (
+            <FeatureCard
+              key={feature.title}
+              icon={feature.icon}
+              title={feature.title}
+              description={feature.description}
+            />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+};
