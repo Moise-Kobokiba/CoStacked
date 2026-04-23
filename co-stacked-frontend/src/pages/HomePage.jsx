@@ -1,4 +1,5 @@
-import { useEffect, useMemo } from 'react';
+// src/pages/HomePage.jsx
+import React, { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
@@ -6,171 +7,160 @@ import { fetchProjects } from '../features/projects/projectsSlice';
 import { fetchUsers } from '../features/users/usersSlice';
 
 import { Button } from '../components/shared/Button';
+import { FeatureCard } from '../components/shared/FeatureCard';
 import { ProjectCard } from '../components/shared/ProjectCard';
 import { UserCard } from '../components/shared/UserCard';
 import { Carousel } from '../components/shared/Carousel';
-import { ArrowRight, Layers, CloudOff, GitPullRequestArrow, Network, BadgeCheck, FolderOpen, Shield } from 'lucide-react';
+import { Lightbulb, Users, ShieldCheck, ArrowRight } from 'lucide-react';
 
-import heroImg from '../assets/hero-light.png';
+import heroLight from '../assets/hero-light.png';
+import heroDark from '../assets/hero-dark.png';
 import styles from './HomePage.module.css';
 
-export const HomePage = () => {
-  const dispatch = useDispatch();
-  const { theme } = useTheme();
-  
-  const { token } = useSelector((state) => state.auth);
-  const isLoggedIn = !!token;
+const features = [
+  { 
+    icon: Lightbulb, 
+    title: '1. Share Your Vision', 
+    description: 'Founders post structured project listings that include required skills, expected commitment, compensation type, and project stage.' 
+  },
+  { 
+    icon: Users, 
+    title: '2. Discover Your Match', 
+    description: 'Developers browse open projects and apply directly, while founders filter collaborators by skills, availability, and experience.' 
+  },
+  { 
+    icon: ShieldCheck, 
+    title: '3. Collaborate & Build', 
+    description: 'Once connected, teams collaborate independently using their own tools, with CoStacked acting as the catalyst.' 
+  }
+];
 
-  const { items: allProjects = [] } = useSelector((state) => state.projects || {});
-  const { items: allUsers = [] } = useSelector((state) => state.users || {});
+const HomePage = () => {
+  const { theme } = useTheme();
+  const dispatch = useDispatch();
+  
+  // Existing state selectors
+  const { user } = useSelector((state) => state.auth);
+  const { items: projects, status: projectsStatus } = useSelector((state) => state.projects);
+  const { items: users, status: usersStatus } = useSelector((state) => state.users);
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (projectsStatus === 'idle') {
       dispatch(fetchProjects());
+    }
+    if (usersStatus === 'idle') {
       dispatch(fetchUsers());
     }
-  }, [dispatch, isLoggedIn]);
+  }, [projectsStatus, usersStatus, dispatch]);
 
-  // Data processing for Logged-In view
-  const { featuredProjects, latestProjects, featuredUsers, latestUsers } = useMemo(() => {
-    if (!isLoggedIn) return { featuredProjects: [], latestProjects: [], featuredUsers: [], latestUsers: [] };
-    const now = new Date();
-    const sortedProjects = [...allProjects].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    const sortedUsers = [...allUsers].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    return {
-      featuredProjects: sortedProjects.filter(p => p.isBoosted && new Date(p.boostExpiresAt) > now),
-      latestProjects: sortedProjects.filter(p => !p.isBoosted).slice(0, 4),
-      featuredUsers: sortedUsers.filter(u => u.isBoosted && new Date(u.boostExpiresAt) > now),
-      latestUsers: sortedUsers.filter(u => !u.isBoosted).slice(0, 4)
-    };
-  }, [allProjects, allUsers, isLoggedIn]);
+  const recentProjects = useMemo(() => projects.slice(0, 5), [projects]);
+  const featuredDevelopers = useMemo(() => users.filter(u => u.role === 'developer').slice(0, 5), [users]);
 
   return (
-    <div className={styles.pageContainer} data-theme={theme}>
-      
-      {/* --- HERO SECTION --- */}
+    <div className={styles.pageContainer}>
+      {/* Hero Section */}
       <section className={styles.heroSection}>
-        <div className={styles.container}>
-          <div className={styles.heroGrid}>
-            <div className={styles.heroText}>
-              <div className={styles.badge}>
-                <Layers size={14} />
-                <span>OS V2.0 Now Live</span>
-              </div>
-              <h1 className={styles.heroTitle}>
-                Build startups with <span className={styles.italicBlue}>structure</span>, not randomness.
-              </h1>
-              <p className={styles.heroSubtitle}>
-                CoStacked connects founders and developers through verified profiles, structured collaboration, and execution-focused workflows.
-              </p>
-              <div className={styles.heroActions}>
-                <Button to="/projects" variant="primary">Discover Projects</Button>
-                {!isLoggedIn && <Button to="/signup" variant="outline">Join the Community</Button>}
-              </div>
-            </div>
-            <div className={styles.heroImageWrapper}>
-              <img src={heroImg} alt="Platform Dashboard" className={styles.heroImage} />
-            </div>
+        <div className={styles.heroContent}>
+          <div className={styles.badge}>
+            <span className={styles.badgeDot}></span>
+            Welcome to CoStacked
           </div>
-        </div>
-      </section>
-
-      {/* --- DASHBOARD (Logged In Only) --- */}
-      {isLoggedIn && (
-        <div className={styles.dashboardContent}>
-           {/* Re-using your existing logic for Projects/Talent */}
-           {featuredProjects.length > 0 && (
-            <section className={styles.dashboardSection}>
-              <h2 className={styles.sectionHeading}>Featured Projects</h2>
-              <Carousel>{featuredProjects.map(p => <ProjectCard key={p._id} project={p} />)}</Carousel>
-            </section>
-          )}
-          {/* ... (Keep your existing Latest Projects/Talent loops here) */}
-        </div>
-      )}
-
-      {/* --- TRANSFORMATION SECTION --- */}
-      <section className={styles.transformationSection}>
-        <div className={styles.container}>
-          <div className={styles.textCenter}>
-            <span className={styles.sectionLabel}>The Transformation</span>
-            <h2 className={styles.sectionTitle}>Chaos into Architecture.</h2>
-          </div>
-          <div className={styles.transformationGrid}>
-            <div className={styles.transformCard}>
-              <div className={styles.iconCircle}><CloudOff size={24} /></div>
-              <div className={styles.cardContent}>
-                <h3>Idea Chaos</h3>
-                <p>Disjointed documents and "finding a tech co-founder" guesswork.</p>
-              </div>
-            </div>
-            <div className={`${styles.transformCard} ${styles.activeCard}`}>
-              <div className={styles.iconCircleLarge}><GitPullRequestArrow size={24} /></div>
-              <div className={styles.cardContent}>
-                <h3>Structured Execution</h3>
-                <p>Automated workflows for formation and technical audits.</p>
-              </div>
-            </div>
-            <div className={styles.transformCard}>
-              <div className={styles.iconCircleTertiary}><Network size={24} /></div>
-              <div className={styles.cardContent}>
-                <h3>Real Startup Build</h3>
-                <p>A verified company structure and team aligned by the Ledger.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* --- MISALIGNMENT SECTION --- */}
-      <section className={styles.standardPadding}>
-        <div className={styles.container}>
-          <div className={styles.splitGrid}>
-            <div>
-              <h2 className={styles.sectionTitleLarge}>
-                Startups fail because of <span className={styles.textError}>misalignment</span>, not lack of effort.
-              </h2>
-              <p className={styles.descriptionText}>
-                CoStacked is an operating system that governs the build from Day 0, preventing common pitfalls.
-              </p>
-              <div className={styles.featureList}>
-                <div className={styles.featureItem}>
-                  <div className={styles.smallIcon}><BadgeCheck size={20} /></div>
-                  <div>
-                    <h4>Identity Verification</h4>
-                    <p>Every builder goes through a structural audit. No ghost profiles.</p>
-                  </div>
-                </div>
-                <div className={styles.featureItem}>
-                  <div className={styles.smallIcon}><FolderOpen size={20} /></div>
-                  <div>
-                    <h4>Formation Protocol</h4>
-                    <p>Automated legal foundations so you build on solid ground.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className={styles.imageOverlayContainer}>
-               <div className={styles.statusBadge}>
-                  <span className={styles.pulse}></span>
-                  <p>142 Startups formed properly this month.</p>
-               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* --- FINAL CTA --- */}
-      <section className={styles.finalCta}>
-        <div className={styles.container}>
-          <h2 className={styles.ctaHeading}>Ready to build <span className={styles.blueText}>properly?</span></h2>
-          <p>Stop browsing for people. Start executing with a system designed for formation.</p>
+          <h1 className={styles.heroTitle}>
+            Build the Future, <span className={styles.textHighlight}>Together.</span>
+          </h1>
+          <p className={styles.heroDescription}>
+            Where visionary founders and talented developers unite to turn ideas into scalable realities.
+          </p>
+          
           <div className={styles.ctaGroup}>
-            <Button to="/signup" variant="primary">Get Started Now</Button>
+            {user ? (
+              <>
+                <Link to="/dashboard">
+                  <Button variant="primary" size="lg" className={styles.primaryBtn}>
+                    Go to Dashboard <ArrowRight size={18} />
+                  </Button>
+                </Link>
+                <Link to="/projects">
+                  <Button variant="outline" size="lg" className={styles.secondaryBtn}>
+                    Browse Projects
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/register?role=founder">
+                  <Button variant="primary" size="lg" className={styles.primaryBtn}>
+                    Join as Founder
+                  </Button>
+                </Link>
+                <Link to="/register?role=developer">
+                  <Button variant="outline" size="lg" className={styles.secondaryBtn}>
+                    Join as Developer
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
+
+        <div className={styles.heroImageWrapper}>
+          <div className={styles.imageGlow}></div>
+          <img 
+            src={theme === 'dark' ? heroDark : heroLight} 
+            alt="CoStacked Platform Preview" 
+            className={styles.heroImage}
+          />
+        </div>
       </section>
+
+      {/* How It Works Section */}
+      <section className={styles.featuresSection}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>How CoStacked Works</h2>
+          <p className={styles.sectionSubtitle}>A streamlined workflow designed for builders and innovators.</p>
+        </div>
+        
+        <div className={styles.featureGrid}>
+          {features.map((feature, index) => (
+            <div key={index} className={styles.featureCardWrapper}>
+              <FeatureCard 
+                icon={feature.icon} 
+                title={feature.title} 
+                description={feature.description} 
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Dynamic Content Sections */}
+      <section className={styles.showcaseSection}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Recent Projects</h2>
+          <Link to="/projects" className={styles.viewAllLink}>
+            View all projects <ArrowRight size={16} />
+          </Link>
+        </div>
+        <div className={styles.carouselWrapper}>
+          <Carousel items={recentProjects} renderItem={(project) => <ProjectCard key={project.id} project={project} />} />
+        </div>
+      </section>
+
+      <section className={`${styles.showcaseSection} ${styles.altBackground}`}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Featured Developers</h2>
+          <Link to="/developers" className={styles.viewAllLink}>
+            View all developers <ArrowRight size={16} />
+          </Link>
+        </div>
+        <div className={styles.carouselWrapper}>
+          <Carousel items={featuredDevelopers} renderItem={(dev) => <UserCard key={dev.id} user={dev} />} />
+        </div>
+      </section>
+
+      {/* Footer is assumed to be part of the main Layout component, but if it was here, it stays untouched. */}
     </div>
   );
 };
+
+export default HomePage;
