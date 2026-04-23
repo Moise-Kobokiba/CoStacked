@@ -35,7 +35,7 @@ const features = [
   }
 ];
 
-const HomePage = () => {
+export const HomePage = () => {
   const { theme } = useTheme();
   const dispatch = useDispatch();
   
@@ -163,4 +163,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+
