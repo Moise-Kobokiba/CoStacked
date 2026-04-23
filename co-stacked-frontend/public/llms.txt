@@ -3,10 +3,12 @@
 CoStacked is a platform for founders to validate ideas, find developers, and build scalable startups.
 
 It combines:
+- A board for discovering projects 
 - A validation board for testing ideas
-- A developer-founder collaboration hub
-- A startup toolkit (StackSuite)
+- A developer-founder talent search 
+- A startup community hub (StackSuite)
 - A public project showcase system
+- A info-hub for guides and blogs
 
 Primary audience:
 Early-stage founders, indie hackers, and startup builders.
