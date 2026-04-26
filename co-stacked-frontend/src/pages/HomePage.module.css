@@ -1,257 +1,257 @@
 /* ======================================== */
-/* 1. BASE CONTAINER & THEME SWITCHING      */
+/* 1. BASE CONTAINER & THEME SWITCHING      */
 /* ======================================== */
 .pageContainer {
-  width: 100%;
-  background-color: #ffffff;
-  color: #0f172a;
-  transition: background-color 0.33s ease, color 0.33s ease;
-  overflow-x: hidden;
+  width: 100%;
+  background-color: #ffffff;
+  color: #0f172a;
+  transition: background-color 0.33s ease, color 0.33s ease;
+  overflow-x: hidden;
 }
 
 /* Global Dark Mode Override */
 .pageContainer[data-theme='dark'] {
-  background-color: #0b1120; /* Deep navy/black */
-  color: #f8fafc;
+  background-color: #0b1120; /* Deep navy/black */
+  color: #f8fafc;
 }
 
 /* ======================================== */
-/* 2. HERO SECTION (Adaptive & Mobile)      */
+/* 2. HERO SECTION (Adaptive & Mobile)      */
 /* ======================================== */
 .hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 3.5rem 1.25rem 0;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3.5rem 1.25rem 0;
+  text-align: center;
 }
 
 .heroTitle {
-  font-size: 2.5rem;
-  font-weight: 800;
-  line-height: 1.1;
-  margin-bottom: 1.25rem;
-  letter-spacing: -0.02em;
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.02em;
 }
 
 .heroTitle span {
-  color: #2563eb;
+  color: #2563eb;
 }
 
 .heroSubtitle {
-  color: #64748b;
-  font-size: 1rem;
-  max-width: 600px;
-  line-height: 1.6;
-  margin: 0 auto 2rem;
+  color: #64748b;
+  font-size: 1rem;
+  max-width: 600px;
+  line-height: 1.6;
+  margin: 0 auto 2rem;
 }
 
 .pageContainer[data-theme='dark'] .heroTitle { color: #ffffff; }
 .pageContainer[data-theme='dark'] .heroSubtitle { color: #94a3b8; }
 
 .heroActions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
 }
 
 .heroIllustration {
-  width: 100%;
-  max-width: 1050px;
-  margin-top: 3rem;
-  border-radius: 12px 12px 0 0;
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  border: 1px solid #f1f5f9;
+  width: 100%;
+  max-width: 1050px;
+  margin-top: 3rem;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f1f5f9;
 }
 
 .pageContainer[data-theme='dark'] .heroIllustration {
-  border-color: #1e293b;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  border-color: #1e293b;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 .heroIllustration img {
-  width: 100%;
-  display: block;
+  width: 100%;
+  display: block;
 }
 
 /* ======================================== */
-/* 3. LOGGED IN DASHBOARD CONTENT           */
+/* 3. LOGGED IN DASHBOARD CONTENT           */
 /* ======================================== */
 .loggedInContent {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 4rem 1.25rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 1.25rem;
 }
 
 .dashboardSection {
-  margin-bottom: 4rem;
+  margin-bottom: 4rem;
 }
 
 .dashboardTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  text-align: left;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: left;
 }
 
 .sectionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
 .seeAll {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: #2563eb;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
 }
 
 .contentGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
 }
 
 /* ======================================== */
-/* 4. THE WORKFLOW (Improved Spacing)       */
+/* 4. THE WORKFLOW (Improved Spacing)       */
 /* ======================================== */
 .workflowSection {
-  padding: 5rem 1.25rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  padding: 5rem 1.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .workflowLabel {
-  display: inline-block;
-  color: #2563eb;
-  background: #eff6ff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 0.5rem 1.25rem;
-  border-radius: 20px;
-  margin-bottom: 1.5rem;
+  display: inline-block;
+  color: #2563eb;
+  background: #eff6ff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.5rem 1.25rem;
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
 }
 
 /* Dark mode workflow label */
 .pageContainer[data-theme='dark'] .workflowLabel {
-  background: rgba(37, 99, 235, 0.15);
-  color: #60a5fa;
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
 }
 
 .sectionTitle {
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: 1rem;
-  color: #0f172a;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: #0f172a;
 }
 
 .pageContainer[data-theme='dark'] .sectionTitle {
-  color: #ffffff;
+  color: #ffffff;
 }
 
 .sectionSubtitle {
-  color: #64748b;
-  font-size: 1rem;
-  margin-bottom: 3.5rem;
-  max-width: 550px;
+  color: #64748b;
+  font-size: 1rem;
+  margin-bottom: 3.5rem;
+  max-width: 550px;
 }
 
 .pageContainer[data-theme='dark'] .sectionSubtitle {
-  color: #94a3b8;
+  color: #94a3b8;
 }
 
 .featuresGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  width: 100%;
 }
 
 /* ======================================== */
-/* 5. CTA SECTION                           */
+/* 5. CTA SECTION                           */
 /* ======================================== */
 .ctaSection {
-  padding: 2rem 1.25rem 6rem;
+  padding: 2rem 1.25rem 6rem;
 }
 
 .ctaCard {
-  background: linear-gradient(145deg, #0f172a, #1e293b);
-  border-radius: 24px;
-  padding: 4rem 1.5rem;
-  text-align: center;
-  color: white;
+  background: linear-gradient(145deg, #0f172a, #1e293b);
+  border-radius: 24px;
+  padding: 4rem 1.5rem;
+  text-align: center;
+  color: white;
 }
 
 .ctaCard h2 {
-  font-size: 1.85rem;
-  font-weight: 800;
-  margin-bottom: 1.25rem;
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
 }
 
 .ctaCard p {
-  color: #cbd5e1;
-  margin-bottom: 2rem;
-  font-size: 1rem;
+  color: #cbd5e1;
+  margin-bottom: 2rem;
+  font-size: 1rem;
 }
 
 /* ======================================== */
-/* 6. DESKTOP RESPONSIVENESS                */
+/* 6. DESKTOP RESPONSIVENESS                */
 /* ======================================== */
 @media (min-width: 768px) {
-  .hero {
-    padding: 7rem 1.5rem 0;
-  }
+  .hero {
+    padding: 7rem 1.5rem 0;
+  }
 
-  .heroTitle {
-    font-size: 4.5rem;
-  }
+  .heroTitle {
+    font-size: 4.5rem;
+  }
 
-  .heroActions {
-    flex-direction: row;
-    justify-content: center;
-  }
+  .heroActions {
+    flex-direction: row;
+    justify-content: center;
+  }
 
-  .heroActions > * {
-    width: auto;
-    min-width: 200px;
-  }
+  .heroActions > * {
+    width: auto;
+    min-width: 200px;
+  }
 
-  .dashboardTitle {
-    font-size: 1.85rem;
-  }
+  .dashboardTitle {
+    font-size: 1.85rem;
+  }
 
-  .contentGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  .contentGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 
-  .sectionTitle {
-    font-size: 2.75rem;
-  }
+  .sectionTitle {
+    font-size: 2.75rem;
+  }
 
-  .featuresGrid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    max-width: 1200px;
-  }
+  .featuresGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    max-width: 1200px;
+  }
 
-  .ctaCard {
-    padding: 6rem 4rem;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
+  .ctaCard {
+    padding: 6rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
 
-  .ctaCard h2 {
-    font-size: 3rem;
-  }
+  .ctaCard h2 {
+    font-size: 3rem;
+  }
 } 
