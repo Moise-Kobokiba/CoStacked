@@ -1,5 +1,8 @@
+import React, { useState, useEffect } from 'react';
 import { Eye, Trash2, Search, X, Loader2 } from 'lucide-react';
+import API from '../api/axios';
 import { useDebounce } from '../hooks/useDebounce';
+import styles from './ValidationDashboardPage.module.css';
 
 export const ValidationDashboardPage = () => {
     const [ideas, setIdeas]     = useState([]);
