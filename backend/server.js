@@ -52,6 +52,8 @@ const allowedOrigins = [
   'https://www.costacked.co.za',
   'https://admin.costacked.co.za',
   'https://www.admin.costacked.co.za',
+  'https://co-stacked-frontend.onrender.com',
+  'https://co-stacked-admin.onrender.com',
   process.env.FRONTEND_URL,
   process.env.ADMIN_URL
 ].filter(Boolean);
