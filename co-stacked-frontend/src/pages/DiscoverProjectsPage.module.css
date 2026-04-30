@@ -118,7 +118,8 @@
 
 .checkbox {
   border-radius: 0.25rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border);
+  background-color: var(--card-background);
   color: var(--primary);
   width: 1rem;
   height: 1rem;
@@ -135,7 +136,8 @@
 
 .radio {
   color: var(--primary);
-  border-color: #cbd5e1;
+  border-color: var(--border);
+  background-color: var(--card-background);
   width: 1rem;
   height: 1rem;
 }
@@ -153,15 +155,15 @@
   border-radius: 9999px;
   cursor: pointer;
   transition: all 0.2s;
-  background-color: #f1f5f9; /* bg-slate-100 */
-  color: #475569; /* text-slate-600 */
-  border: 1px solid #e2e8f0; /* border-slate-200 */
+  background-color: var(--input-background);
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
 }
 
 .roleTagActive {
-  background-color: rgba(36, 99, 235, 0.1);
+  background-color: var(--primary-light);
   color: var(--primary);
-  border-color: rgba(36, 99, 235, 0.2);
+  border-color: var(--primary);
 }
 
 /* Main Content Styles */

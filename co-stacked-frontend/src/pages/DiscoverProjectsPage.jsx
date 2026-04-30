@@ -167,7 +167,7 @@ export const DiscoverProjectsPage = () => {
                     padding: '8px 12px 8px 36px', 
                     borderRadius: '0.5rem', 
                     border: 'none', 
-                    backgroundColor: '#f1f5f9',
+                    backgroundColor: 'var(--input-background)',
                     fontSize: '14px',
                     color: 'var(--foreground)'
                   }}
