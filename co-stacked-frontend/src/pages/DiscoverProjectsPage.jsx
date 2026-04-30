@@ -3,9 +3,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProjects } from '../features/projects/projectsSlice';
-import { ProjectCard } from '../components/shared/ProjectCard';
-import { Carousel } from '../components/shared/Carousel';
-import { CombinedSearchInput } from '../components/shared/CombinedSearchInput';
+import { DiscoverProjectCard } from '../components/discover/DiscoverProjectCard';
+import { Layers, Search, Category, Analytics, GroupAdd, ChevronDown } from 'lucide-react';
 import styles from './DiscoverProjectsPage.module.css';
 
 const LoadingSpinner = () => <div className={styles.loader}>Loading projects...</div>;
@@ -14,47 +13,76 @@ const ErrorDisplay = ({ error }) => <p className={styles.error}>Error: {error}</
 export const DiscoverProjectsPage = () => {
   const dispatch = useDispatch();
 
-  // --- THIS IS THE FIX ---
-  // We provide a default empty array `{ items: [] }` to the selector.
-  // If `state.projects` is undefined for a moment, `allProjects` will be `[]` instead of `undefined`.
   const { items: allProjects = [], status, error } = useSelector((state) => state.projects || {});
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [locationQuery, setLocationQuery] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState(['All']);
+  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [selectedRoles, setSelectedRoles] = useState([]);
   
+  // Dummy categories and statuses for UI matching
+  const CATEGORIES = ['SaaS', 'FinTech', 'AI', 'HealthTech', 'E-commerce', 'Other'];
+  const STATUSES = ['Idea Phase', 'Validation Phase', 'MVP Built', 'Seeking Cofounder'];
+  const ROLES = ['Developer', 'Designer', 'Marketer', 'PM'];
+
   useEffect(() => {
     if (status === 'idle') {
       dispatch(fetchProjects());
     }
   }, [dispatch, status]);
 
-  // This logic is now safe because `allProjects` is guaranteed to be an array.
+  const toggleCategory = (cat) => {
+    if (cat === 'All') {
+      setSelectedCategories(['All']);
+      return;
+    }
+    const newCats = selectedCategories.filter(c => c !== 'All');
+    if (newCats.includes(cat)) {
+      const filtered = newCats.filter(c => c !== cat);
+      setSelectedCategories(filtered.length === 0 ? ['All'] : filtered);
+    } else {
+      setSelectedCategories([...newCats, cat]);
+    }
+  };
+
+  const toggleRole = (role) => {
+    if (selectedRoles.includes(role)) {
+      setSelectedRoles(selectedRoles.filter(r => r !== role));
+    } else {
+      setSelectedRoles([...selectedRoles, role]);
+    }
+  };
+
+  const clearFilters = () => {
+    setSelectedCategories(['All']);
+    setSelectedStatus('All');
+    setSelectedRoles([]);
+    setSearchQuery('');
+  };
+
   const sortedAndFilteredProjects = useMemo(() => {
     if (!Array.isArray(allProjects)) return [];
     
-    const now = new Date();
-
     return [...allProjects]
-      .sort((a, b) => {
-        const aIsBoosted = a.isBoosted && new Date(a.boostExpiresAt) > now;
-        const bIsBoosted = b.isBoosted && new Date(b.boostExpiresAt) > now;
-        if (aIsBoosted && !bIsBoosted) return -1;
-        if (!aIsBoosted && bIsBoosted) return 1;
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      })
       .filter(project => {
+        // Basic search filtering (title or description)
         const searchLower = searchQuery.toLowerCase();
-        const locationLower = locationQuery.toLowerCase();
-        const matchesSearch = project.title.toLowerCase().includes(searchLower) || 
-                              (project.skillsNeeded && project.skillsNeeded.some(skill => skill.toLowerCase().includes(searchLower)));
-        const matchesLocation = project.location ? project.location.toLowerCase().includes(locationLower) : true;
-        return matchesSearch && matchesLocation;
-      });
-  }, [allProjects, searchQuery, locationQuery]);
+        const matchesSearch = project.title?.toLowerCase().includes(searchLower) || 
+                              project.description?.toLowerCase().includes(searchLower);
+        
+        // Very basic mock filtering for UI demonstration
+        const matchesStatus = selectedStatus === 'All' || project.stage === selectedStatus;
+        
+        // Roles needed mock filter
+        const matchesRoles = selectedRoles.length === 0 || (
+          Array.isArray(project.skillsNeeded) && 
+          selectedRoles.some(role => project.skillsNeeded.includes(role))
+        );
 
-  const now = new Date();
-  const featuredProjects = sortedAndFilteredProjects.filter(p => p.isBoosted && new Date(p.boostExpiresAt) > now);
-  const latestProjects = sortedAndFilteredProjects.filter(p => !p.isBoosted || new Date(p.boostExpiresAt) <= now);
+        return matchesSearch && matchesStatus && matchesRoles;
+      })
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }, [allProjects, searchQuery, selectedStatus, selectedRoles]);
 
   let content;
 
@@ -62,29 +90,17 @@ export const DiscoverProjectsPage = () => {
     content = <LoadingSpinner />;
   } else if (status === 'succeeded') {
     content = (
-      <>
-        {featuredProjects.length > 0 && (
-          <section>
-            <h2 className={styles.sectionTitle}>Featured Projects</h2>
-            <Carousel>
-              {featuredProjects.map((project) => <ProjectCard key={project._id} project={project} />)}
-            </Carousel>
-          </section>
+      <div className={styles.projectsGrid}>
+        {sortedAndFilteredProjects.length > 0 ? (
+          sortedAndFilteredProjects.map((project) => (
+            <DiscoverProjectCard key={project._id} project={project} />
+          ))
+        ) : (
+          <div className={styles.noResults}>
+            No projects match your criteria. Try adjusting your filters.
+          </div>
         )}
-        
-        {latestProjects.length > 0 && (
-          <section className={styles.latestSection}>
-            <h2 className={styles.sectionTitle}>Latest Projects</h2>
-            <div className={styles.grid}>
-              {latestProjects.map((project) => <ProjectCard key={project._id} project={project} />)}
-            </div>
-          </section>
-        )}
-        
-        {sortedAndFilteredProjects.length === 0 && (
-          <p className={styles.noResults}>No projects found. Be the first to post one!</p>
-        )}
-      </>
+      </div>
     );
   } else if (status === 'failed') {
     content = <ErrorDisplay error={error} />;
@@ -92,25 +108,122 @@ export const DiscoverProjectsPage = () => {
 
   return (
     <div className={styles.pageContainer}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Discover Projects</h1>
-        <p className={styles.subtitle}>Find your next challenge. Connect with founders and build the future.</p>
-        
-        <div className={styles.filtersWrapper}>
-            <CombinedSearchInput
-              searchValue={searchQuery}
-              onSearchChange={(e) => setSearchQuery(e.target.value)}
-              locationValue={locationQuery}
-              onLocationChange={(e) => setLocationQuery(e.target.value)}
-              searchPlaceholder="Search by title or skill..."
-              locationPlaceholder="e.g., Cape Town, WC or Remote"
-            />
-        </div>
-      </header>
+      <div className={styles.layout}>
+        {/* Sidebar Filters */}
+        <aside className={styles.sidebar}>
+          <div className={styles.filterCard}>
+            <div className={styles.filterHeader}>
+              <h3 className={styles.filterTitle}>Filters</h3>
+              <button onClick={clearFilters} className={styles.clearFilters}>Clear all</button>
+            </div>
 
-      <main className={styles.mainContent}>
-        {content}
-      </main>
+            {/* Category */}
+            <div className={styles.filterGroup}>
+              <div className={styles.filterGroupHeader}>
+                <Layers size={18} />
+                <span className={styles.filterGroupTitle}>Category</span>
+              </div>
+              <div className={styles.filterOptions}>
+                <label className={styles.checkboxLabel}>
+                  <input 
+                    type="checkbox" 
+                    className={styles.checkbox}
+                    checked={selectedCategories.includes('All')}
+                    onChange={() => toggleCategory('All')}
+                  />
+                  <span>All Categories</span>
+                </label>
+                {CATEGORIES.map(cat => (
+                  <label key={cat} className={styles.checkboxLabel}>
+                    <input 
+                      type="checkbox" 
+                      className={styles.checkbox}
+                      checked={selectedCategories.includes(cat)}
+                      onChange={() => toggleCategory(cat)}
+                    />
+                    <span>{cat}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Status */}
+            <div className={styles.filterGroup}>
+              <div className={styles.filterGroupHeader}>
+                <Analytics size={18} />
+                <span className={styles.filterGroupTitle}>Status</span>
+              </div>
+              <div className={styles.filterOptions}>
+                <label className={styles.radioLabel}>
+                  <input 
+                    type="radio" 
+                    name="status"
+                    className={styles.radio}
+                    checked={selectedStatus === 'All'}
+                    onChange={() => setSelectedStatus('All')}
+                  />
+                  <span>All Phases</span>
+                </label>
+                {STATUSES.map(status => (
+                  <label key={status} className={styles.radioLabel}>
+                    <input 
+                      type="radio" 
+                      name="status"
+                      className={styles.radio}
+                      checked={selectedStatus === status}
+                      onChange={() => setSelectedStatus(status)}
+                    />
+                    <span>{status}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Roles Needed */}
+            <div>
+              <div className={styles.filterGroupHeader}>
+                <GroupAdd size={18} />
+                <span className={styles.filterGroupTitle}>Roles Needed</span>
+              </div>
+              <div className={styles.rolesFlex}>
+                {ROLES.map(role => (
+                  <button 
+                    key={role}
+                    onClick={() => toggleRole(role)}
+                    className={`${styles.roleTag} ${selectedRoles.includes(role) ? styles.roleTagActive : ''}`}
+                  >
+                    {role}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className={styles.mainContent}>
+          <div className={styles.contentHeader}>
+            <div>
+              <h1 className={styles.pageTitle}>Discover Projects</h1>
+              <p className={styles.pageSubtitle}>
+                Showing {status === 'succeeded' ? sortedAndFilteredProjects.length : 0} projects matching your criteria
+              </p>
+            </div>
+            
+            <div className={styles.sortControls}>
+              <span className={styles.sortLabel}>Sort by:</span>
+              <select className={styles.sortSelect} defaultValue="newest">
+                <option value="newest">Recently Added</option>
+                <option value="active">Most Active</option>
+                <option value="team">Team Size</option>
+              </select>
+            </div>
+          </div>
+
+          {content}
+        </main>
+      </div>
     </div>
   );
 };
+
