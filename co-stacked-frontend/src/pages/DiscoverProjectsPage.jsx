@@ -19,10 +19,10 @@ export const DiscoverProjectsPage = () => {
   const [selectedCategories, setSelectedCategories] = useState(['All']);
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [selectedRoles, setSelectedRoles] = useState([]);
+  const [sortOption, setSortOption] = useState('newest');
   
-  // Dummy categories and statuses for UI matching
   const CATEGORIES = ['SaaS', 'FinTech', 'AI', 'HealthTech', 'E-commerce', 'Other'];
-  const STATUSES = ['Idea Phase', 'Validation Phase', 'MVP Built', 'Seeking Cofounder'];
+  const STATUSES = ['Concept', 'Wireframe', 'Prototype', 'MVP Development', 'Alpha', 'Live'];
   const ROLES = ['Developer', 'Designer', 'Marketer', 'PM'];
 
   useEffect(() => {
@@ -58,6 +58,7 @@ export const DiscoverProjectsPage = () => {
     setSelectedStatus('All');
     setSelectedRoles([]);
     setSearchQuery('');
+    setSortOption('newest');
   };
 
   const sortedAndFilteredProjects = useMemo(() => {
@@ -65,24 +66,59 @@ export const DiscoverProjectsPage = () => {
     
     return [...allProjects]
       .filter(project => {
-        // Basic search filtering (title or description)
+        const titleDesc = `${project.title || ''} ${project.description || ''}`.toLowerCase();
+        
+        // Basic search filtering
         const searchLower = searchQuery.toLowerCase();
-        const matchesSearch = project.title?.toLowerCase().includes(searchLower) || 
-                              project.description?.toLowerCase().includes(searchLower);
+        const matchesSearch = !searchLower || titleDesc.includes(searchLower);
         
-        // Very basic mock filtering for UI demonstration
-        const matchesStatus = selectedStatus === 'All' || project.stage === selectedStatus;
-        
-        // Roles needed mock filter
-        const matchesRoles = selectedRoles.length === 0 || (
-          Array.isArray(project.skillsNeeded) && 
-          selectedRoles.some(role => project.skillsNeeded.includes(role))
-        );
+        // Category filtering (Option C: keyword match in title/description)
+        const isAllCategories = selectedCategories.includes('All') || selectedCategories.length === 0;
+        const matchesCategory = isAllCategories || selectedCategories.some(cat => {
+          if (cat === 'Other') return true; 
+          return titleDesc.includes(cat.toLowerCase());
+        });
 
-        return matchesSearch && matchesStatus && matchesRoles;
+        // Status filtering (Map frontend Alpha/Beta to matching backend stages)
+        let matchesStatus = false;
+        if (selectedStatus === 'All') {
+          matchesStatus = true;
+        } else if (selectedStatus === 'Alpha') {
+          matchesStatus = ['Pre-Alpha', 'Alpha', 'Beta'].includes(project.stage);
+        } else {
+          matchesStatus = project.stage === selectedStatus;
+        }
+        
+        // Roles needed filter (Keyword mapping)
+        const skillsString = (Array.isArray(project.skillsNeeded) 
+            ? project.skillsNeeded.join(' ') 
+            : project.skillsNeeded || '').toLowerCase();
+            
+        const matchesRoles = selectedRoles.length === 0 || selectedRoles.some(role => {
+           const r = role.toLowerCase();
+           if (r === 'developer') return skillsString.includes('dev') || skillsString.includes('react') || skillsString.includes('node') || skillsString.includes('engineer') || skillsString.includes('software');
+           if (r === 'designer') return skillsString.includes('design') || skillsString.includes('figma') || skillsString.includes('ui') || skillsString.includes('ux');
+           if (r === 'marketer') return skillsString.includes('market') || skillsString.includes('growth') || skillsString.includes('sales');
+           if (r === 'pm') return skillsString.includes('product') || skillsString.includes('manager') || skillsString.includes('pm') || skillsString.includes('owner');
+           return skillsString.includes(r);
+        });
+
+        return matchesSearch && matchesCategory && matchesStatus && matchesRoles;
       })
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [allProjects, searchQuery, selectedStatus, selectedRoles]);
+      .sort((a, b) => {
+        if (sortOption === 'newest') {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        } else if (sortOption === 'active') {
+          return new Date(b.updatedAt) - new Date(a.updatedAt);
+        } else if (sortOption === 'team') {
+          // Approximate team size by number of skills listed
+          const aSkills = Array.isArray(a.skillsNeeded) ? a.skillsNeeded.length : 0;
+          const bSkills = Array.isArray(b.skillsNeeded) ? b.skillsNeeded.length : 0;
+          return bSkills - aSkills;
+        }
+        return 0;
+      });
+  }, [allProjects, searchQuery, selectedCategories, selectedStatus, selectedRoles, sortOption]);
 
   let content;
 
@@ -115,6 +151,20 @@ export const DiscoverProjectsPage = () => {
             <div className={styles.filterHeader}>
               <h3 className={styles.filterTitle}>Filters</h3>
               <button onClick={clearFilters} className={styles.clearFilters}>Clear all</button>
+            </div>
+
+            {/* Search Input */}
+            <div className={styles.filterGroup}>
+              <div className={styles.searchContainer} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <Search size={16} style={{ position: 'absolute', left: '10px', color: 'var(--muted-foreground)' }} />
+                <input 
+                  type="text" 
+                  placeholder="Search projects..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px 8px 32px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '14px' }}
+                />
+              </div>
             </div>
 
             {/* Category */}
@@ -212,7 +262,7 @@ export const DiscoverProjectsPage = () => {
             
             <div className={styles.sortControls}>
               <span className={styles.sortLabel}>Sort by:</span>
-              <select className={styles.sortSelect} defaultValue="newest">
+              <select className={styles.sortSelect} value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
                 <option value="newest">Recently Added</option>
                 <option value="active">Most Active</option>
                 <option value="team">Team Size</option>
