@@ -153,9 +153,9 @@
   border-radius: 9999px;
   cursor: pointer;
   transition: all 0.2s;
-  background-color: var(--card-background);
-  color: var(--muted-foreground);
-  border: 1px solid var(--border);
+  background-color: #f1f5f9; /* bg-slate-100 */
+  color: #475569; /* text-slate-600 */
+  border: 1px solid #e2e8f0; /* border-slate-200 */
 }
 
 .roleTagActive {

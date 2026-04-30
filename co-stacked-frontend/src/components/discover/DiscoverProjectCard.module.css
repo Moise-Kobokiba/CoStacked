@@ -112,11 +112,11 @@
 
 .tag {
   font-size: 0.75rem;
-  background-color: var(--card-background);
-  color: var(--muted-foreground);
+  background-color: #f1f5f9; /* bg-slate-100 */
+  color: #64748b; /* text-slate-500 */
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
-  border: 1px solid var(--border);
+  border: none;
 }
 
 .footer {

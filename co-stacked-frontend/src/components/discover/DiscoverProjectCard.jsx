@@ -10,19 +10,27 @@ export const DiscoverProjectCard = ({ project }) => {
 
   if (!project) return null;
 
-  // Map backend stages/phases to design badges
-  const getBadgeClass = (stage) => {
+  // Map backend stages/phases to design badges matching the Figma/Tailwind template
+  const getBadgeDetails = (stage) => {
     const s = stage?.toLowerCase() || '';
-    if (s.includes('idea')) return styles.badgeIdea;
-    if (s.includes('validation')) return styles.badgeValidation;
-    if (s.includes('mvp')) return styles.badgeMvp;
-    if (s.includes('cofounder')) return styles.badgeSeeking;
-    return styles.badgeDefault;
+    if (s.includes('idea') || s.includes('concept') || s.includes('wireframe')) {
+      return { className: styles.badgeIdea, label: 'Idea Phase' };
+    }
+    if (s.includes('validation') || s.includes('prototype') || s.includes('alpha') || s.includes('pre-alpha')) {
+      return { className: styles.badgeValidation, label: 'Validation Phase' };
+    }
+    if (s.includes('mvp') || s.includes('beta')) {
+      return { className: styles.badgeMvp, label: 'MVP Built' };
+    }
+    if (s.includes('live')) {
+      return { className: styles.badgeSeeking, label: 'Scaling' };
+    }
+    return { className: styles.badgeDefault, label: stage || 'Idea Phase' };
   };
 
-  const badgeClass = getBadgeClass(project.stage);
+  const badge = getBadgeDetails(project.stage);
   
-  // Use skills needed as tags, fallback to categories if any
+  // Use skills needed as tags, fallback to general if any
   const tags = Array.isArray(project.skillsNeeded) && project.skillsNeeded.length > 0
     ? project.skillsNeeded.slice(0, 3) 
     : ['General'];
@@ -40,8 +48,8 @@ export const DiscoverProjectCard = ({ project }) => {
     <article className={styles.card} onClick={() => navigate(`/projects/${project._id}`)}>
       <div className={styles.content}>
         <div className={styles.cardHeader}>
-          <span className={`${styles.badge} ${badgeClass}`}>
-            {project.stage || 'Idea Phase'}
+          <span className={`${styles.badge} ${badge.className}`}>
+            {badge.label}
           </span>
           <button 
             className={styles.favoriteBtn} 

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProjects } from '../features/projects/projectsSlice';
 import { DiscoverProjectCard } from '../components/discover/DiscoverProjectCard';
-import { Layers, Search, BarChart2, UserPlus, ChevronDown } from 'lucide-react';
+import { LayoutGrid, Search, Activity, UserPlus, ChevronDown } from 'lucide-react';
 import styles from './DiscoverProjectsPage.module.css';
 
 const LoadingSpinner = () => <div className={styles.loader}>Loading projects...</div>;
@@ -156,13 +156,21 @@ export const DiscoverProjectsPage = () => {
             {/* Search Input */}
             <div className={styles.filterGroup}>
               <div className={styles.searchContainer} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <Search size={16} style={{ position: 'absolute', left: '10px', color: 'var(--muted-foreground)' }} />
+                <Search size={16} style={{ position: 'absolute', left: '12px', color: '#94a3b8' }} />
                 <input 
                   type="text" 
                   placeholder="Search projects..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px 8px 32px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '14px' }}
+                  style={{ 
+                    width: '100%', 
+                    padding: '8px 12px 8px 36px', 
+                    borderRadius: '0.5rem', 
+                    border: 'none', 
+                    backgroundColor: '#f1f5f9',
+                    fontSize: '14px',
+                    color: 'var(--foreground)'
+                  }}
                 />
               </div>
             </div>
@@ -170,7 +178,7 @@ export const DiscoverProjectsPage = () => {
             {/* Category */}
             <div className={styles.filterGroup}>
               <div className={styles.filterGroupHeader}>
-                <Layers size={18} />
+                <LayoutGrid size={18} />
                 <span className={styles.filterGroupTitle}>Category</span>
               </div>
               <div className={styles.filterOptions}>
@@ -200,7 +208,7 @@ export const DiscoverProjectsPage = () => {
             {/* Status */}
             <div className={styles.filterGroup}>
               <div className={styles.filterGroupHeader}>
-                <BarChart2 size={18} />
+                <Activity size={18} />
                 <span className={styles.filterGroupTitle}>Status</span>
               </div>
               <div className={styles.filterOptions}>
