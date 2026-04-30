@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getArticleBySlug } from '../api/articlesApi';
-import { ArrowLeft, Clock, Tag, FileText, Link, ExternalLink, Download } from 'lucide-react';
+import { getArticleBySlug, trackArticleView } from '../api/articlesApi';
+import { ArrowLeft, Clock, Tag, FileText, Link, ExternalLink, Download, Eye } from 'lucide-react';
 import styles from './ArticleDetailPage.module.css';
 
 export const ArticleDetailPage = () => {
@@ -22,6 +22,13 @@ export const ArticleDetailPage = () => {
             setLoading(true);
             const response = await getArticleBySlug(slug);
             setArticle(response.data);
+            
+            // Track view after article is loaded
+            try {
+                await trackArticleView(slug);
+            } catch (vErr) {
+                console.warn('Failed to track view:', vErr);
+            }
         } catch (err) {
             console.error('Error fetching article:', err);
             setError(err.message || 'Article not found');
@@ -115,6 +122,10 @@ export const ArticleDetailPage = () => {
                             <span className={styles.readTime}>
                                 <Clock size={14} />
                                 {article.readTime}
+                            </span>
+                            <span className={styles.views}>
+                                <Eye size={14} />
+                                {article.views || 0} views
                             </span>
                         </div>
                         <h1 className={styles.articleTitle}>{article.title}</h1>

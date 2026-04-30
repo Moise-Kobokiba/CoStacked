@@ -99,6 +99,10 @@ const articleSchema = mongoose.Schema(
       type: String,
       default: "5 min read",
     },
+    views: {
+      type: Number,
+      default: 0,
+    },
     content: {
       type: [contentBlockSchema],
       required: true,

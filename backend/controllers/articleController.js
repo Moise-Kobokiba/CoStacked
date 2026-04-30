@@ -378,6 +378,38 @@ const togglePublishStatus = async (req, res) => {
   }
 };
 
+// @desc    Increment article views
+// @route   POST /api/articles/:slug/view
+// @access  Public
+const incrementArticleViews = async (req, res) => {
+  try {
+    const article = await Article.findOneAndUpdate(
+      { slug: req.params.slug },
+      { $inc: { views: 1 } },
+      { new: true }
+    );
+
+    if (!article) {
+      return res.status(404).json({
+        success: false,
+        message: "Article not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      views: article.views,
+    });
+  } catch (error) {
+    console.error("Error incrementing views:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to increment views",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getPublishedArticles,
   getAllArticles,
@@ -386,4 +418,5 @@ module.exports = {
   updateArticle,
   deleteArticle,
   togglePublishStatus,
+  incrementArticleViews,
 };

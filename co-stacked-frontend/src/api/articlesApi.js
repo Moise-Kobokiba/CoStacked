@@ -29,3 +29,15 @@ export const getArticleBySlug = async (slug) => {
     throw error.response?.data || error;
   }
 };
+/**
+ * Increment article view count
+ */
+export const trackArticleView = async (slug) => {
+  try {
+    const response = await axios.post(`${API_URL}/api/articles/${slug}/view`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error tracking view for article "${slug}":`, error);
+    throw error.response?.data || error;
+  }
+};
