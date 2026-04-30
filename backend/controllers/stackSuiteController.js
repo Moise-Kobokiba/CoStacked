@@ -31,7 +31,16 @@ const getPosts = async (req, res) => {
   try {
     const { category, sort, search, phase } = req.query;
     let query = { isDeleted: false };
-    if (category && category !== 'all') query.category = category;
+
+    if (category && category !== 'all') {
+      // Explicit category requested (e.g. Validation Board requesting category=Validation)
+      query.category = category;
+    } else {
+      // No specific category requested (Stack Suite general discussions):
+      // exclude Validation ideas — those belong exclusively to the Validation Board.
+      query.category = { $ne: 'Validation' };
+    }
+
     if (phase && phase !== 'all') query.phase = phase;
     if (search) {
       query.$or = [

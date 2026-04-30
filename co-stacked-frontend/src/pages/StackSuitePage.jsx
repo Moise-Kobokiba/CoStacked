@@ -13,7 +13,8 @@ import { CollaborationTab } from '../components/stack-suite/CollaborationTab';
 import styles from './StackSuitePage.module.css';
 import sharedStyles from '../components/stack-suite/StackSuite.module.css';
 
-const CATEGORIES = ['Validation', 'Tech', 'Equity', 'Growth', 'Legal', 'General'];
+// 'Validation' is intentionally excluded — those posts belong to the Validation Board only.
+const CATEGORIES = ['Tech', 'Equity', 'Growth', 'Legal', 'General'];
 const STAGES = ['Idea', 'MVP', 'Beta', 'Launched'];
 
 const TABS = [
