@@ -27,8 +27,8 @@ export function ValidationBoardPage() {
   const debouncedSearch = useDebounce(search, 500);
 
   const { data: posts = [], isLoading, isFetching } = useQuery({
-    queryKey: ['stackPosts', { category: 'Validation', search: debouncedSearch, phase: phaseFilter }],
-    queryFn: () => getStackPosts({ category: 'Validation', search: debouncedSearch, phase: phaseFilter }),
+    queryKey: ['validationPosts', { search: debouncedSearch, phase: phaseFilter }],
+    queryFn: () => getStackPosts({ boardType: 'validation-board', search: debouncedSearch, phase: phaseFilter }),
   });
 
   const phases = [

@@ -39,6 +39,7 @@ export const CreateIdeaPage = () => {
                 title: formData.title,
                 body: formData.body,
                 category: 'Validation',
+                boardType: 'validation-board',
                 tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
                 phase: formData.phase,
                 confidenceScore: formData.confidenceScore,

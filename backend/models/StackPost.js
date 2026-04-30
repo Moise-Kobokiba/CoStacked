@@ -24,6 +24,11 @@ const stackPostSchema = mongoose.Schema(
       enum: ['Validation', 'Tech', 'Equity', 'Growth', 'Legal', 'General'],
       default: 'General',
     },
+    boardType: {
+      type: String,
+      enum: ['stack-suite', 'validation-board'],
+      default: 'stack-suite',
+    },
     tags: {
       type: [String],
       default: [],

@@ -163,6 +163,7 @@ export function StackSuitePage() {
         title: postTitle,
         body: postBody,
         category: postCategory,
+        boardType: 'stack-suite',
         tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
         links: links
       };

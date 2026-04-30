@@ -32,8 +32,8 @@ export function DiscussionsTab({ search, category }) {
   const queryClient = useQueryClient();
 
   const { data: posts = [], isLoading } = useQuery({
-    queryKey: ['stackPosts', { search, category }],
-    queryFn: () => getStackPosts({ search, category }),
+    queryKey: ['stackPosts', { search, category, boardType: 'stack-suite' }],
+    queryFn: () => getStackPosts({ search, category, boardType: 'stack-suite' }),
   });
 
   const upvoteMutation = useMutation({

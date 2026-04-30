@@ -29,18 +29,13 @@ function timeAgo(date) {
 // GET /api/stack-suite/posts
 const getPosts = async (req, res) => {
   try {
-    const { category, sort, search, phase } = req.query;
+    const { category, sort, search, phase, boardType } = req.query;
     let query = { isDeleted: false };
 
-    if (category && category !== 'all') {
-      // Explicit category requested (e.g. Validation Board requesting category=Validation)
-      query.category = category;
-    } else {
-      // No specific category requested (Stack Suite general discussions):
-      // exclude Validation ideas — those belong exclusively to the Validation Board.
-      query.category = { $ne: 'Validation' };
-    }
+    // Isolate by board — defaults to 'stack-suite' so Validation Board posts never bleed in.
+    query.boardType = (boardType === 'validation-board') ? 'validation-board' : 'stack-suite';
 
+    if (category && category !== 'all') query.category = category;
     if (phase && phase !== 'all') query.phase = phase;
     if (search) {
       query.$or = [
@@ -96,7 +91,7 @@ const getPostById = async (req, res) => {
 // POST /api/stack-suite/posts  (auth required)
 const createPost = async (req, res) => {
   try {
-    const { title, body, category, tags, phase, confidenceScore, links } = req.body;
+    const { title, body, category, tags, phase, confidenceScore, links, boardType } = req.body;
     if (!title || !body) return res.status(400).json({ message: 'Title and body are required' });
 
     const tagList = typeof tags === 'string'
@@ -108,6 +103,7 @@ const createPost = async (req, res) => {
       title,
       body,
       category: category || 'General',
+      boardType: boardType === 'validation-board' ? 'validation-board' : 'stack-suite',
       tags: tagList,
       phase: phase || 'General',
       confidenceScore: confidenceScore || 0,
@@ -629,8 +625,8 @@ const getStats = async (req, res) => {
       totalCollabThreads,
       totalMembers
     ] = await Promise.all([
-      StackPost.countDocuments({ category: { $ne: 'Validation' }, isDeleted: false }),
-      StackPost.countDocuments({ category: 'Validation', isDeleted: false }),
+      StackPost.countDocuments({ boardType: 'stack-suite', isDeleted: false }),
+      StackPost.countDocuments({ boardType: 'validation-board', isDeleted: false }),
       Showcase.countDocuments({ isDeleted: false }),
       CollabThread.countDocuments({ isDeleted: false }),
       User.countDocuments({})
