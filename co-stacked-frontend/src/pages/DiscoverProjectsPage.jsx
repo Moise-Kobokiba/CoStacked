@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProjects } from '../features/projects/projectsSlice';
 import { DiscoverProjectCard } from '../components/discover/DiscoverProjectCard';
-import { Layers, Search, Category, Analytics, GroupAdd, ChevronDown } from 'lucide-react';
+import { Layers, Search, BarChart2, UserPlus, ChevronDown } from 'lucide-react';
 import styles from './DiscoverProjectsPage.module.css';
 
 const LoadingSpinner = () => <div className={styles.loader}>Loading projects...</div>;
@@ -150,7 +150,7 @@ export const DiscoverProjectsPage = () => {
             {/* Status */}
             <div className={styles.filterGroup}>
               <div className={styles.filterGroupHeader}>
-                <Analytics size={18} />
+                <BarChart2 size={18} />
                 <span className={styles.filterGroupTitle}>Status</span>
               </div>
               <div className={styles.filterOptions}>
@@ -182,7 +182,7 @@ export const DiscoverProjectsPage = () => {
             {/* Roles Needed */}
             <div>
               <div className={styles.filterGroupHeader}>
-                <GroupAdd size={18} />
+                <UserPlus size={18} />
                 <span className={styles.filterGroupTitle}>Roles Needed</span>
               </div>
               <div className={styles.rolesFlex}>
