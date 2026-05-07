@@ -410,6 +410,52 @@ const incrementArticleViews = async (req, res) => {
   }
 };
 
+// @desc    Get all articles in a structured format for AI knowledge ingestion
+// @route   GET /api/articles/knowledge
+// @access  Public
+const getKnowledgeArticles = async (req, res) => {
+  try {
+    const articles = await Article.find({ isPublished: true })
+      .populate("author", "name")
+      .select("title slug description category content createdAt");
+
+    const knowledgeData = articles.map(article => {
+      // Convert content blocks to a clean text representation (AI friendly)
+      const cleanContent = article.content.map(block => {
+        if (block.type === 'paragraph' || block.type === 'heading') return block.content;
+        if (block.type === 'list') return block.items.map(item => `- ${item}`).join('\n');
+        if (block.type === 'callout') return `> ${block.content}`;
+        return '';
+      }).join('\n\n');
+
+      return {
+        id: article._id,
+        title: article.title,
+        url: `https://www.costacked.co.za/info-hub/${article.slug}`,
+        description: article.description,
+        category: article.category,
+        content: cleanContent,
+        publishedAt: article.createdAt,
+        author: article.author ? article.author.name : 'CoStacked Team'
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      count: knowledgeData.length,
+      lastUpdated: new Date().toISOString(),
+      articles: knowledgeData
+    });
+  } catch (error) {
+    console.error("Error fetching knowledge data:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch knowledge data",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getPublishedArticles,
   getAllArticles,
@@ -419,4 +465,5 @@ module.exports = {
   deleteArticle,
   togglePublishStatus,
   incrementArticleViews,
+  getKnowledgeArticles,
 };

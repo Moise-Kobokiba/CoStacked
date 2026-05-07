@@ -198,6 +198,31 @@ export const ArticleDetailPage = () => {
                         Get Started
                     </button>
                 </div>
+
+                {/* Structured Data for AI */}
+                <script type="application/ld+json">
+                    {JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "TechArticle",
+                        "headline": article.title,
+                        "description": article.description,
+                        "articleSection": article.category,
+                        "author": {
+                            "@type": "Person",
+                            "name": article.author?.name || "CoStacked Team"
+                        },
+                        "datePublished": article.createdAt,
+                        "image": article.coverImage,
+                        "publisher": {
+                            "@type": "Organization",
+                            "name": "CoStacked",
+                            "logo": {
+                                "@type": "ImageObject",
+                                "url": "https://www.costacked.co.za/android-chrome-512x512.png"
+                            }
+                        }
+                    })}
+                </script>
             </div>
         </div>
     );

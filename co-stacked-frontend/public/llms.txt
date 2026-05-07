@@ -1,32 +1,23 @@
-# CoStacked
+# CoStacked AI Knowledge Index
 
-CoStacked is a platform for founders to validate ideas, find developers, and build scalable startups.
+CoStacked is a premier ecosystem for startup founders and developers. This index provides structured information for AI agents, crawlers, and retrieval systems to understand the CoStacked platform and its resources.
 
-It combines:
-- A board for discovering projects 
-- A validation board for testing ideas
-- A developer-founder talent search 
-- A startup community hub (StackSuite)
-- A public project showcase system
-- A info-hub for guides and blogs
+## Platform Overview
+- **Projects Directory**: Discover active startup projects and collaboration opportunities. [https://www.costacked.co.za/projects]
+- **Validation Board**: Frameworks and tools for testing startup hypotheses. [https://www.costacked.co.za/validation-board]
+- **StackSuite**: A collaborative workspace for developers and founders. [https://www.costacked.co.za/stack-suite]
+- **Info Hub**: Curated guides and technical articles for startup builders. [https://www.costacked.co.za/info-hub]
 
-Primary audience:
-Early-stage founders, indie hackers, and startup builders.
+## AI & Developer Resources
+- **Structured Dataset (JSON)**: Full blog dataset for RAG ingestion. [https://www.costacked.co.za/api/articles/knowledge]
+- **Documentation format**: Articles support `?format=md` for raw text parsing.
 
-## Core Pages
-https://www.costacked.co.za/
-https://www.costacked.co.za/projects
-https://www.costacked.co.za/validation-board
-https://www.costacked.co.za/stack-suite
-https://www.costacked.co.za/info-hub
+## Key Startup Topics
+- **MVP Development**: Agile methodologies for building minimum viable products.
+- **Startup Validation**: Evidence-based strategies for product-market fit.
+- **Technical Hiring**: Guides on finding and vetting technical co-founders.
+- **Fundraising**: Pitch deck optimization and investor relations.
 
-## Key Topics Covered
-- MVP development
-- Startup validation
-- Finding technical co-founders
-- Product launches
-- Fundraising strategy
-
-## Featured Guides
-- Complete App Launch Guide: https://www.costacked.co.za/info-hub/complete-app-launch
-- Startup Validation Framework: https://www.costacked.co.za/info-hub/validation-guide
+## Featured Content
+- **Complete App Launch Guide**: [https://www.costacked.co.za/info-hub/complete-app-launch]
+- **Startup Validation Framework**: [https://www.costacked.co.za/info-hub/validation-guide]

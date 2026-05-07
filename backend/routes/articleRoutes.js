@@ -11,6 +11,7 @@ const {
   deleteArticle,
   togglePublishStatus,
   incrementArticleViews,
+  getKnowledgeArticles,
 } = require("../controllers/articleController");
 const { protect, requireAdmin } = require("../middleware/authMiddleware");
 const uploadArticleImage = require("../config/cloudinaryArticles");
@@ -18,6 +19,7 @@ const { uploadResourceFile } = require("../config/cloudinaryArticles");
 
 // Public routes
 router.get("/", getPublishedArticles);
+router.get("/knowledge", getKnowledgeArticles);
 router.get("/:slug", getArticleBySlug);
 router.post("/:slug/view", incrementArticleViews);
 
