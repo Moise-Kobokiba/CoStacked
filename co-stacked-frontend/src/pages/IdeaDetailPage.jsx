@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, ThumbsUp, ThumbsDown, MessageCircle, Loader2 } from 'lucide-react';
-import { getIdeaById, getIdeaComments, addIdeaComment, voteIdea } from '../api/ideasApi';
+import { getIdeaById, getIdeaComments, addIdeaComment, voteIdea, convertIdeaToProject } from '../api/ideasApi';
 import styles from './IdeaDetailPage.module.css';
 
 const stageClassName = (stage) => {
@@ -99,13 +99,13 @@ export const IdeaDetailPage = () => {
 
         if (currentType === direction) {
           newType = null;
-          newScore += direction === 'up' ? -10 : 5;
+          newScore += direction === 'up' ? -15 : 5;
         } else if (currentType === 'up' && direction === 'down') {
-          newScore -= 15;
+          newScore -= 20; // removing an up (+15) and adding a down (-5)
         } else if (currentType === 'down' && direction === 'up') {
-          newScore += 15;
+          newScore += 20; // removing a down (-5) and adding an up (+15)
         } else {
-          newScore += direction === 'up' ? 10 : -5;
+          newScore += direction === 'up' ? 15 : -5;
         }
 
         return { type: newType, score: newScore };
@@ -121,6 +121,24 @@ export const IdeaDetailPage = () => {
       queryClient.invalidateQueries(['ideaDetail', id]);
     },
   });
+
+  const convertMutation = useMutation({
+    mutationFn: () => convertIdeaToProject(id, token),
+    onSuccess: (res) => {
+      const projectId = res?.projectId || res?.project?._id;
+      if (projectId) navigate(`/projects/${projectId}`);
+      else alert('Idea converted to project');
+    },
+    onError: (err) => {
+      alert(err?.response?.data?.message || 'Failed to convert idea');
+    }
+  });
+
+  const MIN_CONVERSION_SCORE = 60;
+  const isIdeaOwner = idea?.founder?._id === user?._id;
+  const hasConversionAccess = isIdeaOwner || user?.isAdmin;
+  const conversionEnabled = idea && idea.validationScore >= MIN_CONVERSION_SCORE && idea.status !== 'converted';
+  const showConversionButton = hasConversionAccess && idea?.status !== 'converted';
 
   const commentMutation = useMutation({
     mutationFn: (content) => addIdeaComment(id, content, token),
@@ -367,6 +385,32 @@ export const IdeaDetailPage = () => {
               >
                 <span>Save for Later</span>
               </button>
+              {showConversionButton && (
+                <button
+                  type="button"
+                  className={`${styles.actionButton} ${styles.convertButton} ${conversionEnabled ? '' : styles.actionButtonDisabled}`}
+                  onClick={() => {
+                    if (!isAuthenticated) { navigate('/login'); return; }
+                    if (!conversionEnabled) return;
+                    if (confirm('Convert this idea into a project?')) {
+                      convertMutation.mutate();
+                    }
+                  }}
+                  disabled={!conversionEnabled || convertMutation.isLoading}
+                >
+                  <span>{conversionEnabled ? 'Convert to Project' : 'Conversion Locked'}</span>
+                </button>
+              )}
+              {showConversionButton && !conversionEnabled && (
+                <p className={styles.convertHint}>
+                  Reach a validation score of {MIN_CONVERSION_SCORE} to unlock project conversion.
+                </p>
+              )}
+              {idea?.status === 'converted' && (
+                <p className={styles.convertHint} style={{ color: 'var(--success)' }}>
+                  This idea has already been converted to a project.
+                </p>
+              )}
             </section>
 
             <section className={styles.feedbackSummary}>

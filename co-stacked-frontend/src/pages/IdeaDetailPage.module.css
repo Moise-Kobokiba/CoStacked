@@ -449,6 +449,24 @@
   cursor: not-allowed;
 }
 
+.convertButton {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: transparent;
+}
+
+.actionButtonDisabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.convertHint {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+  margin: 0;
+}
+
 .upvoteButton {
   background: rgba(34, 197, 94, 0.11);
   color: #166534;
