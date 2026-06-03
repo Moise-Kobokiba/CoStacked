@@ -7,6 +7,20 @@ import { DiscoverProjectCard } from '../components/discover/DiscoverProjectCard'
 import { LayoutGrid, Search, Activity, UserPlus, ChevronDown } from 'lucide-react';
 import styles from './DiscoverProjectsPage.module.css';
 
+const LoadingSpinner = () => (
+  <div className="flex min-h-[400px] items-center justify-center rounded-xl border border-slate-100 bg-white text-sm font-medium text-slate-400 shadow-sm">
+    <div className="flex flex-col items-center gap-3">
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+      <span>Loading projects...</span>
+    </div>
+  </div>
+);
+
+const ErrorDisplay = ({ error }) => (
+  <div className="rounded-xl border border-red-100 bg-red-50/50 p-4 text-sm font-medium text-red-600 shadow-sm">
+    Error: {error ?? "Unable to load projects dynamic index."}
+  </div>
+);
 const ErrorDisplay = ({ error }) => (
   <div className="rounded-xl border border-red-100 bg-red-50/50 p-4 text-sm font-medium text-red-600 shadow-sm">
     Error: {error ?? "Unable to load projects."}
