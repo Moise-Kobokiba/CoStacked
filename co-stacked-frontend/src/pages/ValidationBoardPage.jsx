@@ -1,11 +1,12 @@
 // src/pages/ValidationBoardPage.jsx
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   Search, PlusCircle, Lightbulb, ChevronLeft, ChevronRight, Loader2,
-  ThumbsUp, MessageSquare, X
+  ThumbsUp, ThumbsDown, MessageSquare, X
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 import { getStackPosts } from '../api/stackSuiteApi';
 import { DiscussionDetail } from '../components/stack-suite/DiscussionDetail';
@@ -25,11 +26,109 @@ export function ValidationBoardPage() {
   const [selectedId, setSelectedId]     = useState(null);
 
   const debouncedSearch = useDebounce(search, 500);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  const [voteState, setVoteState] = useState({});
+  const [expandedComments, setExpandedComments] = useState({});
+  const [commentInputs, setCommentInputs] = useState({});
+  const [localComments, setLocalComments] = useState({});
 
   const { data: posts = [], isLoading, isFetching } = useQuery({
     queryKey: ['validationPosts', { search: debouncedSearch, phase: phaseFilter }],
     queryFn: () => getStackPosts({ boardType: 'validation-board', search: debouncedSearch, phase: phaseFilter }),
   });
+
+  useEffect(() => {
+    setLocalComments((prev) => {
+      const next = { ...prev };
+      posts.forEach((post) => {
+        if (next[post._id] === undefined) {
+          next[post._id] = post.comments || [];
+        }
+      });
+      return next;
+    });
+  }, [posts]);
+
+  const formatDate = (value) => {
+    if (!value) return 'Unknown date';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const getCommentsForPost = (post) => localComments[post._id] ?? post.comments ?? [];
+
+  const handleVote = (postId, direction, baseScore) => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    setVoteState((prev) => {
+      const current = prev[postId] || { type: null, score: baseScore };
+      const currentType = current.type;
+      let newType = direction;
+      let newScore = current.score;
+
+      if (currentType === direction) {
+        newType = null;
+        newScore += direction === 'upvote' ? -1 : 1;
+      } else if (currentType === 'upvote' && direction === 'downvote') {
+        newScore -= 2;
+      } else if (currentType === 'downvote' && direction === 'upvote') {
+        newScore += 2;
+      } else {
+        newScore += direction === 'upvote' ? 1 : -1;
+      }
+
+      return {
+        ...prev,
+        [postId]: { type: newType, score: newScore },
+      };
+    });
+  };
+
+  const toggleComments = (postId) => {
+    setExpandedComments((prev) => ({
+      ...prev,
+      [postId]: !prev[postId],
+    }));
+  };
+
+  const updateCommentInput = (postId, value) => {
+    setCommentInputs((prev) => ({
+      ...prev,
+      [postId]: value,
+    }));
+  };
+
+  const submitComment = (postId) => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    const text = (commentInputs[postId] || '').trim();
+    if (!text) return;
+
+    setLocalComments((prev) => ({
+      ...prev,
+      [postId]: [
+        ...(prev[postId] || []),
+        {
+          author: { name: 'You', avatarUrl: null },
+          text,
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    }));
+
+    setCommentInputs((prev) => ({
+      ...prev,
+      [postId]: '',
+    }));
+  };
 
   const phases = [
     { id: 'all', label: 'All Ideas' },
@@ -115,49 +214,175 @@ export function ValidationBoardPage() {
             <div className={styles.grid}>
               {posts.map(post => {
                 const phaseClass = PHASE_BADGE_CLASS[post.phase] || styles.badgeGeneral;
+                const authorUsername = post.author?.username || (post.author?.name ? post.author.name.toLowerCase().replace(/\s+/g, '-') : 'unknown');
+                const commentList = getCommentsForPost(post);
+                const initialScore = post.validationScore ?? post.upvoteCount ?? 0;
+                const vote = voteState[post._id] || { type: null, score: initialScore };
+                const isUpvoted = vote.type === 'upvote';
+                const isDownvoted = vote.type === 'downvote';
+                const score = vote.score;
+                const postedAt = formatDate(post.datePosted || post.createdAt || post.time || '');
+                const targetUsers = Array.isArray(post.targetUsers)
+                  ? post.targetUsers
+                  : post.targetUsers
+                    ? post.targetUsers.split(',').map((item) => item.trim())
+                    : [];
+
                 return (
-                  <div 
-                    key={post._id} 
+                  <div
+                    key={post._id}
                     onClick={() => setSelectedId(post._id)}
                     className={styles.ideaCard}
                   >
                     <div className={styles.cardHeader}>
                       <span className={`${styles.phaseBadge} ${phaseClass}`}>
-                        {post.phase} Phase
+                        {post.phase || 'Validation'}
                       </span>
-                      <div style={{ textAlign: 'right' }}>
-                        <span className={styles.confidenceValue}>{post.confidenceScore || 0}%</span>
-                        <div className={styles.confidenceLabel}>Confidence</div>
+                      <div className={styles.cardMeta}>
+                        <span className={styles.postedAt}>Posted {postedAt}</span>
+                        <div className={styles.validationScoreLabel}>Validation score</div>
+                        <div className={styles.validationScoreValue}>{score}</div>
                       </div>
                     </div>
+
                     <h3 className={styles.cardTitle}>{post.title}</h3>
-                    <p className={styles.cardBody}>{post.body}</p>
-                    <div className={styles.tagList}>
-                      {post.tags?.map(tag => (
-                        <span key={tag} className={styles.tag}>{tag}</span>
-                      ))}
-                    </div>
-                    <div className={styles.cardFooter}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <div style={{ width: '1.5rem', height: '1.5rem', borderRadius: '50%', backgroundColor: 'var(--input-background)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>
+
+                    <div className={styles.cardAuthor}>
+                      <Link
+                        to={`/profile/${authorUsername}`}
+                        className={styles.authorLink}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className={styles.authorAvatar}>
                           {post.author?.avatarUrl ? (
-                            <img src={post.author.avatarUrl} alt={post.author.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={post.author.avatarUrl} alt={post.author.name} />
                           ) : (
                             post.author?.name?.slice(0, 2).toUpperCase() || '??'
                           )}
                         </div>
-                        <span style={{ fontSize: '12px', fontWeight: '600' }}>{post.author?.name || 'Unknown'}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--muted-foreground)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <ThumbsUp size={14} />
-                          <span style={{ fontSize: '12px', fontWeight: '700' }}>{post.upvoteCount || 0}</span>
+                        <div className={styles.authorMeta}>
+                          <span className={styles.authorName}>{post.author?.name || 'Unknown'}</span>
+                          <span className={styles.authorUsername}>@{authorUsername}</span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <MessageSquare size={14} />
-                          <span style={{ fontSize: '12px', fontWeight: '700' }}>{post.commentCount || 0}</span>
-                        </div>
+                      </Link>
+
+                      <div className={styles.voteControls} onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          className={`${styles.voteBtn} ${styles.voteBtnUp} ${isUpvoted ? styles.voteBtnActive : ''}`}
+                          onClick={() => handleVote(post._id, 'upvote', initialScore)}
+                          aria-label="Upvote"
+                        >
+                          <ThumbsUp size={16} />
+                        </button>
+                        <span className={styles.validationScore}>{score}</span>
+                        <button
+                          type="button"
+                          className={`${styles.voteBtn} ${styles.voteBtnDown} ${isDownvoted ? styles.voteBtnActive : ''}`}
+                          onClick={() => handleVote(post._id, 'downvote', initialScore)}
+                          aria-label="Downvote"
+                        >
+                          <ThumbsDown size={16} />
+                        </button>
                       </div>
+                    </div>
+
+                    <div className={styles.detailGrid}>
+                      <div className={styles.detailBlock}>
+                        <div className={styles.detailTitle}>Target Market</div>
+                        <p className={styles.detailText}>{post.targetMarket || post.market || post.body || 'No market detail yet.'}</p>
+                      </div>
+                      <div className={styles.detailBlock}>
+                        <div className={styles.detailTitle}>Problem Statement</div>
+                        <p className={styles.detailText}>{post.problemStatement || post.problem || post.body || 'No problem statement yet.'}</p>
+                      </div>
+                      <div className={styles.detailBlock}>
+                        <div className={styles.detailTitle}>Target Users</div>
+                        {targetUsers.length > 0 ? (
+                          <ul className={styles.targetUserList}>
+                            {targetUsers.map((user, index) => (
+                              <li key={`${post._id}-user-${index}`} className={styles.targetUserItem}>{user}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className={styles.detailText}>{post.targetUsers || 'No target users specified.'}</p>
+                        )}
+                      </div>
+                      <div className={`${styles.detailBlock} ${styles.solutionBlock}`}>
+                        <div className={styles.detailTitle}>Your Solution</div>
+                        <p className={styles.detailText}>{post.solution || post.yourSolution || 'No solution detail yet.'}</p>
+                      </div>
+                    </div>
+
+                    <div className={styles.commentSection} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className={styles.commentToggle}
+                        onClick={() => toggleComments(post._id)}
+                      >
+                        <span>Community Feedback ({commentList.length})</span>
+                        <span>{expandedComments[post._id] ? 'Hide' : 'Show'}</span>
+                      </button>
+
+                      {expandedComments[post._id] && (
+                        <div className={styles.commentThread}>
+                          {commentList.length > 0 ? (
+                            commentList.map((comment, index) => {
+                              const commentPosted = formatDate(comment.createdAt || comment.time || comment.date || '');
+                              const commenterName = comment.author?.name || comment.author?.username || 'Community';
+                              const commenterInitials = commenterName.slice(0, 2).toUpperCase();
+                              return (
+                                <div key={`${post._id}-comment-${index}`} className={styles.commentItem}>
+                                  <div className={styles.commentAvatar}>
+                                    {comment.author?.avatarUrl ? (
+                                      <img src={comment.author.avatarUrl} alt={commenterName} />
+                                    ) : (
+                                      commenterInitials
+                                    )}
+                                  </div>
+                                  <div>
+                                    <div className={styles.commentMeta}>
+                                      <span className={styles.commentAuthor}>{commenterName}</span>
+                                      <span className={styles.commentTime}>{commentPosted}</span>
+                                    </div>
+                                    <p className={styles.commentText}>{comment.text || comment.body || 'No comment content.'}</p>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className={styles.commentEmpty} style={{ color: 'var(--muted-foreground)' }}>
+                              No comments yet. Be the first to leave feedback.
+                            </div>
+                          )}
+
+                          <div className={styles.commentInputGroup}>
+                            {isAuthenticated ? (
+                              <>
+                                <textarea
+                                  className={styles.commentTextarea}
+                                  rows={4}
+                                  placeholder="Leave constructive feedback or suggestions..."
+                                  value={commentInputs[post._id] || ''}
+                                  onChange={(e) => updateCommentInput(post._id, e.target.value)}
+                                />
+                                <button
+                                  type="button"
+                                  className={styles.commentSubmit}
+                                  onClick={() => submitComment(post._id)}
+                                  disabled={!commentInputs[post._id]?.trim()}
+                                >
+                                  Submit feedback
+                                </button>
+                              </>
+                            ) : (
+                              <p className={styles.commentLoginPrompt}>
+                                <Link to="/login" onClick={(e) => e.stopPropagation()}>Log in</Link> to leave feedback.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
