@@ -384,7 +384,13 @@ export const DiscoverProjectsPage = () => {
           {paginatedProjects.length > 0 ? (
             paginatedProjects.map((project) => <ProjectCard key={project._id ?? project.title} project={project} />)
           ) : (
-            <div className={styles.noResults}>No projects match your criteria. Try adjusting your filters.</div>
+            <div className={styles.noResults}>
+              <h2>No projects found matching these criteria</h2>
+              <p>Try clearing active filters or broadening your search to discover more startup opportunities.</p>
+              <button type="button" onClick={clearFilters} className={styles.noResultsReset}>
+                Reset Filters
+              </button>
+            </div>
           )}
         </div>
 
