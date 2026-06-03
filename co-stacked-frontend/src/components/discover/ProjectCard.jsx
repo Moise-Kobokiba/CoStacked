@@ -104,11 +104,7 @@ const ProjectCard = ({ project }) => {
     <article className={styles.card}>
       <div className={styles.banner}>
         <div className={`${styles.bannerArt} ${getGradientClass(project)}`} style={{ backgroundImage: `url(${thumbnailPath})` }}>
-          <div className={styles.stackMark} aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
+          {/* Stack icon removed */}
         </div>
 
         <div className={styles.badges}>
