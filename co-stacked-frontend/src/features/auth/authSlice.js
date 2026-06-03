@@ -496,6 +496,12 @@ const authSlice = createSlice({
         state.error = action.payload.message || 'Failed to upload avatar.';
       })
       
+      .addCase(toggleBookmark.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        if (action.payload) {
+          state.user = action.payload;
+        }
+      })
       .addCase(toggleBookmark.rejected, (state, action) => {
         state.error = action.payload?.message || "Failed to toggle bookmark.";
       })

@@ -32,6 +32,9 @@
   align-items: center;
   justify-content: center;
   transition: transform 420ms ease;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
 }
 
 .card:hover .bannerArt {
@@ -151,12 +154,18 @@
   color: #ffffff;
   cursor: pointer;
   backdrop-filter: blur(10px);
-  transition: background 180ms ease, color 180ms ease;
+  transition: background 180ms ease, color 180ms ease, transform 180ms ease;
 }
 
-.saveButton:hover {
+.saveButton:hover,
+.saveButtonActive {
   background: rgba(255, 255, 255, 0.92);
   color: #1d4ed8;
+}
+
+.saveButtonActive {
+  background: #ffffff;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.15);
 }
 
 .saveIcon {
@@ -263,8 +272,14 @@
   white-space: nowrap;
 }
 
+.postedBy a,
 .postedBy span {
   color: #1d4ed8;
+  text-decoration: none;
+}
+
+.profileLink:hover {
+  text-decoration: underline;
 }
 
 .detailsButton {
