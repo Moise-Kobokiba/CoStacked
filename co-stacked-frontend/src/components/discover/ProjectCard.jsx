@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import { Link } from "react-router-dom";
-import { Bookmark, Flag, MapPin, Wallet } from "lucide-react";
+import { Bookmark, MapPin, TrendingUp, Wallet } from "lucide-react";
+import styles from "./ProjectCard.module.css";
 
 type ProjectStatus = "Live" | "MVP" | "Concept";
 
@@ -10,14 +11,13 @@ export interface ProjectCardProject {
   description?: string;
   status?: ProjectStatus | string;
   stage?: string;
-  bannerImageUrl?: string;
-  imageUrl?: string;
+  category?: string;
   location?: string;
   workType?: string;
   compensation?: string;
   contractType?: string;
-  founder?: string;
   username?: string;
+  founder?: string;
   avatarUrl?: string;
   founderId?: {
     avatarUrl?: string;
@@ -30,10 +30,21 @@ export interface ProjectCardProps {
   project: ProjectCardProject;
 }
 
+const gradients = [
+  styles.gradientIndigo,
+  styles.gradientCyan,
+  styles.gradientOrange,
+  styles.gradientPink,
+  styles.gradientEmerald,
+  styles.gradientBlue,
+  styles.gradientDark,
+  styles.gradientRed,
+];
+
 const normalizeStatus = (project: ProjectCardProject): ProjectStatus => {
   const source = `${project.status ?? ""} ${project.stage ?? ""}`.toLowerCase();
 
-  if (source.includes("live")) return "Live";
+  if (source.includes("live") || source.includes("scale")) return "Live";
   if (source.includes("mvp") || source.includes("prototype") || source.includes("alpha") || source.includes("beta")) {
     return "MVP";
   }
@@ -41,24 +52,22 @@ const normalizeStatus = (project: ProjectCardProject): ProjectStatus => {
   return "Concept";
 };
 
-const statusStyles: Record<ProjectStatus, string> = {
-  Live: "bg-emerald-100 text-emerald-700 ring-emerald-200",
-  MVP: "bg-blue-100 text-blue-700 ring-blue-200",
-  Concept: "bg-amber-100 text-amber-700 ring-amber-200",
+const getGradientClass = (project: ProjectCardProject) => {
+  const seed = `${project._id ?? project.title ?? "project"}`;
+  const total = seed.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return gradients[total % gradients.length];
 };
 
 const getUsername = (project: ProjectCardProject) =>
-  project.username ?? project.founderId?.username ?? project.founderId?.name ?? project.founder ?? "unknown";
+  project.username ?? project.founderId?.username ?? project.founderId?.name ?? project.founder ?? "alexmorgan";
 
 const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
   const status = normalizeStatus(project);
   const title = project.title ?? "Untitled Project";
   const description = project.description ?? "No project description has been provided yet.";
-  const bannerImageUrl = project.bannerImageUrl ?? project.imageUrl;
-  const location = project.location ?? "Remote";
-  const workType = project.workType ?? "Flexible work";
-  const compensation = project.compensation ?? "Compensation TBD";
-  const contractType = project.contractType ?? "Contract type TBD";
+  const category = project.category ?? "All";
+  const location = project.location ?? project.workType ?? "Remote";
+  const compensation = project.compensation ?? project.contractType ?? "Equity Only";
   const stage = project.stage ?? status;
   const username = getUsername(project);
   const avatarUrl = project.avatarUrl ?? project.founderId?.avatarUrl;
@@ -66,74 +75,59 @@ const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
   const detailsPath = project._id ? `/projects/${project._id}` : "/projects";
 
   return (
-    <article className="font-['Outfit'] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      <div
-        className="relative h-40 bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700 bg-cover bg-center"
-        style={bannerImageUrl ? { backgroundImage: `url(${bannerImageUrl})` } : undefined}
-      >
-        <span className={`absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-semibold ring-1 ${statusStyles[status]}`}>
-          {status}
-        </span>
-
-        <button
-          type="button"
-          aria-label="Save project"
-          className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-sm ring-1 ring-slate-200 transition hover:bg-white"
-        >
-          <Bookmark className="h-5 w-5 text-slate-700" aria-hidden="true" />
-        </button>
-      </div>
-
-      <div className="p-5">
-        <h3 className="text-xl font-semibold leading-tight text-slate-950">{title}</h3>
-        <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{description}</p>
-
-        <div className="mt-5 space-y-3 border-y border-slate-100 py-4">
-          <div className="flex items-center gap-2 text-sm text-slate-700">
-            <MapPin className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-            <span>
-              {location} · {workType}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-slate-700">
-            <Wallet className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-            <span>
-              {compensation} · {contractType}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-slate-700">
-            <Flag className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-            <span>
-              {stage} · {status}
-            </span>
+    <article className={styles.card}>
+      <div className={styles.banner}>
+        <div className={`${styles.bannerArt} ${getGradientClass(project)}`}>
+          <div className={styles.stackMark} aria-hidden="true">
+            <span />
+            <span />
+            <span />
           </div>
         </div>
 
-        <div className="mt-5 flex items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-3">
+        <div className={styles.badges}>
+          <span className={`${styles.statusBadge} ${styles[`status${status}`]}`}>{status}</span>
+          {category !== "All" && <span className={styles.categoryBadge}>{category}</span>}
+        </div>
+
+        <button type="button" className={styles.saveButton} aria-label="Save project">
+          <Bookmark className={styles.saveIcon} aria-hidden="true" />
+        </button>
+      </div>
+
+      <div className={styles.body}>
+        <h2 className={styles.title}>{title}</h2>
+        <p className={styles.description}>{description}</p>
+
+        <div className={styles.metadata}>
+          <div className={styles.metadataRow}>
+            <MapPin className={styles.metadataIcon} aria-hidden="true" />
+            <span>{location}</span>
+          </div>
+          <div className={styles.metadataRow}>
+            <Wallet className={styles.metadataIcon} aria-hidden="true" />
+            <span>{compensation}</span>
+          </div>
+          <div className={styles.metadataRow}>
+            <TrendingUp className={styles.metadataIcon} aria-hidden="true" />
+            <span>{stage}</span>
+          </div>
+        </div>
+
+        <div className={styles.footer}>
+          <div className={styles.poster}>
             {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt={`@${username}`}
-                className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-slate-200"
-              />
+              <img src={avatarUrl} alt={`@${username}`} className={styles.avatar} />
             ) : (
-              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-sm font-semibold text-slate-600 ring-1 ring-slate-200">
-                {avatarInitial}
-              </div>
+              <div className={styles.avatarFallback}>{avatarInitial}</div>
             )}
 
-            <p className="truncate text-sm text-slate-500">
-              posted by <span className="font-medium text-slate-800">@{username}</span>
+            <p className={styles.postedBy}>
+              posted by <span>@{username}</span>
             </p>
           </div>
 
-          <Link
-            to={detailsPath}
-            className="shrink-0 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
+          <Link to={detailsPath} className={styles.detailsButton}>
             Details
           </Link>
         </div>
