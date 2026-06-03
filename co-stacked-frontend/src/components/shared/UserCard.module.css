@@ -4,16 +4,45 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden; /* Prevents child content from breaking the card's border-radius */
+  box-sizing: border-box;
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
-/* === NEW: Wrapper for the name and verified icon === */
+.avatarContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.onlineIndicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background-color: #22c55e;
+  border: 2px solid var(--card-background);
+  border-radius: 9999px;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2);
+}
+
+.offlineIndicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background-color: #94a3b8;
+  border: 2px solid var(--card-background);
+  border-radius: 9999px;
+}
+
 .nameWrapper {
   display: flex;
   align-items: center;
@@ -21,30 +50,31 @@
 }
 
 .name {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.3;
+  color: var(--foreground);
 }
 
-/* === NEW: Style for the small verified PNG badge === */
 .verifiedIcon {
-  height: 20px; /* Control the size of your badge on the card */
+  height: 18px;
   width: auto;
-  flex-shrink: 0; /* Prevents the icon from being squished */
+  flex-shrink: 0;
 }
 
 .role {
   text-transform: capitalize;
   color: var(--muted-foreground);
+  font-size: 0.85rem;
   margin-top: 0.1rem;
 }
 
 .bio {
   color: var(--foreground);
+  font-size: 0.9rem;
   line-height: 1.6;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   flex-grow: 1;
-  /* CSS to truncate text to 3 lines */
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -54,15 +84,15 @@
 }
 
 .skillsSection {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .skillsTitle {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   color: var(--muted-foreground);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .skillsContainer {
@@ -72,29 +102,47 @@
 }
 
 .noSkills {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--muted-foreground);
   font-style: italic;
 }
 
 .footer {
   margin-top: auto;
-  padding-top: 1rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem; /* Add a small gap to prevent elements from touching */
 }
 
+/* --- THIS IS THE FIX --- */
 .availability {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--muted-foreground);
+  
+  /* 1. Allow this element to shrink if space is tight */
+  flex-shrink: 1;
+  /* 2. Allow it to shrink smaller than its content, forcing text to wrap */
+  min-width: 0;
+  /* 3. Ensure long words can break if necessary */
+  word-break: break-word;
+  text-align: left;
 }
 
+/* This targets the button in the footer and prevents it from shrinking */
+.footer > :last-child {
+  flex-shrink: 0;
+}
+/* --- END FIX --- */
+
+
 .boostedCard {
-  border: 2px solid var(--primary);
-  position: relative; /* This is crucial for positioning the badge */
+  border: 1px solid var(--primary);
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb, 33, 150, 243), 0.12);
+  position: relative;
 }
 
 .boostBadge {
@@ -105,9 +153,50 @@
   align-items: center;
   gap: 6px;
   background-color: var(--primary);
-  color: white;
+  color: var(--primary-foreground);
   padding: 4px 10px;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
+@media (min-width: 768px) {
+  .header {
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .name {
+    font-size: 1.25rem;
+  }
+  .verifiedIcon {
+    height: 20px;
+  }
+  .role {
+    font-size: 1rem;
+  }
+  .bio {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .noSkills {
+    font-size: 0.9rem;
+  }
+  .skillsSection {
+    margin-bottom: 1.5rem;
+  }
+  .skillsTitle {
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+  .footer {
+    padding-top: 1rem;
+  }
+  .availability {
+    font-size: 0.9rem;
+  }
 }

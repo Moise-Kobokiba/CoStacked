@@ -7,14 +7,17 @@ import styles from './AdminSidebar.module.css';
 import PropTypes from 'prop-types';
 
 // Import all necessary icons
-import { LayoutDashboard, Users, Briefcase, Flag, LogOut } from 'lucide-react';
-import logoSrc from '../../assets/logo.png'; 
+import { LayoutDashboard, Users, Briefcase, Flag, Settings, LogOut, BookOpen, Lightbulb } from 'lucide-react';
+import logoSrc from '../../assets/logo.png';
 
 const adminNavItems = [
   { title: "Dashboard", href: "/", icon: LayoutDashboard },
   { title: "User Management", href: "/users", icon: Users },
   { title: "Project Management", href: "/projects", icon: Briefcase },
+  { title: "Articles", href: "/articles", icon: BookOpen },
+  { title: "Validation Board", href: "/validation", icon: Lightbulb },
   { title: "Content Moderation", href: "/reports", icon: Flag },
+  { title: "Settings", href: "/settings", icon: Settings },
 ];
 
 // --- MODIFIED: Accept `isOpen` and `onClose` props for mobile behavior ---
@@ -40,15 +43,15 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
           <img src={logoSrc} alt="CoStacked Admin Logo" className={styles.logoImage} />
           <span className={styles.logoText}>CoStacked Admin</span>
         </Link>
-        
+
         <nav className={styles.nav}>
           <ul className={styles.navList}>
             {adminNavItems.map((item) => (
               <li key={item.href}>
-                <NavLink 
-                  to={item.href} 
+                <NavLink
+                  to={item.href}
                   end={item.href === '/'}
-                  className={({ isActive }) => 
+                  className={({ isActive }) =>
                     isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
                   }
                   onClick={onClose} // Close sidebar on mobile when a link is clicked
@@ -61,10 +64,10 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
           </ul>
 
           <div className={styles.footer}>
-             <button className={styles.navLink} onClick={handleLogout}>
-               <LogOut size={20} />
-               <span>Logout</span>
-             </button>
+            <button className={styles.navLink} onClick={handleLogout}>
+              <LogOut size={20} />
+              <span>Logout</span>
+            </button>
           </div>
         </nav>
       </aside>

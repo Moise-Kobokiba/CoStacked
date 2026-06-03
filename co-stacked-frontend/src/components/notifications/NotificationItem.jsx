@@ -1,62 +1,358 @@
 // src/components/notifications/NotificationItem.jsx
 
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { formatDistanceToNow } from 'date-fns';
+import { 
+  UserPlus, 
+  MessageSquare, 
+  CheckCircle, 
+  FileText, 
+  Rocket, 
+  Layers,
+  Loader2,
+  XCircle,
+  Quote,
+  AlertTriangle,
+  Briefcase
+} from 'lucide-react';
+import { Avatar } from '../shared/Avatar';
+import { acceptConnectionRequest, removeOrCancelConnection } from '../../features/connections/connectionsSlice';
 import styles from './NotificationDropdown.module.css';
 import PropTypes from 'prop-types';
 
-export const NotificationItem = ({ notification }) => {
-  let message = '';
-  let linkTo = '/dashboard'; // A safe default link
+export const NotificationItem = ({ notification, onClose }) => {
+  const dispatch = useDispatch();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [actionDone, setActionDone] = useState(false);
+  const { connections, pendingRequests, status: connectionsStatus, pendingRequestsStatus } = useSelector(state => state.connections);
 
-  // --- THIS IS THE UPDATE ---
-  // Add cases for all the new notification types.
+  const handleAcceptConnection = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (notification.sender?._id && !isProcessing) {
+      setIsProcessing(true);
+      try {
+        await dispatch(acceptConnectionRequest(notification.sender._id)).unwrap();
+        setActionDone(true);
+      } catch (err) {
+        console.error('Failed to accept connection:', err);
+      } finally {
+        setIsProcessing(false);
+      }
+    }
+  };
+
+  const handleDeclineConnection = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (notification.sender?._id && !isProcessing) {
+      setIsProcessing(true);
+      try {
+        await dispatch(removeOrCancelConnection(notification.sender._id)).unwrap();
+        setActionDone(true);
+      } catch (err) {
+        console.error('Failed to decline connection:', err);
+      } finally {
+        setIsProcessing(false);
+      }
+    }
+  };
+
+  let config = {
+    icon: <Layers size={12} />,
+    iconBg: '#2463eb',
+    message: '',
+    linkTo: '/dashboard',
+    showActions: false,
+    showCommentSnippet: false
+  };
+
+  const senderName = notification.sender?.name || 'Someone';
+
   switch (notification.type) {
+    case 'NEW_CONNECTION_REQUEST':
+      config = {
+        icon: <UserPlus size={12} />,
+        iconBg: '#2463eb',
+        message: (
+          <>
+            <span className="font-bold text-slate-900">{senderName}</span> sent you a request to connect from <span className="font-medium">Talent Search</span>
+          </>
+        ),
+        linkTo: `/users/${notification.sender?._id}`,
+        showActions: true
+      };
+      break;
+    case 'CONNECTION_ACCEPTED':
+      config = {
+        icon: <UserPlus size={12} />,
+        iconBg: '#10b981',
+        message: (
+          <>
+            <span className="font-bold text-slate-900">{senderName}</span> accepted your connection request.
+          </>
+        ),
+        linkTo: '/my-network'
+      };
+      break;
     case 'NEW_INTEREST':
-      message = `${notification.sender.name} showed interest in your project: "${notification.projectId?.title || 'a project'}"`;
-      linkTo = '/requests';
+      config = {
+        icon: <FileText size={12} />,
+        iconBg: '#10b981',
+        message: (
+          <>
+            <span className="font-bold text-slate-900">{senderName}</span> showed interest in your project: <span className="text-primary font-medium">"{notification.projectId?.title || 'a project'}"</span>
+          </>
+        ),
+        linkTo: '/requests'
+      };
       break;
     case 'INTEREST_APPROVED':
-      message = `Your request for "${notification.projectId?.title || 'a project'}" was approved!`;
-      linkTo = '/messages'; // Go to messages to start chatting
-      break;
-    case 'INTEREST_REJECTED':
-      message = `Your request for "${notification.projectId?.title || 'a project'}" was declined.`;
-      linkTo = '/my-applications';
+      config = {
+        icon: <CheckCircle size={12} />,
+        iconBg: '#10b981',
+        message: (
+          <>
+            Your request for <span className="font-medium">"{notification.projectId?.title || 'a project'}"</span> was approved!
+          </>
+        ),
+        linkTo: '/messages'
+      };
       break;
     case 'NEW_MESSAGE':
-      message = `You have a new message from ${notification.sender.name}.`;
-      linkTo = '/messages';
+      config = {
+        icon: <MessageSquare size={12} />,
+        iconBg: '#2463eb',
+        message: (
+          <>
+            You have a new message from <span className="font-bold">{senderName}</span>.
+          </>
+        ),
+        linkTo: '/messages'
+      };
+      break;
+    case 'IDEA_COMMENT':
+      config = {
+        icon: <MessageSquare size={12} />,
+        iconBg: '#2463eb',
+        message: (
+          <>
+            <span className="font-bold">{senderName}</span> replied to your comment on the <span className="font-medium italic">StackSuite forum</span>
+          </>
+        ),
+        linkTo: '/stack-suite',
+        showCommentSnippet: true
+      };
+      break;
+    case 'IDEA_VOTE':
+      config = {
+        icon: <Rocket size={12} />,
+        iconBg: '#f59e0b',
+        message: (
+          <>
+            <span className="font-bold">{senderName}</span> upvoted your idea!
+          </>
+        ),
+        linkTo: '/stack-suite'
+      };
       break;
     case 'SUBSCRIPTION_SUCCESS':
-      message = 'Your subscription was successful! Your profile is now verified.';
-      linkTo = '/settings';
+      config = {
+        icon: <CheckCircle size={12} />,
+        iconBg: '#10b981',
+        message: (
+          <>
+            <span className="font-bold">Account Verified</span>
+            <p className={styles.subtext}>Your profile has been successfully verified.</p>
+          </>
+        ),
+        linkTo: '/settings'
+      };
+      break;
+    case 'PAYMENT_SUCCESS':
+      config = {
+        icon: <CheckCircle size={12} />,
+        iconBg: '#10b981',
+        message: (
+          <>
+            <span className="font-bold">Payment Successful</span>
+            <p className={styles.subtext}>Your recent transaction has been processed.</p>
+          </>
+        ),
+        linkTo: '/settings/billing'
+      };
       break;
     case 'BOOST_SUCCESS':
-      // Differentiate between profile and project boosts
-      if (notification.projectId) {
-        message = `Your project "${notification.projectId.title}" has been successfully boosted.`;
-        linkTo = '/my-projects';
-      } else {
-        message = 'Your profile has been successfully boosted!';
-        linkTo = '/profile';
-      }
+      config = {
+        icon: <Rocket size={12} />,
+        iconBg: '#8b5cf6',
+        message: (
+          <>
+            <span className="font-bold">Boost Success</span>
+            <p className={styles.subtext}>
+              {notification.projectId 
+                ? `Your project "${notification.projectId.title}" is now boosted.` 
+                : 'Your profile has been successfully boosted!'}
+            </p>
+          </>
+        ),
+        linkTo: notification.projectId ? '/my-projects' : '/profile'
+      };
+      break;
+    case 'INTEREST_REJECTED':
+      config = {
+        icon: <XCircle size={12} />,
+        iconBg: '#ef4444',
+        message: (
+          <>
+            Your request for <span className="font-medium">"{notification.projectId?.title || 'a project'}"</span> was declined.
+          </>
+        ),
+        linkTo: '/requests'
+      };
       break;
     case 'NEW_REVIEW':
-      message = `${notification.sender.name} left you a new review.`;
-      linkTo = '/profile'; // Go to profile to see the review
+      config = {
+        icon: <Quote size={12} />,
+        iconBg: '#f59e0b',
+        message: (
+          <>
+            <span className="font-bold">{senderName}</span> left you a review.
+          </>
+        ),
+        linkTo: '/profile'
+      };
+      break;
+    case 'NEW_ADMIN_REGISTERED':
+    case 'NEW_USER_REGISTERED':
+      config = {
+        icon: <UserPlus size={12} />,
+        iconBg: '#8b5cf6',
+        message: (
+          <>
+            <span className="font-bold">{senderName}</span> just registered.
+          </>
+        ),
+        linkTo: `/users/${notification.sender?._id}`
+      };
+      break;
+    case 'NEW_REPORT_SUBMITTED':
+      config = {
+        icon: <AlertTriangle size={12} />,
+        iconBg: '#ef4444',
+        message: (
+          <>
+            <span className="font-bold">{senderName}</span> submitted a new report.
+          </>
+        ),
+        linkTo: '/admin/reports'
+      };
+      break;
+    case 'REPORT_REPLY':
+    case 'REPORT_UPDATE':
+      config = {
+        icon: <MessageSquare size={12} />,
+        iconBg: '#3b82f6',
+        message: (
+          <>
+            There's an update on your recent report.
+          </>
+        ),
+        linkTo: '/support'
+      };
+      break;
+    case 'NEW_PROJECT_POSTED':
+      config = {
+        icon: <Briefcase size={12} />,
+        iconBg: '#10b981',
+        message: (
+          <>
+            <span className="font-bold">{senderName}</span> posted a project: <span className="text-primary font-medium">"{notification.projectId?.title || 'Untitled Project'}"</span>
+          </>
+        ),
+        linkTo: `/projects/${notification.projectId?._id}`
+      };
       break;
     default:
-      message = 'You have a new notification.';
+      config.message = notification.message || 'You have a new notification.';
   }
 
+  let isResolved = actionDone;
+  if (!isResolved && config.showActions && connectionsStatus === 'succeeded') {
+      const isConnectedGlobally = connections?.some(c => c._id === notification.sender?._id);
+      
+      if (isConnectedGlobally) {
+          isResolved = true;
+      }
+  }
+
+  const timeAgo = formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
+    .replace('about ', '')
+    .replace(' minutes', 'm')
+    .replace(' minute', 'm')
+    .replace(' hours', 'h')
+    .replace(' hour', 'h')
+    .replace(' days', 'd')
+    .replace(' day', 'd')
+    .replace(' ago', '');
+
   return (
-    <Link to={linkTo} className={styles.notificationItem}>
-      <div className={styles.dot}></div>
-      <p>{message}</p>
+    <Link to={config.linkTo} onClick={onClose} className={`${styles.notificationItem} ${!notification.isRead ? styles.unread : ''}`}>
+      <div className={styles.avatarSection}>
+        <Avatar 
+          src={notification.sender?.avatarUrl} 
+          fallback={(senderName || '?').charAt(0)}
+          size="medium"
+        />
+        <div className={styles.contextIcon} style={{ backgroundColor: config.iconBg }}>
+          {config.icon}
+        </div>
+      </div>
+
+      <div className={styles.contentBody}>
+        <div className={styles.itemHeader}>
+          <p className={styles.message}>{config.message}</p>
+          <span className={styles.timestamp}>{timeAgo}</span>
+        </div>
+
+        {config.showCommentSnippet && notification.message && (
+          <div className={styles.commentBox}>
+            "{notification.message}"
+          </div>
+        )}
+
+        {config.showActions && !isResolved && (
+          <div className={styles.actions}>
+            <button 
+              className={styles.primaryBtn} 
+              onClick={handleAcceptConnection}
+              disabled={isProcessing}
+            >
+              {isProcessing ? <Loader2 size={12} className={styles.spinner} /> : 'Accept'}
+            </button>
+            <button 
+              className={styles.secondaryBtn} 
+              onClick={handleDeclineConnection}
+              disabled={isProcessing}
+            >
+              Decline
+            </button>
+          </div>
+        )}
+
+        {notification.type === 'NEW_INTEREST' && (
+           <button className={styles.outlineBtn}>View Project</button>
+        )}
+      </div>
+
+      {!notification.isRead && <div className={styles.unreadDot}></div>}
     </Link>
   );
 };
 
 NotificationItem.propTypes = {
   notification: PropTypes.object.isRequired,
+  onClose: PropTypes.func.isRequired,
 };

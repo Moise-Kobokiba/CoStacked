@@ -1,26 +1,26 @@
-// src/components/notifications/NotificationDropdown.jsx
-
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { NotificationItem } from './NotificationItem';
 import styles from './NotificationDropdown.module.css';
 import PropTypes from 'prop-types';
 import { X } from 'lucide-react';
+import { fetchConnections, fetchPendingRequests } from '../../features/connections/connectionsSlice';
 
-/**
- * A dropdown/modal for displaying notifications.
- * Accepts two separate functions for closing vs. taking action.
- * @param {function} onClose - Function to only close the modal.
- * @param {function} onMarkAsRead - Function to mark notifications as read and then close.
- */
-export const NotificationDropdown = ({ notifications, onClose, onMarkAsRead }) => {
+const NotificationDropdown = ({ notifications, onClose, onMarkAsRead }) => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchConnections());
+    dispatch(fetchPendingRequests());
+  }, [dispatch]);
+
   return (
-    // The backdrop overlay now correctly calls the `onClose` function
     <div className={styles.modalOverlay} onClick={onClose}>
       <motion.div
-        // This is the modal content window
         className={styles.dropdown}
-        // Prevents clicks inside the modal from bubbling up and closing it
-        onClick={(e) => e.stopPropagation()} 
+        onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, scale: 0.95, y: -20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: -20 }}
@@ -28,36 +28,36 @@ export const NotificationDropdown = ({ notifications, onClose, onMarkAsRead }) =
       >
         <div className={styles.header}>
           <h3>Notifications</h3>
-          {/* The explicit 'X' button also calls the `onClose` function */}
-          <button onClick={onClose} className={styles.closeButton}>
-            <X size={20} />
-          </button>
-        </div>
-        <div className={styles.list}>
-          {notifications.length > 0 ? (
-            notifications.map(notif => (
-              <NotificationItem key={notif._id} notification={notif} />
-            ))
-          ) : (
-            <p className={styles.emptyMessage}>You have no new notifications.</p>
-          )}
-        </div>
-        {/* The footer action button is the only one that calls `onMarkAsRead` */}
-        {notifications.length > 0 && (
-          <div className={styles.footer}>
+          {notifications.length > 0 && (
             <button onClick={onMarkAsRead} className={styles.markReadButton}>
               Mark all as read
             </button>
-          </div>
-        )}
+          )}
+        </div>
+        <div className={styles.list}>
+          {notifications.length > 0 ? (
+            notifications.map((notif) => (
+              <NotificationItem key={notif._id} notification={notif} onClose={onClose} />
+            ))
+          ) : (
+            <p className={styles.emptyMessage}>You have no unread notifications.</p>
+          )}
+        </div>
+        <div className={styles.footer}>
+          <Link to="/notifications" className={styles.viewAllBtn} onClick={onClose}>
+            View all notifications
+          </Link>
+        </div>
       </motion.div>
     </div>
   );
 };
 
-// PropTypes are updated to include the new required `onClose` function
 NotificationDropdown.propTypes = {
   notifications: PropTypes.array.isRequired,
   onClose: PropTypes.func.isRequired,
   onMarkAsRead: PropTypes.func.isRequired,
 };
+
+// CRITICAL FIX: This component is lazy-loaded, so it MUST be a default export.
+export default NotificationDropdown;

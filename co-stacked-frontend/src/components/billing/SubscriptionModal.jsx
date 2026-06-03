@@ -1,64 +1,36 @@
 // src/components/billing/SubscriptionModal.jsx
 
-import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. Import useNavigate
 import { Dialog } from '../shared/Dialog';
 import { Button } from '../shared/Button';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import styles from './SubscriptionModal.module.css';
 import PropTypes from 'prop-types';
 
-const YOCO_PUBLIC_KEY = 'pk_test_ed3c54a6gOol69qa7f45';
 const PRICE_IN_CENTS = 20000; // R200.00
 
 /**
- * A modal for handling the user verification subscription payment flow via Yoco.
- * It is a "presentational" component that orchestrates the Yoco popup and reports
- * the result back to its parent component via props.
+ * A modal for confirming a user's subscription choice before payment.
  */
-export const SubscriptionModal = ({ open, onClose, onConfirm }) => {
-  // Local state to manage the button's loading status.
-  const [isLoading, setIsLoading] = useState(false);
-  const [yocoSDK, setYocoSDK]  = useState(null);
-  
-  useEffect(() => {
-    if(window.YocoSDK) {
-        setYocoSDK(new window.YocoSDK({ publicKey: YOCO_PUBLIC_KEY }));
-    } else {
-      console.error("Yoco SDK is not loaded. Ensure the script tag is in your index.html");
-    }
-  }, []);
+export const SubscriptionModal = ({ open, onClose }) => {
+  const navigate = useNavigate(); // 2. Initialize the navigate function
 
-  const handlePayment = () => {
-    if (!yocoSDK) {
-      alert("Payment service is unavailable. Please try again later.");
-      return;
-    }
-    
-    setIsLoading(true);
-    // It's good UX to close our own modal before Yoco's opens.
-    onClose(); 
-
-    yocoSDK.showPopup({
-      amountInCents: PRICE_IN_CENTS,
-      currency: 'ZAR',
-      name: 'Co-Stacked Verified Subscription',
-      description: 'Monthly subscription for a verified user badge.',
-      callback: (result) => {
-        // This callback runs after the Yoco popup is closed by the user.
-        setIsLoading(false);
-
-        if (result.error) {
-          // If Yoco reports an error, just show an alert.
-          alert(`Payment failed: ${result.error.message}`);
-        } else if (result.id) {
-          // On success, Yoco returns a charge token in `result.id`.
-          // We call the `onConfirm` function passed from the parent (SettingsPage)
-          // and pass the charge token up to it. The parent will handle the API call.
-          onConfirm(result.id); 
-        } else {
-          // Fallback in case the user closes the popup without paying
-          console.log("Yoco popup closed without a result.");
-        }
+  const handleProceedToPayment = () => {
+    // 3. Navigate to the dedicated payment page, passing subscription details.
+    navigate('/payment', {
+      state: {
+        amountInCents: PRICE_IN_CENTS,
+        currency: 'ZAR',
+        name: 'Co-Stacked Verified Subscription',
+        description: 'Monthly subscription for a verified user badge.',
+        // Metadata for our backend to know what's being paid for.
+        metadata: {
+          successPath: '/settings', // Redirect back to settings on success
+          failurePath: '/settings',  // Redirect back to settings on failure
+          type: 'subscription' // Added type here for backend (Yoco metadata)
+        },
+        // A string to tell our PaymentPage which Redux action to dispatch (Legacy - kept for safety if needed later)
+        action: 'subscription'
       }
     });
   };
@@ -86,16 +58,15 @@ export const SubscriptionModal = ({ open, onClose, onConfirm }) => {
       </div>
       <footer className={styles.footer}>
         <Button variant="secondary" onClick={onClose}>Cancel</Button>
-        <Button onClick={handlePayment} disabled={isLoading}>
-          {isLoading ? (<><Loader2 className="animate-spin mr-2"/>Processing...</>) : 'Confirm & Pay'}
-        </Button>
+        {/* The button now navigates instead of handling payment directly */}
+        <Button onClick={handleProceedToPayment}>Confirm & Pay</Button>
       </footer>
     </Dialog>
   );
 };
 
+// The 'onConfirm' prop is no longer needed as the payment logic has moved.
 SubscriptionModal.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  onConfirm: PropTypes.func.isRequired,
 };

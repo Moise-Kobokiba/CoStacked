@@ -29,6 +29,18 @@ export const updateReportStatus = createAsyncThunk(
   }
 );
 
+export const addReportMessage = createAsyncThunk(
+  'reports/addMessage',
+  async ({ reportId, content }, { rejectWithValue }) => {
+    try {
+      const response = await API.post(`/admin/reports/${reportId}/messages`, { content });
+      return response.data; // The updated report
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to send message');
+    }
+  }
+);
+
 const initialState = {
   reports: [],
   status: 'idle',
@@ -50,12 +62,19 @@ const reportsSlice = createSlice({
         state.status = 'failed';
         state.error = action.payload;
       })
-
-      // --- NEW: Cases for updating a report ---
       .addCase(updateReportStatus.fulfilled, (state, action) => {
         const updatedReport = action.payload;
-        // Since the view only shows 'open' reports, we remove the resolved/dismissed one.
-        state.reports = state.reports.filter(report => report._id !== updatedReport._id);
+        if (updatedReport.status === 'dismissed') {
+          state.reports = state.reports.filter(report => report._id !== updatedReport._id);
+        } else {
+          // Replace or update resolved/open ones
+          const index = state.reports.findIndex(r => r._id === updatedReport._id);
+          if (index !== -1) state.reports[index] = updatedReport;
+        }
+      })
+      .addCase(addReportMessage.fulfilled, (state, action) => {
+        const index = state.reports.findIndex(r => r._id === action.payload._id);
+        if (index !== -1) state.reports[index] = action.payload;
       })
       .addCase(updateReportStatus.rejected, (state, action) => {
         // You could set an error state here to show in the UI if needed

@@ -12,15 +12,24 @@ import { AdminLayout } from './components/layout/AdminLayout';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { AdminRegisterPage } from './pages/AdminRegisterPage'; // <-- 1. IMPORT
+import { AdminForgotPasswordPage } from './pages/AdminForgotPasswordPage';
 import { UserManagementPage } from './pages/UserManagementPage';
 import { ProjectManagementPage } from './pages/ProjectManagementPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { TransactionsPage } from './pages/TransactionsPage';
+import { AdminVerifyEmailPage } from './pages/AdminVerifyEmailPage';
+import { AdminSettingsPage } from './pages/AdminSettingsPage';
+import { ArticleManagementPage } from './pages/ArticleManagementPage';
+
+import { ArticleEditorPage } from './pages/ArticleEditorPage';
+import { ValidationDashboardPage } from './pages/ValidationDashboardPage';
 
 // The router configuration is updated with all necessary routes.
 const router = createBrowserRouter([
   { path: '/login', element: <AdminLoginPage /> },
-  { path: '/register', element: <AdminRegisterPage /> }, // <-- 2. ADD the new route
+  { path: '/register', element: <AdminRegisterPage /> },
+  { path: '/forgot-password', element: <AdminForgotPasswordPage /> },
+  { path: '/verify-email', element: <AdminVerifyEmailPage /> },
   {
     path: '/',
     element: <AdminProtectedRoute />,
@@ -31,8 +40,13 @@ const router = createBrowserRouter([
           { index: true, element: <AdminDashboardPage /> },
           { path: 'users', element: <UserManagementPage /> },
           { path: 'projects', element: <ProjectManagementPage /> },
+          { path: 'articles', element: <ArticleManagementPage /> },
+          { path: 'articles/create', element: <ArticleEditorPage /> },
+          { path: 'articles/edit/:id', element: <ArticleEditorPage /> },
           { path: 'reports', element: <ReportsPage /> },
           { path: 'transactions', element: <TransactionsPage /> },
+          { path: 'validation', element: <ValidationDashboardPage /> },
+          { path: 'settings', element: <AdminSettingsPage /> },
         ]
       }
     ]
@@ -46,7 +60,7 @@ function App() {
   useEffect(() => {
     console.log("App.jsx Effect: Running initial auth check...");
     console.log("App.jsx Effect: Token from Redux state is:", token);
-    
+
     if (token) {
       console.log("App.jsx Effect: Token found! Dispatching getAdminProfile.");
       dispatch(getAdminProfile());

@@ -1,30 +1,36 @@
 // src/App.jsx
 
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppRouter } from './router';
+import { RouterProvider } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { router } from './router'; // 1. Import the router configuration object
 import { getUserProfile } from './features/auth/authSlice';
+
+import { SocketProvider } from './context/SocketContext';
 
 /**
  * The root component of the application.
- * It's the perfect place to run app-wide initialization logic.
+ * It handles app-wide logic like session verification and renders the router.
  */
 function App() {
   const dispatch = useDispatch();
-  // We get the token from the initial state of our Redux store
-  const { token } = useSelector(state => state.auth);
+  const token = useSelector(state => state.auth.token);
 
-  // This useEffect hook will run once when the App component first mounts.
+  // This effect runs on initial app load to handle persistent login sessions.
   useEffect(() => {
-    // Check if a token exists in our state (which was loaded from localStorage).
+    // If a token was loaded from localStorage into our Redux state...
     if (token) {
-      // If a token exists, dispatch the action to fetch the user's profile.
-      // This will verify the token and update the auth `status` from 'idle' to 'succeeded' or 'failed'.
+      // ...dispatch the action to verify the token and fetch the user's profile.
       dispatch(getUserProfile());
     }
-  }, [dispatch, token]); // The dependencies ensure this runs only when needed.
+  }, [token, dispatch]);
 
-  return <AppRouter />;
+  // 2. Render the RouterProvider wrapped in SocketProvider for global presence.
+  return (
+    <SocketProvider>
+      <RouterProvider router={router} />
+    </SocketProvider>
+  );
 }
 
 export default App;

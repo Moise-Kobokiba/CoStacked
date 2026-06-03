@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# AI Crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+Sitemap: https://www.costacked.co.za/sitemap.xml
+# LLM Knowledge Index
+Link: https://www.costacked.co.za/llms.txt

@@ -1,0 +1,84 @@
+/* src/pages/MyNetworkPage.module.css */
+
+.pageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  /* --- MOBILE FIRST PADDING --- */
+  padding: 1.5rem 1rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  /* --- MOBILE FIRST FONT SIZE --- */
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--foreground);
+  letter-spacing: -0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  /* --- MOBILE FIRST FONT SIZE --- */
+  font-size: 1rem;
+  color: var(--muted-foreground);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem; /* Slightly smaller gap for mobile */
+}
+
+/* --- Responsive Grid --- */
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem; /* Increase gap for larger screens */
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+
+/* --- LARGER SCREEN TYPOGRAPHY & SPACING --- */
+@media (min-width: 768px) {
+  .pageContainer {
+    padding: 2rem 1.5rem;
+  }
+  .header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+  }
+  .title {
+    font-size: 2.25rem;
+    margin-bottom: 0.5rem;
+  }
+  .subtitle {
+    font-size: 1.1rem;
+  }
+}
+
+
+/* --- Message States (No changes needed) --- */
+.message, .error {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: var(--muted-foreground);
+  font-size: 1.1rem;
+}
+
+.error {
+  color: var(--destructive);
+  background-color: var(--destructive-foreground);
+  border: 1px solid var(--destructive-border);
+  border-radius: var(--radius);
+}

@@ -1,70 +1,152 @@
 /* src/components/messaging/ConversationList.module.css */
+
 .container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  border-right: 1px solid var(--border);
-  background-color: var(--card-background);
+  background-color: var(--background);
 }
-.title {
-  font-size: 1.25rem;
+
+
+
+.searchContainer {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.searchWrapper {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  background-color: var(--input-background);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  color: var(--foreground);
+}
+
+.searchInput:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.conversationsHeading {
+  padding: 0.75rem 1rem;
+}
+
+.heading {
+  font-size: 1.5rem;
   font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
 }
+
 .list {
-  overflow-y: auto;
   flex-grow: 1;
+  overflow-y: auto;
 }
-.convoDetails {
-  overflow: hidden; /* This is key for text truncation */
+
+.userGroup {
+  border-bottom: 1px solid var(--border);
 }
-/* NEW style for the empty state */
-.emptyState {
+
+.userHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: var(--muted-foreground);
+}
+
+.userHeader:hover {
+  background-color: var(--secondary-button-hover);
+}
+
+.userInfo {
+  flex: 1;
+  text-align: left;
+}
+
+.userName {
+  font-weight: 600;
+  color: var(--primary);
+  margin: 0;
+}
+
+.chevron {
+  color: var(--muted-foreground);
+}
+
+.projectsContainer {
+  background-color: var(--secondary-button-background);
+}
+
+.projectItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1rem 1rem 4rem;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: left;
+}
+
+.projectItem:hover {
+  background-color: var(--secondary-button-hover);
+}
+
+.projectItem.selected {
+  background-color: var(--primary-light);
+}
+
+.projectContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.projectHeader {
+  margin-bottom: 0.25rem;
+}
+
+.projectTitle {
+  font-weight: 500;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.projectSubtitle {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.emptyMessage {
   padding: 2rem 1rem;
   text-align: center;
   color: var(--muted-foreground);
+  font-style: italic;
 }
-.convoItem {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  width: 100%;
-  border: none;
-  background: none;
-  border-bottom: 1px solid var(--border);
-  cursor: pointer;
-  text-align: left;
-}
-.convoItem:hover {
-  background-color: var(--background);
-}
-.convoItem.active {
-  background-color: hsl(221, 83%, 95%);
-}
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--primary);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-.userName {
-  font-weight: 600;
-}
-.lastMessage {
-  font-size: 0.9rem;
-  color: var(--muted-foreground);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 180px;
-}
-.header {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border);
-}
+

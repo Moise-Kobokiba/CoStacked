@@ -1,424 +1,387 @@
-// frontend/src/pages/ProfilePage.jsx
+// src/pages/ProfilePage.jsx
 
-import { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import styles from './ProfilePage.module.css';
+import { useState, useEffect, useCallback } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import styles from "./ProfilePage.module.css";
 
 // Import Redux Actions
-import { fetchUsers, recordProfileView } from '../features/users/usersSlice';
-import { fetchProjects } from '../features/projects/projectsSlice';
-import { fetchReviewsForUser } from '../features/reviews/reviewsSlice';
-import { fetchReceivedInterests } from '../features/interests/interestsSlice';
+import { fetchUsers, recordProfileView, fetchResponseRate } from "../features/users/usersSlice";
+import { fetchProjects } from "../features/projects/projectsSlice";
+import { fetchReviewsForUser } from "../features/reviews/reviewsSlice";
+import { fetchReceivedInterests } from "../features/interests/interestsSlice";
+import { 
+  sendConnectionRequest, 
+  acceptConnectionRequest, 
+  removeOrCancelConnection, 
+  fetchConnections, 
+  fetchPendingRequests, 
+  fetchConnectionCount 
+} from "../features/connections/connectionsSlice";
 
 // Import All UI Components
-import { Button } from '../components/shared/Button';
-import { Card } from '../components/shared/Card';
-import { Tag } from '../components/shared/Tag';
-import { ProjectCard } from '../components/shared/ProjectCard';
-import { StarRating } from '../components/shared/StarRating';
-import { ProfileBoostModal } from '../components/billing/ProfileBoostModal';
-import { LeaveReviewModal } from '../components/reviews/LeaveReviewModal';
-import { ReviewCard } from '../components/reviews/ReviewCard';
-import { ProfileEditor } from '../components/profile/ProfileEditor';
-import { MapPin, Link as LinkIcon } from 'lucide-react';
-import verificationBadge from '../assets/verification-badge.png';
+import { Card } from "../components/shared/Card";
+import { Tag } from "../components/shared/Tag";
+import { ProjectCard } from "../components/shared/ProjectCard";
+import { ReviewCard } from "../components/reviews/ReviewCard";
+import { SocialLinks } from "../components/shared/SocialLinks";
+import { ProfileEditor } from "../components/profile/ProfileEditor";
+import { ProfileHeader } from "../components/profile/ProfileHeader";
+import { AvatarUploadModal } from "../components/profile/AvatarUploadModal";
+import { LeaveReviewModal } from "../components/reviews/LeaveReviewModal";
+import { ProfileBoostModal } from "../components/billing/ProfileBoostModal";
+import { 
+  MapPin, Link as LinkIcon, X, ArrowLeft, 
+  Globe, Github, Linkedin, Briefcase, Rocket, Laptop,
+  Quote
+} from "lucide-react";
 
-const LoadingSpinner = () => <div className={styles.loader}>Loading profile...</div>;
+const LoadingSpinner = () => (
+  <div className={styles.loader}>
+    <Card className={styles.card}>Loading profile...</Card>
+  </div>
+);
 
 const formatDate = (dateString) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'long', day: 'numeric'
-    });
+  if (!dateString) return "";
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+const formatPeriod = (start, end, isCurrent) => {
+  const startStr = start ? new Date(start).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+  const endStr = isCurrent ? 'Present' : (end ? new Date(end).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '');
+  return `${startStr} — ${endStr}`;
 };
 
 export const ProfilePage = () => {
   const dispatch = useDispatch();
   const { userId } = useParams();
-  
+  const navigate = useNavigate();
+
+  // State for UI and Modals
   const [isEditing, setIsEditing] = useState(false);
   const [isBoostModalOpen, setBoostModalOpen] = useState(false);
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState('not_connected'); // 'not_connected', 'pending', 'connected', 'request_received'
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [isImageViewerOpen, setImageViewerOpen] = useState(false);
+  const [copySuccess, setCopySuccess] = useState("");
 
-  const { user: loggedInUser } = useSelector(state => state.auth);
-  const { items: allUsers, status: usersStatus } = useSelector(state => state.users);
-  const { items: allProjects, status: projectsStatus } = useSelector(state => state.projects);
-  const { reviewsByUser, status: reviewsStatus } = useSelector(state => state.reviews);
-  const { receivedItems: founderConnections } = useSelector(state => state.interests);
-  
-  const userToDisplay = userId ? allUsers.find(u => u._id === userId) : loggedInUser;
+  // State from Redux
+  const { user: loggedInUser } = useSelector((state) => state.auth);
+  const { items: allUsers, status: usersStatus, responseRates } = useSelector((state) => state.users);
+  const { items: allProjects, status: projectsStatus } = useSelector((state) => state.projects);
+  const { reviewsByUser, status: reviewsStatus } = useSelector((state) => state.reviews);
+  const { receivedItems: founderConnections } = useSelector((state) => state.interests);
+  const { connections, pendingRequests, actionStatus, connectionCounts } = useSelector((state) => state.connections);
+
+  const userToDisplay = userId ? allUsers.find((u) => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
 
-  // Fetch connection status
-  useEffect(() => {
-    const fetchConnectionStatus = async () => {
-      if (!loggedInUser || !userToDisplay || isOwnProfile) return;
-      
+  // Connection status helpers
+  const getConnectionStatus = () => {
+    if (!loggedInUser || !userToDisplay || isOwnProfile) return null;
+    if (connections?.some(conn => conn._id === userToDisplay._id)) return 'connected';
+    if (pendingRequests?.some(req => req.recipient?._id === userToDisplay._id)) return 'pending_sent';
+    if (pendingRequests?.some(req => req.requester?._id === userToDisplay._id)) return 'pending_received';
+    return 'not_connected';
+  };
+
+  const connectionStatus = getConnectionStatus();
+  const isConnectionLoading = actionStatus === 'loading';
+
+  const handleShare = useCallback(async () => {
+    if (!userToDisplay) return;
+    const url = window.location.href;
+    if (navigator.share) {
       try {
-        const response = await fetch(`/api/connections/status/${userToDisplay._id}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setConnectionStatus(data.status);
-        }
-      } catch (error) {
-        console.error('Error fetching connection status:', error);
-      }
-    };
+        await navigator.share({ title: `${userToDisplay.name} on CoStacked`, url });
+      } catch (err) { console.error(err); }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopySuccess("Copied!");
+        setTimeout(() => setCopySuccess(""), 2000);
+      } catch (err) { console.error(err); }
+    }
+  }, [userToDisplay]);
 
-    fetchConnectionStatus();
-  }, [loggedInUser, userToDisplay, isOwnProfile]);
+  // Connection handlers
+  const connectionHandlers = {
+    send: () => userToDisplay?._id && dispatch(sendConnectionRequest(userToDisplay._id)),
+    cancel: () => userToDisplay?._id && dispatch(removeOrCancelConnection(userToDisplay._id)),
+    remove: () => userToDisplay?._id && dispatch(removeOrCancelConnection(userToDisplay._id)),
+    accept: () => userToDisplay?._id && dispatch(acceptConnectionRequest(userToDisplay._id)),
+    decline: () => userToDisplay?._id && dispatch(removeOrCancelConnection(userToDisplay._id)),
+  };
 
-  // Data fetching effects
+  const handleMessage = () => userToDisplay?._id && navigate(`/messages/${userToDisplay._id}`);
+
+  // Data fetching
   useEffect(() => {
-    if (usersStatus === 'idle') dispatch(fetchUsers());
-    if (projectsStatus === 'idle') dispatch(fetchProjects());
+    if (usersStatus === "idle") dispatch(fetchUsers());
+    if (projectsStatus === "idle") dispatch(fetchProjects());
     if (userToDisplay?._id) dispatch(fetchReviewsForUser(userToDisplay._id));
-    if (loggedInUser?.role === 'founder') dispatch(fetchReceivedInterests());
-  }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, dispatch]);
-  
-  // Record profile view
+    if (loggedInUser && !isOwnProfile) {
+      dispatch(fetchConnections());
+      dispatch(fetchPendingRequests());
+    }
+    if (userToDisplay?._id && !connectionCounts[userToDisplay._id]) {
+      dispatch(fetchConnectionCount(userToDisplay._id));
+    }
+    if (userToDisplay?._id && !responseRates[userToDisplay._id]) {
+      dispatch(fetchResponseRate(userToDisplay._id));
+    }
+  }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, isOwnProfile, dispatch, connectionCounts, responseRates]);
+
   useEffect(() => {
     if (userId && loggedInUser && userId !== loggedInUser._id) {
       dispatch(recordProfileView(userId));
     }
   }, [userId, loggedInUser, dispatch]);
 
-  // Connection Handlers
-  const sendConnectionRequest = async () => {
-    if (!userToDisplay) return;
-    
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/connections/send', {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ targetUserId: userToDisplay._id })
-      });
+  if (usersStatus === "loading" || !userToDisplay) return <div className={styles.pageContainer}><LoadingSpinner /></div>;
 
-      if (res.ok) {
-        setConnectionStatus('pending');
-      } else {
-        const error = await res.json();
-        console.error('Error sending connection request:', error.message);
-      }
-    } catch (e) {
-      console.error("Error sending connection request", e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const developerReviews = reviewsByUser[userToDisplay._id] || [];
+  const userProjects = userToDisplay.role === "founder" ? allProjects.filter((p) => p.founderId === userToDisplay._id) : [];
+  const averageRating = developerReviews.length > 0 ? developerReviews.reduce((acc, r) => acc + r.rating, 0) / developerReviews.length : 0;
+  
+  const reviewableProjects =
+    founderConnections && Array.isArray(founderConnections)
+      ? founderConnections.filter(c =>
+        c.senderId?._id === userToDisplay._id &&
+        c.status === 'approved' &&
+        !developerReviews.some(review => review.projectId?._id === c.projectId?._id)
+      )
+      : [];
 
-  const acceptConnectionRequest = async () => {
-    if (!userToDisplay) return;
-    
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/connections/accept', {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ senderId: userToDisplay._id })
-      });
+  const canLeaveReview =
+    !isOwnProfile &&
+    loggedInUser?.role === "founder" &&
+    userToDisplay.role === "developer" &&
+    reviewableProjects.length > 0;
 
-      if (res.ok) {
-        setConnectionStatus('connected');
-      } else {
-        const error = await res.json();
-        console.error('Error accepting connection:', error.message);
-      }
-    } catch (e) {
-      console.error("Error accepting connection", e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const declineConnectionRequest = async () => {
-    if (!userToDisplay) return;
-    
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/connections/decline', {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ senderId: userToDisplay._id })
-      });
-
-      if (res.ok) {
-        setConnectionStatus('not_connected');
-      }
-    } catch (e) {
-      console.error("Error declining connection", e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const removeConnection = async () => {
-    if (!userToDisplay) return;
-    
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/connections/remove', {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ targetUserId: userToDisplay._id })
-      });
-
-      if (res.ok) {
-        setConnectionStatus('not_connected');
-      }
-    } catch (e) {
-      console.error("Error removing connection", e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const cancelSentRequest = async () => {
-    if (!userToDisplay) return;
-    
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/connections/cancel', {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ targetUserId: userToDisplay._id })
-      });
-
-      if (res.ok) {
-        setConnectionStatus('not_connected');
-      }
-    } catch (e) {
-      console.error("Error canceling request", e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const developerReviews = reviewsByUser[userToDisplay?._id] || [];
-
-  const userProjects = userToDisplay?.role === 'founder' 
-    ? allProjects.filter(p => p.founderId === userToDisplay._id) 
-    : [];
-
-  const averageRating = developerReviews.length > 0 
-    ? developerReviews.reduce((acc, r) => acc + r.rating, 0) / developerReviews.length
-    : 0;
-
-  const sharedConnections = founderConnections.filter(conn => 
-    conn.senderId?._id === userToDisplay?._id && conn.status === 'approved'
-  );
-  const reviewableProjects = sharedConnections.filter(conn => 
-    !developerReviews.some(review => review.projectId?._id === conn.projectId?._id)
-  );
-  const canLeaveReview = !isOwnProfile && loggedInUser?.role === 'founder' && userToDisplay?.role === 'developer' && reviewableProjects.length > 0;
-
-  if (usersStatus === 'loading' || projectsStatus === 'loading' || reviewsStatus === 'loading' || !userToDisplay) {
-    return <div className={styles.pageContainer}><LoadingSpinner /></div>;
-  }
-
-  const renderConnectionButton = () => {
-    if (isOwnProfile) return null;
-
-    switch (connectionStatus) {
-      case 'connected':
-        return (
-          <div className={styles.connectionActions}>
-            <Button disabled variant="secondary">Connected ✓</Button>
-            <Button 
-              onClick={removeConnection} 
-              variant="outline" 
-              disabled={isLoading}
-            >
-              Remove Connection
-            </Button>
-          </div>
-        );
-      
-      case 'pending':
-        return (
-          <div className={styles.connectionActions}>
-            <Button disabled variant="secondary">Request Sent</Button>
-            <Button 
-              onClick={cancelSentRequest} 
-              variant="outline" 
-              disabled={isLoading}
-            >
-              Cancel Request
-            </Button>
-          </div>
-        );
-      
-      case 'request_received':
-        return (
-          <div className={styles.connectionActions}>
-            <Button 
-              onClick={acceptConnectionRequest} 
-              variant="primary" 
-              disabled={isLoading}
-            >
-              Accept Request
-            </Button>
-            <Button 
-              onClick={declineConnectionRequest} 
-              variant="outline" 
-              disabled={isLoading}
-            >
-              Decline
-            </Button>
-          </div>
-        );
-      
-      default: // not_connected
-        return (
-          <Button 
-            onClick={sendConnectionRequest} 
-            variant="primary" 
-            disabled={isLoading}
-          >
-            {isLoading ? 'Sending...' : 'Connect'}
-          </Button>
-        );
-    }
-  };
+  const experience = userToDisplay.experience || [];
+  const education = userToDisplay.education || [];
 
   return (
     <>
       <ProfileBoostModal user={userToDisplay} open={isBoostModalOpen} onClose={() => setBoostModalOpen(false)} />
-      <LeaveReviewModal 
-        developer={userToDisplay}
-        reviewableProjects={reviewableProjects}
-        open={isReviewModalOpen} 
-        onClose={() => setReviewModalOpen(false)} 
-      />
+      <LeaveReviewModal developer={userToDisplay} reviewableProjects={reviewableProjects} open={isReviewModalOpen} onClose={() => setReviewModalOpen(false)} />
+      <AvatarUploadModal open={isAvatarModalOpen} onClose={() => setAvatarModalOpen(false)} />
+
+      {/* Image Viewer Modal */}
+      {isImageViewerOpen && userToDisplay.avatarUrl && (
+        <div className={styles.imageViewerOverlay} onClick={() => setImageViewerOpen(false)}>
+          <div className={styles.imageViewerContent} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.imageViewerClose} onClick={() => setImageViewerOpen(false)}><X size={32} /></button>
+            <img src={userToDisplay.avatarUrl} alt={userToDisplay.name} className={styles.imageViewerImage} />
+          </div>
+        </div>
+      )}
 
       <div className={styles.pageContainer}>
         <div className={styles.contentWrapper}>
+          {userId && (
+            <button className={styles.backButton} onClick={() => navigate('/users')}>
+              <ArrowLeft size={18} />
+              Back to Talent
+            </button>
+          )}
+
           {isEditing && isOwnProfile ? (
             <ProfileEditor user={userToDisplay} onSave={() => setIsEditing(false)} onCancel={() => setIsEditing(false)} />
           ) : (
-            <Card>
+            <>
               {isOwnProfile && userToDisplay.isBoosted && new Date(userToDisplay.boostExpiresAt) > new Date() && (
-                <div className={styles.boostBanner}>
-                  Your profile is boosted until {formatDate(userToDisplay.boostExpiresAt)}.
-                </div>
+                <div className={styles.boostBanner}>Your profile is boosted until {formatDate(userToDisplay.boostExpiresAt)}.</div>
               )}
 
-              <div className={styles.header}>
-                <div>
-                  <div className={styles.nameWrapper}>
-                    <h1 className={styles.title}>{userToDisplay.name}</h1>
-                    {userToDisplay.isVerified && (
-                      <div className={styles.verifiedBadge} title="Verified User">
-                        <img src={verificationBadge} alt="Verification Badge" className={styles.badgeIcon}/>
-                        <span>Verified</span> 
+              <ProfileHeader
+                user={userToDisplay}
+                isOwnProfile={isOwnProfile}
+                onEdit={() => setIsEditing(true)}
+                onBoost={() => setBoostModalOpen(true)}
+                onReview={() => setReviewModalOpen(true)}
+                canLeaveReview={canLeaveReview}
+                onAvatarClick={() => setAvatarModalOpen(true)}
+                onAvatarView={() => setImageViewerOpen(true)}
+                onShare={handleShare}
+                copySuccess={copySuccess}
+                connectionStatus={connectionStatus}
+                connectionHandlers={connectionHandlers}
+                isConnectionLoading={isConnectionLoading}
+                onMessage={handleMessage}
+              />
+
+              <div className={styles.layoutGrid}>
+                {/* Sidebar */}
+                <aside className={styles.sidebar}>
+                  <div className={styles.card}>
+                    <h3 className={styles.cardTitle}>Online Presence</h3>
+                    <div className={styles.linksList}>
+                      <a href={userToDisplay.portfolioLink || "#"} target="_blank" className={styles.linkItem}>
+                        <div className={styles.linkInfo}>
+                          <div className={styles.linkIconBox}><Globe size={18} /></div>
+                          <span className={styles.linkText}>Portfolio</span>
+                        </div>
+                        <ArrowLeft size={14} className={styles.externalIcon} style={{ transform: 'rotate(135deg)' }} />
+                      </a>
+                      <a href={userToDisplay.socials?.linkedin || "#"} target="_blank" className={styles.linkItem}>
+                        <div className={styles.linkInfo}>
+                          <div className={styles.linkIconBox}><Linkedin size={18} /></div>
+                          <span className={styles.linkText}>LinkedIn</span>
+                        </div>
+                        <ArrowLeft size={14} className={styles.externalIcon} style={{ transform: 'rotate(135deg)' }} />
+                      </a>
+                      <a href={userToDisplay.socials?.github || "#"} target="_blank" className={styles.linkItem}>
+                        <div className={styles.linkInfo}>
+                          <div className={styles.linkIconBox}><Github size={18} /></div>
+                          <span className={styles.linkText}>GitHub</span>
+                        </div>
+                        <ArrowLeft size={14} className={styles.externalIcon} style={{ transform: 'rotate(135deg)' }} />
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className={styles.card}>
+                    <h3 className={styles.cardTitle}>Education</h3>
+                    <div className={styles.educationList}>
+                      {education.length > 0 ? education.map((edu, idx) => (
+                        <div key={idx} className={styles.eduItem}>
+                          <div className={styles.eduDot}></div>
+                          <p className={styles.eduDegree}>{edu.degree}</p>
+                          <p className={styles.eduSchool}>{edu.school}</p>
+                          <p className={styles.eduDate}>{edu.startDate} — {edu.endDate}</p>
+                        </div>
+                      )) : (
+                        <div className={styles.emptyStateContainer}>
+                          <p className={styles.emptyStateText}>No education history added.</p>
+                          {isOwnProfile && <button className={styles.emptyStateBtn} onClick={() => setIsEditing(true)}>Add Education</button>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className={styles.card}>
+                    <div className={styles.statsGrid}>
+                      <div className={styles.statBox}>
+                        <p className={styles.statValue}>{userProjects.length}</p>
+                        <p className={styles.statLabel}>Projects</p>
                       </div>
-                    )}
-                  </div>
-                  {userToDisplay.role === 'developer' && developerReviews.length > 0 && (
-                    <div className={styles.aggregateRating}>
-                      <StarRating rating={averageRating} />
-                      <span>({developerReviews.length} {developerReviews.length === 1 ? 'review' : 'reviews'})</span>
+                      <div className={styles.statBox}>
+                        <p className={styles.statValue}>{developerReviews.length}</p>
+                        <p className={styles.statLabel}>Endorsements</p>
+                      </div>
+                      <div className={styles.statBox}>
+                        <div className={styles.responseRateContainer}>
+                          <p className={`${styles.statValue} ${styles[`rate${responseRates[userToDisplay._id]?.label || 'New'}`]}`}>
+                            {responseRates[userToDisplay._id]?.rate !== null && responseRates[userToDisplay._id]?.rate !== undefined 
+                              ? `${responseRates[userToDisplay._id].rate}%` 
+                              : 'New'}
+                          </p>
+                        </div>
+                        <p className={styles.statLabel}>Response Rate</p>
+                      </div>
                     </div>
-                  )}
-                  <p className={styles.subtitle}>{userToDisplay.role}</p>
-                </div>
-                
-                <div className={styles.headerActions}>
-                  {canLeaveReview && (
-                    <Button onClick={() => setReviewModalOpen(true)} variant="secondary">
-                      Leave a Review
-                    </Button>
-                  )}
+                  </div>
+                </aside>
 
-                  {renderConnectionButton()}
+                {/* Main Content */}
+                <main className={styles.mainContent}>
+                  <section className={styles.section}>
+                    <h2 className={styles.sectionTitle}>About Me</h2>
+                    <p className={styles.bioText}>{userToDisplay.bio || "Passionate builder looking for the next big challenge."}</p>
+                  </section>
 
-                  {isOwnProfile && (
-                    <>
-                      <Button onClick={() => setBoostModalOpen(true)} variant="secondary">
-                        Boost Profile
-                      </Button>
-                      <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
-                    </>
-                  )}
-                </div>
-              </div>
-              
-              <div className={styles.content}>
-                <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>About Me:</h3>
-                  <p>{userToDisplay.bio || 'No bio provided.'}</p>
-                </div>
-                
-                <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Skills:</h3>
-                  <div className={styles.skillsContainer}>
-                    {(Array.isArray(userToDisplay.skills) && userToDisplay.skills.length > 0) 
-                      ? userToDisplay.skills.map(s => <Tag key={s}>{s}</Tag>) 
-                      : <p>No skills listed.</p>
-                    }
-                  </div>
-                </div>
-                
-                <div className={styles.infoGrid}>
-                  <div className={styles.infoItem}>
-                    <MapPin size={18}/>
-                    <span>{userToDisplay.location || 'N/A'}</span>
-                  </div>
-                  <div className={styles.infoItem}>
-                    <LinkIcon size={18}/>
-                    <a href={userToDisplay.portfolioLink} target="_blank" rel="noopener noreferrer">
-                      Portfolio
-                    </a>
-                  </div>
-                  <p><strong>Availability:</strong> {userToDisplay.availability || 'N/A'}</p>
-                </div>
-                
-                {userProjects.length > 0 && (
-                  <>
-                    <div className={styles.separator} />
-                    <h2 className={styles.title}>Posted Projects</h2>
-                    <div className={styles.projectsGrid}>
-                      {userProjects.map(p => <ProjectCard key={p._id} project={p}/>)}
+                  <section className={styles.section}>
+                    <h2 className={styles.sectionTitle}>Experience</h2>
+                    <div className={styles.experienceList}>
+                      {experience.length > 0 ? experience.map((exp, idx) => (
+                        <div key={idx} className={styles.expItem}>
+                          <div className={`${styles.expIconBox} ${idx > 0 ? styles.expIconBoxSecondary : ''}`}>
+                            {exp.icon === 'rocket_launch' ? <Rocket size={24} /> : <Laptop size={24} />}
+                          </div>
+                          <div className={styles.expContent}>
+                            <div className={styles.expHeader}>
+                              <h4 className={styles.expTitle}>{exp.title}</h4>
+                              <span className={styles.expPeriod}>{formatPeriod(exp.startDate, exp.endDate, exp.isCurrent)}</span>
+                            </div>
+                            <p className={styles.expCompany}>{exp.company} • {exp.employmentType}</p>
+                            <p className={styles.bioText} style={{ fontSize: '0.875rem' }}>{exp.description}</p>
+                          </div>
+                        </div>
+                      )) : (
+                        <div className={styles.emptyStateContainer}>
+                          <p className={styles.emptyStateText}>No professional experience added yet.</p>
+                          {isOwnProfile && <button className={styles.emptyStateBtn} onClick={() => setIsEditing(true)}>Add Experience</button>}
+                        </div>
+                      )}
                     </div>
-                  </>
-                )}
-                
-                {/* Testimonials Section - Hidden with CSS */}
-                {developerReviews.length > 0 && (
-                  <div className={styles.hiddenSection}>
-                    <div className={styles.separator} />
-                    <h2 className={styles.title}>Reviews</h2>
-                    <div className={styles.reviewsGrid}>
-                      {developerReviews.map(r => <ReviewCard key={r._id} review={r}/>)}
+                  </section>
+
+                  <section className={styles.section}>
+                    <h2 className={styles.sectionTitle}>Skills & Expertise</h2>
+                    <div className={styles.skillGroup}>
+                      <h4 className={styles.skillGroupLabel}>Core Technical</h4>
+                      <div className={styles.skillsWrap}>
+                        {userToDisplay.skills?.length > 0 ? (
+                          userToDisplay.skills.map(skill => (
+                            <span key={skill} className={styles.skillTagPrimary}>{skill}</span>
+                          ))
+                        ) : (
+                          <p className={styles.emptyStateText} style={{ margin: 0 }}>No skills listed yet.</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                    <div className={styles.skillGroup}>
+                      <h4 className={styles.skillGroupLabel}>Startup & Soft Skills</h4>
+                      <div className={styles.skillsWrap}>
+                        {userToDisplay.softSkills?.length > 0 ? (
+                          userToDisplay.softSkills.map(skill => (
+                            <span key={skill} className={styles.skillTagSecondary}>{skill}</span>
+                          ))
+                        ) : (
+                          <p className={styles.emptyStateText} style={{ margin: 0 }}>No soft skills listed yet.</p>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className={styles.section}>
+                    <div className={styles.sectionHeader}>
+                      <h2 className={styles.sectionTitle}>Endorsements</h2>
+                      <button className={styles.requestBtn}>Request Endorsement</button>
+                    </div>
+                    <div className={styles.endorsementsGrid}>
+                      {developerReviews.length > 0 ? developerReviews.map(review => (
+                        <div key={review._id} className={styles.endorsementCard}>
+                          <Quote className={styles.quoteIcon} size={32} />
+                          <p className={styles.endorsementText}>"{review.comment}"</p>
+                          <div className={styles.endorserInfo}>
+                             <div className={styles.endorserAvatar}>
+                                <img src={review.reviewerId?.avatarUrl || "https://ui-avatars.com/api/?name=" + review.reviewerId?.name} alt={review.reviewerId?.name} />
+                             </div>
+                             <div>
+                                <p className={styles.endorserName}>{review.reviewerId?.name}</p>
+                                <p className={styles.endorserRole}>{review.reviewerId?.role || 'Co-founder'}</p>
+                             </div>
+                          </div>
+                        </div>
+                      )) : (
+                        <div className={styles.emptyStateContainer} style={{ gridColumn: '1 / -1' }}>
+                          <p className={styles.emptyStateText}>No endorsements received yet.</p>
+                          {isOwnProfile && <button className={styles.emptyStateBtn} onClick={() => setCopySuccess("Ask for Endorsement copied!")}>Request Endorsement</button>}
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                </main>
               </div>
-            </Card>
+            </>
           )}
         </div>
       </div>

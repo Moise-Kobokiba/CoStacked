@@ -1,0 +1,56 @@
+/* src/components/connections/ConnectionRequestCard.module.css */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.25rem;
+  height: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--foreground);
+}
+
+.role {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  text-transform: capitalize;
+}
+
+.bio {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 1rem 0;
+  flex-grow: 1; /* Pushes the footer down */
+
+  /* Truncate long bios to a few lines */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}

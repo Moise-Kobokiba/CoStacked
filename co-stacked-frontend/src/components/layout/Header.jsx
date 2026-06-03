@@ -1,27 +1,37 @@
 // src/components/layout/Header.jsx
 
-import { useState, useRef, useEffect } from 'react';
-import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
-// Import Redux actions
+// Import Hooks, Actions, and Logos
+import { useTheme } from '../../context/ThemeContext';
+import { useClickOutside } from '../../hooks/useClickOutside';
 import { logout } from '../../features/auth/authSlice';
 import { fetchNotifications, markNotificationsAsRead } from '../../features/notifications/notificationsSlice';
+import logoLight from '../../assets/logo-light.png';
+import logoDark from '../../assets/logo-dark.png';
 
-// Import components and assets
-import { Button } from '../shared/Button';
-import { DropdownMenu } from '../shared/DropdownMenu';
-import { NotificationDropdown } from '../notifications/NotificationDropdown';
-import { useClickOutside } from '../../hooks/useClickOutside';
-import { User, Bell, Menu, X } from 'lucide-react';
-import logoSrc from '../../assets/logo.png';
+// Import the Sub-Components
+import { HeaderLogo } from './header/HeaderLogo';
+import { DesktopNav } from './header/DesktopNav';
+import { UserActions } from './header/UserActions';
+import { MobileMenu } from './header/MobileMenu';
+// --- THIS IS THE FIX ---
+// The path should be './Header.module.css' to look in the current directory.
 import styles from './Header.module.css';
 
+// Dynamically import dropdowns
+const NotificationDropdown = lazy(() => import('../notifications/NotificationDropdown'));
+const DropdownMenu = lazy(() => import('../shared/DropdownMenu'));
+
 export const Header = () => {
+  // ... (The rest of your component logic is correct)
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme } = useTheme();
 
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const { items: notifications } = useSelector(state => state.notifications);
@@ -34,199 +44,66 @@ export const Header = () => {
   const notifRef = useRef(null);
 
   useClickOutside(dropdownRef, () => setDropdownOpen(false));
-  
+  useClickOutside(notifRef, () => setNotifOpen(false));
+
   useEffect(() => {
     if (isAuthenticated) {
+      console.log('Header: User authenticated, fetching notifications...');
+      console.log('Header: Current user:', user);
       dispatch(fetchNotifications());
     }
-  }, [isAuthenticated, dispatch]);
-  
-  useEffect(() => {
-    setDropdownOpen(false);
-    setNotifOpen(false);
-    setMobileMenuOpen(false);
-  }, [location.pathname]);
+  }, [isAuthenticated, dispatch, user]);
+  useEffect(() => { setMobileMenuOpen(false); setDropdownOpen(false); setNotifOpen(false); }, [location.pathname]);
+  useEffect(() => { document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'auto'; return () => { document.body.style.overflow = 'auto'; }; }, [isMobileMenuOpen]);
 
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 768) {
-        setMobileMenuOpen(false);
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  
-  useEffect(() => {
-    if (isMobileMenuOpen || isNotifOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isMobileMenuOpen, isNotifOpen]);
-
-  const handleLogout = () => {
-      dispatch(logout());
-      setDropdownOpen(false);
-      navigate('/login');
-  };
-
-  /**
-   * This function ONLY closes the notification modal without changing data.
-   * It's used for the 'X' button and the backdrop click.
-   */
-  const handleCloseNotifications = () => {
-    setNotifOpen(false);
-  };
-  
-  /**
-   * This function performs the primary action: marking notifications as read
-   * AND then closing the modal.
-   */
+  const handleLogout = () => { dispatch(logout()); navigate('/login'); };
+  const handleCloseNotifications = () => setNotifOpen(false);
   const handleMarkAsRead = () => {
-    if (notifications.length > 0) {
-      dispatch(markNotificationsAsRead());
-    }
-    setNotifOpen(false); // Close the modal after the action
+    console.log('Marking notifications as read, current count:', notifications.length);
+    if (notifications.length > 0) dispatch(markNotificationsAsRead());
+    setNotifOpen(false);
   };
-  
   const navigationLinks = [
     { label: 'Discover', path: '/projects' },
+    { label: 'Validation Board', path: '/validation-board' },
+    { label: 'Stack Suite', path: '/stack-suite' },
     { label: 'Find Talent', path: '/users' },
     ...(isAuthenticated ? [{ label: 'Messages', path: '/messages' }] : [])
   ];
 
+  const logoSrc = theme === 'light' ? logoLight : logoDark;
+
   return (
     <>
       <header className={styles.header}>
-        <div className={styles.leftSection}>
-          <Link to="/" className={styles.logoContainer}>
-            <img src={logoSrc} alt="CoStacked Logo" className={styles.logoImage} />
-            <span className={styles.logoText}>CoStacked</span>
-          </Link>
-        </div>
-
-        <nav className={styles.navLinks}>
-          {navigationLinks.map((link) => (
-            <NavLink
-              key={link.path}
-              to={link.path}
-              className={({ isActive }) => 
-                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-              }
-            >
-              {link.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className={styles.userActions}>
-          {isAuthenticated && user?.role === 'founder' && (
-            <div className={styles.desktopPostProject}>
-              <Button variant="primary" to="/post-project">
-                Post Project
-              </Button>
-            </div>
-          )}
-          
-          {isAuthenticated ? (
-            <>
-              <div ref={notifRef} className={styles.notificationWrapper}>
-                <button className={styles.notificationButton} onClick={() => setNotifOpen(prev => !prev)} aria-label="Toggle notifications">
-                  <Bell size={24} />
-                  {notifications.length > 0 && (
-                    <span className={styles.notificationCount}>{notifications.length}</span>
-                  )}
-                </button>
-                <AnimatePresence>
-                  {isNotifOpen && 
-                    <NotificationDropdown 
-                      notifications={notifications} 
-                      onClose={handleCloseNotifications}
-                      onMarkAsRead={handleMarkAsRead}
-                    />
-                  }
-                </AnimatePresence>
-              </div>
-              
-              <div ref={dropdownRef}>
-                <button className={styles.profileLink} onClick={() => setDropdownOpen(prev => !prev)} aria-label="Toggle user menu">
-                  <span className={styles.userName}>{user?.name}</span>
-                  <User size={24} />
-                </button>
-                <AnimatePresence>
-                  {isDropdownOpen && <DropdownMenu onLogout={handleLogout} />}
-                </AnimatePresence>
-              </div>
-            </>
-          ) : (
-            <div className={styles.authButtons}>
-              <Button variant="secondary" to="/login">Login</Button>
-              <Button variant="primary" to="/signup">Sign Up</Button>
-            </div>
-          )}
-
-          <button 
-            className={styles.hamburgerMenu} 
-            onClick={() => setMobileMenuOpen(true)}
-            aria-label="Open navigation menu"
-          >
-            <Menu size={28} />
-          </button>
-        </div>
-      </header>
+        <HeaderLogo logoSrc={logoSrc} />
+        <DesktopNav links={navigationLinks} />
+        <UserActions
+          isAuthenticated={isAuthenticated}
+          user={user}
+          notifications={notifications}
+          isNotifOpen={isNotifOpen}
+          setNotifOpen={setNotifOpen}
+          isDropdownOpen={isDropdownOpen}
+          setDropdownOpen={setDropdownOpen}
+          notifRef={notifRef}
+          dropdownRef={dropdownRef}
+          handleLogout={handleLogout}
+          handleMarkAsRead={handleMarkAsRead}
+          handleCloseNotifications={handleCloseNotifications}
+          setMobileMenuOpen={setMobileMenuOpen}
+          isMobileMenuOpen={isMobileMenuOpen}
+        />
+      </header >
 
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.nav 
-            className={styles.mobileMenu}
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          >
-            <div className={styles.mobileMenuHeader}>
-              <span className={styles.mobileMenuTitle}>Navigation</span>
-              <button 
-                className={styles.closeMenuButton} 
-                onClick={() => setMobileMenuOpen(false)}
-                aria-label="Close navigation menu"
-              >
-                <X size={28} />
-              </button>
-            </div>
-            
-            <div className={styles.mobileLinksContainer}>
-              {navigationLinks.map((link) => (
-                <NavLink
-                  key={link.path}
-                  to={link.path}
-                  className={({ isActive }) => 
-                    isActive ? `${styles.mobileNavLink} ${styles.activeMobileLink}` : styles.mobileNavLink
-                  }
-                >
-                  {link.label}
-                </NavLink>
-              ))}
-            </div>
-
-            <div className={styles.mobileActionsContainer}>
-              {isAuthenticated && user?.role === 'founder' && (
-                <Button variant="primary" to="/post-project" fullWidth>
-                  Post Project
-                </Button>
-              )}
-              {!isAuthenticated && (
-                <>
-                  <Button variant="secondary" to="/login" fullWidth>Login</Button>
-                  <Button variant="primary" to="/signup" fullWidth>Sign Up</Button>
-                </>
-              )}
-            </div>
-          </motion.nav>
+          <MobileMenu
+            onClose={() => setMobileMenuOpen(false)}
+            links={navigationLinks}
+            isAuthenticated={isAuthenticated}
+            onLogout={handleLogout}
+          />
         )}
       </AnimatePresence>
     </>

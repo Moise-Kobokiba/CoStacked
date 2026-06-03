@@ -1,0 +1,6 @@
+/* src/components/shared/Label.module.css */
+.label {
+  font-weight: 500;
+  color: var(--foreground);
+  font-size: 0.875rem;
+}

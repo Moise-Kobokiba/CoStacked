@@ -1,14 +1,22 @@
 /* src/components/reviews/ReviewCard.module.css */
 
 .card {
-  padding: 1rem 1.5rem;
+  padding: 1.25rem;
 }
 
+/* --- MOBILE FIRST STYLES --- */
 .header {
+  display: flex;
+  flex-direction: column; /* Stack header items vertically on mobile */
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.headerMain {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
 }
 
 .headerInfo {
@@ -27,14 +35,17 @@
 }
 
 .headerRight {
-  margin-left: auto;
-  text-align: right;
+  /* No margin needed on mobile */
+  width: 100%;
+  display: flex;
+  justify-content: space-between; /* Space out stars and date */
+  align-items: center;
+  padding-left: calc(32px + 0.75rem); /* Indent to align with text */
 }
 
 .date {
   font-size: 0.8rem;
   color: var(--muted-foreground);
-  margin-top: 4px;
 }
 
 .comment {
@@ -44,4 +55,26 @@
   border-left: 3px solid var(--border);
   padding-left: 1rem;
   margin: 0;
+  word-break: break-word; /* Ensure long comments wrap */
+}
+
+
+/* --- DESKTOP STYLES --- */
+@media (min-width: 768px) {
+  .header {
+    flex-direction: row; /* Switch to horizontal layout on desktop */
+    align-items: center;
+  }
+
+  .headerRight {
+    width: auto;
+    display: block; /* Revert to default block layout */
+    margin-left: auto;
+    text-align: right;
+    padding-left: 0; /* Remove mobile indentation */
+  }
+
+  .date {
+    margin-top: 4px; /* Add back the top margin for desktop */
+  }
 }

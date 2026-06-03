@@ -6,6 +6,7 @@ import { fetchUsers } from '../features/users/usersSlice';
 import styles from './BrowseUsersPage.module.css';
 
 import { UserCard } from '../components/shared/UserCard';
+import { Carousel } from '../components/shared/Carousel'; // 1. Import the new Carousel component
 import { CombinedSearchInput } from '../components/shared/CombinedSearchInput';
 
 const LoadingSpinner = () => <div className={styles.loader}>Loading talent...</div>;
@@ -56,7 +57,6 @@ export const BrowseUsersPage = () => {
       });
   }, [allUsers, searchQuery, locationQuery]);
 
-  // --- NEW LOGIC: Split the prepared list into two distinct groups ---
   const now = new Date();
   const featuredUsers = sortedAndFilteredUsers.filter(user => user.isBoosted && new Date(user.boostExpiresAt) > now);
   const latestUsers = sortedAndFilteredUsers.filter(user => !user.isBoosted || new Date(user.boostExpiresAt) <= now);
@@ -72,15 +72,16 @@ export const BrowseUsersPage = () => {
         {featuredUsers.length > 0 && (
           <section>
             <h2 className={styles.sectionTitle}>Featured Talent</h2>
-            <div className={styles.grid}>
+            {/* --- 2. REPLACE the div with the Carousel component --- */}
+            <Carousel>
               {featuredUsers.map((user) => <UserCard key={user._id} user={user} />)}
-            </div>
+            </Carousel>
           </section>
         )}
 
         {/* --- Section 2: Latest Profiles --- */}
         {latestUsers.length > 0 && (
-          <section>
+          <section className={styles.latestSection}>
             <h2 className={styles.sectionTitle}>Latest Profiles</h2>
             <div className={styles.grid}>
               {latestUsers.map((user) => <UserCard key={user._id} user={user} />)}

@@ -1,79 +1,141 @@
 // src/components/messaging/ConversationList.jsx
 
+import { useState } from 'react';
 import styles from './ConversationList.module.css';
 import PropTypes from 'prop-types';
 import { Avatar } from '../shared/Avatar';
+import { Search, ChevronDown, ChevronRight } from 'lucide-react';
 
 export const ConversationList = ({ conversations, selectedConversationId, onSelectConversation, currentUserId }) => {
-  // DEBUG LOG 1: What does the full `conversations` array look like?
-  console.log("ConversationList received conversations:", conversations);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedUsers, setExpandedUsers] = useState(new Set());
+
+  // Group conversations by user
+  const groupedConversations = conversations.reduce((acc, convo) => {
+    const otherUser = convo.participants.find(p => p._id !== currentUserId);
+    if (!otherUser) return acc;
+
+    const userId = otherUser._id;
+    if (!acc[userId]) {
+      acc[userId] = {
+        user: otherUser,
+        conversations: []
+      };
+    }
+    acc[userId].conversations.push(convo);
+    return acc;
+  }, {});
+
+  const toggleUser = (userId) => {
+    setExpandedUsers((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
+  const filteredGroups = Object.values(groupedConversations).filter((group) => {
+    const user = group.user;
+    const matchesUser = user.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesProjects = group.conversations.some(convo => {
+      const projectTitle = convo.projectId?.title || 'General Conversation';
+      return projectTitle.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+    return matchesUser || matchesProjects;
+  });
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <h2 className={styles.title}>Conversations</h2>
-      </header>
-      
+      {/* Search Bar */}
+      <div className={styles.searchContainer}>
+        <div className={styles.searchWrapper}>
+          <Search className={styles.searchIcon} size={16} />
+          <input
+            type="text"
+            placeholder="Search conversations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={styles.searchInput}
+          />
+        </div>
+      </div>
+
+      {/* Conversations Heading */}
+      <div className={styles.conversationsHeading}>
+        <h2 className={styles.heading}>Conversations</h2>
+      </div>
+
+      {/* Conversation List */}
       <div className={styles.list}>
-        {conversations.length > 0 ? (
-          conversations.map((convo, index) => {
-            // DEBUG LOG 2: Look at each individual conversation object.
-            console.log(`--- Iteration ${index} ---`);
-            console.log("Processing conversation:", convo);
-            console.log("Current user ID:", currentUserId);
-
-            const otherParticipant = convo.participants.find(p => p._id !== currentUserId);
-
-            // DEBUG LOG 3: What did our `.find()` method produce? Is it a user object or undefined?
-            console.log("Found other participant:", otherParticipant);
-            
-            // Defensive check
-            if (!otherParticipant) {
-              // DEBUG LOG 4: If it's undefined, this log will tell us exactly which conversation failed.
-              console.error("CRITICAL ERROR: Could not find the other participant in this conversation:", convo);
-              return null; // Skip rendering this broken conversation
-            }
-            
-            // DEBUG LOG 5: Check if the name property exists before trying to use it.
-            if (!otherParticipant.name) {
-                console.error("CRITICAL ERROR: The participant object is missing a 'name' property:", otherParticipant);
-                return null; // Skip this one too
-            }
-
-            const isActive = convo._id === selectedConversationId;
+        {filteredGroups.length > 0 ? (
+          filteredGroups.map((group) => {
+            const user = group.user;
+            const isExpanded = expandedUsers.has(user._id);
 
             return (
-              <button
-                key={convo._id}
-                className={`${styles.convoItem} ${isActive ? styles.active : ''}`}
-                onClick={() => onSelectConversation(convo._id)}
-              >
-                <Avatar 
-                  src={otherParticipant.avatarUrl} 
-                  fallback={otherParticipant.name.charAt(0)} // The line that might crash
-                  alt={`${otherParticipant.name}'s avatar`}
-                />
-                <div className={styles.convoDetails}>
-                  <p className={styles.userName}>{otherParticipant.name}</p>
-                  <p className={styles.lastMessage}>{convo.lastMessage || 'Click to view conversation'}</p>
-                </div>
-              </button>
+              <div key={user._id} className={styles.userGroup}>
+                {/* User Header */}
+                <button
+                  onClick={() => toggleUser(user._id)}
+                  className={styles.userHeader}
+                >
+                  <Avatar
+                    src={user.avatarUrl}
+                    fallback={user.name.charAt(0)}
+                    size="small"
+                  />
+                  <div className={styles.userInfo}>
+                    <h3 className={styles.userName}>{user.name}</h3>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronDown className={styles.chevron} size={20} />
+                  ) : (
+                    <ChevronRight className={styles.chevron} size={20} />
+                  )}
+                </button>
+
+                {/* User's Projects */}
+                {isExpanded && (
+                  <div className={styles.projectsContainer}>
+                    {group.conversations.map((convo) => {
+                      const projectTitle = convo.projectId?.title || 'General Conversation';
+                      const isSelected = convo._id === selectedConversationId;
+
+                      return (
+                        <button
+                          key={convo._id}
+                          onClick={() => onSelectConversation(convo._id)}
+                          className={`${styles.projectItem} ${isSelected ? styles.selected : ''}`}
+                        >
+                          <div className={styles.projectContent}>
+                            <div className={styles.projectHeader}>
+                              <span className={styles.projectTitle}>{projectTitle}</span>
+                            </div>
+                            <span className={styles.projectSubtitle}>Click to view conversation</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })
         ) : (
-          <p className={styles.emptyState}>You have no conversations yet.</p>
+          <p className={styles.emptyMessage}>You have no conversations yet.</p>
         )}
       </div>
     </div>
   );
 };
 
-// ... (PropTypes)
-
-// PropTypes for component validation and documentation.
 ConversationList.propTypes = {
   conversations: PropTypes.array.isRequired,
-  selectedConversationId: PropTypes.string, // Can be null if no conversation is selected
+  selectedConversationId: PropTypes.string,
   onSelectConversation: PropTypes.func.isRequired,
   currentUserId: PropTypes.string.isRequired,
 };

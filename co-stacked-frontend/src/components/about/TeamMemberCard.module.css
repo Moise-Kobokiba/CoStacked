@@ -21,8 +21,12 @@
   margin-bottom: 1rem;
 }
 .socialLink {
+  display: inline-flex; /* Changed from default */
+  justify-content: center; /* Center the icon */
+  align-items: center; /* Center vertically */
   color: var(--muted-foreground);
   transition: color 0.2s ease;
+  margin: 0 auto; /* This centers the element */
 }
 .socialLink:hover {
   color: var(--primary);

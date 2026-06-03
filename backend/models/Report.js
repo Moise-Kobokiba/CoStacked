@@ -25,6 +25,16 @@ const reportSchema = mongoose.Schema({
     enum: ['open', 'resolved', 'dismissed'],
     default: 'open',
   },
+
+  // --- NEW: Two-way communication history ---
+  messages: [
+    {
+      sender: { type: mongoose.Schema.Types.ObjectId, refPath: 'messages.senderModel' },
+      senderModel: { type: String, enum: ['User', 'Admin'], required: true },
+      content: { type: String, required: true },
+      createdAt: { type: Date, default: Date.now }
+    }
+  ]
 }, { timestamps: true });
 
 const Report = mongoose.model('Report', reportSchema);

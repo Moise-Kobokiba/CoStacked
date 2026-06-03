@@ -1,0 +1,267 @@
+.container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    background-color: var(--background);
+    min-height: 100vh;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 48px;
+    gap: 32px;
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 24px;
+    }
+    
+    .title {
+        font-size: 2rem;
+    }
+    
+    .createBtn {
+        width: 100%;
+        justify-content: center;
+        padding: 15px 24px;
+        font-size: 1rem;
+    }
+}
+
+.headerContent {
+    flex: 1;
+    max-width: 720px;
+}
+
+.headerBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: var(--input-background);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--foreground);
+    margin-bottom: 16px;
+    letter-spacing: 0.01em;
+}
+
+.badgeDot {
+    width: 6px;
+    height: 6px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.title {
+    font-size: 2.75rem;
+    font-weight: 700;
+    color: var(--foreground);
+    margin: 0 0 12px 0;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.subtitle {
+    color: var(--muted-foreground);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 560px;
+}
+
+.createBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    padding: 13px 24px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.createBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25), 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.createBtn:active {
+    transform: translateY(0);
+}
+
+.createIcon {
+    flex-shrink: 0;
+}
+
+.filters {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.filterBtn {
+    background: transparent;
+    border: none;
+    padding: 8px 16px;
+    font-size: 1rem;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    border-radius: 20px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.filterBtn:hover {
+    background-color: var(--input-background);
+    color: var(--foreground);
+}
+
+.filterBtn.active {
+    background-color: var(--primary-light);
+    color: var(--primary);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+}
+
+.card {
+    background: var(--card-background);
+    border-radius: 16px;
+    padding: 24px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-light);
+}
+
+html[data-theme='dark'] .card {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+html[data-theme='dark'] .card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.industry {
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--input-background) 100%);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    color: var(--primary);
+    font-weight: 600;
+    border: 1px solid var(--primary-light);
+}
+
+.score {
+    font-weight: 700;
+    color: #ea580c; /* Orange/Fire color - keeps contrast in both modes */
+}
+
+.card h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.problem {
+    color: var(--muted-foreground);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    flex-grow: 1;
+}
+
+.cardFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+}
+
+.author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.author img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatarPlaceholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.author span {
+    font-size: 0.9rem;
+    color: var(--muted-foreground);
+}
+
+.stats {
+    font-size: 0.9rem;
+    color: var(--muted-foreground);
+}
+
+.loading, .empty {
+    text-align: center;
+    padding: 60px;
+    color: var(--muted-foreground);
+    font-size: 1.2rem;
+}

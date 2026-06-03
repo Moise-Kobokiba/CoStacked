@@ -37,13 +37,30 @@ export const markNotificationsAsRead = createAsyncThunk(
   }
 );
 
+/**
+ * Fetches all notifications (read and unread) for the dedicated page.
+ */
+export const fetchAllNotifications = createAsyncThunk(
+  'notifications/fetchAll',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await API.get('/notifications/all');
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data?.message || 'Failed to load notification history.');
+    }
+  }
+);
+
+
 
 // ===================================================================
 // THE NOTIFICATIONS SLICE
 // ===================================================================
 
 const initialState = {
-  items: [],
+  items: [],      // Unread notifications for dropdown
+  allItems: [],   // Full notification history for dedicated page
   status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
 };
@@ -67,6 +84,10 @@ const notificationsSlice = createSlice({
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.items = action.payload;
+        console.log('🔔 Notifications fetched successfully:', action.payload.length, 'items');
+        if (action.payload.length > 0) {
+          console.log('📋 Notification details:', action.payload.map(n => ({ type: n.type, sender: n.sender?.name })));
+        }
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.status = 'failed';
@@ -90,6 +111,19 @@ const notificationsSlice = createSlice({
           item.isRead = false;
         });
         // We could also add an error message here for the user
+      })
+      
+      // Cases for fetching all notifications (history)
+      .addCase(fetchAllNotifications.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchAllNotifications.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.allItems = action.payload;
+      })
+      .addCase(fetchAllNotifications.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
       });
   },
 });

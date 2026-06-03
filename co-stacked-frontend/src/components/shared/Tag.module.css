@@ -1,7 +1,9 @@
 /* src/components/shared/Tag.module.css */
 .tag {
   display: inline-block;
-  background-color: hsl(210, 10%, 92%); /* A very light version of our primary blue */
+  /* --- THIS IS THE FIX --- */
+  /* Replaced the hardcoded HSL color with our theme variable */
+  background-color: var(--primary-light);
   color: var(--primary);
   padding: 0.25rem 0.75rem;
   border-radius: 9999px; /* This creates the pill shape */

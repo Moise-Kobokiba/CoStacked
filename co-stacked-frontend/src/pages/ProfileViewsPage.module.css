@@ -1,0 +1,203 @@
+/* src/pages/ProfileViewsPage.module.css */
+.pageContainer {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: 100vh;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--muted-foreground);
+  margin-top: 0.5rem;
+}
+
+.statsRow {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.viewsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.viewerCard {
+  background: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.viewerCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.viewerAvatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.75rem;
+  background: var(--input-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.viewerAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.viewerInfo {
+  flex: 1;
+}
+
+.viewerName {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.viewerHeadline {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
+}
+
+.viewDate {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Paywall / Restricted Styles */
+.restrictedBanner {
+  background: linear-gradient(135deg, rgba(36, 99, 235, 0.1) 0%, rgba(36, 99, 235, 0.05) 100%);
+  border: 1px solid rgba(36, 99, 235, 0.2);
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.restrictedTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2463eb;
+}
+
+.restrictedText {
+  color: var(--muted-foreground);
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+.upgradeBtn {
+  background: #2463eb;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.upgradeBtn:hover {
+  opacity: 0.9;
+}
+
+.blurredCard {
+  opacity: 0.5;
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--card-background);
+  border: 1px dashed var(--border);
+  border-radius: 1rem;
+}
+
+.spinner {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+@media (max-width: 640px) {
+  .viewerCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .viewDate {
+    text-align: left;
+    width: 100%;
+    border-top: 1px solid var(--border);
+    padding-top: 0.5rem;
+  }
+
+  .statsRow {
+    flex-direction: column;
+  }
+}

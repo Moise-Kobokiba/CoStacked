@@ -1,0 +1,27 @@
+// backend/config/cloudinary.js
+
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
+
+// Configure Cloudinary with your credentials from .env
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Configure Multer to use Cloudinary for storage
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'costacked_avatars', // The folder name on Cloudinary
+    allowed_formats: ['jpeg', 'png', 'jpg'],
+    // A transformation to ensure all avatars are square and optimized
+    transformation: [{ width: 200, height: 200, crop: 'fill' }],
+  },
+});
+
+const upload = multer({ storage: storage });
+
+module.exports = upload;

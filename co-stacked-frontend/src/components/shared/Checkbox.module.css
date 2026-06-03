@@ -1,0 +1,83 @@
+.checkboxContainer {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.nativeCheckbox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.customCheckbox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  background: white;
+  pointer-events: none;
+}
+
+/* Checked state */
+.nativeCheckbox:checked ~ .customCheckbox {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+/* Focus state */
+.nativeCheckbox:focus ~ .customCheckbox {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Hover state */
+.nativeCheckbox:hover:not(:disabled) ~ .customCheckbox {
+  border-color: #9ca3af;
+}
+
+.nativeCheckbox:hover:checked:not(:disabled) ~ .customCheckbox {
+  border-color: #2563eb;
+  background: #2563eb;
+}
+
+/* Disabled state */
+.nativeCheckbox:disabled ~ .customCheckbox {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f3f4f6;
+}
+
+/* Checkmark icon */
+.customCheckbox svg {
+  width: 14px;
+  height: 14px;
+  color: white;
+  transition: all 0.15s ease;
+}
+
+.checkIconHidden {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.checkIconVisible {
+  opacity: 1;
+  transform: scale(1);
+}

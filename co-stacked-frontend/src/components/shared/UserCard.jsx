@@ -32,11 +32,14 @@ export const UserCard = ({ user }) => {
       )}
 
       <div className={styles.header}>
-        <Avatar 
-          src={user.avatarUrl} 
-          fallback={(user.name || '?').charAt(0)} 
-          alt={`${user.name || 'User'}'s avatar`} 
-        />
+        <div className={styles.avatarContainer}>
+          <Avatar 
+            src={user.avatarUrl} 
+            fallback={(user.name || '?').charAt(0)} 
+            alt={`${user.name || 'User'}'s avatar`} 
+          />
+          <div className={user.isOnline ? styles.onlineIndicator : styles.offlineIndicator}></div>
+        </div>
         <div>
           <div className={styles.nameWrapper}>
             <h3 className={styles.name}>{user.name || 'Unnamed User'}</h3>

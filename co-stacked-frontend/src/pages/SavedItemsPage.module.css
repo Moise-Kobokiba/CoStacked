@@ -1,0 +1,77 @@
+.pageContainer {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+  color: var(--foreground);
+}
+
+.subtitle {
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 80px 20px;
+  background: var(--card-background);
+  border-radius: 20px;
+  border: 1px dashed var(--border);
+}
+
+.emptyIcon {
+  color: var(--muted-foreground);
+  opacity: 0.5;
+  margin-bottom: 16px;
+}
+
+.emptyTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.emptyText {
+  color: var(--muted-foreground);
+  margin-bottom: 24px;
+}
+
+/* Card overrides if needed */
+.savedCard {
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.savedCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.typeBadge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 100px;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+
+.badgePost { background: var(--primary-light); color: var(--primary); }
+.badgeShowcase { background: #fef3c7; color: #92400e; }
+.badgeCollab { background: #dcfce7; color: #166534; }

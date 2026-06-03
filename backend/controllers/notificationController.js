@@ -36,4 +36,22 @@ const markAsRead = async (req, res) => {
   }
 };
 
-module.exports = { getNotifications, markAsRead };
+/**
+ * @desc    Get all notifications (read and unread) for the logged-in user
+ * @route   GET /api/notifications/all
+ * @access  Private
+ */
+const getAllNotifications = async (req, res) => {
+  try {
+    const notifications = await Notification.find({ recipient: req.user._id })
+      .populate('sender', 'name avatarUrl')
+      .populate('projectId', 'title')
+      .sort({ createdAt: -1 })
+      .limit(50); 
+    res.json(notifications);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching notification history.' });
+  }
+};
+
+module.exports = { getNotifications, getAllNotifications, markAsRead };

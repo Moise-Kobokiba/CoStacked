@@ -63,6 +63,18 @@ export const verifyEmail = createAsyncThunk(
   }
 );
 
+export const resendVerificationEmail = createAsyncThunk(
+  "auth/resendVerification",
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await API.post("/users/resend-verification", { email });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: "Failed to resend verification email." });
+    }
+  }
+);
+
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (credentials, { rejectWithValue }) => {
@@ -156,13 +168,94 @@ export const resetPassword = createAsyncThunk(
   }
 );
 
+/**
+ * NEW: Handles uploading a user's avatar.
+ */
+export const uploadAvatar = createAsyncThunk(
+  'auth/uploadAvatar',
+  async (formData, { rejectWithValue }) => {
+    try {
+      // The API instance already has the base URL and token interceptor.
+      // We need to set the Content-Type to 'multipart/form-data' for file uploads.
+      const response = await API.put('/users/profile/avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // After uploading, sync the new user data with localStorage
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(response.data));
+      
+      return response.data; // The full updated user object from the backend
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const deleteAccount = createAsyncThunk(
+  'auth/deleteAccount',
+  async (_, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await API.delete('/users/profile');
+      // On successful deletion from the backend, dispatch the logout action
+      // to clear the frontend state and local storage.
+      dispatch(logout()); 
+      return response.data; // { success, message }
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const toggleBookmark = createAsyncThunk(
+  "auth/toggleBookmark",
+  async ({ itemId, itemType }, { rejectWithValue }) => {
+    try {
+      const response = await API.put("/users/profile/bookmarks", { itemId, itemType });
+      const updatedUser = response.data;
+
+      // Sync with localStorage
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(updatedUser));
+
+      return updatedUser;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: "Failed to toggle bookmark." });
+    }
+  }
+);
+
+export const fetchProfileViews = createAsyncThunk(
+  "auth/fetchProfileViews",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await API.get("/users/profile/views");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: "Failed to fetch profile views." });
+    }
+  }
+);
+
+
+
 // ===================================================================
 // THE AUTH SLICE
 // ===================================================================
 
 const authSlice = createSlice({
   name: "auth",
-  initialState: loadInitialState(),
+  initialState: {
+    ...loadInitialState(),
+    profileViews: {
+      total: 0,
+      history: [],
+      isRestricted: false,
+      isSubscribed: false,
+      status: 'idle',
+      error: null
+    }
+  },
   reducers: {
     logout: (state) => {
       localStorage.removeItem(TOKEN_KEY);
@@ -170,14 +263,27 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      state.status = "idle";
-      state.error = null;
       state.successMessage = null;
       state.unverifiedEmail = null;
     },
     clearAuthMessages: (state) => {
       state.error = null;
       state.successMessage = null;
+    },
+    // NEW: Sync online status
+    updateUserStatus: (state, action) => {
+      const { userId, isOnline, lastActiveAt } = action.payload;
+      if (state.user && state.user._id === userId) {
+        state.user.isOnline = isOnline;
+        state.user.lastActiveAt = lastActiveAt;
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(state.user));
+      }
+    },
+    // NEW: Manually update user state (e.g., after external payment verification)
+    setUser: (state, action) => {
+      state.user = action.payload;
+      state.isAuthenticated = true;
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(action.payload));
     },
   },
   extraReducers: (builder) => {
@@ -232,10 +338,34 @@ const authSlice = createSlice({
         state.status = "succeeded";
         state.successMessage = action.payload.message;
         state.unverifiedEmail = null;
+        // If token is returned, auto-login the user
+        if (action.payload.token) {
+          state.isAuthenticated = true;
+          state.user = action.payload.user;
+          state.token = action.payload.token;
+          // Save to localStorage
+          localStorage.setItem(TOKEN_KEY, action.payload.token);
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(action.payload.user));
+        }
       })
       .addCase(verifyEmail.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload?.message || "Verification failed.";
+      })
+
+      // Resend Verification Email
+      .addCase(resendVerificationEmail.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(resendVerificationEmail.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.successMessage = action.payload.message;
+      })
+      .addCase(resendVerificationEmail.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload?.message || "Failed to resend verification email.";
       })
 
       // Get Profile
@@ -310,6 +440,8 @@ const authSlice = createSlice({
         state.error = action.payload?.message || "Failed to reset password.";
       })
 
+
+
       // Inter-Slice Reducers for Payment Events
       .addCase(verifySubscription.fulfilled, (state, action) => {
         const { user: updatedUser } = action.payload;
@@ -331,10 +463,62 @@ const authSlice = createSlice({
           state.user = { ...state.user, ...updatedUser };
           localStorage.setItem(PROFILE_KEY, JSON.stringify(state.user));
         }
+      })
+
+      // --- NEW: Cases for Account Deletion ---
+      .addCase(deleteAccount.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(deleteAccount.fulfilled, (state, action) => {
+        // The logout action has already cleared the state,
+        // but we can set a success message if needed (though user will be logged out).
+        state.status = 'succeeded';
+        state.successMessage = action.payload.message;
+      })
+      .addCase(deleteAccount.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload?.message || 'Failed to delete account.';
+      })
+
+      // --- NEW: Cases for Avatar Upload ---
+      .addCase(uploadAvatar.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(uploadAvatar.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        // Replace the user object with the updated one from the backend
+        state.user = action.payload;
+      })
+      .addCase(uploadAvatar.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload.message || 'Failed to upload avatar.';
+      })
+      
+      .addCase(toggleBookmark.rejected, (state, action) => {
+        state.error = action.payload?.message || "Failed to toggle bookmark.";
+      })
+      
+      // --- NEW: Cases for Profile Views ---
+      .addCase(fetchProfileViews.pending, (state) => {
+        state.profileViews.status = 'loading';
+        state.profileViews.error = null;
+      })
+      .addCase(fetchProfileViews.fulfilled, (state, action) => {
+        state.profileViews.status = 'succeeded';
+        state.profileViews.total = action.payload.totalViews;
+        state.profileViews.history = action.payload.history;
+        state.profileViews.isRestricted = action.payload.isRestricted;
+        state.profileViews.isSubscribed = action.payload.isSubscribed;
+      })
+      .addCase(fetchProfileViews.rejected, (state, action) => {
+        state.profileViews.status = 'failed';
+        state.profileViews.error = action.payload?.message || "Failed to fetch views.";
       });
   },
 });
 
-export const { logout, clearAuthMessages } = authSlice.actions;
+export const { logout, clearAuthMessages, setUser, updateUserStatus } = authSlice.actions;
 
 export default authSlice.reducer;

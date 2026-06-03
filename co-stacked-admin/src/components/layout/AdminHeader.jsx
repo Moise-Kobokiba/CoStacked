@@ -6,6 +6,7 @@ import { usePageTitle } from '../../context/PageTitleContext';
 import { AdminNotificationDropdown } from '../notifications/AdminNotificationDropdown';
 import { fetchAdminNotifications, markAdminNotificationsAsRead } from '../../features/notifications/adminNotificationsSlice';
 import { useClickOutside } from '../../hooks/useClickOutside';
+import { Badge } from '../ui/Badge';
 import styles from './AdminHeader.module.css';
 // --- NEW: Import Menu icon for the sidebar toggle ---
 import { Bell, ChevronDown, Menu } from 'lucide-react';
@@ -73,7 +74,10 @@ export const AdminHeader = ({ onToggleSidebar }) => {
           </div>
           <div className={styles.userInfo}>
             <span className={styles.userName}>{user?.name}</span>
-            <span className={styles.userRole}>Administrator</span>
+            <div className={styles.userRole}>
+              <span>Administrator</span>
+              <Badge text="Verified" variant="verified" iconOnly />
+            </div>
           </div>
           <ChevronDown size={18} className={styles.chevronIcon} />
         </div>

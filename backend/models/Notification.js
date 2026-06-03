@@ -18,14 +18,19 @@ const notificationSchema = mongoose.Schema(
       required: true,
        enum: [
         // Interest-related
-        'NEW_INTEREST', 
-        'INTEREST_APPROVED', 
+        'NEW_INTEREST',
+        'INTEREST_APPROVED',
         'INTEREST_REJECTED',
         // New types
         'NEW_MESSAGE',
         'SUBSCRIPTION_SUCCESS',
         'BOOST_SUCCESS',
-        'NEW_REVIEW'
+        'NEW_REVIEW',
+        'NEW_CONNECTION_REQUEST',
+        'CONNECTION_ACCEPTED',
+         // Idea validation
+        'IDEA_VOTE',
+        'IDEA_COMMENT'
       ],
     },
     isRead: {
@@ -44,6 +49,24 @@ const notificationSchema = mongoose.Schema(
     conversationId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Conversation'
+    },
+    // Generic reference for notifications related to ideas or other models
+    relatedId: {
+        type: mongoose.Schema.Types.ObjectId,
+        refPath: 'onModel'
+    },
+    onModel: {
+        type: String,
+        enum: ['Idea', 'Project', 'Interest', 'User']
+    },
+    // Optional message content for custom notifications
+    message: {
+        type: String
+    },
+    // Legacy field alias for isRead (for backwards compatibility)
+    read: {
+        type: Boolean,
+        default: false
     }
   },
   {

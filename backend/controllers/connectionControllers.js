@@ -1,6 +1,6 @@
 // backend/controllers/connectionController.js
 
-const User = require('../models/user');
+const User = require('../models/User');
 
 // Send connection request
 const sendConnectionRequest = async (req, res) => {

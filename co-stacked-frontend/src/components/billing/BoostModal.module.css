@@ -1,6 +1,47 @@
 /* src/components/billing/BoostModal.module.css */
-.header { text-align: center; margin-bottom: 2rem; }
-.title { font-size: 1.5rem; font-weight: 700; }
-.subtitle { margin-top: 0.5rem; color: var(--muted-foreground); }
-.tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
-.footer { display: flex; justify-content: flex-end; gap: 1rem; }
+
+.header {
+  padding: 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.subtitle {
+  margin-top: 0.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tiers {
+  padding: 1.5rem;
+  display: grid;
+  /* --- RESPONSIVE GRID --- */
+  /* On mobile, stack them. On larger screens, they will be side-by-side. */
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.footer {
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  border-top: 1px solid var(--border);
+  background-color: var(--background);
+}
+
+/* --- Media query for screens wider than mobile --- */
+@media (min-width: 500px) {
+  .tiers {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

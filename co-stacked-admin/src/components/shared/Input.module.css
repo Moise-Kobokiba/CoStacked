@@ -1,0 +1,19 @@
+/* src/components/shared/Input.module.css */
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) / 2);
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px hsla(211, 71%, 52%, 0.1);
+}
+
+.input::placeholder {
+  color: var(--muted-foreground);
+}

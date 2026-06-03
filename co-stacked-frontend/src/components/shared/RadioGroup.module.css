@@ -2,12 +2,45 @@
 .group {
   display: flex;
   gap: 2rem;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
 }
+
 .item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: fit-content; /* Prevent items from being too narrow */
 }
+
 .label {
   font-weight: 500;
+  cursor: pointer; /* Make labels clickable */
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .group {
+    flex-direction: column; /* Stack vertically on mobile */
+    gap: 1rem; /* Reduce gap on mobile */
+    align-items: flex-start; /* Align items to start */
+  }
+
+  .item {
+    width: 100%; /* Full width on mobile */
+    padding: 0.75rem; /* Add padding for better touch targets */
+    border: 1px solid var(--border); /* Add border for better visual separation */
+    border-radius: 0.5rem; /* Rounded corners */
+    background-color: var(--card-background); /* Background color */
+    transition: all 0.2s ease; /* Smooth transitions */
+  }
+
+  .item:hover {
+    border-color: var(--primary); /* Highlight on hover */
+    background-color: var(--card-background-hover);
+  }
+
+  .label {
+    font-size: 1rem; /* Slightly larger text on mobile */
+    width: 100%; /* Full width labels */
+  }
 }

@@ -1,0 +1,31 @@
+/* src/components/shared/ThemeToggle.module.css */
+
+.toggleButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  text-align: left;
+  color: var(--foreground);
+  transition: background-color 0.2s ease;
+}
+
+.toggleButton:hover {
+  background-color: var(--muted);
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  color: var(--muted-foreground);
+}
+
+.text {
+  font-size: 0.9rem;
+  font-weight: 500;
+}

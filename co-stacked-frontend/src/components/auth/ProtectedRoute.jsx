@@ -1,33 +1,57 @@
 // src/components/auth/ProtectedRoute.jsx
+
 import { useSelector } from 'react-redux';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 /**
- * A wrapper component that protects routes requiring authentication.
- * This version uses the `children` prop, which is perfect for a flat routing structure.
+ * A robust wrapper for protecting routes, designed for nested routing.
+ * It handles the initial authentication check and enforces profile completion.
  */
-export const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, status } = useSelector((state) => state.auth);
+export const ProtectedRoute = () => {
+  const { isAuthenticated, user, status } = useSelector((state) => state.auth);
   const location = useLocation();
 
-  // Show a loading indicator while the auth status is being determined
-  // This prevents flickering on page refresh for logged-in users.
+  // 1. If we are actively checking for a token (on app load), show a loading state.
   if (status === 'loading') {
-    return <div>Loading...</div>; // Replace with a real spinner component if you have one
+    return (
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '5rem',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1rem'
+      }}>
+        <div className="animate-spin" style={{
+          width: '40px',
+          height: '40px',
+          border: '3px solid #e5e7eb',
+          borderTop: '3px solid #3b82f6',
+          borderRadius: '50%'
+        }} />
+        <p style={{ color: '#6b7280' }}>Authenticating...</p>
+      </div>
+    );
   }
 
-  // If the user is authenticated, render the page they are trying to access.
-  if (isAuthenticated) {
-    return children;
+  // 2. If user is not authenticated, redirect to login
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If not authenticated, redirect to the login page.
-  // We pass the `location` they were trying to visit in the state,
-  // so we can redirect them back after they successfully log in.
-  return <Navigate to="/login" state={{ from: location }} replace />;
+  // 3. Check if user needs to complete onboarding
+  // Skip onboarding check for onboarding page itself and auth callback
+  const currentPath = location.pathname;
+  const skipOnboardingPaths = ['/onboarding', '/auth/callback', '/verify-email'];
+  
+  if (!skipOnboardingPaths.includes(currentPath) && user && !user.profileCompleted) {
+    // Redirect to onboarding if profile is not complete
+    return <Navigate to="/onboarding" state={{ from: location }} replace />;
+  }
+
+  // 4. User is authenticated and profile is complete (or on allowed pages)
+  return <Outlet />;
 };
 
-ProtectedRoute.propTypes = {
-  children: PropTypes.node.isRequired,
-};
+ProtectedRoute.propTypes = {};

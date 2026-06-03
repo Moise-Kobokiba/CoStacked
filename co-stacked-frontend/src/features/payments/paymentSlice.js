@@ -58,7 +58,7 @@ export const cancelSubscription = createAsyncThunk(
   'payments/cancelSubscription',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await API.put('/users/cancel-subscription');
+      const response = await API.post('/payments/cancel-subscription');
       return response.data; // The backend returns { success, message, user }
     } catch (error) {
       return rejectWithValue(error.response.data);

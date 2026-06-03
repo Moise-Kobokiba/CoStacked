@@ -136,8 +136,12 @@ const interestsSlice = createSlice({
       .addCase(respondToInterest.fulfilled, (state, action) => {
         state.status = 'succeeded';
         const updatedInterest = action.payload;
-        const index = state.receivedItems.findIndex(i => i._id === updatedInterest._id);
-        if (index !== -1) { state.receivedItems[index] = updatedInterest; }
+        // Update receivedItems for the founder
+        const receivedIndex = state.receivedItems.findIndex(i => i._id === updatedInterest._id);
+        if (receivedIndex !== -1) { state.receivedItems[receivedIndex] = updatedInterest; }
+        // Update sentItems for the developer
+        const sentIndex = state.sentItems.findIndex(i => i._id === updatedInterest._id);
+        if (sentIndex !== -1) { state.sentItems[sentIndex] = updatedInterest; }
       })
       .addCase(respondToInterest.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload; })
 

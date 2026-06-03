@@ -1,7 +1,6 @@
 /* src/components/shared/Button.module.css */
 
 .button {
-  /* Base styles for all buttons */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -11,12 +10,13 @@
   padding: 0.75rem 1.25rem;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background-color 150ms ease-in-out, border-color 150ms ease-in-out;
-  text-decoration: none; /* For when we use 'a' tags */
+  transition: background-color 150ms ease-in-out, border-color 150ms ease-in-out, color 150ms ease-in-out;
+  text-decoration: none;
   white-space: nowrap;
 }
 
-/* Variant Styles */
+/* --- Variant Styles --- */
+
 .primary {
   background-color: var(--primary);
   color: var(--primary-foreground);
@@ -28,23 +28,42 @@
 }
 
 .secondary {
-  background-color: var(--secondary-button-background); /* Use the new variable */
+  background-color: var(--secondary-button-background);
   color: var(--secondary-foreground);
   border-color: var(--border);
   box-shadow: var(--shadow-sm);
 }
 .secondary:hover {
-  background-color: var(--secondary-button-hover); /* Use the new variable */
+  background-color: var(--secondary-button-hover);
 }
 
+/* --- UPDATED: Outline variant is now theme-aware --- */
 .outline {
-  background-color: white; /* Transparent background */
-  color: #000000;                 /* White text for dark backgrounds */
-  border-color: #FFFFFF;           /* White border */
-  transition: all 150ms ease-in-out;
+  background-color: transparent;
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.outline:hover {
+  background-color: var(--secondary-button-hover);
+  border-color: var(--border);
 }
 
-.outline:hover {
-  background-color: rgba(255, 255, 255, 0.1); /* Subtle white glow on hover */
-  color: #FFFFFF;
+/* --- NEW: Destructive variant for delete/cancel actions --- */
+.destructive {
+  background-color: var(--destructive);
+  color: var(--destructive-foreground); /* This is typically a light color like white or very light red */
+  border-color: var(--destructive);
+}
+.destructive:hover {
+  opacity: 0.9;
+}
+
+/* --- Disabled state --- */
+.disabled,
+.disabled:hover {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--muted);
+  border-color: var(--muted);
+  color: var(--muted-foreground);
 }

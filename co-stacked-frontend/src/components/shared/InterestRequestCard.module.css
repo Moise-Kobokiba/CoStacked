@@ -3,7 +3,7 @@
 .card {
   display: flex;
   flex-direction: column;
-  height: 100%; /* Ensures cards in a grid have the same height */
+  height: 100%;
   padding: 1rem 1.25rem;
 }
 
@@ -25,9 +25,10 @@
   font-size: 0.9rem;
 }
 
+/* This was pointing to a non-existent variable, fixed to --foreground */
 .description strong {
   font-weight: 500;
-  color: var(--card-foreground);
+  color: var(--foreground);
 }
 
 .content {
@@ -45,17 +46,18 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-  align-items: center; /* Vertically align badge/buttons */
+  align-items: center;
 }
 
-/* === Action Button Styles === */
+/* === UPDATED: Action Button Styles === */
 
 .rejectButton {
-  border-color: hsl(0, 70%, 80%);
-  color: hsl(0, 60%, 50%);
+  /* Use the destructive variables for consistency */
+  border-color: var(--destructive-border);
+  color: var(--destructive);
 }
 .rejectButton:hover {
-  background-color: hsl(0, 80%, 97%);
+  background-color: var(--destructive-foreground);
 }
 
 .loader {
@@ -66,7 +68,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* === Status Badge Styles === */
+/* === UPDATED: Status Badge Styles === */
 
 .statusBadge {
   padding: 0.5rem 1rem;
@@ -80,16 +82,16 @@
 }
 
 .approved {
-  background-color: hsl(140, 80%, 96%);
-  color: hsl(140, 60%, 40%);
+  background-color: var(--success-foreground);
+  color: var(--success);
 }
 
-.rejected, .declined { /* .declined is for backwards compatibility if needed */
-  background-color: hsl(0, 80%, 96%);
-  color: hsl(0, 60%, 40%);
+.rejected, .declined {
+  background-color: var(--destructive-foreground);
+  color: var(--destructive);
 }
 
 .pending {
-  background-color: hsl(45, 90%, 95%);
-  color: hsl(45, 80%, 40%);
+  background-color: var(--warning-foreground);
+  color: var(--warning);
 }

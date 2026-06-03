@@ -1,42 +1,49 @@
 /* src/components/shared/ConfirmationModal.module.css */
+
 .container {
   display: flex;
   align-items: flex-start;
   gap: 1rem;
 }
+
+/* --- UPDATED: Icon styles now use theme variables --- */
 .iconWrapper {
   flex-shrink: 0;
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background-color: hsl(0, 80%, 97%);
+  background-color: var(--destructive-foreground); /* Light red background */
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .icon {
-  color: hsl(0, 70%, 50%);
+  color: var(--destructive); /* Darker red icon color */
 }
+/* ----------------------------------------------------- */
+
 .title {
   font-size: 1.25rem;
   font-weight: 600;
+  color: var(--foreground); /* Use theme variable */
   margin-bottom: 0.5rem;
 }
+
 .message {
   color: var(--muted-foreground);
   line-height: 1.6;
 }
+
 .footer {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 2rem;
 }
-.confirmButton {
-  background-color: hsl(0, 63%, 44%);
-  border-color: hsl(0, 63%, 44%);
-}
-.confirmButton:hover {
-  background-color: hsl(0, 72%, 39%);
-  border-color: hsl(0, 72%, 39%);
-}
+
+/* --- DEPRECATED: Button-specific styles are removed --- */
+/* The .confirmButton styles are no longer needed here. */
+/* This logic should be handled by the Button component's 'destructive' variant. */
+/* .confirmButton { ... } */
+/* .confirmButton:hover { ... } */

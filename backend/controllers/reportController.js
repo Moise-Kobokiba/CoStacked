@@ -66,4 +66,68 @@ const createReport = async (req, res) => {
   }
 };
 
-module.exports = { createReport };
+/**
+ * @desc    Get user's submitted reports and support tickets
+ * @route   GET /api/reports/my-reports
+ * @access  Private
+ */
+const getMyReports = async (req, res) => {
+  try {
+    const reports = await Report.find({ reporter: req.user._id })
+      .populate('reportedUser', 'name avatarUrl')
+      .populate('reportedProject', 'title')
+      .populate('messages.sender', 'name avatarUrl role') // To see admin names/avatars
+      .sort({ createdAt: -1 });
+
+    res.json(reports);
+  } catch (error) {
+    console.error(`[GET MY REPORTS ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server error while fetching reports' });
+  }
+};
+
+/**
+ * @desc    Add a message to an existing report (User side)
+ * @route   POST /api/reports/:id/messages
+ * @access  Private
+ */
+const addReportMessage = async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ message: 'Message content is required.' });
+
+    const report = await Report.findById(req.params.id);
+    if (!report) return res.status(404).json({ message: 'Report not found' });
+
+    // Verify it belongs to the user
+    if (report.reporter.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to reply to this report.' });
+    }
+
+    report.messages.push({
+      sender: req.user._id,
+      senderModel: 'User',
+      content
+    });
+
+    await report.save();
+    
+    // We should populate the newly added message's sender for the frontend
+    await report.populate('messages.sender', 'name avatarUrl role');
+
+    // Notify admins
+    await AdminNotification.create({
+      type: 'REPORT_REPLY',
+      message: `${req.user.name} added a reply to ticket #${report._id.toString().slice(-4)}`,
+      link: '/reports',
+      refId: report._id
+    });
+
+    res.json(report);
+  } catch (error) {
+    console.error(`[ADD REPORT MESSAGE ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server error while adding message.' });
+  }
+};
+
+module.exports = { createReport, getMyReports, addReportMessage };

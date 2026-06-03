@@ -1,0 +1,23 @@
+# CoStacked AI Knowledge Index
+
+CoStacked is a premier ecosystem for startup founders and developers. This index provides structured information for AI agents, crawlers, and retrieval systems to understand the CoStacked platform and its resources.
+
+## Platform Overview
+- **Projects Directory**: Discover active startup projects and collaboration opportunities. [https://www.costacked.co.za/projects]
+- **Validation Board**: Frameworks and tools for testing startup hypotheses. [https://www.costacked.co.za/validation-board]
+- **StackSuite**: A collaborative workspace for developers and founders. [https://www.costacked.co.za/stack-suite]
+- **Info Hub**: Curated guides and technical articles for startup builders. [https://www.costacked.co.za/info-hub]
+
+## AI & Developer Resources
+- **Structured Dataset (JSON)**: Full blog dataset for RAG ingestion. [https://www.costacked.co.za/api/articles/knowledge]
+- **Documentation format**: Articles support `?format=md` for raw text parsing.
+
+## Key Startup Topics
+- **MVP Development**: Agile methodologies for building minimum viable products.
+- **Startup Validation**: Evidence-based strategies for product-market fit.
+- **Technical Hiring**: Guides on finding and vetting technical co-founders.
+- **Fundraising**: Pitch deck optimization and investor relations.
+
+## Featured Content
+- **Complete App Launch Guide**: [https://www.costacked.co.za/info-hub/complete-app-launch]
+- **Startup Validation Framework**: [https://www.costacked.co.za/info-hub/validation-guide]

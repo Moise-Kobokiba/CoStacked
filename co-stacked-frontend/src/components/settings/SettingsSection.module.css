@@ -44,3 +44,13 @@
   gap: 1.5rem;
   /* All the card styles (background, border, padding, etc.) have been removed */
 }
+
+/* Add this to SettingsSection.module.css */
+
+.dangerZone {
+  border-color: var(--destructive-border);
+}
+
+.dangerZone .title {
+  color: var(--destructive);
+}

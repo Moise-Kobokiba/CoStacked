@@ -3,48 +3,69 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem 1rem;
+  padding: 2rem 1rem;
   min-height: calc(100vh - 65px);
+  background: var(--background);
 }
 
 .card {
   width: 100%;
   max-width: 420px;
+  background: var(--card-background);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
 }
 
 .header {
   text-align: center;
-  padding: 1.5rem;
+  padding: 2rem 2rem 1rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .title {
   font-size: 1.75rem;
   font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
 }
 
 .description {
   color: var(--muted-foreground);
-  margin-top: 0.5rem;
+  font-size: 0.95rem;
 }
 
 .content {
-  padding: 0 1.5rem 1.5rem;
+  padding: 2rem;
 }
 
-.form, .formGroup {
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.formGroup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.form {
-  gap: 1.25rem;
+.passwordHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.footer {
-  margin-top: 1.5rem;
-  font-size: 0.9rem;
-  text-align: center;
+.forgotLink {
+  font-size: 0.875rem;
+  color: var(--primary);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.forgotLink:hover {
+  opacity: 0.8;
 }
 
 .error {
@@ -55,50 +76,136 @@
   padding: 0.75rem;
   text-align: center;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
+
+.oauthError {
+  color: hsl(0, 70%, 50%);
+  background-color: hsl(0, 80%, 97%);
+  border: 1px solid hsl(0, 70%, 80%);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
 .success {
-  color: #15803d; /* A success green color */
+  color: #15803d;
   background-color: #f0fdf4;
   border: 1px solid #bbf7d0;
   padding: 0.75rem;
-  border-radius: 6px;
+  border-radius: var(--radius);
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
-.passwordHeader {
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+}
+
+.divider span {
+  position: relative;
+  display: inline-block;
+  padding: 0 1rem;
+  background: var(--card-background);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Social Login Buttons */
+.socialButtons {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.githubButton,
+.googleButton,
+.linkedinButton {
+  width: 100%;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border);
+  background: var(--card-background);
+  color: var(--foreground);
+  border-radius: var(--radius);
+  cursor: pointer;
 }
 
-.forgotLink {
-  font-size: 0.85rem;
-  color: var(--primary);
-  text-decoration: none;
+.githubButton:hover {
+  background-color: #24292e;
+  color: white;
+  border-color: #24292e;
 }
 
-.forgotLink:hover {
-  text-decoration: underline;
+.googleButton:hover {
+  background-color: #f8f9fa;
+  border-color: #4285F4;
 }
 
-/* You probably already have a .link class, but ensure it's there */
-.link {
-  font-weight: 600;
-  color: var(--primary);
-}
-.link:hover {
-  text-decoration: underline;
+.linkedinButton:hover {
+  background-color: #f3f6f8;
+  border-color: #0A66C2;
 }
 
-.success {
-  color: #15803d; /* A success green color */
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  padding: 0.75rem;
-  border-radius: 6px;
+.footer {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
   text-align: center;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+}
+
+.link {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.link:hover {
+  opacity: 0.8;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .pageContainer {
+    padding: 1rem;
+  }
+
+  .header {
+    padding: 1.5rem 1.5rem 1rem;
+  }
+
+  .content {
+    padding: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
 }

@@ -5,17 +5,17 @@ import { useParams, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 
 // Import all necessary Redux actions
-import { sendInterestRequest } from '../features/interests/interestsSlice';
+import { sendInterestRequest, fetchSentInterests } from '../features/interests/interestsSlice';
 import { fetchProjects } from '../features/projects/projectsSlice';
 import { submitReport } from '../features/reports/reportsSlice';
 
 // Import all necessary UI Components
-import { Card } from '../components/shared/Card';
 import { Button } from '../components/shared/Button';
 import { Tag } from '../components/shared/Tag';
 import { ConnectNDAModal } from '../components/connect/ConnectNDAModal';
 import { ReportModal } from '../components/reports/ReportModal';
 import styles from './ProjectDetailPage.module.css';
+import { ArrowLeft } from 'lucide-react';
 
 const LoadingSpinner = () => <div className={styles.loader}>Loading project details...</div>;
 
@@ -23,25 +23,37 @@ export const ProjectDetailPage = () => {
   const dispatch = useDispatch();
   const { projectId } = useParams();
 
-  // Local state for controlling all modals on this page
   const [isNdaModalOpen, setNdaModalOpen] = useState(false);
   const [isReportModalOpen, setReportModalOpen] = useState(false);
 
-  // Get all live data from the Redux store
   const { user: currentUser } = useSelector(state => state.auth);
   const { items: projects, status: projectsStatus } = useSelector(state => state.projects);
-  const { status: interestStatus } = useSelector(state => state.interests);
+  const { sentItems, status: interestStatus } = useSelector(state => state.interests);
   
   const project = projects.find(p => p._id === projectId);
 
-  // Effect to fetch projects if they are not already in the state
   useEffect(() => {
     if (projectsStatus === 'idle') {
       dispatch(fetchProjects());
     }
-  }, [projectsStatus, dispatch]);
+    // Fetch sent interests for developers to check connection status
+    if (currentUser?.role === 'developer') {
+      dispatch(fetchSentInterests());
+    }
+  }, [projectsStatus, currentUser?.role, dispatch]);
 
-  // --- Handlers for user actions ---
+  // Refetch sent interests when the page becomes visible (in case interest status changed)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && currentUser?.role === 'developer') {
+        dispatch(fetchSentInterests());
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [currentUser?.role, dispatch]);
+
   const handleConnectClick = () => {
     if (!currentUser) {
       alert("Please log in or sign up to connect with projects.");
@@ -62,14 +74,10 @@ export const ProjectDetailPage = () => {
   };
 
   const handleSubmitReport = async (reportData) => {
-    const payload = {
-      type: 'project',
-      reportedId: projectId,
-      ...reportData
-    };
+    const payload = { type: 'project', reportedId: projectId, ...reportData };
     const resultAction = await dispatch(submitReport(payload));
     
-    setReportModalOpen(false); // Close modal after submission
+    setReportModalOpen(false);
     
     if (submitReport.fulfilled.match(resultAction)) {
       alert(resultAction.payload.message);
@@ -77,24 +85,30 @@ export const ProjectDetailPage = () => {
       alert(`Error submitting report: ${resultAction.payload}`);
     }
   };
+
+  if (projectsStatus === 'loading' || (projectsStatus === 'idle' && !project)) {
+    return <div className={styles.pageContainer}><LoadingSpinner /></div>;
+  }
   
-  // --- Conditional Rendering for Loading/Not Found states ---
-  if (projectsStatus === 'loading' || projectsStatus === 'idle') {
+  if (!project) {
     return (
       <div className={styles.pageContainer}>
-        <LoadingSpinner />
+        <div className={styles.contentWrapper}>
+          <h1>Project Not Found</h1>
+          <Link to="/projects" className={styles.backLink}>
+            <ArrowLeft size={16} /> Back to Projects
+          </Link>
+        </div>
       </div>
     );
   }
-  if (projectsStatus === 'succeeded' && !project) {
-    return (
-      <div className={styles.pageContainer}><div className={styles.contentWrapper}><h1>Project Not Found</h1><p>This project may have been removed.</p><Link to="/projects">← Back to all projects</Link></div></div>
-    );
-  }
 
-  // Derived state for button visibility
   const isFounderOfProject = project && currentUser && project.founderId === currentUser._id;
   const canConnect = currentUser && currentUser.role === 'developer' && !isFounderOfProject;
+
+  // Check if developer has already sent an interest for this project
+  const existingInterest = sentItems.find(interest => interest.projectId?._id === projectId);
+  const interestStatusText = existingInterest ? existingInterest.status : null;
 
   return (
     <>
@@ -109,35 +123,62 @@ export const ProjectDetailPage = () => {
 
       <div className={styles.pageContainer}>
         <div className={styles.contentWrapper}>
-          <div className={styles.actions}>
-             <Link to="/projects">← Back to Projects</Link>
-          </div>
-          <Card className={styles.projectCard}>
-            <header className={styles.header}>
-              <h1>{project.title}</h1>
-              {canConnect && (
-                <Button onClick={handleConnectClick} disabled={interestStatus === 'loading'}>
-                  {interestStatus === 'loading' ? 'Sending...' : 'Connect'}
-                </Button>
-              )}
-            </header>
+          <Link to="/projects" className={styles.backLink}>
+            <ArrowLeft size={16} />
+            Back to Projects
+          </Link>
+          
+          <div className={styles.projectCard}>
+            
+             <header className={styles.header}>
+               <h1 className={styles.title}>{project.title}</h1>
+               {canConnect && (
+                 <Button
+                   onClick={handleConnectClick}
+                   disabled={interestStatus === 'loading' || interestStatusText === 'pending' || interestStatusText === 'approved'}
+                 >
+                   {interestStatus === 'loading' ? 'Sending...' :
+                    interestStatusText === 'pending' ? 'Request Sent' :
+                    interestStatusText === 'approved' ? 'Connected' :
+                    'Connect'}
+                 </Button>
+               )}
+             </header>
 
+            <hr className={styles.separator} />
+            
             <div className={styles.contentGrid}>
               <div className={styles.mainContent}>
-                <h2 className={styles.sectionTitle}>Project Description</h2>
-                <p>{project.description}</p>
-                <h2 className={styles.sectionTitle}>Skills Needed</h2>
-                <div className={styles.skillsContainer}>
-                  {project.skillsNeeded.map(skill => <Tag key={skill}>{skill}</Tag>)}
+                <div className={styles.section}>
+                  <h2 className={styles.sectionTitle}>Project Description</h2>
+                  <p>{project.description}</p>
+                </div>
+                <div className={styles.section}>
+                  <h2 className={styles.sectionTitle}>Skills Needed</h2>
+                  <div className={styles.skillsContainer}>
+                    {project.skillsNeeded.map(skill => <Tag key={skill}>{skill}</Tag>)}
+                  </div>
                 </div>
               </div>
+
+              {/* --- THIS IS THE UPDATED JSX STRUCTURE --- */}
               <aside className={styles.detailsSidebar}>
-                <ul>
-                  <li className={styles.detailItem}><strong>Compensation</strong><span>{project.compensation}</span></li>
-                  <li className={styles.detailItem}><strong>Stage</strong><span>{project.stage}</span></li>
-                  <li className={styles.detailItem}><strong>Founder</strong><span>{project.founder}</span></li>
-                  <li className={styles.detailItem}><strong>Location</strong><span>{project.location}</span></li>
-                </ul>
+                <div className={styles.detailItem}>
+                  <strong>Compensation</strong>
+                  <span>{project.compensation}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <strong>Stage</strong>
+                  <span>{project.stage}</span>
+                </div>
+                 <div className={styles.detailItem}>
+                  <strong>Founder</strong>
+                  <span>{project.founder}</span>
+                </div>
+                 <div className={styles.detailItem}>
+                  <strong>Location</strong>
+                  <span>{project.location}</span>
+                </div>
               </aside>
             </div>
             
@@ -148,7 +189,7 @@ export const ProjectDetailPage = () => {
                 </button>
               )}
             </footer>
-          </Card>
+          </div>
         </div>
       </div>
     </>

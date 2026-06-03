@@ -1,0 +1,38 @@
+/* src/components/shared/Button.module.css */
+.button {
+  padding: 0.75rem 1rem;
+  border-radius: calc(var(--radius) / 2);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.primary:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.outline {
+  background-color: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.outline:hover:not(:disabled) {
+  background-color: var(--muted);
+}

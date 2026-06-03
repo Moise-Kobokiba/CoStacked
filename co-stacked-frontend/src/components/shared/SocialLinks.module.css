@@ -1,0 +1,23 @@
+/* src/components/shared/SocialLinks.module.css */
+
+.container {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem; /* Space between icons */
+}
+
+.link {
+  color: var(--muted-foreground);
+  transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.link:hover {
+  color: var(--primary);
+  transform: scale(1.1);
+}
+
+.noLinks {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  font-style: italic;
+}

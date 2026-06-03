@@ -8,6 +8,7 @@ import reportsReducer from '../features/reports/reportsSlice';
 import transactionReducer from '../features/transactions/transactionSlice';
 // 1. Import the new admin notifications reducer
 import adminNotificationsReducer from '../features/notifications/adminNotificationsSlice';
+import adminSettingsReducer from '../features/settings/adminSettingsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -19,5 +20,6 @@ export const store = configureStore({
     transactions: transactionReducer,
     // 2. Add the new slice to the store
     adminNotifications: adminNotificationsReducer,
+    settings: adminSettingsReducer,
   },
 });

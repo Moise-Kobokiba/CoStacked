@@ -1,0 +1,65 @@
+/* src/pages/PaymentPage.module.css */
+.pageContainer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1rem;
+  min-height: 80vh;
+  background-color: var(--background);
+}
+.card {
+  background-color: var(--card-background);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  width: 100%;
+  max-width: 450px;
+  padding: 1.5rem;
+}
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+.description {
+  color: var(--muted-foreground);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.amount {
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 1rem;
+  background-color: var(--muted);
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+}
+.formContainer {
+  min-height: 300px; /* Give Yoco space to render */
+}
+.loaderContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--muted-foreground);
+  min-height: 300px;
+}
+.payButton {
+  /* This is a simple button style; you can use your Button component's classes if you prefer */
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  font-weight: 600;
+  color: white;
+  background-color: var(--primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.payButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

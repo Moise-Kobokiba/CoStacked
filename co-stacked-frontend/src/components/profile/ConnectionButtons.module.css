@@ -1,0 +1,28 @@
+/* src/components/profile/ConnectionButtons.module.css */
+
+.container {
+  display: flex;
+  flex-wrap: wrap; /* Allows buttons to wrap onto the next line if needed */
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* 
+  Make each button inside grow to fill the available space.
+  When there are 2 buttons, they will each take up about half the width.
+  When there is 1 button, it will take up the full width.
+*/
+.container > * {
+  flex: 1 1 0;
+  min-width: 120px; /* Prevent buttons from becoming too small */
+}
+
+/* --- DESKTOP: Switch to auto-width on larger screens --- */
+@media (min-width: 768px) {
+  .container {
+    width: auto; /* Let the container size to its content */
+  }
+  .container > * {
+    flex-grow: 0; /* Stop buttons from growing */
+  }
+}

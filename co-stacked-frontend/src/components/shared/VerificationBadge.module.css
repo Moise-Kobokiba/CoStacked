@@ -1,0 +1,17 @@
+.badgeWrapper {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.icon {
+    /* Optional: drop shadow or specific colors */
+    display: block;
+    object-fit: contain;
+}
+
+.fallbackIcon {
+    /* Fallback styles specific to the lucide icon if needed */
+    display: block;
+}

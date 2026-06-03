@@ -12,8 +12,10 @@
 }
 
 .filled {
-  color: #f59e0b; /* A nice gold/yellow color */
-  fill: #f59e0b;
+  /* --- THIS IS THE UPDATE --- */
+  /* Replaced the hardcoded color with our theme variable */
+  color: var(--star-color);
+  fill: var(--star-color);
 }
 
 .empty {

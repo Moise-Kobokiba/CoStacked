@@ -20,7 +20,9 @@
   height: 60px;
   width: 60px;
   border-radius: 50%;
-  background-color: hsl(221, 83%, 95%); /* Very light blue */
+  /* --- THIS IS THE FIX --- */
+  /* Replaced the hardcoded HSL color with our theme variable */
+  background-color: var(--primary-light);
   margin-bottom: 1.5rem;
 }
 

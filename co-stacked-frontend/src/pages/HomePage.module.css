@@ -1,184 +1,257 @@
-/* src/pages/HomePage.module.css */
+/* ======================================== */
+/* 1. BASE CONTAINER & THEME SWITCHING      */
+/* ======================================== */
+.pageContainer {
+  width: 100%;
+  background-color: #ffffff;
+  color: #0f172a;
+  transition: background-color 0.33s ease, color 0.33s ease;
+  overflow-x: hidden;
+}
 
+/* Global Dark Mode Override */
+.pageContainer[data-theme='dark'] {
+  background-color: #0b1120; /* Deep navy/black */
+  color: #f8fafc;
+}
+
+/* ======================================== */
+/* 2. HERO SECTION (Adaptive & Mobile)      */
+/* ======================================== */
 .hero {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: calc(80vh - 65px);
-  padding: 4rem 2rem;
+  padding: 3.5rem 1.25rem 0;
   text-align: center;
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
 }
 
-.hero::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  /* UPDATED: Increased overlay opacity for better text contrast on all screens */
-  background-color: rgba(0, 0, 0, 0.1); 
-  z-index: 1;
-}
-
-/* All hero content needs a z-index to appear above the overlay */
-.headline, .tagline, .ctaGroup {
-  position: relative;
-  z-index: 2;
-}
-
-.headline {
-  /* UPDATED: Changed color to white for better contrast against the dark overlay */
-  color: #000000;
-  font-size: 3.75rem;
+.heroTitle {
+  font-size: 2.5rem;
   font-weight: 800;
-  letter-spacing: -0.05em;
   line-height: 1.1;
-  max-width: 800px;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.heroTitle span {
+  color: #2563eb;
+}
+
+.heroSubtitle {
+  color: #64748b;
+  font-size: 1rem;
+  max-width: 600px;
+  line-height: 1.6;
+  margin: 0 auto 2rem;
+}
+
+.pageContainer[data-theme='dark'] .heroTitle { color: #ffffff; }
+.pageContainer[data-theme='dark'] .heroSubtitle { color: #94a3b8; }
+
+.heroActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.heroIllustration {
+  width: 100%;
+  max-width: 1050px;
+  margin-top: 3rem;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f1f5f9;
+}
+
+.pageContainer[data-theme='dark'] .heroIllustration {
+  border-color: #1e293b;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.heroIllustration img {
+  width: 100%;
+  display: block;
+}
+
+/* ======================================== */
+/* 3. LOGGED IN DASHBOARD CONTENT           */
+/* ======================================== */
+.loggedInContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 1.25rem;
+}
+
+.dashboardSection {
+  margin-bottom: 4rem;
+}
+
+.dashboardTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1.5rem;
 }
 
-.tagline {
-  /* UPDATED: Changed color to a light gray for better readability */
-  color: rgba(0, 0, 0, 0.9);
-  font-size: 1.25rem;
-  max-width: 600px;
-  line-height: 1.6;
-  margin-bottom: 2.5rem;
-}
-
-.ctaGroup {
+.seeAll {
   display: flex;
   align-items: center;
+  gap: 0.4rem;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 1.25rem;
 }
 
-/* --- Section Styles --- */
-.howItWorksSection, .testimonialsSection {
-  width: 100%;
-  padding: 5rem 2rem;
+/* ======================================== */
+/* 4. THE WORKFLOW (Improved Spacing)       */
+/* ======================================== */
+.workflowSection {
+  padding: 5rem 1.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.testimonialsSection {
-  background-color: var(--card-background);
-  border-top: 1px solid var(--border);
+.workflowLabel {
+  display: inline-block;
+  color: #2563eb;
+  background: #eff6ff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.5rem 1.25rem;
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+}
+
+/* Dark mode workflow label */
+.pageContainer[data-theme='dark'] .workflowLabel {
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
 }
 
 .sectionTitle {
-  text-align: center;
-  font-size: 2.25rem;
+  font-size: 2rem;
   font-weight: 800;
-  letter-spacing: -0.05em;
-  color: var(--foreground);
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
+  color: #0f172a;
+}
+
+.pageContainer[data-theme='dark'] .sectionTitle {
+  color: #ffffff;
+}
+
+.sectionSubtitle {
+  color: #64748b;
+  font-size: 1rem;
+  margin-bottom: 3.5rem;
+  max-width: 550px;
+}
+
+.pageContainer[data-theme='dark'] .sectionSubtitle {
+  color: #94a3b8;
 }
 
 .featuresGrid {
-  max-width: 1200px;
-  margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
+  width: 100%;
 }
 
-/* This is a great mobile-first approach! No changes needed here. */
+/* ======================================== */
+/* 5. CTA SECTION                           */
+/* ======================================== */
+.ctaSection {
+  padding: 2rem 1.25rem 6rem;
+}
+
+.ctaCard {
+  background: linear-gradient(145deg, #0f172a, #1e293b);
+  border-radius: 24px;
+  padding: 4rem 1.5rem;
+  text-align: center;
+  color: white;
+}
+
+.ctaCard h2 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
+}
+
+.ctaCard p {
+  color: #cbd5e1;
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+
+/* ======================================== */
+/* 6. DESKTOP RESPONSIVENESS                */
+/* ======================================== */
 @media (min-width: 768px) {
+  .hero {
+    padding: 7rem 1.5rem 0;
+  }
+
+  .heroTitle {
+    font-size: 4.5rem;
+  }
+
+  .heroActions {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .heroActions > * {
+    width: auto;
+    min-width: 200px;
+  }
+
+  .dashboardTitle {
+    font-size: 1.85rem;
+  }
+
+  .contentGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .sectionTitle {
+    font-size: 2.75rem;
+  }
+
   .featuresGrid {
     grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-
-/* ======================================== */
-/*            RESPONSIVE QUERIES            */
-/* ======================================== */
-
-/* --- Medium Screens / Tablets --- */
-@media (max-width: 1024px) {
-  .headline {
-    font-size: 3rem; /* Slightly smaller headline */
-    max-width: 650px;
-  }
-  .tagline {
-    font-size: 1.1rem; /* Slightly smaller tagline */
-    max-width: 500px;
-  }
-  .sectionTitle {
-    font-size: 2rem;
-  }
-}
-
-/* --- Small Screens / Mobile --- */
-@media (max-width: 768px) {
-  .hero {
-    /* Reduce vertical height and padding on mobile */
-    min-height: calc(70vh - 65px);
-    padding: 3rem 1rem;
+    gap: 2rem;
+    max-width: 1200px;
   }
 
-  .headline {
-    /* Significantly reduce font size for mobile readability */
-    font-size: 2.25rem;
-    line-height: 1.2;
+  .ctaCard {
+    padding: 6rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
   }
 
-  .tagline {
-    font-size: 1rem;
-    margin-bottom: 2rem;
+  .ctaCard h2 {
+    font-size: 3rem;
   }
-
-  .ctaGroup {
-    /* Stack the buttons vertically */
-    flex-direction: column;
-    gap: 1rem; /* Adjust gap for vertical stacking */
-    /* Make the buttons take up a consistent width */
-    width: 100%;
-    max-width: 300px;
-  }
-  
-  /* You may need a global style or a utility class in your Button component 
-     to make it full-width, e.g., by adding a `fullWidth` prop.
-     If not, this is a way to target it from the parent module: */
-  .ctaGroup > * {
-    width: 100%;
-  }
-
-  /* Reduce section padding on mobile */
-  .howItWorksSection, .testimonialsSection {
-    padding: 3.5rem 1rem;
-  }
-
-  .sectionTitle {
-    font-size: 1.75rem;
-    margin-bottom: 2rem;
-  }
-}
-  /* Completely remove the entire testimonials section */
-.testimonialsSection {
-  display: none !important;
-}
-
-/* Option 1: Simple hide */
-.hiddenSection {
-  display: none;
-}
-
-/* Option 2: Hide but keep space (if you want to reserve the layout) */
-.hiddenSection {
-  visibility: hidden;
-  height: 0;
-  overflow: hidden;
-}
-
-/* Option 3: Hide with opacity (if you want fade animations later) */
-.hiddenSection {
-  opacity: 0;
-  height: 0;
-  overflow: hidden;
-  transition: opacity 0.3s ease;
 }

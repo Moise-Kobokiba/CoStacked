@@ -1,0 +1,227 @@
+.container {
+    padding: 24px;
+}
+
+.header {
+    margin-bottom: 24px;
+}
+
+.header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.header p {
+    color: #6b7280;
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 16px;
+}
+
+.searchWrapper {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 10px 40px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.searchInput:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.clearSearch {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.clearSearch:hover {
+    color: #4b5563;
+}
+
+.tableContainer {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    text-align: left;
+    padding: 16px;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.table td {
+    padding: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.ideaTitle {
+    font-weight: 600;
+    color: #111827;
+}
+
+.ideaIndustry {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.userCell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.scoreBadge {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: #edf7ed; /* Light green */
+    color: #14532d;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.statusBadge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.statusBadge.active {
+    background-color: #ecfccb;
+    color: #3f6212;
+}
+
+.statusBadge.validated {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.statusBadge.archived {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.actionBtn {
+    padding: 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    color: #4b5563;
+    transition: all 0.2s;
+}
+
+.actionBtn:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+
+.deleteBtn:hover {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 100px;
+    color: #6b7280;
+    gap: 16px;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.avatarPlaceholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    color: #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.stats {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+}

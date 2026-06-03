@@ -2,25 +2,42 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.jsx';
 import './index.css';
 import './styles/global.css';
 
-// 1. Import the Provider component from react-redux and our store
+// Import the Provider component from react-redux and our store
 import { Provider } from 'react-redux';
 import { store } from './store/store.js';
 
+// --- THIS IS THE UPDATE ---
+// Import the ThemeProvider from its new, dedicated file.
+import { ThemeProvider } from './context/ThemeProvider';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
 /**
  * The root of our React application.
- * By wrapping the <App /> component with the <Provider>, every component
- * within our entire application (like Header, LoginPage, etc.) will
- * be able to access the Redux store's state and dispatch actions.
+ * - The <Provider> makes the Redux store available.
+ * - The <ThemeProvider> makes the theme state and functions available.
+ * - The <App> component handles routing.
  */
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* 2. Wrap the App with the Provider and pass the store */}
     <Provider store={store}>
-      <App />
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </QueryClientProvider>
     </Provider>
   </React.StrictMode>,
 );

@@ -3,9 +3,57 @@
 .title {
   font-size: 1.5rem;
   font-weight: 600;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--border);
+}
+
+.tabsContainer {
+  margin-bottom: 1.5rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--foreground);
+  background-color: var(--muted);
+}
+
+.activeTab {
+  color: var(--primary);
+  background-color: hsla(211, 71%, 52%, 0.1);
+}
+
+.activeTab:hover {
+  background-color: hsla(211, 71%, 52%, 0.15);
+}
+
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-height: 200px;
 }
 
 .form {
@@ -33,12 +81,18 @@
   border-radius: calc(var(--radius) / 2);
   font-size: 1rem;
   background-color: var(--background);
+  font-family: inherit;
 }
 
 .input:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px hsla(211, 71%, 52%, 0.1);
+}
+
+textarea.input {
+  resize: vertical;
+  min-height: 80px;
 }
 
 .checkboxGroup {
@@ -51,13 +105,95 @@
   width: 18px;
   height: 18px;
   accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.checkboxGroup label {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.skillsInput {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.skillsInput .input {
+  flex: 1;
+}
+
+.addSkillBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: calc(var(--radius) / 2);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.addSkillBtn:hover {
+  background-color: hsla(211, 71%, 45%, 1);
+}
+
+.skillsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.skillTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  background-color: var(--muted);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--foreground);
+}
+
+.skillTag button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.skillTag button:hover {
+  color: var(--destructive);
 }
 
 .footer {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 2.5rem;
+  margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border);
+}
+
+@media (max-width: 600px) {
+  .tabs {
+    gap: 0.125rem;
+  }
+  
+  .tab {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  
+  .tab span {
+    display: none;
+  }
 }

@@ -1,30 +1,27 @@
 /* src/components/profile/ProfileEditor.module.css */
 
-.card {
-  padding: 1rem 2rem 2rem 2rem; /* Give it some nice padding */
-  border: 1px solid var(--border);
-  box-shadow: none; /* A flatter look for an editor form */
+.form {
+  padding: 1.5rem;
 }
 
 .title {
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--foreground);
 }
 
 .formGrid {
   display: grid;
-  /* Responsive grid: 1 column on small screens, 2 on larger ones */
   grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .formGrid {
-    grid-template-columns: 1fr 1fr;
-  }
+  gap: 1.25rem;
 }
 
 .formGroup {
@@ -33,28 +30,161 @@
   gap: 0.5rem;
 }
 
-/* This class makes a form group span both columns in the grid */
 .formGroupSpan2 {
   grid-column: 1 / -1;
 }
 
-.actions {
+.separator {
+  height: 1px;
+  background-color: var(--border);
+  margin: 2.5rem 0;
+}
+
+/* Socials Section */
+.socialsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.socialInputGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: var(--input-background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding-left: 0.75rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.socialInputGroup:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.socialIcon {
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.socialInputGroup input {
+  border: none;
+  background: transparent;
+  padding-left: 0;
+}
+
+.socialInputGroup input:focus {
+  box-shadow: none;
+}
+
+/* Dynamic List (Experience/Education) */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.dynamicList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dynamicItem {
+  padding: 1.5rem;
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  position: relative;
+}
+
+.dynamicItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.iconSelection {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.iconActive {
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.iconInactive {
+  color: var(--muted-foreground);
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.iconInactive:hover {
+  opacity: 1;
+}
+
+.removeBtn {
+  color: var(--destructive);
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.removeBtn:hover {
+  opacity: 1;
+}
+
+.checkboxGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.checkboxGroup input {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+/* Footer */
+.footer {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 2rem;
-  border-top: 1px solid var(--border);
+  margin-top: 2.5rem;
   padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
 }
 
 .error {
-  color: hsl(0, 70%, 50%);
-  background-color: hsl(0, 80%, 97%);
-  border: 1px solid hsl(0, 70%, 80%);
+  color: var(--destructive);
+  background-color: var(--destructive-foreground);
+  border: 1px solid var(--destructive-border);
   border-radius: var(--radius);
   padding: 0.75rem;
   text-align: center;
   font-weight: 500;
   font-size: 0.9rem;
-  grid-column: 1 / -1; /* Make error message span full width */
+  margin-top: 1.5rem;
+}
+
+/* Responsive */
+@media (min-width: 640px) {
+  .formGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .socialsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
 }

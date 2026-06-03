@@ -1,9 +1,8 @@
 // src/api/axios.js
 
 import axios from 'axios';
+// We don't import the store here to keep this file simple and avoid circular dependencies.
 
-// Vite exposes environment variables on the `import.meta.env` object.
-// VITE_API_URL is set in your Render environment settings.
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 const API = axios.create({
@@ -13,30 +12,30 @@ const API = axios.create({
   },
 });
 
-// Axios Interceptor: THE CORRECTED VERSION
-// This interceptor is now completely decoupled from your Redux store,
-// which breaks the circular dependency and fixes the "Cannot access 'xD'" error.
+// Axios Request Interceptor
 API.interceptors.request.use(
   (config) => {
-    // Attempt to retrieve the admin's profile from localStorage.
-    // We use a unique key 'adminProfile' to avoid conflicts with the user-facing app.
-    const adminProfile = localStorage.getItem('adminProfile');
-    
-    if (adminProfile) {
-      // Safely parse the JSON and extract the token.
-      const { token } = JSON.parse(adminProfile);
-      
-      // If a token exists, add it to the Authorization header.
-      if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
+    let token = null;
+    const TOKEN_NAME = 'costacked-admin-token'; // Must match the key used in adminAuthSlice
+
+    try {
+      const authDataString = localStorage.getItem(TOKEN_NAME);
+      if (authDataString) {
+        // The slice saves the whole object { user, token }, so we parse it.
+        const authData = JSON.parse(authDataString);
+        token = authData.token;
       }
+    } catch (e) {
+      console.error("Could not parse auth data from localStorage in admin axios.", e);
     }
-    
-    // Return the modified config so the request can proceed.
+
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+
     return config;
   },
   (error) => {
-    // Handle any errors during the request setup.
     return Promise.reject(error);
   }
 );

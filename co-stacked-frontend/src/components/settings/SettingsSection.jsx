@@ -1,8 +1,14 @@
 // src/components/settings/SettingsSection.jsx
+
 import styles from './SettingsSection.module.css';
-export const SettingsSection = ({ title, description, children }) => {
+import PropTypes from 'prop-types';
+
+export const SettingsSection = ({ title, description, children, isDangerZone = false }) => {
+  // Conditionally add the 'dangerZone' class if the prop is true
+  const sectionClasses = `${styles.section} ${isDangerZone ? styles.dangerZone : ''}`;
+
   return (
-    <div className={styles.section}>
+    <div className={sectionClasses}>
       <div className={styles.header}>
         <h2 className={styles.title}>{title}</h2>
         <p className={styles.description}>{description}</p>
@@ -12,4 +18,12 @@ export const SettingsSection = ({ title, description, children }) => {
       </div>
     </div>
   );
+};
+
+// Add PropTypes for validation, including the new optional boolean
+SettingsSection.propTypes = {
+  title: PropTypes.string.isRequired,
+  description: PropTypes.string.isRequired,
+  children: PropTypes.node.isRequired,
+  isDangerZone: PropTypes.bool,
 };

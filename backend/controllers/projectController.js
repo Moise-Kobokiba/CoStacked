@@ -10,7 +10,9 @@ const AdminNotification = require('../models/AdminNotification'); // For admin p
  */
 const getProjects = async (req, res) => {
   try {
-    const projects = await Project.find({}).sort({ createdAt: -1 });
+    const projects = await Project.find({})
+      .sort({ createdAt: -1 })
+      .populate('founderId', 'name isVerified'); // Populate to show badge
     res.json(projects);
   } catch (error) {
     console.error(`Error fetching projects: ${error.message}`);
@@ -72,7 +74,9 @@ const createProject = async (req, res) => {
  */
 const getMyProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ founderId: req.user._id }).sort({ createdAt: -1 });
+    const projects = await Project.find({ founderId: req.user._id })
+      .sort({ createdAt: -1 })
+      .populate('founderId', 'name isVerified');
     res.json(projects);
   } catch (error) {
     console.error(`Error in getMyProjects: ${error.message}`);
