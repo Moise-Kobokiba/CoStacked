@@ -7,8 +7,11 @@ import { DiscoverProjectCard } from '../components/discover/DiscoverProjectCard'
 import { LayoutGrid, Search, Activity, UserPlus, ChevronDown } from 'lucide-react';
 import styles from './DiscoverProjectsPage.module.css';
 
-const LoadingSpinner = () => <div className={styles.loader}>Loading projects...</div>;
-const ErrorDisplay = ({ error }) => <p className={styles.error}>Error: {error}</p>;
+const ErrorDisplay = ({ error }) => (
+  <div className="rounded-xl border border-red-100 bg-red-50/50 p-4 text-sm font-medium text-red-600 shadow-sm">
+    Error: {error ?? "Unable to load projects."}
+  </div>
+);
 
 export const DiscoverProjectsPage = () => {
   const dispatch = useDispatch();
@@ -122,9 +125,9 @@ export const DiscoverProjectsPage = () => {
 
   let content;
 
-  if (status === 'loading' || status === 'idle') {
+  if (status === "loading" || status === "idle") {
     content = <LoadingSpinner />;
-  } else if (status === 'succeeded') {
+  } else if (status === "succeeded") {
     content = (
       <div className={styles.projectsGrid}>
         {sortedAndFilteredProjects.length > 0 ? (
@@ -138,7 +141,7 @@ export const DiscoverProjectsPage = () => {
         )}
       </div>
     );
-  } else if (status === 'failed') {
+  } else if (status === "failed") {
     content = <ErrorDisplay error={error} />;
   }
 
