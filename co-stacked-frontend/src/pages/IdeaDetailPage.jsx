@@ -1,5 +1,3 @@
-// src/pages/IdeaDetailPage.jsx
-
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -163,179 +161,228 @@ export const IdeaDetailPage = () => {
   return (
     <main className={styles.page}>
       <button className={styles.backButton} type="button" onClick={() => navigate('/validation-board')}>
-        <ArrowLeft size={16} /> Back to Validation Board
+        <ArrowLeft size={16} />
+        Back to Validation Board
       </button>
 
       {ideaLoading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem 0' }}>
+        <div className={styles.loadingState}>
           <Loader2 size={24} className="animate-spin" />
         </div>
       ) : !idea ? (
-        <div style={{ padding: '4rem 0', color: 'var(--muted-foreground)' }}>
-          Idea not found.
-        </div>
+        <div className={styles.emptyState}>Idea not found.</div>
       ) : (
-        <>
-          <section className={styles.header}>
-            <div className={styles.titleRow}>
-              <span className={`${styles.stageBadge} ${stageClassName(displayStage(idea))}`}>
-                {displayStage(idea)}
-              </span>
-              <h1 className={styles.title}>{idea.title}</h1>
-              <div className={styles.metaRow}>
-                <span>Posted {formatDate(idea.createdAt)}</span>
-                {author && (
-                  <Link to={getAuthorLink(author)} className={styles.authorLink}>
-                    <span className={styles.authorBadge}>
-                      {author.avatarUrl ? <img src={author.avatarUrl} alt={author.name} /> : authorInitials}
-                    </span>
-                    <span className={styles.authorText}>
-                      <span className={styles.authorName}>{author.name}</span>
-                      <span className={styles.authorSubtitle}>View profile</span>
-                    </span>
-                  </Link>
+        <div className={styles.layoutGrid}>
+          <div className={styles.leftColumn}>
+            <section className={styles.heroCard}>
+              <div className={styles.heroTop}>
+                <span className={`${styles.stageBadge} ${stageClassName(displayStage(idea))}`}>
+                  {displayStage(idea)}
+                </span>
+                <span className={styles.heroDate}>{formatDate(idea.createdAt)}</span>
+              </div>
+              <h1 className={styles.heroTitle}>{idea.title}</h1>
+              <div className={styles.authorRow}>
+                <Link to={getAuthorLink(author)} className={styles.authorLink}>
+                  <span className={styles.authorBadge}>
+                    {author?.avatarUrl ? <img src={author.avatarUrl} alt={author.name} /> : authorInitials}
+                  </span>
+                  <span className={styles.authorMeta}>
+                    <span className={styles.authorName}>{author?.name || 'Unknown Founder'}</span>
+                    <span className={styles.authorRole}>{author?.headline || 'Founder'}</span>
+                  </span>
+                </Link>
+              </div>
+            </section>
+
+            <div className={styles.infoGrid}>
+              <article className={`${styles.sectionCard} ${styles.problemCard}`}>
+                <p className={styles.sectionTag}>Problem Statement</p>
+                <p className={styles.sectionText}>{idea.problemStatement || 'No problem statement provided yet.'}</p>
+              </article>
+              <article className={`${styles.sectionCard} ${styles.marketCard}`}>
+                <p className={styles.sectionTag}>Target Market</p>
+                <p className={styles.sectionText}>{idea.industry || 'No target market defined yet.'}</p>
+              </article>
+            </div>
+
+            <div className={styles.tagsWrapper}>
+              <span className={styles.tagsLabel}>Target Users</span>
+              <div className={styles.tagList}>
+                {targetUsers.length > 0 ? (
+                  targetUsers.map((userTag, index) => (
+                    <span key={index} className={styles.tagItem}>{userTag}</span>
+                  ))
+                ) : (
+                  <span className={styles.tagItem}>No target users specified yet.</span>
                 )}
               </div>
             </div>
 
-            <div className={styles.scorePanel}>
-              <span className={styles.scoreLabel}>Validation score</span>
-              <span className={styles.scoreValue}>{ideaScore}</span>
-              <div className={styles.votesRow}>
-                <button
-                  type="button"
-                  className={`${styles.voteBtn} ${styles.voteBtnUp} ${isUpvoted ? styles.voteBtnActive : ''}`}
-                  onClick={() => {
-                    if (!isAuthenticated) {
-                      navigate('/login');
-                      return;
-                    }
-                    voteMutation.mutate('up');
-                  }}
-                  disabled={voteMutation.isLoading}
-                >
-                  <ThumbsUp size={18} />
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.voteBtn} ${styles.voteBtnDown} ${isDownvoted ? styles.voteBtnActive : ''}`}
-                  onClick={() => {
-                    if (!isAuthenticated) {
-                      navigate('/login');
-                      return;
-                    }
-                    voteMutation.mutate('down');
-                  }}
-                  disabled={voteMutation.isLoading}
-                >
-                  <ThumbsDown size={18} />
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <section className={styles.sectionGrid}>
-            <article className={styles.sectionCard}>
-              <h2 className={styles.sectionTitle}>Target Market</h2>
-              <p className={styles.sectionText}>{idea.industry || 'No target market defined yet.'}</p>
-            </article>
-            <article className={styles.sectionCard}>
-              <h2 className={styles.sectionTitle}>Problem Statement</h2>
-              <p className={styles.sectionText}>{idea.problemStatement || 'No problem statement provided yet.'}</p>
-            </article>
-            <article className={styles.sectionCard}>
-              <h2 className={styles.sectionTitle}>Target Users</h2>
-              {targetUsers.length > 0 ? (
-                <ul className={styles.sectionText} style={{ paddingLeft: '1rem', listStyleType: 'disc' }}>
-                  {targetUsers.map((person, index) => (
-                    <li key={index}>{person}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className={styles.sectionText}>{idea.targetAudience || 'No target users specified yet.'}</p>
-              )}
-            </article>
-            <article className={styles.sectionCard}>
-              <h2 className={styles.sectionTitle}>Your Solution</h2>
+            <article className={`${styles.sectionCard} ${styles.solutionCard}`}>
+              <p className={styles.sectionTag}>Value Proposition</p>
               <p className={styles.sectionText}>{idea.valueProposition || 'No solution details added yet.'}</p>
             </article>
-          </section>
 
-          <section className={styles.commentCard}>
-            <div className={styles.commentHeader}>
-              <div>
-                <h2 className={styles.commentTitle}>Community Feedback</h2>
-                <p className={styles.commentCount}>{commentsToRender.length} comments</p>
+            <section className={styles.commentCard}>
+              <div className={styles.commentHeader}>
+                <div>
+                  <h2 className={styles.commentTitle}>Community Feedback</h2>
+                  <p className={styles.commentCount}>{commentsToRender.length} comments</p>
+                </div>
+                {(commentsLoading || commentMutation.isLoading) && <Loader2 size={20} className="animate-spin" />}
               </div>
-              <div>{(commentsLoading || commentMutation.isLoading) && <Loader2 size={20} className="animate-spin" />}</div>
-            </div>
 
-            <div className={styles.commentList}>
-              {commentsToRender.length > 0 ? (
-                commentsToRender.map((comment) => {
-                  const commenter = comment.author || {};
-                  const initials = commenter.name
-                    ? commenter.name
-                        .split(' ')
-                        .map((part) => part[0])
-                        .slice(0, 2)
-                        .join('')
-                        .toUpperCase()
-                    : 'U';
-                  return (
-                    <div key={comment._id || comment.createdAt || Math.random()} className={styles.commentItem}>
-                      <span className={styles.commentAvatar}>
-                        {commenter.avatarUrl ? (
-                          <img src={commenter.avatarUrl} alt={commenter.name} />
-                        ) : (
-                          initials
-                        )}
-                      </span>
-                      <div className={styles.commentBody}>
-                        <div className={styles.commentMeta}>
-                          <span className={styles.commentAuthor}>{commenter.name || 'Community'}</span>
-                          <span className={styles.commentTime}>{formatDate(comment.createdAt)}</span>
+              <div className={styles.commentList}>
+                {commentsToRender.length > 0 ? (
+                  commentsToRender.map((comment) => {
+                    const commenter = comment.author || {};
+                    const initials = commenter.name
+                      ? commenter.name
+                          .split(' ')
+                          .map((part) => part[0])
+                          .slice(0, 2)
+                          .join('')
+                          .toUpperCase()
+                      : 'U';
+                    return (
+                      <div key={comment._id || comment.createdAt || Math.random()} className={styles.commentItem}>
+                        <span className={styles.commentAvatar}>
+                          {commenter.avatarUrl ? <img src={commenter.avatarUrl} alt={commenter.name} /> : initials}
+                        </span>
+                        <div className={styles.commentBody}>
+                          <div className={styles.commentMeta}>
+                            <span className={styles.commentAuthor}>{commenter.name || 'Community'}</span>
+                            <span className={styles.commentTime}>{formatDate(comment.createdAt)}</span>
+                          </div>
+                          <p className={styles.commentText}>{comment.content || comment.text || 'No comment text.'}</p>
                         </div>
-                        <p className={styles.commentText}>{comment.content || comment.text || 'No comment text.'}</p>
                       </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <p className={styles.commentText}>No feedback yet. Leave the first constructive comment.</p>
-              )}
-            </div>
+                    );
+                  })
+                ) : (
+                  <p className={styles.commentText}>No feedback yet. Leave the first constructive comment.</p>
+                )}
+              </div>
 
-            <div className={styles.commentForm}>
-              {isAuthenticated ? (
-                <>
-                  <textarea
-                    className={styles.commentTextarea}
-                    rows={4}
-                    placeholder="Leave constructive feedback or suggestions..."
-                    value={commentDraft}
-                    onChange={(e) => setCommentDraft(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className={styles.commentSubmit}
-                    onClick={submitComment}
-                    disabled={!commentDraft.trim() || commentMutation.isLoading}
-                  >
-                    Submit feedback
-                  </button>
-                </>
-              ) : (
-                <p className={styles.loginPrompt}>
-                  <Link to="/login" className={styles.loginLink}>
-                    Log in
-                  </Link>{' '}
-                  to leave constructive feedback.
-                </p>
-              )}
-            </div>
-          </section>
-        </>
+              <div className={styles.commentForm}>
+                {isAuthenticated ? (
+                  <>
+                    <textarea
+                      className={styles.commentTextarea}
+                      rows={4}
+                      placeholder="Add your feedback to help refine this idea..."
+                      value={commentDraft}
+                      onChange={(e) => setCommentDraft(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className={styles.commentSubmit}
+                      onClick={submitComment}
+                      disabled={!commentDraft.trim() || commentMutation.isLoading}
+                    >
+                      Post Feedback
+                    </button>
+                  </>
+                ) : (
+                  <p className={styles.loginPrompt}>
+                    <Link to="/login" className={styles.loginLink}>Log in</Link> to leave feedback.
+                  </p>
+                )}
+              </div>
+            </section>
+          </div>
+
+          <aside className={styles.rightColumn}>
+            <section className={styles.scoreCard}>
+              <div className={styles.scoreHeader}>
+                <span className={styles.scoreHeadline}>Validation Score</span>
+                <span className={styles.scoreSub}>Out of 100</span>
+              </div>
+              <div className={styles.scoreRingWrapper}>
+                <div
+                  className={styles.scoreRing}
+                  style={{
+                    background: `conic-gradient(var(--primary) 0% ${Math.max(0, Math.min(100, ideaScore))}%, var(--input-background) ${Math.max(0, Math.min(100, ideaScore))}% 100%)`,
+                  }}
+                >
+                  <div className={styles.scoreRingInner}>
+                    <span className={styles.scoreRingValue}>{Math.max(0, Math.min(100, ideaScore))}</span>
+                    <span className={styles.scoreRingLabel}>score</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className={styles.actionCard}>
+              <button
+                type="button"
+                className={`${styles.actionButton} ${styles.upvoteButton} ${isUpvoted ? styles.actionButtonActive : ''}`}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    navigate('/login');
+                    return;
+                  }
+                  voteMutation.mutate('up');
+                }}
+                disabled={voteMutation.isLoading}
+              >
+                <ThumbsUp size={18} />
+                <span>Upvote</span>
+              </button>
+              <button
+                type="button"
+                className={`${styles.actionButton} ${styles.downvoteButton} ${isDownvoted ? styles.actionButtonActive : ''}`}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    navigate('/login');
+                    return;
+                  }
+                  voteMutation.mutate('down');
+                }}
+                disabled={voteMutation.isLoading}
+              >
+                <ThumbsDown size={18} />
+                <span>Downvote</span>
+              </button>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    alert('Link copied to clipboard');
+                  } catch (err) {
+                    console.error(err);
+                  }
+                }}
+              >
+                <MessageCircle size={18} />
+                <span>Share Idea</span>
+              </button>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => alert('Saved for later')}
+              >
+                <span>Save for Later</span>
+              </button>
+            </section>
+
+            <section className={styles.feedbackSummary}>
+              <p className={styles.feedbackTitle}>Top review highlight</p>
+              <p className={styles.feedbackQuote}>
+                “This idea clearly targets a well-defined audience, and the value proposition is both crisp and compelling.”
+              </p>
+              <div className={styles.feedbackAvatars}>
+                <div className={styles.avatarRing}>MC</div>
+                <div className={styles.avatarRing}>SJ</div>
+                <div className={styles.avatarRing}>AL</div>
+                <span className={styles.avatarMore}>+46</span>
+              </div>
+            </section>
+          </aside>
+        </div>
       )}
     </main>
   );
