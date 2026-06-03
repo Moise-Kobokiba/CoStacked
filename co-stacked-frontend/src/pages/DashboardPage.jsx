@@ -23,7 +23,7 @@ const ErrorDisplay = ({ error }) => (
   </div>
 );
 
-export const DiscoverProjectsPage = () => {
+export const DashboardPage = () => {
   const dispatch = useDispatch();
   const { items: allProjects = [], status, error } = useSelector((state) => state.projects || {});
 

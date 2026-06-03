@@ -1,34 +1,6 @@
-import type { FC } from "react";
 import { Link } from "react-router-dom";
 import { Bookmark, MapPin, TrendingUp, Wallet } from "lucide-react";
 import styles from "./ProjectCard.module.css";
-
-type ProjectStatus = "Live" | "MVP" | "Concept";
-
-export interface ProjectCardProject {
-  _id?: string;
-  title?: string;
-  description?: string;
-  status?: ProjectStatus | string;
-  stage?: string;
-  category?: string;
-  location?: string;
-  workType?: string;
-  compensation?: string;
-  contractType?: string;
-  username?: string;
-  founder?: string;
-  avatarUrl?: string;
-  founderId?: {
-    avatarUrl?: string;
-    username?: string;
-    name?: string;
-  };
-}
-
-export interface ProjectCardProps {
-  project: ProjectCardProject;
-}
 
 const gradients = [
   styles.gradientIndigo,
@@ -41,7 +13,7 @@ const gradients = [
   styles.gradientRed,
 ];
 
-const normalizeStatus = (project: ProjectCardProject): ProjectStatus => {
+const normalizeStatus = (project) => {
   const source = `${project.status ?? ""} ${project.stage ?? ""}`.toLowerCase();
 
   if (source.includes("live") || source.includes("scale")) return "Live";
@@ -52,16 +24,16 @@ const normalizeStatus = (project: ProjectCardProject): ProjectStatus => {
   return "Concept";
 };
 
-const getGradientClass = (project: ProjectCardProject) => {
+const getGradientClass = (project) => {
   const seed = `${project._id ?? project.title ?? "project"}`;
   const total = seed.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
   return gradients[total % gradients.length];
 };
 
-const getUsername = (project: ProjectCardProject) =>
+const getUsername = (project) =>
   project.username ?? project.founderId?.username ?? project.founderId?.name ?? project.founder ?? "alexmorgan";
 
-const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
+const ProjectCard = ({ project }) => {
   const status = normalizeStatus(project);
   const title = project.title ?? "Untitled Project";
   const description = project.description ?? "No project description has been provided yet.";
