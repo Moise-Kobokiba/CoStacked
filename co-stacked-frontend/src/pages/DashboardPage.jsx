@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { fetchProjects } from '../features/projects/projectsSlice';
-import ProjectCard from '../components/discover/ProjectCard';
-import { LayoutGrid, Search, Activity, ChevronLeft, ChevronRight } from 'lucide-react';
+import { DiscoverProjectCard } from '../components/discover/DiscoverProjectCard';
+import { LayoutGrid, Search, Activity, Settings, HelpCircle, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import styles from './DiscoverProjectsPage.module.css';
 
 const LoadingSpinner = () => (
@@ -167,11 +168,11 @@ export const DiscoverProjectsPage = () => {
         <div className={styles.projectsGrid}>
           {paginatedProjects.length > 0 ? (
             paginatedProjects.map((project) => (
-              <ProjectCard key={project._id || project.title} project={project} />
+              <DiscoverProjectCard key={project._id || project.title} project={project} />
             ))
           ) : (
             <div className={styles.noResults}>
-              No projects map to these choices. Adjust parameters.
+              No alternative platforms map to these choices. Adjust parameters above.
             </div>
           )}
         </div>
@@ -216,7 +217,7 @@ export const DiscoverProjectsPage = () => {
           </div>
 
           {/* Categories Filter Block */}
-          <div style={{ marginBottom: '1.5rem', marginTop: '1.5rem' }}>
+          <div style={{ marginBottom: '1.5rem' }}>
             <span style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.05em' }}>Categories</span>
             <div className={styles.filterOptions}>
               {['All', ...CATEGORIES].map(cat => (
@@ -244,7 +245,7 @@ export const DiscoverProjectsPage = () => {
                     checked={selectedStatus === phase}
                     onChange={() => setSelectedStatus(phase)}
                   />
-                  <span>{phase === 'All' ? 'All Stages' : phase}</span>
+                  <span>{phase === 'All' ? 'All Lifecycle Stages' : phase}</span>
                 </label>
               ))}
             </div>
@@ -282,7 +283,7 @@ export const DiscoverProjectsPage = () => {
           <div className={styles.contentHeader}>
             <div>
               <h1 className={styles.pageTitle}>Discover Projects</h1>
-              <p className={styles.pageSubtitle}>Connect with the next generation of high-impact ventures.</p>
+              <p className={styles.pageSubtitle}>Deploying tactical tools across a verified matching grid.</p>
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -290,10 +291,10 @@ export const DiscoverProjectsPage = () => {
                 <Search size={15} style={{ position: 'absolute', left: '0.875rem', color: '#94a3b8' }} />
                 <input 
                   type="text" 
-                  placeholder="Search projects, stacks, or roles..." 
+                  placeholder="Search stacks or concepts..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ width: '280px', padding: '0.5rem 1rem 0.5rem 2.25rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', fontSize: '0.875rem', fontWeight: 500, color: '#0f172a', outline: 'none', backgroundColor: '#ffffff' }}
+                  style={{ width: '240px', padding: '0.5rem 1rem 0.5rem 2.25rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', fontSize: '0.875rem', fontWeight: 500, color: '#0f172a', outline: 'none', backgroundColor: '#ffffff' }}
                 />
               </div>
 
@@ -301,12 +302,13 @@ export const DiscoverProjectsPage = () => {
                 <select 
                   value={sortOption} 
                   onChange={(e) => setSortOption(e.target.value)}
-                  style={{ padding: '0.5rem 2rem 0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', backgroundColor: '#ffffff', fontSize: '0.875rem', fontWeight: 600, color: '#475569', outline: 'none', cursor: 'pointer' }}
+                  style={{ padding: '0.5rem 2rem 0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', backgroundColor: '#ffffff', fontSize: '0.875rem', fontWeight: 600, color: '#475569', outline: 'none', cursor: 'pointer', appearance: 'none' }}
                 >
-                  <option value="newest">Sort: Recently Added</option>
+                  <option value="newest">Sort: Newest</option>
                   <option value="active">Sort: Active</option>
                   <option value="team">Sort: Stack Size</option>
                 </select>
+                <Activity size={14} style={{ position: 'absolute', right: '0.75rem', color: '#94a3b8', pointerEvents: 'none' }} />
               </div>
             </div>
           </div>

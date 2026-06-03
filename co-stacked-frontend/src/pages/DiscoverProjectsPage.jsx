@@ -4,8 +4,17 @@ import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProjects } from '../features/projects/projectsSlice';
 import { DiscoverProjectCard } from '../components/discover/DiscoverProjectCard';
-import { LayoutGrid, Search, Activity, UserPlus, ChevronDown } from 'lucide-react';
+import { LayoutGrid, Search, Activity, UserPlus } from 'lucide-react';
 import styles from './DiscoverProjectsPage.module.css';
+
+const LoadingSpinner = () => (
+  <div className="flex min-h-[400px] items-center justify-center rounded-xl border border-slate-100 bg-white text-sm font-medium text-slate-400 shadow-sm">
+    <div className="flex flex-col items-center gap-3">
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+      <span>Loading projects...</span>
+    </div>
+  </div>
+);
 
 const ErrorDisplay = ({ error }) => (
   <div className="rounded-xl border border-red-100 bg-red-50/50 p-4 text-sm font-medium text-red-600 shadow-sm">
@@ -71,18 +80,15 @@ export const DiscoverProjectsPage = () => {
       .filter(project => {
         const titleDesc = `${project.title || ''} ${project.description || ''}`.toLowerCase();
         
-        // Basic search filtering
         const searchLower = searchQuery.toLowerCase();
         const matchesSearch = !searchLower || titleDesc.includes(searchLower);
         
-        // Category filtering (Option C: keyword match in title/description)
         const isAllCategories = selectedCategories.includes('All') || selectedCategories.length === 0;
         const matchesCategory = isAllCategories || selectedCategories.some(cat => {
           if (cat === 'Other') return true; 
           return titleDesc.includes(cat.toLowerCase());
         });
 
-        // Status filtering (Map frontend Alpha/Beta to matching backend stages)
         let matchesStatus = false;
         if (selectedStatus === 'All') {
           matchesStatus = true;
@@ -92,7 +98,6 @@ export const DiscoverProjectsPage = () => {
           matchesStatus = project.stage === selectedStatus;
         }
         
-        // Roles needed filter (Keyword mapping)
         const skillsString = (Array.isArray(project.skillsNeeded) 
             ? project.skillsNeeded.join(' ') 
             : project.skillsNeeded || '').toLowerCase();
@@ -114,7 +119,6 @@ export const DiscoverProjectsPage = () => {
         } else if (sortOption === 'active') {
           return new Date(b.updatedAt) - new Date(a.updatedAt);
         } else if (sortOption === 'team') {
-          // Approximate team size by number of skills listed
           const aSkills = Array.isArray(a.skillsNeeded) ? a.skillsNeeded.length : 0;
           const bSkills = Array.isArray(b.skillsNeeded) ? b.skillsNeeded.length : 0;
           return bSkills - aSkills;
@@ -132,7 +136,7 @@ export const DiscoverProjectsPage = () => {
       <div className={styles.projectsGrid}>
         {sortedAndFilteredProjects.length > 0 ? (
           sortedAndFilteredProjects.map((project) => (
-            <DiscoverProjectCard key={project._id} project={project} />
+            <DiscoverProjectCard key={project._id || project.title} project={project} />
           ))
         ) : (
           <div className={styles.noResults}>
@@ -148,7 +152,6 @@ export const DiscoverProjectsPage = () => {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.layout}>
-        {/* Sidebar Filters */}
         <aside className={styles.sidebar}>
           <div className={styles.filterCard}>
             <div className={styles.filterHeader}>
@@ -156,7 +159,6 @@ export const DiscoverProjectsPage = () => {
               <button onClick={clearFilters} className={styles.clearFilters}>Clear all</button>
             </div>
 
-            {/* Search Input */}
             <div className={styles.filterGroup}>
               <div className={styles.searchContainer} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                 <Search size={16} style={{ position: 'absolute', left: '12px', color: '#94a3b8' }} />
@@ -178,7 +180,6 @@ export const DiscoverProjectsPage = () => {
               </div>
             </div>
 
-            {/* Category */}
             <div className={styles.filterGroup}>
               <div className={styles.filterGroupHeader}>
                 <LayoutGrid size={18} />
@@ -208,7 +209,6 @@ export const DiscoverProjectsPage = () => {
               </div>
             </div>
 
-            {/* Status */}
             <div className={styles.filterGroup}>
               <div className={styles.filterGroupHeader}>
                 <Activity size={18} />
@@ -240,7 +240,6 @@ export const DiscoverProjectsPage = () => {
               </div>
             </div>
 
-            {/* Roles Needed */}
             <div>
               <div className={styles.filterGroupHeader}>
                 <UserPlus size={18} />
@@ -261,7 +260,6 @@ export const DiscoverProjectsPage = () => {
           </div>
         </aside>
 
-        {/* Main Content Area */}
         <main className={styles.mainContent}>
           <div className={styles.contentHeader}>
             <div>
@@ -287,4 +285,3 @@ export const DiscoverProjectsPage = () => {
     </div>
   );
 };
-
