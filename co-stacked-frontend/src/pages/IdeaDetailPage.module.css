@@ -1,322 +1,353 @@
-.container {
-    max-width: 1000px;
-    margin: 40px auto;
-    padding: 0 20px;
-    color: var(--foreground);
-    background-color: var(--background);
-    min-height: 100vh;
+.page {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2.5rem 1rem 4rem;
+  min-height: 100vh;
 }
 
 .backButton {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.625rem 1.25rem;
-    background: var(--card-background);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    color: var(--muted-foreground);
-    font-size: 0.9375rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-bottom: 2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--card-background);
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 700;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  margin-bottom: 1.5rem;
 }
 
 .backButton:hover {
-    background: var(--input-background);
-    border-color: var(--border);
+  background: var(--input-background);
 }
 
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 40px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 30px;
-    gap: 24px;
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-@media (max-width: 768px) {
-    .header {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 24px;
-    }
-    
-    .titleSection {
-        width: 100%;
-    }
-    
-    .titleSection h1 {
-        font-size: 1.75rem;
-    }
-    
-    .meta {
-        flex-direction: column;
-        gap: 8px;
-        align-items: center;
-    }
-    
-    .actionSection {
-        width: 100%;
-        align-items: center !important;
-        justify-content: center;
-    }
-    
-    .voteContainer {
-        justify-content: center;
-        width: 100%;
-    }
-    
-    .voteBtn {
-        flex: 1;
-        max-width: 120px;
-    }
-    
-    .scoreBadge {
-        text-align: center;
-    }
+@media (min-width: 768px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
 }
 
-.titleSection h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 10px 0;
-    line-height: 1.2;
-    color: var(--foreground);
+.titleRow {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.stageTag {
-    background-color: var(--primary-light);
-    color: var(--primary);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
+.title {
+  font-size: clamp(2rem, 2.5vw, 2.75rem);
+  font-weight: 800;
+  color: var(--foreground);
+  line-height: 1.05;
 }
 
-.meta {
-    color: var(--muted-foreground);
-    font-size: 1rem;
-    display: flex;
-    gap: 16px;
+.stageBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-.actionSection {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 16px;
+.stageConcept { background: rgba(59, 130, 246, 0.12); color: #2563eb; }
+.stageValidation { background: rgba(249, 115, 22, 0.12); color: #c2410c; }
+.stageRefining { background: rgba(34, 197, 94, 0.12); color: #15803d; }
+.stageMvp { background: rgba(168, 85, 247, 0.12); color: #7c3aed; }
+.stageArchived { background: rgba(107, 114, 128, 0.12); color: #374151; }
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
 }
 
-.scoreBadge {
-    text-align: right;
-    background: var(--card-background);
-    padding: 10px 20px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+.authorLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.authorBadge {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--input-background);
+  overflow: hidden;
+  color: var(--foreground);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.authorBadge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.authorText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.authorName {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.authorSubtitle {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+.scorePanel {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  text-align: right;
 }
 
 .scoreLabel {
-    display: block;
-    font-size: 0.8rem;
-    color: var(--muted-foreground);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--muted-foreground);
 }
 
 .scoreValue {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: #ea580c;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--foreground);
 }
 
-.voteContainer {
-    display: flex;
-    gap: 12px;
-    align-items: stretch;
+.votesRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .voteBtn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    background-color: var(--card-background);
-    border: 2px solid var(--border);
-    color: var(--muted-foreground);
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    min-width: 90px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--border);
+  background: var(--input-background);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.voteBtn:hover:not(:disabled) {
-    background-color: var(--input-background);
-    transform: translateY(-2px);
+.voteBtn:hover {
+  border-color: rgba(79, 70, 229, 0.2);
+  background: var(--background);
+  color: var(--foreground);
 }
 
-.voteBtn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.voteBtnUp { color: #16a34a; }
+.voteBtnDown { color: #ea580c; }
+
+.voteBtnActive.voteBtnUp {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.25);
+  color: #166534;
 }
 
-.voteArrow {
-    font-size: 1.1rem;
-    line-height: 1;
+.voteBtnActive.voteBtnDown {
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.25);
+  color: #7c2d12;
 }
 
-.voteLabel {
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.bodyGrid {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-.voteCount {
-    font-size: 0.875rem;
-    font-weight: 700;
-    margin-top: 2px;
+@media (min-width: 768px) {
+  .bodyGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-.upvoteBtn {
-    border-color: #10b981;
-    color: #10b981;
+.sectionCard,
+.commentCard {
+  background: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.5rem;
 }
 
-.upvoteBtn:hover:not(:disabled) {
-    background-color: rgba(16, 185, 129, 0.1);
-    border-color: #10b981;
+.sectionTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+  margin-bottom: 0.75rem;
 }
 
-.upvoteBtn.voted {
-    background-color: #10b981;
-    color: white;
-    border-color: #10b981;
+.sectionText {
+  color: var(--foreground);
+  line-height: 1.75;
+  font-size: 0.95rem;
 }
 
-.downvoteBtn {
-    border-color: #ef4444;
-    color: #ef4444;
+.commentHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.downvoteBtn:hover:not(:disabled) {
-    background-color: rgba(239, 68, 68, 0.1);
-    border-color: #ef4444;
+.commentTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--foreground);
 }
 
-.downvoteBtn.voted {
-    background-color: #ef4444;
-    color: white;
-    border-color: #ef4444;
+.commentCount {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
 }
 
-.convertBtn {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+.commentList {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.convertBtn:disabled {
-    background: var(--border);
-    color: var(--muted-foreground);
-    cursor: not-allowed;
-    box-shadow: none;
+.commentItem {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: flex-start;
 }
 
-.shareBtn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: var(--primary-light);
-    color: var(--primary);
-    border: 2px solid var(--primary);
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 1rem;
+.commentAvatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: var(--input-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-weight: 700;
+  color: var(--foreground);
 }
 
-.shareBtn:hover {
-    background: var(--primary);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+.commentAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* Share Modal Styles */
-.shareModalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 20px;
+.commentBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.shareModal {
-    background: var(--card-background);
-    border-radius: 16px;
-    width: 100%;
-    max-width: 500px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    animation: modalSlideIn 0.2s ease-out;
+.commentMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
 }
 
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.commentAuthor {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--foreground);
 }
 
-.shareModalHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border);
+.commentTime {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
 }
 
-.shareModalHeader h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    color: var(--foreground);
+.commentText {
+  color: var(--foreground);
+  line-height: 1.75;
+  font-size: 0.95rem;
 }
 
-.closeShareModal {
-    background: none;
-    border: none;
-    color: var(--muted-foreground);
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
-    transition: all 0.2s;
+.commentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.commentTextarea {
+  width: 100%;
+  min-height: 5rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--background);
+  color: var(--foreground);
+  resize: vertical;
+}
+
+.commentSubmit {
+  align-self: flex-start;
+  padding: 0.85rem 1.2rem;
+  border: none;
+  border-radius: 0.85rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.commentSubmit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.loginPrompt {
+  font-size: 0.95rem;
+  color: var(--muted-foreground);
+}
+
+.loginLink {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.loginLink:hover {
+  text-decoration: underline;
 }
 
 .closeShareModal:hover {
