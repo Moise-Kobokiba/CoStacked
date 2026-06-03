@@ -1,13 +1,13 @@
 /* co-stacked-frontend/src/pages/DiscoverProjectsPage.module.css */
 
-.pageContainer {
+.discover-page-wrapper {
   min-height: 100vh;
   background-color: #f8fafc;
   padding: 2rem 1.5rem;
-  font-family: "Outfit", system-ui, -apple-system, sans-serif;
+  font-family: "Outfit", system-ui, -apple-system, sans-serif !important;
 }
 
-.layout {
+.discover-layout-grid {
   display: flex;
   width: 100%;
   max-width: 1440px;
@@ -16,47 +16,50 @@
   align-items: flex-start;
 }
 
-/* Sidebar Structure */
-.sidebar {
+/* Sidebar Styling */
+.discover-sidebar-panel {
   display: flex;
   width: 260px;
-  min-height: calc(100vh - 4rem);
-  flex: 0 0 auto;
-  flex-direction: column;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 0.75rem;
   background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
   padding: 1.5rem 1.25rem;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  flex-direction: column;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  flex-shrink: 0;
 }
 
-.filterHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.filterHeader div {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.discover-sidebar-panel h2 {
+  font-size: 0.875rem;
   font-weight: 800;
   color: #0f172a;
-  font-size: 0.875rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  margin: 0;
 }
 
-/* Sidebar Filter Sections */
-.filterOptions {
+/* Clean Input Stacking to fix the text overlapping raw inputs */
+.filter-section-wrapper {
+  margin-bottom: 1.75rem;
+}
+
+.filter-section-title {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.filter-options-stack {
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
 }
 
-.filterOptions label {
+.filter-options-stack label {
   display: flex;
   align-items: center;
   gap: 0.625rem;
@@ -64,108 +67,98 @@
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: color 160ms ease;
 }
 
-.filterOptions label:hover {
-  color: #0f172a;
-}
-
-.filterOptions input[type="checkbox"],
-.filterOptions input[type="radio"] {
+.filter-options-stack input[type="checkbox"],
+.filter-options-stack input[type="radio"] {
   width: 1rem;
   height: 1rem;
   accent-color: #2563eb;
   cursor: pointer;
+  margin: 0;
+}
+
+/* Role Button Array */
+.role-buttons-div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.role-filter-btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.role-filter-btn-active {
+  border-color: #0f172a;
+  background-color: #0f172a;
+  color: #ffffff;
 }
 
 /* Main Feed Architecture */
-.mainContent {
-  min-width: 0;
+.discover-feed-main {
   flex: 1;
+  min-width: 0;
 }
 
-.contentHeader {
+.discover-feed-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  align-items: center;
   margin-bottom: 2rem;
+  gap: 1rem;
 }
 
-.pageTitle {
-  margin: 0;
-  color: #0f172a;
-  font-size: 1.5rem;
+.discover-feed-header h1 {
+  font-size: 1.75rem;
   font-weight: 800;
+  color: #0f172a;
+  margin: 0;
   letter-spacing: -0.02em;
 }
 
-.pageSubtitle {
-  margin: 0.25rem 0 0;
+.discover-feed-header p {
+  font-size: 0.875rem;
   color: #94a3b8;
-  font-size: 0.75rem;
-  font-weight: 600;
+  margin: 0.25rem 0 0 0;
 }
 
-/* Core System Card Grid Layout */
-.projectsGrid {
+/* Grid Layout matching mockup */
+.discover-cards-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.5rem;
   width: 100%;
 }
 
-/* Component Placeholders */
-.loading, .error, .noResults {
-  display: flex;
-  min-height: 350px;
-  align-items: center;
-  justify-content: center;
+/* Fallback Screens */
+.fallback-state-card {
   grid-column: 1 / -1;
+  background: #ffffff;
   border: 1px dashed #e2e8f0;
   border-radius: 0.75rem;
-  background: #ffffff;
-  color: #94a3b8;
-  padding: 1.5rem;
+  padding: 3rem;
   text-align: center;
-  font-size: 0.875rem;
+  color: #94a3b8;
   font-weight: 600;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-  width: 100%;
 }
 
-.loading { border-style: solid; }
-.error { border-style: solid; border-color: #fee2e2; background: rgba(254, 242, 242, 0.55); color: #dc2626; }
-
-.loaderInner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.spinner {
-  width: 1.5rem;
-  height: 1.5rem;
-  border: 2px solid #2563eb;
-  border-top-color: transparent;
-  border-radius: 999px;
-  animation: spin 850ms linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Media Breakpoints for Responsiveness */
+/* Responsive Framework */
 @media (max-width: 1200px) {
-  .layout { flex-direction: column; }
-  .sidebar { width: 100%; min-height: auto; }
-  .projectsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .discover-layout-grid { flex-direction: column; }
+  .discover-sidebar-panel { width: 100%; }
+  .discover-cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 768px) {
-  .contentHeader { flex-direction: column; align-items: flex-start; }
-  .projectsGrid { grid-template-columns: 1fr; }
+  .discover-feed-header { flex-direction: column; align-items: flex-start; }
+  .discover-cards-grid { grid-template-columns: 1fr; }
 }
