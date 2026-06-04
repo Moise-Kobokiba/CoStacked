@@ -73,35 +73,6 @@
   background: linear-gradient(135deg, #f43f5e 0%, #db2777 100%);
 }
 
-.stackMark {
-  position: relative;
-  width: 54px;
-  height: 54px;
-}
-
-.stackMark span {
-  position: absolute;
-  left: 50%;
-  width: 48px;
-  height: 18px;
-  border-radius: 50%;
-  background: #ffffff;
-  transform: translateX(-50%);
-  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.95), 0 7px 0 rgba(255, 255, 255, 0.88);
-}
-
-.stackMark span:nth-child(1) {
-  top: 2px;
-}
-
-.stackMark span:nth-child(2) {
-  top: 15px;
-}
-
-.stackMark span:nth-child(3) {
-  top: 28px;
-}
-
 .badges {
   position: absolute;
   top: 16px;

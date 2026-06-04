@@ -6,8 +6,10 @@ export const projectThumbnails = [
   { id: 'blue', label: 'Blue Gradient', src: '/assets/project-thumbnails/blue.svg' },
 ];
 
+const allowedThumbnails = projectThumbnails.map((item) => item.src);
+
 export const getProjectThumbnail = (project) => {
-  if (project?.thumbnail) {
+  if (project?.thumbnail && allowedThumbnails.includes(project.thumbnail)) {
     return project.thumbnail;
   }
 

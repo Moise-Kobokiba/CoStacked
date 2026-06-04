@@ -93,6 +93,7 @@ const authRoutes = require('./routes/authRoutes');
 const emailRoutes = require('./routes/emailRoutes');
 const articleRoutes = require('./routes/articleRoutes');
 const ideaRoutes = require('./routes/ideaRoutes');
+const statsRoutes = require('./routes/stats');
 const stackSuiteRoutes = require('./routes/stackSuiteRoutes');
 
 // Mount API routes
@@ -111,6 +112,7 @@ app.use('/api/conversations', conversationRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/ideas', ideaRoutes);
+app.use('/api/stats', statsRoutes);
 app.use('/api/validation-tips', validationTipRoutes);
 app.use('/api/stack-suite', stackSuiteRoutes);
 
