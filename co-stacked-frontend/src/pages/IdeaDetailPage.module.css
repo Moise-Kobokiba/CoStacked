@@ -3,6 +3,7 @@
   margin: 0 auto;
   padding: 2.5rem 1.25rem 4rem;
   min-height: 100vh;
+  background: #F8FAFC;
 }
 
 .backButton {
@@ -16,8 +17,10 @@
   border-radius: 0.95rem;
   text-decoration: none;
   font-weight: 700;
+  font-size: 0.95rem;
   transition: background-color 0.2s ease, transform 0.2s ease;
   margin-bottom: 1.75rem;
+  cursor: pointer;
 }
 
 .backButton:hover {
@@ -31,7 +34,7 @@
 
 @media (min-width: 1024px) {
   .layoutGrid {
-    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-columns: minmax(0, 1fr) 340px;
     align-items: start;
   }
 }
@@ -47,12 +50,21 @@
   position: relative;
 }
 
+@media (min-width: 1024px) {
+  .rightColumn {
+    position: sticky;
+    top: 2rem;
+    align-self: start;
+  }
+}
+
 .heroCard,
 .scoreCard,
 .actionCard,
 .feedbackSummary,
 .sectionCard,
-.commentCard {
+.commentCard,
+.visualizationCard {
   background: var(--card-background);
   border: 1px solid var(--border);
   border-radius: 1.25rem;
@@ -151,6 +163,7 @@
   color: var(--muted-foreground);
 }
 
+/* ── PROBLEM STATEMENT / TARGET MARKET 2-COLUMN GRID ── */
 .infoGrid {
   display: grid;
   gap: 1.5rem;
@@ -164,6 +177,15 @@
 
 .sectionCard {
   min-height: 11rem;
+}
+
+/* Left border accents for section cards */
+.problemCard {
+  border-left: 4px solid #fca5a5;
+}
+
+.marketCard {
+  border-left: 4px solid #93c5fd;
 }
 
 .sectionTag {
@@ -182,6 +204,7 @@
   font-size: 0.96rem;
 }
 
+/* ── TARGET USERS ── */
 .tagsWrapper {
   display: grid;
   gap: 1rem;
@@ -201,22 +224,64 @@
   gap: 0.75rem;
 }
 
-.tagItem {
+.tagItemLight {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0.65rem 1rem;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--background);
-  color: var(--foreground);
+  background: rgba(59, 130, 246, 0.08);
+  color: #1e40af;
   font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid rgba(59, 130, 246, 0.15);
 }
 
+/* ── SOLUTION CARD (full width, green accent) ── */
 .solutionCard {
   grid-column: 1 / -1;
+  border-left: 4px solid #86efac;
 }
 
+/* ── CONCEPTUAL VISUALIZATION ── */
+.visualizationCard {
+  display: grid;
+  place-items: center;
+  padding: 3rem 1.75rem;
+}
+
+.visualizationInner {
+  display: grid;
+  gap: 1rem;
+  text-align: center;
+  place-items: center;
+}
+
+.visualizationIcon {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 1rem;
+  background: var(--input-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+}
+
+.visualizationLabel {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.visualizationHint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+}
+
+/* ── COMMENTS SECTION ── */
 .commentCard {
   display: grid;
   gap: 1rem;
@@ -251,6 +316,13 @@
   grid-template-columns: auto 1fr;
   gap: 0.85rem;
   align-items: flex-start;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.commentItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .commentAvatar {
@@ -264,6 +336,7 @@
   overflow: hidden;
   color: var(--foreground);
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 .commentAvatar img {
@@ -301,6 +374,40 @@
   line-height: 1.75;
 }
 
+/* Like & Reply action buttons on each comment */
+.commentActions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 0.25rem;
+}
+
+.commentActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  padding: 0.25rem 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.commentActionBtn:hover {
+  color: var(--foreground);
+}
+
+.commentActionLiked {
+  color: #dc2626;
+}
+
+.commentActionLiked:hover {
+  color: #b91c1c;
+}
+
 .commentForm {
   display: grid;
   gap: 0.85rem;
@@ -315,6 +422,14 @@
   background: var(--background);
   color: var(--foreground);
   resize: vertical;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.commentTextarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .commentSubmit {
@@ -325,12 +440,20 @@
   background: var(--primary);
   color: var(--primary-foreground);
   font-weight: 700;
+  font-size: 0.95rem;
   cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.commentSubmit:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
 .commentSubmit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
 .loginPrompt {
@@ -355,11 +478,10 @@
   text-align: center;
 }
 
+/* ── SCORE CARD (sidebar) ── */
 .scoreCard {
   display: grid;
   gap: 1.5rem;
-  position: sticky;
-  top: 2rem;
 }
 
 .scoreHeader {
@@ -392,7 +514,6 @@
   display: grid;
   place-items: center;
   padding: 1.55rem;
-  background: conic-gradient(var(--primary) 0deg 60%, var(--input-background) 60deg 100%);
 }
 
 .scoreRingInner {
@@ -414,11 +535,13 @@
 }
 
 .scoreRingLabel {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--muted-foreground);
-  margin-top: 0.25rem;
+  letter-spacing: 0.05em;
 }
 
+/* ── ACTION / VOTING CARD ── */
 .actionCard {
   display: grid;
   gap: 0.9rem;
@@ -435,6 +558,7 @@
   border-radius: 0.95rem;
   border: 1px solid transparent;
   font-weight: 700;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
@@ -447,6 +571,14 @@
 .actionButton:disabled {
   opacity: 0.65;
   cursor: not-allowed;
+  transform: none;
+}
+
+.voteCount {
+  font-weight: 500;
+  font-size: 0.82rem;
+  opacity: 0.8;
+  margin-left: 0.15rem;
 }
 
 .convertButton {
@@ -465,6 +597,7 @@
   color: var(--muted-foreground);
   line-height: 1.5;
   margin: 0;
+  text-align: center;
 }
 
 .upvoteButton {
@@ -489,6 +622,13 @@
   border-color: var(--border);
 }
 
+.secondaryButtonSaved {
+  background: rgba(34, 197, 94, 0.1);
+  color: #166534;
+  border-color: rgba(34, 197, 94, 0.25);
+}
+
+/* ── COMMUNITY FEEDBACK WIDGET (sidebar) ── */
 .feedbackSummary {
   display: grid;
   gap: 1rem;
@@ -506,6 +646,7 @@
   font-size: 0.98rem;
   line-height: 1.75;
   color: var(--foreground);
+  font-style: italic;
 }
 
 .feedbackAvatars {
@@ -524,9 +665,11 @@
   background: var(--input-background);
   color: var(--foreground);
   font-weight: 700;
+  font-size: 0.8rem;
 }
 
 .avatarMore {
   font-size: 0.9rem;
   color: var(--muted-foreground);
+  font-weight: 600;
 }

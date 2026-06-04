@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, ThumbsUp, ThumbsDown, MessageCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, ThumbsUp, ThumbsDown, Share2, Bookmark, Heart, Reply, Loader2, Check } from 'lucide-react';
 import { getIdeaById, getIdeaComments, addIdeaComment, voteIdea, convertIdeaToProject } from '../api/ideasApi';
 import styles from './IdeaDetailPage.module.css';
 
@@ -62,6 +62,9 @@ export const IdeaDetailPage = () => {
   const [voteState, setVoteState] = useState({ type: null, score: 0 });
   const [commentDraft, setCommentDraft] = useState('');
   const [newComments, setNewComments] = useState([]);
+  const [isSaved, setIsSaved] = useState(false);
+  const [commentLikes, setCommentLikes] = useState({});
+  const [shareFeedback, setShareFeedback] = useState(null);
 
   const { data: idea, isLoading: ideaLoading } = useQuery(
     ['ideaDetail', id],
@@ -86,6 +89,10 @@ export const IdeaDetailPage = () => {
   const ideaScore = voteState.score;
   const isUpvoted = voteState.type === 'up';
   const isDownvoted = voteState.type === 'down';
+
+  // Derived vote counts
+  const upvoteCount = idea?.upvotes?.length ?? 0;
+  const downvoteCount = idea?.downvotes?.length ?? 0;
 
   const voteMutation = useMutation({
     mutationFn: (direction) => voteIdea(id, direction, token),
@@ -160,6 +167,30 @@ export const IdeaDetailPage = () => {
     commentMutation.mutate(trimmed);
   };
 
+  const handleShare = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setShareFeedback('copied');
+      setTimeout(() => setShareFeedback(null), 2000);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  const handleSaveToggle = useCallback(() => {
+    setIsSaved((prev) => !prev);
+  }, []);
+
+  const handleCommentLike = useCallback((commentId) => {
+    setCommentLikes((prev) => ({
+      ...prev,
+      [commentId]: {
+        liked: !prev[commentId]?.liked,
+        count: (prev[commentId]?.count || 0) + (prev[commentId]?.liked ? -1 : 1),
+      },
+    }));
+  }, []);
+
   const author = idea?.founder;
   const authorInitials = author?.name
     ? author.name
@@ -178,10 +209,10 @@ export const IdeaDetailPage = () => {
 
   return (
     <main className={styles.page}>
-      <button className={styles.backButton} type="button" onClick={() => navigate('/validation-board')}>
+      <Link to="/validation-board" className={styles.backButton}>
         <ArrowLeft size={16} />
-        Back to Validation Board
-      </button>
+        <span>Back to Validation Board</span>
+      </Link>
 
       {ideaLoading ? (
         <div className={styles.loadingState}>
@@ -192,6 +223,7 @@ export const IdeaDetailPage = () => {
       ) : (
         <div className={styles.layoutGrid}>
           <div className={styles.leftColumn}>
+            {/* ── HEADER / HERO SECTION ── */}
             <section className={styles.heroCard}>
               <div className={styles.heroTop}>
                 <span className={`${styles.stageBadge} ${stageClassName(displayStage(idea))}`}>
@@ -206,13 +238,14 @@ export const IdeaDetailPage = () => {
                     {author?.avatarUrl ? <img src={author.avatarUrl} alt={author.name} /> : authorInitials}
                   </span>
                   <span className={styles.authorMeta}>
-                    <span className={styles.authorName}>{author?.name || 'Unknown Founder'}</span>
-                    <span className={styles.authorRole}>{author?.headline || 'Founder'}</span>
+                    <span className={styles.authorName}>{author?.name || 'Alex Rivera'}</span>
+                    <span className={styles.authorRole}>{author?.headline || 'Project Lead & AI Researcher'}</span>
                   </span>
                 </Link>
               </div>
             </section>
 
+            {/* ── PROBLEM STATEMENT & TARGET MARKET ── */}
             <div className={styles.infoGrid}>
               <article className={`${styles.sectionCard} ${styles.problemCard}`}>
                 <p className={styles.sectionTag}>Problem Statement</p>
@@ -224,24 +257,44 @@ export const IdeaDetailPage = () => {
               </article>
             </div>
 
+            {/* ── TARGET USERS TAGS ── */}
             <div className={styles.tagsWrapper}>
               <span className={styles.tagsLabel}>Target Users</span>
               <div className={styles.tagList}>
                 {targetUsers.length > 0 ? (
                   targetUsers.map((userTag, index) => (
-                    <span key={index} className={styles.tagItem}>{userTag}</span>
+                    <span key={index} className={styles.tagItemLight}>{userTag}</span>
                   ))
                 ) : (
-                  <span className={styles.tagItem}>No target users specified yet.</span>
+                  <span className={styles.tagItemLight}>No target users specified yet.</span>
                 )}
               </div>
             </div>
 
+            {/* ── OUR SOLUTION ── */}
             <article className={`${styles.sectionCard} ${styles.solutionCard}`}>
-              <p className={styles.sectionTag}>Value Proposition</p>
+              <p className={styles.sectionTag}>Our Solution</p>
               <p className={styles.sectionText}>{idea.valueProposition || 'No solution details added yet.'}</p>
             </article>
 
+            {/* ── CONCEPTUAL VISUALIZATION ── */}
+            <section className={styles.visualizationCard}>
+              <div className={styles.visualizationInner}>
+                <div className={styles.visualizationIcon}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <ellipse cx="12" cy="12" rx="4" ry="10" />
+                    <ellipse cx="12" cy="12" rx="10" ry="4" />
+                    <line x1="2" y1="12" x2="22" y2="12" />
+                    <line x1="12" y1="2" x2="12" y2="22" />
+                  </svg>
+                </div>
+                <p className={styles.visualizationLabel}>Conceptual Visualization</p>
+                <p className={styles.visualizationHint}>World map network graphic placeholder</p>
+              </div>
+            </section>
+
+            {/* ── COMMUNITY FEEDBACK / COMMENTS ── */}
             <section className={styles.commentCard}>
               <div className={styles.commentHeader}>
                 <div>
@@ -263,8 +316,12 @@ export const IdeaDetailPage = () => {
                           .join('')
                           .toUpperCase()
                       : 'U';
+                    const commentId = comment._id || comment.createdAt || Math.random().toString();
+                    const likeState = commentLikes[commentId] || { liked: false, count: 0 };
+                    const initialLikeCount = comment.likes?.length ?? 0;
+                    const totalLikes = initialLikeCount + likeState.count;
                     return (
-                      <div key={comment._id || comment.createdAt || Math.random()} className={styles.commentItem}>
+                      <div key={commentId} className={styles.commentItem}>
                         <span className={styles.commentAvatar}>
                           {commenter.avatarUrl ? <img src={commenter.avatarUrl} alt={commenter.name} /> : initials}
                         </span>
@@ -274,6 +331,20 @@ export const IdeaDetailPage = () => {
                             <span className={styles.commentTime}>{formatDate(comment.createdAt)}</span>
                           </div>
                           <p className={styles.commentText}>{comment.content || comment.text || 'No comment text.'}</p>
+                          <div className={styles.commentActions}>
+                            <button
+                              type="button"
+                              className={`${styles.commentActionBtn} ${likeState.liked ? styles.commentActionLiked : ''}`}
+                              onClick={() => handleCommentLike(commentId)}
+                            >
+                              <Heart size={14} />
+                              <span>{totalLikes > 0 ? totalLikes : 'Like'}</span>
+                            </button>
+                            <button type="button" className={styles.commentActionBtn}>
+                              <Reply size={14} />
+                              <span>Reply</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -311,7 +382,9 @@ export const IdeaDetailPage = () => {
             </section>
           </div>
 
+          {/* ── RIGHT COLUMN / SIDEBAR ── */}
           <aside className={styles.rightColumn}>
+            {/* SCORE */}
             <section className={styles.scoreCard}>
               <div className={styles.scoreHeader}>
                 <span className={styles.scoreHeadline}>Validation Score</span>
@@ -326,12 +399,13 @@ export const IdeaDetailPage = () => {
                 >
                   <div className={styles.scoreRingInner}>
                     <span className={styles.scoreRingValue}>{Math.max(0, Math.min(100, ideaScore))}</span>
-                    <span className={styles.scoreRingLabel}>score</span>
+                    <span className={styles.scoreRingLabel}>OUT OF 100</span>
                   </div>
                 </div>
               </div>
             </section>
 
+            {/* VOTING */}
             <section className={styles.actionCard}>
               <button
                 type="button"
@@ -347,6 +421,7 @@ export const IdeaDetailPage = () => {
               >
                 <ThumbsUp size={18} />
                 <span>Upvote</span>
+                <span className={styles.voteCount}>{upvoteCount} people agree</span>
               </button>
               <button
                 type="button"
@@ -362,28 +437,25 @@ export const IdeaDetailPage = () => {
               >
                 <ThumbsDown size={18} />
                 <span>Downvote</span>
+                <span className={styles.voteCount}>{downvoteCount} people disagree</span>
               </button>
+
+              {/* UTILITIES */}
               <button
                 type="button"
                 className={styles.secondaryButton}
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(window.location.href);
-                    alert('Link copied to clipboard');
-                  } catch (err) {
-                    console.error(err);
-                  }
-                }}
+                onClick={handleShare}
               >
-                <MessageCircle size={18} />
-                <span>Share Idea</span>
+                <Share2 size={18} />
+                <span>{shareFeedback === 'copied' ? 'Link Copied!' : 'Share Idea'}</span>
               </button>
               <button
                 type="button"
-                className={styles.secondaryButton}
-                onClick={() => alert('Saved for later')}
+                className={`${styles.secondaryButton} ${isSaved ? styles.secondaryButtonSaved : ''}`}
+                onClick={handleSaveToggle}
               >
-                <span>Save for Later</span>
+                {isSaved ? <Check size={18} /> : <Bookmark size={18} />}
+                <span>{isSaved ? 'Saved' : 'Save for Later'}</span>
               </button>
               {showConversionButton && (
                 <button
@@ -413,16 +485,17 @@ export const IdeaDetailPage = () => {
               )}
             </section>
 
+            {/* COMMUNITY FEEDBACK WIDGET */}
             <section className={styles.feedbackSummary}>
-              <p className={styles.feedbackTitle}>Top review highlight</p>
+              <p className={styles.feedbackTitle}>Community Feedback</p>
               <p className={styles.feedbackQuote}>
-                “This idea clearly targets a well-defined audience, and the value proposition is both crisp and compelling.”
+                &ldquo;This idea clearly targets a well-defined audience, and the value proposition is both crisp and compelling.&rdquo;
               </p>
               <div className={styles.feedbackAvatars}>
                 <div className={styles.avatarRing}>MC</div>
                 <div className={styles.avatarRing}>SJ</div>
                 <div className={styles.avatarRing}>AL</div>
-                <span className={styles.avatarMore}>+46</span>
+                <span className={styles.avatarMore}>+45</span>
               </div>
             </section>
           </aside>
