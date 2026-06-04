@@ -33,6 +33,7 @@ const FALLBACK_PROJECTS = [
     skillsNeeded: ["Product", "UX", "Telehealth"],
     username: "alexmorgan",
     createdAt: "2026-05-15T08:00:00Z",
+    thumbnail: "/assets/project-thumbnails/orange.svg",
   },
   {
     _id: "voxling",
@@ -47,6 +48,7 @@ const FALLBACK_PROJECTS = [
     skillsNeeded: ["AI", "React", "Speech"],
     username: "sophiak",
     createdAt: "2026-05-12T09:30:00Z",
+    thumbnail: "/assets/project-thumbnails/red.svg",
   },
   {
     _id: "pet-platform",
@@ -61,6 +63,7 @@ const FALLBACK_PROJECTS = [
     skillsNeeded: ["Mobile", "Community", "Design"],
     username: "michelleq",
     createdAt: "2026-05-08T11:20:00Z",
+    thumbnail: "/assets/project-thumbnails/green.svg",
   },
   {
     _id: "finflow",
@@ -75,6 +78,7 @@ const FALLBACK_PROJECTS = [
     skillsNeeded: ["SaaS", "Automation", "Dashboard"],
     username: "jordanp",
     createdAt: "2026-05-04T14:15:00Z",
+    thumbnail: "/assets/project-thumbnails/purple.svg",
   },
   {
     _id: "ecotrace",
@@ -89,6 +93,7 @@ const FALLBACK_PROJECTS = [
     skillsNeeded: ["Blockchain", "Sustainability", "Data"],
     username: "ninaf",
     createdAt: "2026-04-28T10:00:00Z",
+    thumbnail: "/assets/project-thumbnails/blue.svg",
   },
   {
     _id: "robochef",
@@ -103,6 +108,7 @@ const FALLBACK_PROJECTS = [
     skillsNeeded: ["Robotics", "AI", "Engineering"],
     username: "milesr",
     createdAt: "2026-04-20T12:45:00Z",
+    thumbnail: "/assets/project-thumbnails/orange.svg",
   },
   {
     _id: "smartledger",
@@ -117,6 +123,7 @@ const FALLBACK_PROJECTS = [
     skillsNeeded: ["Finance", "SaaS", "UX"],
     username: "elena",
     createdAt: "2026-04-14T09:00:00Z",
+    thumbnail: "/assets/project-thumbnails/red.svg",
   },
   {
     _id: "motionmesh",
@@ -131,6 +138,7 @@ const FALLBACK_PROJECTS = [
     skillsNeeded: ["Motion", "Video", "Collaboration"],
     username: "tashaw",
     createdAt: "2026-04-10T08:30:00Z",
+    thumbnail: "/assets/project-thumbnails/green.svg",
   },
   {
     _id: "greenpulse",
@@ -145,6 +153,7 @@ const FALLBACK_PROJECTS = [
     skillsNeeded: ["Data", "Analytics", "Sustainability"],
     username: "leo",
     createdAt: "2026-04-05T13:10:00Z",
+    thumbnail: "/assets/project-thumbnails/purple.svg",
   },
   {
     _id: "devbridge",
@@ -159,6 +168,7 @@ const FALLBACK_PROJECTS = [
     skillsNeeded: ["Community", "Matching", "Product"],
     username: "ayn",
     createdAt: "2026-03-28T15:40:00Z",
+    thumbnail: "/assets/project-thumbnails/blue.svg",
   },
   {
     _id: "marketmuse",
@@ -173,6 +183,7 @@ const FALLBACK_PROJECTS = [
     skillsNeeded: ["Marketing", "Growth", "Brand"],
     username: "leah",
     createdAt: "2026-03-24T10:35:00Z",
+    thumbnail: "/assets/project-thumbnails/orange.svg",
   },
   {
     _id: "quantumhub",
@@ -187,6 +198,7 @@ const FALLBACK_PROJECTS = [
     skillsNeeded: ["Quantum", "Research", "Collaboration"],
     username: "seth",
     createdAt: "2026-03-20T11:50:00Z",
+    thumbnail: "/assets/project-thumbnails/red.svg",
   },
 ];
 
@@ -384,7 +396,13 @@ export const DiscoverProjectsPage = () => {
           {paginatedProjects.length > 0 ? (
             paginatedProjects.map((project) => <ProjectCard key={project._id ?? project.title} project={project} />)
           ) : (
-            <div className={styles.noResults}>No projects match your criteria. Try adjusting your filters.</div>
+            <div className={styles.noResults}>
+              <h2>No projects found matching these criteria</h2>
+              <p>Try clearing active filters or broadening your search to discover more startup opportunities.</p>
+              <button type="button" onClick={clearFilters} className={styles.noResultsReset}>
+                Reset Filters
+              </button>
+            </div>
           )}
         </div>
 

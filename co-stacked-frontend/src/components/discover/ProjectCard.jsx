@@ -1,5 +1,9 @@
-import { Link } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { Bookmark, MapPin, TrendingUp, Wallet } from "lucide-react";
+import { toggleBookmark } from "../../features/auth/authSlice";
+import { getProjectThumbnail } from "../../data/projectThumbnails";
 import styles from "./ProjectCard.module.css";
 
 const gradients = [
@@ -33,7 +37,25 @@ const getGradientClass = (project) => {
 const getUsername = (project) =>
   project.username ?? project.founderId?.username ?? project.founderId?.name ?? project.founder ?? "alexmorgan";
 
+const getAvatarInitials = (username) => {
+  const parts = username
+    .replace(/[@._-]/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+
+  return username.slice(0, 2).toUpperCase();
+};
+
 const ProjectCard = ({ project }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useSelector((state) => state.auth || {});
+  const [localSaved, setLocalSaved] = useState(false);
   const status = normalizeStatus(project);
   const title = project.title ?? "Untitled Project";
   const description = project.description ?? "No project description has been provided yet.";
@@ -43,18 +65,46 @@ const ProjectCard = ({ project }) => {
   const stage = project.stage ?? status;
   const username = getUsername(project);
   const avatarUrl = project.avatarUrl ?? project.founderId?.avatarUrl;
-  const avatarInitial = username.trim().charAt(0).toUpperCase() || "@";
+  const avatarInitial = getAvatarInitials(username);
   const detailsPath = project._id ? `/projects/${project._id}` : "/projects";
+  const thumbnailPath = getProjectThumbnail(project);
+
+  const userSaved = useMemo(() => {
+    if (!user?.bookmarks) return false;
+    const itemId = project._id || project.title;
+    return user.bookmarks.some((bookmark) => bookmark.itemId === itemId && bookmark.itemType === "project");
+  }, [user, project]);
+
+  const isSaved = useMemo(
+    () => (isAuthenticated ? userSaved || localSaved : localSaved),
+    [isAuthenticated, userSaved, localSaved],
+  );
+
+  const handleSaveClick = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    setLocalSaved((value) => !value);
+
+    try {
+      await dispatch(
+        toggleBookmark({
+          itemId: project._id || project.title,
+          itemType: "project",
+        }),
+      ).unwrap();
+    } catch (err) {
+      setLocalSaved((prev) => !prev);
+    }
+  };
 
   return (
     <article className={styles.card}>
       <div className={styles.banner}>
-        <div className={`${styles.bannerArt} ${getGradientClass(project)}`}>
-          <div className={styles.stackMark} aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
+        <div className={`${styles.bannerArt} ${getGradientClass(project)}`} style={{ backgroundImage: `url(${thumbnailPath})` }}>
+          {/* Stack icon removed */}
         </div>
 
         <div className={styles.badges}>
@@ -62,8 +112,13 @@ const ProjectCard = ({ project }) => {
           {category !== "All" && <span className={styles.categoryBadge}>{category}</span>}
         </div>
 
-        <button type="button" className={styles.saveButton} aria-label="Save project">
-          <Bookmark className={styles.saveIcon} aria-hidden="true" />
+        <button
+          type="button"
+          className={`${styles.saveButton} ${isSaved ? styles.saveButtonActive : ""}`}
+          aria-label={isSaved ? "Unsave project" : "Save project"}
+          onClick={handleSaveClick}
+        >
+          <Bookmark className={styles.saveIcon} fill={isSaved ? "currentColor" : "none"} aria-hidden="true" />
         </button>
       </div>
 
@@ -95,7 +150,7 @@ const ProjectCard = ({ project }) => {
             )}
 
             <p className={styles.postedBy}>
-              posted by <span>@{username}</span>
+              posted by <Link to={`/users/${username}`} className={styles.profileLink}>@{username}</Link>
             </p>
           </div>
 

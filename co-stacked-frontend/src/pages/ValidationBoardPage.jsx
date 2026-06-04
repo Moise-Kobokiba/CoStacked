@@ -6,9 +6,13 @@ import {
   ThumbsUp, MessageSquare, X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getStackPosts } from '../api/stackSuiteApi';
 import { DiscussionDetail } from '../components/stack-suite/DiscussionDetail';
+import { createValidationTip, updateValidationTip, deleteValidationTip } from '../api/validationTipApi';
+import { useSelector } from 'react-redux';
+import { getCommunityStats } from '../api/statsApi';
+import { getValidationTips } from '../api/validationTipApi';
 import { useDebounce } from '../hooks/useDebounce';
 import styles from './ValidationBoard.module.css';
 
@@ -30,6 +34,38 @@ export function ValidationBoardPage() {
     queryKey: ['validationPosts', { search: debouncedSearch, phase: phaseFilter }],
     queryFn: () => getStackPosts({ boardType: 'validation-board', search: debouncedSearch, phase: phaseFilter }),
   });
+
+  const { data: statsData } = useQuery({
+    queryKey: ['communityStats'],
+    queryFn: () => getCommunityStats(),
+  });
+
+  const { data: tipsData } = useQuery({
+    queryKey: ['validationTips'],
+    queryFn: () => getValidationTips(),
+  });
+
+  const queryClient = useQueryClient();
+  const { token, user } = useSelector((state) => state.auth || {});
+
+  const createTipMutation = useMutation({
+    mutationFn: (newTip) => createValidationTip(newTip, token),
+    onSuccess: () => queryClient.invalidateQueries(['validationTips'])
+  });
+
+  const updateTipMutation = useMutation({
+    mutationFn: ({ id, data }) => updateValidationTip(id, data, token),
+    onSuccess: () => queryClient.invalidateQueries(['validationTips'])
+  });
+
+  const deleteTipMutation = useMutation({
+    mutationFn: (id) => deleteValidationTip(id, token),
+    onSuccess: () => queryClient.invalidateQueries(['validationTips'])
+  });
+
+  const [manageOpen, setManageOpen] = useState(false);
+  const [newTipTitle, setNewTipTitle] = useState('');
+  const [newTipContent, setNewTipContent] = useState('');
 
   const phases = [
     { id: 'all', label: 'All Ideas' },
@@ -183,13 +219,17 @@ export function ValidationBoardPage() {
             <h4 className={styles.sidebarLabel}>Community Stats</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <p style={{ fontSize: '1.875rem', fontWeight: '900', color: 'var(--foreground)' }}>1,240</p>
-                <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Total Ideas Validated</p>
+                <p style={{ fontSize: '1.875rem', fontWeight: '900', color: 'var(--foreground)' }}>{statsData?.totalIdeas ?? '—'}</p>
+                <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Total Ideas</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '1.375rem', fontWeight: '800', color: 'var(--foreground)' }}>{statsData?.validatedIdeasCount ?? '—'}</p>
+                <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Ideas Validated (score ≥ 100)</p>
               </div>
               <div className={styles.progressWrapper}>
-                <div className={styles.progressBar} style={{ width: '75%' }}></div>
+                <div className={styles.progressBar} style={{ width: `${Math.min(100, (statsData?.totalValidations || 0) / 10)}%` }}></div>
               </div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>Join 5,000+ founders active this month.</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{statsData?.totalUsers ?? '—'} users on the platform</p>
             </div>
           </div>
 
@@ -199,18 +239,55 @@ export function ValidationBoardPage() {
               <h4 style={{ fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Validation Tips</h4>
             </div>
             <div className={styles.tipList}>
-              <div className={styles.tipItem}>
-                <span className={styles.tipNumber}>01</span>
-                <p className={styles.tipText}><span style={{ fontWeight: '600', color: 'var(--foreground)' }}>Define your ICP.</span> Be specific about who has the problem you're solving.</p>
-              </div>
-              <div className={styles.tipItem}>
-                <span className={styles.tipNumber}>02</span>
-                <p className={styles.tipText}><span style={{ fontWeight: '600', color: 'var(--foreground)' }}>Ask open questions.</span> Don't lead the witness. Let them tell you their pain points.</p>
-              </div>
-              <div className={styles.tipItem}>
-                <span className={styles.tipNumber}>03</span>
-                <p className={styles.tipText}><span style={{ fontWeight: '600', color: 'var(--foreground)' }}>Iterate quickly.</span> If people aren't excited, tweak the pitch and repost.</p>
-              </div>
+              {tipsData ? (
+                ([...(tipsData.manualTips || []), ...(tipsData.articleTips || [])]).slice(0, 6).map((tip, idx) => (
+                  <div key={tip._id || idx} className={styles.tipItem}>
+                    <span className={styles.tipNumber}>{String(idx + 1).padStart(2, '0')}</span>
+                    <p className={styles.tipText}>
+                      <span style={{ fontWeight: '600', color: 'var(--foreground)' }}>{tip.title}</span> {tip.content}
+                    </p>
+                    {/* Admin controls for manual tips only */}
+                    {user?.isAdmin && String(tip._id).startsWith('article-') === false && (
+                      <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => {
+                          const newTitle = prompt('Edit title', tip.title);
+                          if (newTitle === null) return;
+                          const newContent = prompt('Edit content', tip.content);
+                          if (newContent === null) return;
+                          updateTipMutation.mutate({ id: tip._id, data: { title: newTitle, content: newContent } });
+                        }}>Edit</button>
+                        <button onClick={() => {
+                          if (!confirm('Delete this tip?')) return;
+                          deleteTipMutation.mutate(tip._id);
+                        }}>Delete</button>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div>Loading tips…</div>
+              )}
+
+              {/* Admin management area */}
+              {user?.isAdmin && (
+                <div style={{ marginTop: '1rem', borderTop: '1px dashed var(--border)', paddingTop: '0.75rem' }}>
+                  <button onClick={() => setManageOpen((s) => !s)} style={{ fontWeight: 700 }}>{manageOpen ? 'Close Tip Manager' : 'Manage Tips'}</button>
+                  {manageOpen && (
+                    <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <input placeholder='Tip title' value={newTipTitle} onChange={(e) => setNewTipTitle(e.target.value)} />
+                      <input placeholder='Tip content' value={newTipContent} onChange={(e) => setNewTipContent(e.target.value)} />
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => {
+                          if (!newTipTitle.trim() || !newTipContent.trim()) return alert('Title and content required');
+                          createTipMutation.mutate({ title: newTipTitle.trim(), content: newTipContent.trim(), order: 0 });
+                          setNewTipTitle(''); setNewTipContent('');
+                        }}>Create Tip</button>
+                        <button onClick={() => { setNewTipTitle(''); setNewTipContent(''); }}>Cancel</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <a style={{ marginTop: '1.5rem', display: 'inline-block', fontSize: '0.875rem', fontWeight: '700', color: 'var(--primary)', textDecoration: 'none' }} href="#">Read full guide →</a>
           </div>

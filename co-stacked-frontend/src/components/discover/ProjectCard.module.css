@@ -32,6 +32,9 @@
   align-items: center;
   justify-content: center;
   transition: transform 420ms ease;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
 }
 
 .card:hover .bannerArt {
@@ -68,35 +71,6 @@
 
 .gradientRed {
   background: linear-gradient(135deg, #f43f5e 0%, #db2777 100%);
-}
-
-.stackMark {
-  position: relative;
-  width: 54px;
-  height: 54px;
-}
-
-.stackMark span {
-  position: absolute;
-  left: 50%;
-  width: 48px;
-  height: 18px;
-  border-radius: 50%;
-  background: #ffffff;
-  transform: translateX(-50%);
-  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.95), 0 7px 0 rgba(255, 255, 255, 0.88);
-}
-
-.stackMark span:nth-child(1) {
-  top: 2px;
-}
-
-.stackMark span:nth-child(2) {
-  top: 15px;
-}
-
-.stackMark span:nth-child(3) {
-  top: 28px;
 }
 
 .badges {
@@ -151,12 +125,18 @@
   color: #ffffff;
   cursor: pointer;
   backdrop-filter: blur(10px);
-  transition: background 180ms ease, color 180ms ease;
+  transition: background 180ms ease, color 180ms ease, transform 180ms ease;
 }
 
-.saveButton:hover {
+.saveButton:hover,
+.saveButtonActive {
   background: rgba(255, 255, 255, 0.92);
   color: #1d4ed8;
+}
+
+.saveButtonActive {
+  background: #ffffff;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.15);
 }
 
 .saveIcon {
@@ -263,8 +243,14 @@
   white-space: nowrap;
 }
 
+.postedBy a,
 .postedBy span {
   color: #1d4ed8;
+  text-decoration: none;
+}
+
+.profileLink:hover {
+  text-decoration: underline;
 }
 
 .detailsButton {

@@ -166,9 +166,12 @@ const voteIdea = async (req, res) => {
         const upvoteCount = idea.upvotes.length;
         const downvoteCount = idea.downvotes.length;
         idea.voteCount = upvoteCount + downvoteCount;
-        
-        // Score: upvotes * 10 - downvotes * 5
-        idea.validationScore = (upvoteCount * 10) - (downvoteCount * 5);
+
+        // Weighted score: upvotes * 15 (10 + 5 bonus) - downvotes * 5
+        let score = (upvoteCount * 15) - (downvoteCount * 5);
+        // Cap score between 0 and 100
+        score = Math.max(0, Math.min(100, score));
+        idea.validationScore = score;
         
         // Update engagement
         const commentCount = await Comment.countDocuments({ idea: req.params.id, isDeleted: false });
@@ -193,12 +196,18 @@ const convertIdeaToProject = async (req, res) => {
             return res.status(404).json({ message: 'Idea not found' });
         }
 
-        if (idea.founder.toString() !== req.user._id.toString()) {
+        // Allow founder or admins to convert an idea
+        if (idea.founder.toString() !== req.user._id.toString() && !req.user.isAdmin) {
             return res.status(401).json({ message: 'Not authorized' });
         }
 
         // Optional: Check threshold
         // if (idea.validationScore < 50) { return res.status(400).json({message: 'Not enough validation'}); }
+
+        const MIN_CONVERSION_SCORE = 60;
+        if (idea.validationScore < MIN_CONVERSION_SCORE) {
+          return res.status(400).json({ message: `Idea must reach a validation score of ${MIN_CONVERSION_SCORE} before conversion.` });
+        }
 
         // Create Project
         const projectData = {
