@@ -33,8 +33,10 @@ import { ProfileBoostModal } from "../components/billing/ProfileBoostModal";
 import { 
   MapPin, Link as LinkIcon, X, ArrowLeft, 
   Globe, Github, Linkedin, Briefcase, Rocket, Laptop,
-  Quote
+  Quote, ThumbsUp
 } from "lucide-react";
+
+import { endorseUser } from "../api/usersApi";
 
 const LoadingSpinner = () => (
   <div className={styles.loader}>
@@ -57,6 +59,14 @@ const formatPeriod = (start, end, isCurrent) => {
   return `${startStr} — ${endStr}`;
 };
 
+// Education year-only formatter
+const formatEducationYear = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.getFullYear().toString();
+};
+
 export const ProfilePage = () => {
   const dispatch = useDispatch();
   const { userId } = useParams();
@@ -70,6 +80,9 @@ export const ProfilePage = () => {
   const [isImageViewerOpen, setImageViewerOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState("");
 
+  // Endorsement state
+  const [endorsementState, setEndorsementState] = useState({ count: 0, endorsed: false, loading: false });
+
   // State from Redux
   const { user: loggedInUser } = useSelector((state) => state.auth);
   const { items: allUsers, status: usersStatus, responseRates } = useSelector((state) => state.users);
@@ -80,6 +93,19 @@ export const ProfilePage = () => {
 
   const userToDisplay = userId ? allUsers.find((u) => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
+
+  // Initialize endorsement state when user data is available
+  useEffect(() => {
+    if (!userToDisplay) return;
+    const alreadyEndorsed = loggedInUser && userToDisplay.endorsedBy?.some(
+      (id) => id?.toString() === loggedInUser._id?.toString()
+    );
+    setEndorsementState({
+      count: userToDisplay.endorsementCount || 0,
+      endorsed: !!alreadyEndorsed,
+      loading: false,
+    });
+  }, [userToDisplay, loggedInUser]);
 
   // Connection status helpers
   const getConnectionStatus = () => {
@@ -109,6 +135,39 @@ export const ProfilePage = () => {
     }
   }, [userToDisplay]);
 
+  const handleEndorse = useCallback(async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    if (!userToDisplay?._id) return;
+
+    // Optimistic update
+    setEndorsementState((prev) => ({
+      count: prev.endorsed ? prev.count - 1 : prev.count + 1,
+      endorsed: !prev.endorsed,
+      loading: true,
+    }));
+
+    try {
+      const result = await endorseUser(userToDisplay._id);
+      // Sync with server response
+      setEndorsementState({
+        count: result.endorsementCount,
+        endorsed: result.endorsed,
+        loading: false,
+      });
+    } catch (err) {
+      // Rollback on error
+      setEndorsementState((prev) => ({
+        count: prev.endorsed ? prev.count - 1 : prev.count - 1,
+        endorsed: !prev.endorsed,
+        loading: false,
+      }));
+      console.error(err);
+    }
+  }, [userToDisplay, navigate]);
+
   // Connection handlers
   const connectionHandlers = {
     send: () => userToDisplay?._id && dispatch(sendConnectionRequest(userToDisplay._id)),
@@ -119,6 +178,8 @@ export const ProfilePage = () => {
   };
 
   const handleMessage = () => userToDisplay?._id && navigate(`/messages/${userToDisplay._id}`);
+
+  const { token, isAuthenticated } = useSelector((state) => state.auth || {});
 
   // Data fetching
   useEffect(() => {
@@ -146,7 +207,7 @@ export const ProfilePage = () => {
   if (usersStatus === "loading" || !userToDisplay) return <div className={styles.pageContainer}><LoadingSpinner /></div>;
 
   const developerReviews = reviewsByUser[userToDisplay._id] || [];
-  const userProjects = userToDisplay.role === "founder" ? allProjects.filter((p) => p.founderId === userToDisplay._id) : [];
+  const userProjects = allProjects.filter((p) => p.founderId === userToDisplay._id);
   const averageRating = developerReviews.length > 0 ? developerReviews.reduce((acc, r) => acc + r.rating, 0) / developerReviews.length : 0;
   
   const reviewableProjects =
@@ -166,6 +227,11 @@ export const ProfilePage = () => {
 
   const experience = userToDisplay.experience || [];
   const education = userToDisplay.education || [];
+  const softSkills = userToDisplay.softSkills || [];
+  const startupSkills = userToDisplay.startupSkills || [];
+
+  // Portfolio projects - display user's projects as portfolio
+  const portfolioProjects = userProjects.filter(p => p.status !== 'archived');
 
   return (
     <>
@@ -255,7 +321,10 @@ export const ProfilePage = () => {
                           <div className={styles.eduDot}></div>
                           <p className={styles.eduDegree}>{edu.degree}</p>
                           <p className={styles.eduSchool}>{edu.school}</p>
-                          <p className={styles.eduDate}>{edu.startDate} — {edu.endDate}</p>
+                          <p className={styles.eduDate}>
+                            {formatEducationYear(edu.startDate)}
+                            {edu.endDate ? ` — ${formatEducationYear(edu.endDate)}` : ''}
+                          </p>
                         </div>
                       )) : (
                         <div className={styles.emptyStateContainer}>
@@ -297,6 +366,43 @@ export const ProfilePage = () => {
                     <p className={styles.bioText}>{userToDisplay.bio || "Passionate builder looking for the next big challenge."}</p>
                   </section>
 
+                  {/* Portfolio Showcase Section */}
+                  {portfolioProjects.length > 0 && (
+                    <section className={styles.section}>
+                      <h2 className={styles.sectionTitle}>Portfolio Showcase</h2>
+                      <div className={styles.portfolioGrid}>
+                        {portfolioProjects.map((project) => (
+                          <Link
+                            key={project._id}
+                            to={`/projects/${project._id}`}
+                            className={styles.portfolioCard}
+                          >
+                            <div className={styles.portfolioThumbnail}>
+                              {project.coverImage ? (
+                                <img src={project.coverImage} alt={project.title} className={styles.portfolioThumbnailImg} />
+                              ) : (
+                                <div className={styles.portfolioThumbnailPlaceholder}>
+                                  <Rocket size={32} />
+                                </div>
+                              )}
+                            </div>
+                            <div className={styles.portfolioInfo}>
+                              <h4 className={styles.portfolioTitle}>{project.title}</h4>
+                              {project.subtitle && <p className={styles.portfolioSubtitle}>{project.subtitle}</p>}
+                              {(project.tags || project.techStack) && (
+                                <div className={styles.portfolioTags}>
+                                  {(project.tags || project.techStack || []).slice(0, 3).map((tag, i) => (
+                                    <span key={i} className={styles.portfolioTag}>{tag}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
                   <section className={styles.section}>
                     <h2 className={styles.sectionTitle}>Experience</h2>
                     <div className={styles.experienceList}>
@@ -337,24 +443,64 @@ export const ProfilePage = () => {
                         )}
                       </div>
                     </div>
-                    <div className={styles.skillGroup}>
-                      <h4 className={styles.skillGroupLabel}>Startup & Soft Skills</h4>
-                      <div className={styles.skillsWrap}>
-                        {userToDisplay.softSkills?.length > 0 ? (
-                          userToDisplay.softSkills.map(skill => (
+                    {startupSkills.length > 0 && (
+                      <div className={styles.skillGroup}>
+                        <h4 className={styles.skillGroupLabel}>Startup Skills</h4>
+                        <div className={styles.skillsWrap}>
+                          {startupSkills.map(skill => (
                             <span key={skill} className={styles.skillTagSecondary}>{skill}</span>
-                          ))
-                        ) : (
-                          <p className={styles.emptyStateText} style={{ margin: 0 }}>No soft skills listed yet.</p>
-                        )}
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
+                    {softSkills.length > 0 && (
+                      <div className={styles.skillGroup}>
+                        <h4 className={styles.skillGroupLabel}>Soft Skills</h4>
+                        <div className={styles.skillsWrap}>
+                          {softSkills.map(skill => (
+                            <span key={skill} className={styles.skillTagSecondary}>{skill}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {startupSkills.length === 0 && softSkills.length === 0 && (
+                      <div className={styles.skillGroup}>
+                        <h4 className={styles.skillGroupLabel}>Startup & Soft Skills</h4>
+                        <div className={styles.skillsWrap}>
+                          {userToDisplay.softSkills?.length > 0 ? (
+                            userToDisplay.softSkills.map(skill => (
+                              <span key={skill} className={styles.skillTagSecondary}>{skill}</span>
+                            ))
+                          ) : (
+                            <p className={styles.emptyStateText} style={{ margin: 0 }}>No soft skills listed yet.</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </section>
 
                   <section className={styles.section}>
                     <div className={styles.sectionHeader}>
                       <h2 className={styles.sectionTitle}>Endorsements</h2>
-                      <button className={styles.requestBtn}>Request Endorsement</button>
+                      <div className={styles.endorsementActions}>
+                        {!isOwnProfile && isAuthenticated && (
+                          <button
+                            className={`${styles.endorseButton} ${endorsementState.endorsed ? styles.endorseButtonActive : ''}`}
+                            onClick={handleEndorse}
+                            disabled={endorsementState.loading}
+                          >
+                            <ThumbsUp size={16} />
+                            <span>{endorsementState.endorsed ? 'Endorsed' : 'Endorse'}</span>
+                            {endorsementState.count > 0 && (
+                              <span className={styles.endorseCount}>{endorsementState.count}</span>
+                            )}
+                          </button>
+                        )}
+                        {isOwnProfile && endorsementState.count > 0 && (
+                          <span className={styles.endorseCountLabel}>{endorsementState.count} endorsements</span>
+                        )}
+                        <button className={styles.requestBtn}>Request Endorsement</button>
+                      </div>
                     </div>
                     <div className={styles.endorsementsGrid}>
                       {developerReviews.length > 0 ? developerReviews.map(review => (

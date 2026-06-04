@@ -135,6 +135,14 @@ const userSchema = mongoose.Schema(
       }
     ],
 
+    // --- NEW: Skills Categorization ---
+    softSkills: { type: [String], default: [] },
+    startupSkills: { type: [String], default: [] },
+
+    // --- NEW: Endorsement Tracking ---
+    endorsementCount: { type: Number, default: 0 },
+    endorsedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+
   },
   {
     timestamps: true,
