@@ -39,7 +39,6 @@
   border-radius: 1rem;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
   position: relative;
 }
 
@@ -47,6 +46,8 @@
   height: 6rem;
   background: linear-gradient(to right, rgba(36, 99, 235, 0.1), rgba(36, 99, 235, 0.05));
   width: 100%;
+  border-radius: 1rem 1rem 0 0;
+  overflow: hidden;
 }
 
 .headerContent {
