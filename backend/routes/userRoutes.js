@@ -23,7 +23,8 @@ const {
   completeProfile,
   toggleBookmark,
   getProfileViews,
-  getResponseRate
+  getResponseRate,
+  endorseUser
 } = require('../controllers/userController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -64,6 +65,7 @@ router.route('/profile/views').get(protect, getProfileViews);
 // with static routes like '/profile'.
 router.route('/:id/response-rate').get(getResponseRate);
 router.route('/:id/view').put(protect, recordProfileView);
+router.route('/:id/endorse').post(protect, endorseUser);
 
 
 module.exports = router;

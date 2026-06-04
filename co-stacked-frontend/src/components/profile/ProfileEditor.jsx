@@ -10,10 +10,27 @@ import { Label } from '../shared/Label';
 import { Textarea } from '../shared/Textarea';
 import { 
     Loader2, Twitter, Linkedin, Instagram, Facebook, Github, 
-    Plus, Trash2, Rocket, Laptop, GraduationCap, Briefcase
+    Plus, Trash2, Rocket, Laptop, GraduationCap, Briefcase, X
 } from 'lucide-react';
 import styles from './ProfileEditor.module.css';
 import PropTypes from 'prop-types';
+
+// Common startup skill suggestions
+const STARTUP_SKILL_SUGGESTIONS = [
+    'Product Validation', 'Growth Hacking', 'Cap Table Management',
+    'Fundraising', 'Market Research', 'Unit Economics',
+    'Pitch Deck Creation', 'Customer Discovery', 'Go-to-Market Strategy',
+    'Lean Methodology', 'Business Modeling', 'Investor Relations',
+    'Financial Forecasting', 'MVP Development', 'User Acquisition'
+];
+
+// Common soft skill suggestions
+const SOFT_SKILL_SUGGESTIONS = [
+    'Leadership', 'Creative Thinking', 'Integrity', 'Communication',
+    'Problem Solving', 'Adaptability', 'Team Collaboration',
+    'Emotional Intelligence', 'Time Management', 'Critical Thinking',
+    'Conflict Resolution', 'Decision Making', 'Empathy', 'Resilience'
+];
 
 export const ProfileEditor = ({ user, onSave, onCancel }) => {
     const dispatch = useDispatch();
@@ -35,8 +52,16 @@ export const ProfileEditor = ({ user, onSave, onCancel }) => {
             github: '',
         },
         experience: [],
-        education: []
+        education: [],
+        softSkills: [],
+        startupSkills: [],
     });
+
+    // Tag input states
+    const [startupSkillInput, setStartupSkillInput] = useState('');
+    const [softSkillInput, setSoftSkillInput] = useState('');
+    const [showStartupSuggestions, setShowStartupSuggestions] = useState(false);
+    const [showSoftSuggestions, setShowSoftSuggestions] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -56,7 +81,9 @@ export const ProfileEditor = ({ user, onSave, onCancel }) => {
                     github: user.socials?.github || '',
                 },
                 experience: Array.isArray(user.experience) ? user.experience : [],
-                education: Array.isArray(user.education) ? user.education : []
+                education: Array.isArray(user.education) ? user.education : [],
+                softSkills: Array.isArray(user.softSkills) ? user.softSkills : [],
+                startupSkills: Array.isArray(user.startupSkills) ? user.startupSkills : [],
             });
         }
     }, [user]);
@@ -71,6 +98,56 @@ export const ProfileEditor = ({ user, onSave, onCancel }) => {
             ...prev,
             socials: { ...prev.socials, [name]: value },
         }));
+    };
+
+    // Tag management for startup skills
+    const addStartupSkill = (skill) => {
+        const trimmed = (skill || startupSkillInput).trim();
+        if (!trimmed || formData.startupSkills.includes(trimmed)) return;
+        setFormData(prev => ({
+            ...prev,
+            startupSkills: [...prev.startupSkills, trimmed],
+        }));
+        setStartupSkillInput('');
+    };
+
+    const removeStartupSkill = (skill) => {
+        setFormData(prev => ({
+            ...prev,
+            startupSkills: prev.startupSkills.filter(s => s !== skill),
+        }));
+    };
+
+    const handleStartupKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addStartupSkill();
+        }
+    };
+
+    // Tag management for soft skills
+    const addSoftSkill = (skill) => {
+        const trimmed = (skill || softSkillInput).trim();
+        if (!trimmed || formData.softSkills.includes(trimmed)) return;
+        setFormData(prev => ({
+            ...prev,
+            softSkills: [...prev.softSkills, trimmed],
+        }));
+        setSoftSkillInput('');
+    };
+
+    const removeSoftSkill = (skill) => {
+        setFormData(prev => ({
+            ...prev,
+            softSkills: prev.softSkills.filter(s => s !== skill),
+        }));
+    };
+
+    const handleSoftKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addSoftSkill();
+        }
     };
 
     // Experience Management
@@ -127,13 +204,24 @@ export const ProfileEditor = ({ user, onSave, onCancel }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const resultAction = await dispatch(updateUserProfile(formData));
+        const resultAction = await dispatch(updateUserProfile({
+            ...formData,
+            softSkills: formData.softSkills,
+            startupSkills: formData.startupSkills,
+        }));
         if (updateUserProfile.fulfilled.match(resultAction)) {
             onSave();
         } else {
             alert('Failed to update profile. Please check for errors.');
         }
     };
+
+    const filteredStartupSuggestions = STARTUP_SKILL_SUGGESTIONS.filter(
+        s => !formData.startupSkills.includes(s) && s.toLowerCase().includes(startupSkillInput.toLowerCase())
+    );
+    const filteredSoftSuggestions = SOFT_SKILL_SUGGESTIONS.filter(
+        s => !formData.softSkills.includes(s) && s.toLowerCase().includes(softSkillInput.toLowerCase())
+    );
 
     return (
         <Card>
@@ -154,7 +242,7 @@ export const ProfileEditor = ({ user, onSave, onCancel }) => {
                         <Textarea id="bio" name="bio" value={formData.bio} onChange={handleChange} rows={4} />
                     </div>
                     <div className={styles.formGroupSpan2}>
-                        <Label htmlFor="skills">Skills (comma-separated)</Label>
+                        <Label htmlFor="skills">Core Technical Skills (comma-separated)</Label>
                         <Input id="skills" name="skills" value={formData.skills} onChange={handleChange} />
                     </div>
                     <div className={styles.formGroup}>
@@ -168,6 +256,92 @@ export const ProfileEditor = ({ user, onSave, onCancel }) => {
                     <div className={styles.formGroupSpan2}>
                         <Label htmlFor="portfolioLink">Portfolio Link</Label>
                         <Input id="portfolioLink" name="portfolioLink" value={formData.portfolioLink} onChange={handleChange} />
+                    </div>
+                </div>
+
+                {/* Startup Skills Tag Input */}
+                <div className={styles.separator} />
+                <h3 className={styles.subtitle}>Startup Skills</h3>
+                <div className={styles.tagInputContainer}>
+                    <div className={styles.tagInputWrapper}>
+                        <Input
+                            value={startupSkillInput}
+                            onChange={(e) => setStartupSkillInput(e.target.value)}
+                            onKeyDown={handleStartupKeyDown}
+                            onFocus={() => setShowStartupSuggestions(true)}
+                            onBlur={() => setTimeout(() => setShowStartupSuggestions(false), 200)}
+                            placeholder="Type a startup skill and press Enter..."
+                        />
+                        <button type="button" className={styles.tagAddBtn} onClick={() => addStartupSkill()}>
+                            <Plus size={16} />
+                        </button>
+                    </div>
+                    {showStartupSuggestions && filteredStartupSuggestions.length > 0 && (
+                        <div className={styles.tagSuggestions}>
+                            {filteredStartupSuggestions.map((suggestion) => (
+                                <button
+                                    key={suggestion}
+                                    type="button"
+                                    className={styles.tagSuggestionItem}
+                                    onMouseDown={(e) => { e.preventDefault(); addStartupSkill(suggestion); }}
+                                >
+                                    {suggestion}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                    <div className={styles.tagChips}>
+                        {formData.startupSkills.map((skill) => (
+                            <span key={skill} className={styles.tagChip}>
+                                {skill}
+                                <button type="button" onClick={() => removeStartupSkill(skill)} className={styles.tagChipRemove}>
+                                    <X size={12} />
+                                </button>
+                            </span>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Soft Skills Tag Input */}
+                <div className={styles.separator} />
+                <h3 className={styles.subtitle}>Soft Skills</h3>
+                <div className={styles.tagInputContainer}>
+                    <div className={styles.tagInputWrapper}>
+                        <Input
+                            value={softSkillInput}
+                            onChange={(e) => setSoftSkillInput(e.target.value)}
+                            onKeyDown={handleSoftKeyDown}
+                            onFocus={() => setShowSoftSuggestions(true)}
+                            onBlur={() => setTimeout(() => setShowSoftSuggestions(false), 200)}
+                            placeholder="Type a soft skill and press Enter..."
+                        />
+                        <button type="button" className={styles.tagAddBtn} onClick={() => addSoftSkill()}>
+                            <Plus size={16} />
+                        </button>
+                    </div>
+                    {showSoftSuggestions && filteredSoftSuggestions.length > 0 && (
+                        <div className={styles.tagSuggestions}>
+                            {filteredSoftSuggestions.map((suggestion) => (
+                                <button
+                                    key={suggestion}
+                                    type="button"
+                                    className={styles.tagSuggestionItem}
+                                    onMouseDown={(e) => { e.preventDefault(); addSoftSkill(suggestion); }}
+                                >
+                                    {suggestion}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                    <div className={styles.tagChips}>
+                        {formData.softSkills.map((skill) => (
+                            <span key={skill} className={styles.tagChip}>
+                                {skill}
+                                <button type="button" onClick={() => removeSoftSkill(skill)} className={styles.tagChipRemove}>
+                                    <X size={12} />
+                                </button>
+                            </span>
+                        ))}
                     </div>
                 </div>
 
