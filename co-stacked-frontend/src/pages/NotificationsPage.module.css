@@ -12,6 +12,8 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .titleSection h1 {
@@ -24,6 +26,13 @@
 .titleSection p {
   color: var(--muted-foreground);
   font-size: 1rem;
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .markAllBtn {
@@ -40,12 +49,36 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: var(--shadow-sm);
+  white-space: nowrap;
 }
 
 .markAllBtn:hover {
   background-color: var(--input-background);
   border-color: var(--primary);
   color: var(--primary);
+}
+
+.markAllBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.clearBtn {
+  color: var(--muted-foreground);
+}
+
+.clearBtn:hover {
+  border-color: var(--destructive);
+  color: var(--destructive);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Tabs */
@@ -88,21 +121,26 @@
   right: 0;
   height: 2px;
   background-color: var(--primary);
+  border-radius: 1px;
 }
 
 .tabCount {
-  font-size: 0.75rem;
-  background-color: var(--input-background);
-  color: var(--muted-foreground);
-  padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 1.5rem;
-  text-align: center;
+  height: 1.5rem;
+  padding: 0 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 9999px;
 }
 
 .activeTab .tabCount {
-  background-color: rgba(36, 99, 235, 0.1);
-  color: var(--primary);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
 }
 
 /* Notifications List */
@@ -119,33 +157,29 @@
   border-radius: 1rem;
   border: 1.5px dashed var(--border);
   color: var(--muted-foreground);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .emptyIcon {
-  margin-bottom: 1rem;
-  opacity: 0.5;
+  margin-bottom: 0.5rem;
+  opacity: 0.4;
 }
 
-.footerActions {
-  margin-top: 2rem;
-  display: flex;
-  justify-content: center;
-}
-
-.seeOlderBtn {
-  background: none;
-  border: none;
-  color: var(--primary);
+.emptyTitle {
+  font-size: 1.125rem;
   font-weight: 600;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  cursor: pointer;
+  color: var(--foreground);
+  margin: 0;
 }
 
-.seeOlderBtn:hover {
-  text-decoration: underline;
+.emptySubtitle {
+  font-size: 0.9375rem;
+  margin: 0;
+  max-width: 360px;
+  line-height: 1.5;
 }
 
 /* Animation */
@@ -159,10 +193,23 @@
 }
 
 @media (max-width: 640px) {
+  .pageContainer {
+    padding: 2rem 1rem;
+  }
+
   .header {
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
     align-items: flex-start;
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+
+  .markAllBtn {
+    flex: 1;
+    justify-content: center;
   }
   
   .tabsContainer {
@@ -170,5 +217,10 @@
     white-space: nowrap;
     gap: 1rem;
     padding-bottom: 0.75rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .titleSection h1 {
+    font-size: 1.75rem;
   }
 }

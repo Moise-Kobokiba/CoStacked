@@ -7,15 +7,18 @@
   background-color: var(--background);
 }
 
-
-
+/* Search Bar + Compose */
 .searchContainer {
-  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
 }
 
 .searchWrapper {
   position: relative;
+  flex: 1;
 }
 
 .searchIcon {
@@ -28,11 +31,13 @@
 
 .searchInput {
   width: 100%;
-  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
   background-color: var(--input-background);
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   color: var(--foreground);
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
 }
 
 .searchInput:focus {
@@ -40,113 +45,230 @@
   outline: none;
 }
 
-.conversationsHeading {
-  padding: 0.75rem 1rem;
+.searchInput::placeholder {
+  color: var(--muted-foreground);
 }
 
-.heading {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--foreground);
-  margin: 0;
+.composeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
 }
 
+.composeBtn:hover {
+  opacity: 0.9;
+}
+
+/* Conversation List */
 .list {
-  flex-grow: 1;
+  flex: 1;
   overflow-y: auto;
 }
 
-.userGroup {
-  border-bottom: 1px solid var(--border);
+/* Section Groups */
+.sectionGroup {
+  /* No border, just padding */
 }
 
-.userHeader {
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Conversation Items */
+.conversationItem {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem;
+  padding: 0.625rem 1rem;
   width: 100%;
   background: none;
   border: none;
   cursor: pointer;
-  transition: background-color 0.2s;
-  color: var(--muted-foreground);
-}
-
-.userHeader:hover {
-  background-color: var(--secondary-button-hover);
-}
-
-.userInfo {
-  flex: 1;
+  transition: background-color 0.15s;
   text-align: left;
+  position: relative;
 }
 
-.userName {
-  font-weight: 600;
-  color: var(--primary);
-  margin: 0;
+.conversationItem:hover {
+  background-color: var(--input-background);
 }
 
-.chevron {
-  color: var(--muted-foreground);
-}
-
-.projectsContainer {
-  background-color: var(--secondary-button-background);
-}
-
-.projectItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem 1rem 1rem 4rem;
-  width: 100%;
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  text-align: left;
-}
-
-.projectItem:hover {
-  background-color: var(--secondary-button-hover);
-}
-
-.projectItem.selected {
+.conversationItem.selected {
   background-color: var(--primary-light);
 }
 
-.projectContent {
+.conversationItem.selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background-color: var(--primary);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Avatar */
+.itemAvatar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.onlineStatusDot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background-color: #10b981;
+  border: 2px solid var(--background);
+  border-radius: 50%;
+}
+
+.conversationItem.selected .onlineStatusDot {
+  border-color: var(--primary-light);
+}
+
+.groupIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.75rem;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Item Content */
+.itemContent {
   flex: 1;
   min-width: 0;
 }
 
-.projectHeader {
-  margin-bottom: 0.25rem;
+.itemTopRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.125rem;
 }
 
-.projectTitle {
-  font-weight: 500;
-  color: var(--foreground);
+.itemName {
   font-size: 0.875rem;
-  line-height: 1.25;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
 }
 
-.projectSubtitle {
-  font-size: 0.75rem;
+.itemTime {
+  font-size: 0.6875rem;
   color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.itemBottomRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.itemSnippet {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.unreadBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+/* Empty State */
+.emptyMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  gap: 0.5rem;
+}
+
+.emptyIcon {
+  opacity: 0.3;
+  margin-bottom: 0.5rem;
+}
+
+.emptyMessage p {
+  font-size: 0.875rem;
   margin: 0;
 }
 
-.emptyMessage {
-  padding: 2rem 1rem;
-  text-align: center;
-  color: var(--muted-foreground);
-  font-style: italic;
+.emptyHint {
+  font-size: 0.75rem !important;
+  opacity: 0.7;
 }
 
+/* Scrollbar */
+.list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.list::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 2px;
+}
+
+@media (max-width: 768px) {
+  .searchContainer {
+    padding: 0.625rem 0.75rem;
+  }
+
+  .conversationItem {
+    padding: 0.625rem 0.75rem;
+  }
+
+  .sectionHeader {
+    padding: 0.5rem 0.75rem 0.375rem;
+  }
+}
