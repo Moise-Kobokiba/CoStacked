@@ -7,26 +7,136 @@
   background-color: var(--background);
 }
 
+/* Header */
 .header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
   background-color: var(--card-background);
+  flex-shrink: 0;
 }
-.headerInfo p { margin: 0; }
+
+.headerInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.headerInfo p {
+  margin: 0;
+}
+
 .userName {
   font-weight: 600;
   color: var(--foreground);
+  font-size: 0.9375rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 .userRole {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
+/* Avatar with online dot */
+.avatarWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.onlineDot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background-color: #10b981;
+  border: 2px solid var(--card-background);
+  border-radius: 50%;
+}
+
+/* Group Avatar */
+.groupAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.75rem;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Header Action Buttons */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.headerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  color: var(--muted-foreground);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.headerBtn:hover {
+  background-color: var(--input-background);
+  color: var(--primary);
+}
+
+/* Typing Indicator */
+.typingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--card-background);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.typingDot {
+  color: var(--muted-foreground);
+  animation: typingBounce 1.4s infinite ease-in-out both;
+}
+
+.typingDot:nth-child(1) { animation-delay: -0.32s; }
+.typingDot:nth-child(2) { animation-delay: -0.16s; }
+.typingDot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes typingBounce {
+  0%, 80%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.typingText {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-style: italic;
+  margin-left: 0.25rem;
+}
+
 .backButton {
-  display: none; /* Hidden on desktop by default */
+  display: none;
   background: none;
   border: none;
   cursor: pointer;
@@ -34,27 +144,30 @@
   padding: 0.5rem;
   border-radius: 0.375rem;
   transition: color 0.2s, background-color 0.2s;
-}
-.backButton:hover {
-  color: var(--foreground);
-  background-color: var(--secondary-button-hover);
+  flex-shrink: 0;
 }
 
+.backButton:hover {
+  color: var(--foreground);
+  background-color: var(--input-background);
+}
+
+/* Message List */
 .messageList {
-  flex-grow: 1;
+  flex: 1;
   overflow-y: auto;
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 /* --- CHAT BUBBLE STYLES --- */
 .messageGroup {
   display: flex;
-  gap: 0.5rem; /* Reduced gap for smaller avatar */
-  max-width: 70%;
-  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+  max-width: 72%;
+  margin-bottom: 0.25rem;
 }
 
 .messageWrapper {
@@ -63,8 +176,8 @@
 }
 
 .messageBubble {
-  padding: 0.75rem 1rem;
-  border-radius: 1.5rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 1.25rem;
   word-wrap: break-word;
   position: relative;
 }
@@ -73,13 +186,14 @@
   margin: 0;
   line-height: 1.5;
   white-space: pre-wrap;
+  font-size: 0.9375rem;
 }
 
 .timestamp {
   opacity: 1;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: var(--muted-foreground);
-  margin-top: 0.25rem;
+  margin-top: 0.125rem;
 }
 
 /* My messages (sender) */
@@ -87,27 +201,30 @@
   align-self: flex-end;
   flex-direction: row-reverse;
 }
+
 .myMessageBubble {
   background-color: var(--primary);
   color: var(--primary-foreground);
+  border-bottom-right-radius: 0.375rem;
 }
+
 .myTimestamp {
   text-align: right;
 }
-/* Message status container */
+
+/* Message status */
 .messageStatus {
-  margin-top: 0.25rem;
-  width: 100%; /* Take full width of message area */
+  margin-top: 0.125rem;
+  width: 100%;
   display: flex;
-  justify-content: flex-end; /* Align content to the far right edge */
+  justify-content: flex-end;
 }
 
-/* Message status indicators */
 .statusIndicator {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.7rem;
+  font-size: 0.6875rem;
 }
 
 .statusIcon {
@@ -119,32 +236,46 @@
   color: var(--muted-foreground);
 }
 
-/* Read status styling */
 .readStatus .statusIcon {
   color: var(--primary);
+  color: #93c5fd;
 }
 
 .readStatus .statusText {
   color: var(--primary);
-}
-
-/* Legacy seen indicator for backward compatibility */
-.seenIndicator {
-  margin-left: 0.5rem;
-  color: var(--primary-hover);
+  color: #93c5fd;
 }
 
 /* Their messages (receiver) */
 .theirMessageGroup {
   align-self: flex-start;
 }
+
 .theirMessageBubble {
   background-color: var(--card-background);
   color: var(--foreground);
   border: 1px solid var(--border);
+  border-bottom-left-radius: 0.375rem;
 }
+
 .theirTimestamp {
   text-align: left;
+}
+
+/* Inline image/audio/file content */
+.imageContent {
+  max-width: 240px;
+  border-radius: 0.75rem;
+}
+
+.audioContent {
+  max-width: 200px;
+}
+
+.fileContent {
+  color: var(--primary);
+  text-decoration: underline;
+  font-size: 0.875rem;
 }
 
 /* --- FOOTER & INPUT FORM --- */
@@ -152,32 +283,92 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   border-top: 1px solid var(--border);
   background-color: var(--card-background);
+  flex-shrink: 0;
 }
 
+.footer textarea,
 .footer .textarea {
-  flex-grow: 1;
+  flex: 1;
   max-height: 120px;
   resize: none;
   padding: 0.6rem 1rem;
   background-color: var(--input-background);
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border-radius: 1.5rem;
   color: var(--foreground);
   transition: border-color 0.2s;
+  font-size: 0.9375rem;
 }
 
+.footer textarea:focus,
 .footer .textarea:focus {
   border-color: var(--primary);
   outline: none;
 }
 
-/* --- Responsive styles for mobile --- */
+.recordingIndicator {
+  flex: 1;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+/* Send button styling */
+.footer button[type="submit"] {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+.footer button[type="submit"]:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.footer button[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Attachment/Mic buttons */
+.footer button[type="button"] {
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  padding: 0.375rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.footer button[type="button"]:hover:not(:disabled) {
+  color: var(--primary);
+  background-color: var(--input-background);
+}
+
+.footer button[type="button"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .backButton {
-    display: block; /* Show the back button on mobile */
+    display: block;
   }
 
   .messageGroup {
@@ -186,7 +377,7 @@
 
   .theirMessageGroup {
     max-width: 80%;
-    gap: 0.5rem; /* Ensure proper spacing between avatar and message */
+    gap: 0.5rem;
   }
 
   .myMessageGroup {

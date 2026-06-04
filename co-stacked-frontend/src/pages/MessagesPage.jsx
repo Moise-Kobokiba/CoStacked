@@ -2,16 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocation, useParams } from 'react-router-dom'; // Import useLocation and useParams
+import { useLocation, useParams } from 'react-router-dom';
 import styles from './MessagesPage.module.css';
 import { ConversationList } from '../components/messaging/ConversationList';
 import { ChatWindow } from '../components/messaging/ChatWindow';
+import { ChatSidebar } from '../components/messaging/ChatSidebar';
+import { MessageCircle } from 'lucide-react';
 
-// Import hooks and actions
 import { useSocketContext } from '../context/SocketContext';
 import { fetchConversations, fetchMessages, accessConversation } from '../features/messages/messagesSlice';
 
-const LoadingSpinner = () => <div className={styles.placeholder}><p>Loading conversations...</p></div>;
+const LoadingSpinner = () => (
+  <div className={styles.placeholder}>
+    <p>Loading conversations...</p>
+  </div>
+);
 
 const useMediaQuery = (query) => {
   const [matches, setMatches] = useState(window.matchMedia(query).matches);
@@ -26,9 +31,10 @@ const useMediaQuery = (query) => {
 
 export const MessagesPage = () => {
   const dispatch = useDispatch();
-  const location = useLocation(); // Use location hook
-  const { userId } = useParams(); // Get userId from URL params
+  const location = useLocation();
+  const { userId } = useParams();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const isDesktopWide = useMediaQuery('(min-width: 1201px)');
 
   const { user: currentUser } = useSelector(state => state.auth);
   const {
@@ -48,20 +54,15 @@ export const MessagesPage = () => {
 
   // Set initial selected conversation from location state or URL params
   useEffect(() => {
-    // First try to get conversationId from location state
     if (location.state?.conversationId) {
       setSelectedConversationId(location.state.conversationId);
-    }
-    // If no location state but we have a userId param, find or create conversation
-    else if (userId && conversations.length > 0) {
-      // Find existing conversation with this user
+    } else if (userId && conversations.length > 0) {
       const existingConversation = conversations.find(conv =>
         conv.participants.some(p => p._id === userId)
       );
       if (existingConversation) {
         setSelectedConversationId(existingConversation._id);
       } else {
-        // No existing conversation found, try to create/access one
         dispatch(accessConversation(userId))
           .unwrap()
           .then((conversation) => {
@@ -69,7 +70,6 @@ export const MessagesPage = () => {
           })
           .catch((error) => {
             console.error('Failed to access conversation:', error);
-            // Could show an error message to the user here
           });
       }
     }
@@ -89,22 +89,15 @@ export const MessagesPage = () => {
 
   useEffect(() => {
     if (!isMobile && conversations.length > 0 && !selectedConversationId && !location.state?.conversationId) {
-       // Only default select if no state was provided
       setSelectedConversationId(conversations[0]._id);
     }
   }, [conversations, selectedConversationId, isMobile, location.state]);
 
-  // --- 3. NEW EFFECT: Join and leave socket rooms ---
   useEffect(() => {
     if (socket && selectedConversationId) {
-      // Tell the server we want to join this conversation's room
       socket.emit('join_conversation', selectedConversationId);
-      
-      // Cleanup: When the selected conversation changes or component unmounts,
-      // you could optionally leave the room, but it's often not necessary.
     }
   }, [socket, selectedConversationId]);
-
 
   if (!currentUser) {
     return <LoadingSpinner />;
@@ -114,6 +107,14 @@ export const MessagesPage = () => {
     setSelectedConversationId(null);
   };
 
+  const handleMuteToggle = (muted) => {
+    console.log('Conversation mute toggled:', muted);
+  };
+
+  const handleBlockUser = () => {
+    console.log('User blocked or group left');
+  };
+
   const selectedConversation = conversations.find(c => c._id === selectedConversationId);
   const messages = selectedConversationId ? (messagesByConversation[selectedConversationId] || []) : [];
 
@@ -121,6 +122,7 @@ export const MessagesPage = () => {
   
   return (
     <div className={pageContainerClass}>
+      {/* Left Sidebar - Conversation List */}
       <div className={styles.conversationListWrapper}>
         <ConversationList
           conversations={conversations}
@@ -129,26 +131,49 @@ export const MessagesPage = () => {
           currentUserId={currentUser._id}
         />
       </div>
+
+      {/* Center Pane - Chat Window */}
       <div className={styles.chatWindowWrapper}>
         {messagesStatus === 'loading' && conversations.length === 0 ? (
-             <div className={styles.placeholder}><p>Loading...</p></div>
+          <div className={styles.placeholder}><p>Loading...</p></div>
         ) : selectedConversation ? (
           <ChatWindow
             conversation={selectedConversation}
             messages={messages}
             currentUserId={currentUser._id}
             onBack={handleBackToList}
-            socket={socket} // <-- 4. PASS the socket instance down to the ChatWindow
+            socket={socket}
           />
         ) : (
           <div className={styles.placeholder}>
+            <MessageCircle size={48} className={styles.placeholderIcon} />
+            <h3>Your Messages</h3>
             {conversations.length > 0
               ? <p>Select a conversation to start chatting.</p>
-              : <p>You have no conversations yet.</p>
+              : <p>You have no conversations yet. Connect with team members to start messaging.</p>
             }
           </div>
         )}
       </div>
+
+      {/* Right Sidebar - Contextual Details Panel */}
+      {isDesktopWide && (
+        <div className={styles.sidebarWrapper}>
+          {selectedConversation ? (
+            <ChatSidebar
+              conversation={selectedConversation}
+              currentUserId={currentUser._id}
+              onMuteToggle={handleMuteToggle}
+              onBlockUser={handleBlockUser}
+            />
+          ) : (
+            <div className={styles.placeholder}>
+              <MessageCircle size={32} className={styles.placeholderIcon} />
+              <p>Select a chat to view details</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -52,7 +52,20 @@ export const fetchAllNotifications = createAsyncThunk(
   }
 );
 
-
+/**
+ * Clears all notifications for the current user.
+ */
+export const clearAllNotifications = createAsyncThunk(
+  'notifications/clearAll',
+  async (_, { rejectWithValue }) => {
+    try {
+      await API.delete('/notifications');
+      return true;
+    } catch (error) {
+      return rejectWithValue(error.response.data?.message || 'Failed to clear notifications.');
+    }
+  }
+);
 
 // ===================================================================
 // THE NOTIFICATIONS SLICE
@@ -96,7 +109,7 @@ const notificationsSlice = createSlice({
       
       // Cases for marking notifications as read
       .addCase(markNotificationsAsRead.pending, (state) => {
-        // We can optimistically update the UI right away
+        // Optimistically update the UI right away
         state.items.forEach(item => {
           item.isRead = true;
         });
@@ -110,7 +123,6 @@ const notificationsSlice = createSlice({
         state.items.forEach(item => {
           item.isRead = false;
         });
-        // We could also add an error message here for the user
       })
       
       // Cases for fetching all notifications (history)
@@ -122,6 +134,22 @@ const notificationsSlice = createSlice({
         state.allItems = action.payload;
       })
       .addCase(fetchAllNotifications.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+
+      // Cases for clearing all notifications
+      .addCase(clearAllNotifications.pending, (state) => {
+        state.allItems = [];
+        state.items = [];
+        state.status = 'succeeded';
+      })
+      .addCase(clearAllNotifications.fulfilled, (state) => {
+        state.status = 'succeeded';
+        state.items = [];
+        state.allItems = [];
+      })
+      .addCase(clearAllNotifications.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload;
       });
