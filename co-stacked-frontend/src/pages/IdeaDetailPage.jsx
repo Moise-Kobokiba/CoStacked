@@ -36,20 +36,17 @@ const getAuthorLink = (founder) => {
 
 const getVoteType = (idea, user) => {
   if (!idea || !user) return null;
-
   const userId = user._id || user.id;
   const hasUpvoted = idea.upvotes?.some((item) => {
     const id = item?._id || item;
     return id?.toString() === userId?.toString();
   });
   if (hasUpvoted) return 'up';
-
   const hasDownvoted = idea.downvotes?.some((item) => {
     const id = item?._id || item;
     return id?.toString() === userId?.toString();
   });
   if (hasDownvoted) return 'down';
-
   return null;
 };
 
@@ -90,7 +87,6 @@ export const IdeaDetailPage = () => {
   const isUpvoted = voteState.type === 'up';
   const isDownvoted = voteState.type === 'down';
 
-  // Derived vote counts
   const upvoteCount = idea?.upvotes?.length ?? 0;
   const downvoteCount = idea?.downvotes?.length ?? 0;
 
@@ -103,26 +99,22 @@ export const IdeaDetailPage = () => {
         const currentType = current.type;
         let newType = direction;
         let newScore = current.score;
-
         if (currentType === direction) {
           newType = null;
           newScore += direction === 'up' ? -15 : 5;
         } else if (currentType === 'up' && direction === 'down') {
-          newScore -= 20; // removing an up (+15) and adding a down (-5)
+          newScore -= 20;
         } else if (currentType === 'down' && direction === 'up') {
-          newScore += 20; // removing a down (-5) and adding an up (+15)
+          newScore += 20;
         } else {
           newScore += direction === 'up' ? 15 : -5;
         }
-
         return { type: newType, score: newScore };
       });
       return { previousVote };
     },
     onError: (_error, _direction, context) => {
-      if (context?.previousVote) {
-        setVoteState(context.previousVote);
-      }
+      if (context?.previousVote) setVoteState(context.previousVote);
     },
     onSettled: () => {
       queryClient.invalidateQueries(['ideaDetail', id]);
@@ -157,11 +149,7 @@ export const IdeaDetailPage = () => {
   });
 
   const submitComment = () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
+    if (!isAuthenticated) { navigate('/login'); return; }
     const trimmed = commentDraft.trim();
     if (!trimmed) return;
     commentMutation.mutate(trimmed);
@@ -172,9 +160,7 @@ export const IdeaDetailPage = () => {
       await navigator.clipboard.writeText(window.location.href);
       setShareFeedback('copied');
       setTimeout(() => setShareFeedback(null), 2000);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   }, []);
 
   const handleSaveToggle = useCallback(() => {
@@ -193,12 +179,7 @@ export const IdeaDetailPage = () => {
 
   const author = idea?.founder;
   const authorInitials = author?.name
-    ? author.name
-        .split(' ')
-        .map((part) => part[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
+    ? author.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
     : 'U';
 
   const targetUsers = idea?.targetAudience
@@ -207,114 +188,114 @@ export const IdeaDetailPage = () => {
 
   const commentsToRender = [...newComments, ...(comments || [])];
 
+  // SVG ring constants
+  const SVG_RADIUS = 96;
+  const SVG_CIRCUMFERENCE = 2 * Math.PI * SVG_RADIUS;
+  const clampedScore = Math.max(0, Math.min(100, ideaScore));
+  const dashOffset = SVG_CIRCUMFERENCE - (clampedScore / 100) * SVG_CIRCUMFERENCE;
+
+  if (ideaLoading) {
+    return (
+      <main className={styles.page}>
+        <div className={styles.loadingState}>
+          <Loader2 size={24} className={styles.spinner} />
+        </div>
+      </main>
+    );
+  }
+
+  if (!idea) {
+    return (
+      <main className={styles.page}>
+        <div className={styles.emptyState}>Idea not found.</div>
+      </main>
+    );
+  }
+
   return (
     <main className={styles.page}>
-      <Link to="/validation-board" className={styles.backButton}>
-        <ArrowLeft size={16} />
-        <span>Back to Validation Board</span>
-      </Link>
+      <div className={styles.container}>
+        {/* ===== BREADCRUMB ===== */}
+        <Link to="/validation-board" className={styles.breadcrumb}>
+          <ArrowLeft size={18} />
+          <span>Back to Validation Board</span>
+        </Link>
 
-      {ideaLoading ? (
-        <div className={styles.loadingState}>
-          <Loader2 size={24} className="animate-spin" />
-        </div>
-      ) : !idea ? (
-        <div className={styles.emptyState}>Idea not found.</div>
-      ) : (
-        <div className={styles.layoutGrid}>
-          <div className={styles.leftColumn}>
-            {/* ── HEADER / HERO SECTION ── */}
-            <section className={styles.heroCard}>
-              <div className={styles.heroTop}>
+        {/* ===== 12-COLUMN GRID ===== */}
+        <div className={styles.grid}>
+          {/* ===== LEFT COLUMN ===== */}
+          <div className={styles.leftCol}>
+
+            {/* HEADER CANVAS */}
+            <section className={styles.headerCanvas}>
+              <div className={styles.headerRow}>
                 <span className={`${styles.stageBadge} ${stageClassName(displayStage(idea))}`}>
                   {displayStage(idea)}
                 </span>
-                <span className={styles.heroDate}>{formatDate(idea.createdAt)}</span>
+                <span className={styles.headerDate}>{formatDate(idea.createdAt)}</span>
               </div>
-              <h1 className={styles.heroTitle}>{idea.title}</h1>
-              <div className={styles.authorRow}>
-                <Link to={getAuthorLink(author)} className={styles.authorLink}>
-                  <span className={styles.authorBadge}>
-                    {author?.avatarUrl ? <img src={author.avatarUrl} alt={author.name} /> : authorInitials}
-                  </span>
-                  <span className={styles.authorMeta}>
-                    <span className={styles.authorName}>{author?.name || 'Alex Rivera'}</span>
-                    <span className={styles.authorRole}>{author?.headline || 'Project Lead & AI Researcher'}</span>
-                  </span>
-                </Link>
-              </div>
+              <h1 className={styles.title}>{idea.title}</h1>
+              <Link to={getAuthorLink(author)} className={styles.authorCard}>
+                <span className={styles.authorAvatar}>
+                  {author?.avatarUrl ? (
+                    <img src={author.avatarUrl} alt={author.name} />
+                  ) : (
+                    authorInitials
+                  )}
+                </span>
+                <span className={styles.authorMeta}>
+                  <span className={styles.authorName}>{author?.name || 'Alex Rivera'}</span>
+                  <span className={styles.authorRole}>{author?.headline || 'Project Lead & AI Researcher'}</span>
+                </span>
+              </Link>
             </section>
 
-            {/* ── PROBLEM STATEMENT & TARGET MARKET ── */}
-            <div className={styles.infoGrid}>
-              <article className={`${styles.sectionCard} ${styles.problemCard}`}>
-                <p className={styles.sectionTag}>Problem Statement</p>
-                <p className={styles.sectionText}>{idea.problemStatement || 'No problem statement provided yet.'}</p>
+            {/* PROBLEM STATEMENT & TARGET MARKET */}
+            <div className={styles.problemMarketGrid}>
+              <article className={styles.problemCard}>
+                <span className={styles.cardLabel}>Problem Statement</span>
+                <p className={styles.cardContent}>{idea.problemStatement || 'No problem statement provided yet.'}</p>
               </article>
-              <article className={`${styles.sectionCard} ${styles.marketCard}`}>
-                <p className={styles.sectionTag}>Target Market</p>
-                <p className={styles.sectionText}>{idea.industry || 'No target market defined yet.'}</p>
+              <article className={styles.marketCard}>
+                <span className={styles.cardLabel}>Target Market</span>
+                <p className={styles.cardContent}>{idea.industry || 'No target market defined yet.'}</p>
               </article>
             </div>
 
-            {/* ── TARGET USERS TAGS ── */}
-            <div className={styles.tagsWrapper}>
-              <span className={styles.tagsLabel}>Target Users</span>
-              <div className={styles.tagList}>
+            {/* TARGET USERS */}
+            <section className={styles.targetUsersSection}>
+              <span className={styles.cardLabel}>Target Audience</span>
+              <div className={styles.userTags}>
                 {targetUsers.length > 0 ? (
-                  targetUsers.map((userTag, index) => (
-                    <span key={index} className={styles.tagItemLight}>{userTag}</span>
-                  ))
+                  targetUsers.map((tag, i) => <span key={i} className={styles.userTag}>{tag}</span>)
                 ) : (
-                  <span className={styles.tagItemLight}>No target users specified yet.</span>
+                  <span className={styles.userTag}>No target users specified yet.</span>
                 )}
               </div>
-            </div>
-
-            {/* ── OUR SOLUTION ── */}
-            <article className={`${styles.sectionCard} ${styles.solutionCard}`}>
-              <p className={styles.sectionTag}>Our Solution</p>
-              <p className={styles.sectionText}>{idea.valueProposition || 'No solution details added yet.'}</p>
-            </article>
-
-            {/* ── CONCEPTUAL VISUALIZATION ── */}
-            <section className={styles.visualizationCard}>
-              <div className={styles.visualizationInner}>
-                <div className={styles.visualizationIcon}>
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <ellipse cx="12" cy="12" rx="4" ry="10" />
-                    <ellipse cx="12" cy="12" rx="10" ry="4" />
-                    <line x1="2" y1="12" x2="22" y2="12" />
-                    <line x1="12" y1="2" x2="12" y2="22" />
-                  </svg>
-                </div>
-                <p className={styles.visualizationLabel}>Conceptual Visualization</p>
-                <p className={styles.visualizationHint}>World map network graphic placeholder</p>
-              </div>
             </section>
 
-            {/* ── COMMUNITY FEEDBACK / COMMENTS ── */}
-            <section className={styles.commentCard}>
-              <div className={styles.commentHeader}>
+            {/* OUR SOLUTION */}
+            <article className={styles.solutionCard}>
+              <span className={styles.cardLabel}>Our Solution</span>
+              <p className={styles.cardContent}>{idea.valueProposition || 'No solution details added yet.'}</p>
+            </article>
+
+            {/* COMMUNITY COMMENTS THREAD */}
+            <section className={styles.commentsSection}>
+              <div className={styles.commentsHeader}>
                 <div>
-                  <h2 className={styles.commentTitle}>Community Feedback</h2>
-                  <p className={styles.commentCount}>{commentsToRender.length} comments</p>
+                  <h2 className={styles.commentsTitle}>Community Feedback</h2>
+                  <p className={styles.commentsCount}>{commentsToRender.length} comments</p>
                 </div>
-                {(commentsLoading || commentMutation.isLoading) && <Loader2 size={20} className="animate-spin" />}
+                {(commentsLoading || commentMutation.isLoading) && <Loader2 size={20} className={styles.spinner} />}
               </div>
 
-              <div className={styles.commentList}>
+              <div className={styles.commentItems}>
                 {commentsToRender.length > 0 ? (
                   commentsToRender.map((comment) => {
                     const commenter = comment.author || {};
                     const initials = commenter.name
-                      ? commenter.name
-                          .split(' ')
-                          .map((part) => part[0])
-                          .slice(0, 2)
-                          .join('')
-                          .toUpperCase()
+                      ? commenter.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
                       : 'U';
                     const commentId = comment._id || comment.createdAt || Math.random().toString();
                     const likeState = commentLikes[commentId] || { liked: false, count: 0 };
@@ -322,26 +303,28 @@ export const IdeaDetailPage = () => {
                     const totalLikes = initialLikeCount + likeState.count;
                     return (
                       <div key={commentId} className={styles.commentItem}>
-                        <span className={styles.commentAvatar}>
-                          {commenter.avatarUrl ? <img src={commenter.avatarUrl} alt={commenter.name} /> : initials}
+                        <span className={styles.commentUserAvatar}>
+                          {commenter.avatarUrl ? (
+                            <img src={commenter.avatarUrl} alt={commenter.name} />
+                          ) : initials}
                         </span>
                         <div className={styles.commentBody}>
                           <div className={styles.commentMeta}>
                             <span className={styles.commentAuthor}>{commenter.name || 'Community'}</span>
                             <span className={styles.commentTime}>{formatDate(comment.createdAt)}</span>
                           </div>
-                          <p className={styles.commentText}>{comment.content || comment.text || 'No comment text.'}</p>
+                          <p className={styles.commentContent}>{comment.content || comment.text || 'No comment text.'}</p>
                           <div className={styles.commentActions}>
                             <button
                               type="button"
-                              className={`${styles.commentActionBtn} ${likeState.liked ? styles.commentActionLiked : ''}`}
+                              className={`${styles.actionLink} ${likeState.liked ? styles.actionLiked : ''}`}
                               onClick={() => handleCommentLike(commentId)}
                             >
-                              <Heart size={14} />
+                              <Heart size={15} />
                               <span>{totalLikes > 0 ? totalLikes : 'Like'}</span>
                             </button>
-                            <button type="button" className={styles.commentActionBtn}>
-                              <Reply size={14} />
+                            <button type="button" className={styles.actionLink}>
+                              <Reply size={15} />
                               <span>Reply</span>
                             </button>
                           </div>
@@ -350,7 +333,7 @@ export const IdeaDetailPage = () => {
                     );
                   })
                 ) : (
-                  <p className={styles.commentText}>No feedback yet. Leave the first constructive comment.</p>
+                  <p className={styles.noComments}>No feedback yet. Leave the first constructive comment.</p>
                 )}
               </div>
 
@@ -358,7 +341,7 @@ export const IdeaDetailPage = () => {
                 {isAuthenticated ? (
                   <>
                     <textarea
-                      className={styles.commentTextarea}
+                      className={styles.textarea}
                       rows={4}
                       placeholder="Add your feedback to help refine this idea..."
                       value={commentDraft}
@@ -366,7 +349,7 @@ export const IdeaDetailPage = () => {
                     />
                     <button
                       type="button"
-                      className={styles.commentSubmit}
+                      className={styles.submitBtn}
                       onClick={submitComment}
                       disabled={!commentDraft.trim() || commentMutation.isLoading}
                     >
@@ -382,68 +365,76 @@ export const IdeaDetailPage = () => {
             </section>
           </div>
 
-          {/* ── RIGHT COLUMN / SIDEBAR ── */}
-          <aside className={styles.rightColumn}>
-            {/* SCORE */}
-            <section className={styles.scoreCard}>
-              <div className={styles.scoreHeader}>
-                <span className={styles.scoreHeadline}>Validation Score</span>
-                <span className={styles.scoreSub}>Out of 100</span>
+          {/* ===== RIGHT SIDEBAR (sticky) ===== */}
+          <aside className={styles.rightCol}>
+            {/* VALIDATION SCORE RING */}
+            <section className={styles.sideCard}>
+              <div className={styles.scoreLabelRow}>
+                <span className={styles.scoreLabel}>Validation Score</span>
+                <span className={styles.scoreSubtext}>Out of 100</span>
               </div>
-              <div className={styles.scoreRingWrapper}>
-                <div
-                  className={styles.scoreRing}
-                  style={{
-                    background: `conic-gradient(var(--primary) 0% ${Math.max(0, Math.min(100, ideaScore))}%, var(--input-background) ${Math.max(0, Math.min(100, ideaScore))}% 100%)`,
-                  }}
-                >
-                  <div className={styles.scoreRingInner}>
-                    <span className={styles.scoreRingValue}>{Math.max(0, Math.min(100, ideaScore))}</span>
-                    <span className={styles.scoreRingLabel}>OUT OF 100</span>
-                  </div>
+              <div className={styles.scoreRingContainer}>
+                <svg width="220" height="220" viewBox="0 0 220 220" className={styles.ringSvg}>
+                  <circle
+                    cx="110" cy="110" r={SVG_RADIUS}
+                    fill="none"
+                    stroke="var(--input-background)"
+                    strokeWidth="8"
+                  />
+                  <circle
+                    cx="110" cy="110" r={SVG_RADIUS}
+                    fill="none"
+                    stroke="#00327d"
+                    strokeWidth="8"
+                    strokeDasharray={SVG_CIRCUMFERENCE}
+                    strokeDashoffset={dashOffset}
+                    strokeLinecap="round"
+                    transform="rotate(-90 110 110)"
+                    className={styles.scoreArc}
+                  />
+                </svg>
+                <div className={styles.scoreValueBox}>
+                  <span className={styles.scoreNumber}>{clampedScore}</span>
+                  <span className={styles.scoreOutOf}>OUT OF 100</span>
                 </div>
               </div>
             </section>
 
-            {/* VOTING */}
-            <section className={styles.actionCard}>
+            {/* UPVOTE & DOWNVOTE */}
+            <section className={styles.sideCard}>
               <button
                 type="button"
-                className={`${styles.actionButton} ${styles.upvoteButton} ${isUpvoted ? styles.actionButtonActive : ''}`}
+                className={`${styles.voteBtn} ${styles.upvoteBtn} ${isUpvoted ? styles.voteActive : ''}`}
                 onClick={() => {
-                  if (!isAuthenticated) {
-                    navigate('/login');
-                    return;
-                  }
+                  if (!isAuthenticated) { navigate('/login'); return; }
                   voteMutation.mutate('up');
                 }}
                 disabled={voteMutation.isLoading}
               >
-                <ThumbsUp size={18} />
-                <span>Upvote</span>
-                <span className={styles.voteCount}>{upvoteCount} people agree</span>
+                <ThumbsUp size={20} />
+                <span className={styles.voteLabel}>Upvote</span>
+                <span className={styles.voteStats}>{upvoteCount} people agree</span>
               </button>
               <button
                 type="button"
-                className={`${styles.actionButton} ${styles.downvoteButton} ${isDownvoted ? styles.actionButtonActive : ''}`}
+                className={`${styles.voteBtn} ${styles.downvoteBtn} ${isDownvoted ? styles.voteActive : ''}`}
                 onClick={() => {
-                  if (!isAuthenticated) {
-                    navigate('/login');
-                    return;
-                  }
+                  if (!isAuthenticated) { navigate('/login'); return; }
                   voteMutation.mutate('down');
                 }}
                 disabled={voteMutation.isLoading}
               >
-                <ThumbsDown size={18} />
-                <span>Downvote</span>
-                <span className={styles.voteCount}>{downvoteCount} people disagree</span>
+                <ThumbsDown size={20} />
+                <span className={styles.voteLabel}>Downvote</span>
+                <span className={styles.voteStats}>{downvoteCount} people disagree</span>
               </button>
+            </section>
 
-              {/* UTILITIES */}
+            {/* ACTION CTA BLOCKS */}
+            <section className={styles.sideCard}>
               <button
                 type="button"
-                className={styles.secondaryButton}
+                className={styles.ctaBtn}
                 onClick={handleShare}
               >
                 <Share2 size={18} />
@@ -451,22 +442,21 @@ export const IdeaDetailPage = () => {
               </button>
               <button
                 type="button"
-                className={`${styles.secondaryButton} ${isSaved ? styles.secondaryButtonSaved : ''}`}
+                className={`${styles.ctaBtn} ${isSaved ? styles.ctaSaved : ''}`}
                 onClick={handleSaveToggle}
               >
                 {isSaved ? <Check size={18} /> : <Bookmark size={18} />}
                 <span>{isSaved ? 'Saved' : 'Save for Later'}</span>
               </button>
+
               {showConversionButton && (
                 <button
                   type="button"
-                  className={`${styles.actionButton} ${styles.convertButton} ${conversionEnabled ? '' : styles.actionButtonDisabled}`}
+                  className={`${styles.convertBtn} ${conversionEnabled ? '' : styles.convertLocked}`}
                   onClick={() => {
                     if (!isAuthenticated) { navigate('/login'); return; }
                     if (!conversionEnabled) return;
-                    if (confirm('Convert this idea into a project?')) {
-                      convertMutation.mutate();
-                    }
+                    if (confirm('Convert this idea into a project?')) convertMutation.mutate();
                   }}
                   disabled={!conversionEnabled || convertMutation.isLoading}
                 >
@@ -484,23 +474,9 @@ export const IdeaDetailPage = () => {
                 </p>
               )}
             </section>
-
-            {/* COMMUNITY FEEDBACK WIDGET */}
-            <section className={styles.feedbackSummary}>
-              <p className={styles.feedbackTitle}>Community Feedback</p>
-              <p className={styles.feedbackQuote}>
-                &ldquo;This idea clearly targets a well-defined audience, and the value proposition is both crisp and compelling.&rdquo;
-              </p>
-              <div className={styles.feedbackAvatars}>
-                <div className={styles.avatarRing}>MC</div>
-                <div className={styles.avatarRing}>SJ</div>
-                <div className={styles.avatarRing}>AL</div>
-                <span className={styles.avatarMore}>+45</span>
-              </div>
-            </section>
           </aside>
         </div>
-      )}
+      </div>
     </main>
   );
 };
