@@ -1,4 +1,4 @@
-/* src/pages/ProfilePage.module.css */
+git/* src/pages/ProfilePage.module.css */
 
 .pageContainer {
   max-width: 1200px;
@@ -768,6 +768,40 @@
   color: #2463eb;
   font-size: 0.7rem;
   font-weight: 600;
+}
+
+/* Stats Row (Mobile-friendly) */
+.statsRow {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.statChip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem 1.5rem;
+  background-color: var(--input-background);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  flex: 1;
+  min-width: 120px;
+}
+
+.statChipValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.statChipLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
 }
 
 /* Endorsement Actions */

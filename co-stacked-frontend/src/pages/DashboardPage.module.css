@@ -618,9 +618,59 @@
 
 /* Connection Requests Sidebar */
 .connRequestsSection {
-  margin-top: 1rem;
-  padding-top: 1rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
   border-top: 1px solid var(--border);
+}
+
+.connReqLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+  min-width: 0;
+}
+
+.connReqLink:hover .connReqName {
+  color: var(--primary);
+}
+
+.notifSenderLink a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.notifSenderLink a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.validationPlaceholder {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.validationPlaceholder a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.timelineItem {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition: background 160ms ease;
+}
+
+.timelineItem:hover {
+  background: var(--input-background);
 }
 
 .subSectionTitle {

@@ -14,8 +14,10 @@ import {
   Search,
   Settings,
   Users,
+  X,
 } from "lucide-react";
 import { fetchProjects } from "../features/projects/projectsSlice";
+import { useTheme } from "../context/ThemeContext";
 import ProjectCard from "../components/discover/ProjectCard";
 import styles from "./DiscoverProjectsPage.module.css";
 
@@ -215,6 +217,7 @@ const ErrorDisplay = ({ error }) => <p className={styles.error}>Error: {error ??
 
 export const DiscoverProjectsPage = () => {
   const dispatch = useDispatch();
+  const { theme } = useTheme();
 
   const { items: allProjects = [], status, error } = useSelector((state) => state.projects || {});
 
@@ -433,7 +436,7 @@ export const DiscoverProjectsPage = () => {
     );
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-theme={theme}>
       <div className={`${styles.sidebarBackdrop} ${isSidebarOpen ? styles.sidebarBackdropVisible : ""}`} onClick={() => setIsSidebarOpen(false)} />
 
       <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : ""}`}>
@@ -441,6 +444,14 @@ export const DiscoverProjectsPage = () => {
           <div className={styles.sidebarHeading}>
             <Filter className={styles.sidebarHeadingIcon} />
             <h2>Project Filters</h2>
+            <button
+              type="button"
+              className={styles.sidebarCloseBtn}
+              onClick={() => setIsSidebarOpen(false)}
+              aria-label="Close filters"
+            >
+              <X size={18} />
+            </button>
           </div>
           <p>Refine your search</p>
         </div>

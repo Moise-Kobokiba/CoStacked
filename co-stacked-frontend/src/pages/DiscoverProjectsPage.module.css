@@ -53,6 +53,23 @@
   margin-bottom: 0.5rem;
 }
 
+.sidebarCloseBtn {
+  display: none;
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.sidebarCloseBtn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
 .sidebarHeadingIcon {
   width: 1rem;
   height: 1rem;
@@ -507,6 +524,125 @@
   }
 }
 
+.page[data-theme='dark'] {
+  background: #0b1120;
+}
+
+.page[data-theme='dark'] .sidebar {
+  background: #131c31;
+  border-color: rgba(30, 41, 59, 0.8);
+}
+
+.page[data-theme='dark'] .sidebarHeading h2 {
+  color: #f1f5f9;
+}
+
+.page[data-theme='dark'] .sidebarIntro p {
+  color: #64748b;
+}
+
+.page[data-theme='dark'] .sidebarMenuItem {
+  background: rgba(30, 41, 59, 0.6);
+  color: #94a3b8;
+}
+
+.page[data-theme='dark'] .sidebarMenuItem:hover {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.page[data-theme='dark'] .pill {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(51, 65, 85, 0.6);
+  color: #94a3b8;
+}
+
+.page[data-theme='dark'] .pill:hover {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.page[data-theme='dark'] .filterButton {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(51, 65, 85, 0.6);
+  color: #94a3b8;
+}
+
+.page[data-theme='dark'] .filterButton:hover {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.page[data-theme='dark'] .pageTitle {
+  color: #f1f5f9;
+}
+
+.page[data-theme='dark'] .pageSubtitle {
+  color: #64748b;
+}
+
+.page[data-theme='dark'] .searchInput {
+  background: #131c31;
+  border-color: rgba(51, 65, 85, 0.6);
+  color: #e2e8f0;
+}
+
+.page[data-theme='dark'] .searchInput:focus {
+  border-color: #3b82f6;
+}
+
+.page[data-theme='dark'] .noResults {
+  background: #131c31;
+  border-color: rgba(51, 65, 85, 0.6);
+  color: #94a3b8;
+}
+
+.page[data-theme='dark'] .noResults h2 {
+  color: #f1f5f9;
+}
+
+.page[data-theme='dark'] .pageArrow {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(51, 65, 85, 0.6);
+  color: #94a3b8;
+}
+
+.page[data-theme='dark'] .pageButton:hover,
+.page[data-theme='dark'] .pageArrow:hover {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.page[data-theme='dark'] .sidebarLink {
+  color: #64748b;
+}
+
+.page[data-theme='dark'] .sidebarLink:hover {
+  color: #94a3b8;
+}
+
+.page[data-theme='dark'] .mobileToggle {
+  background: #131c31;
+  border-color: rgba(51, 65, 85, 0.6);
+  color: #e2e8f0;
+}
+
+.page[data-theme='dark'] .pagination {
+  border-top-color: rgba(51, 65, 85, 0.4);
+}
+
+.page[data-theme='dark'] .loading,
+.page[data-theme='dark'] .emptyState {
+  background: #131c31;
+  border-color: rgba(51, 65, 85, 0.6);
+  color: #64748b;
+}
+
+.page[data-theme='dark'] .sidebarCloseBtn {
+  color: #64748b;
+}
+
+.page[data-theme='dark'] .sidebarCloseBtn:hover {
+  background: rgba(30, 41, 59, 0.8);
+  color: #f1f5f9;
+}
+
 @media (max-width: 1120px) {
   .page {
     grid-template-columns: 1fr;
@@ -526,6 +662,12 @@
     transition: left 220ms ease;
     overflow-y: auto;
     z-index: 20;
+  }
+
+  .sidebarCloseBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .sidebarOpen {
