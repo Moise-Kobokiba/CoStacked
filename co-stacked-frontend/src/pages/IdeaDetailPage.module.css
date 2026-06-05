@@ -1,16 +1,18 @@
 /* ============================================================
-   IdeaDetailPage.module.css — Distinct Validation Board Layout
-   Design tokens: primary #00327d, bg #f8f9ff, gutter 24px
-   Disconnected from StackSuite CSS architecture
+   IdeaDetailPage.module.css — 12-Column Analytics Dashboard
+   Design tokens: primary #00327d, bg #f8f9ff, surface #ffffff
+   Accent bars: red #ef4444 / blue #00327d / green #10B981
+   SVG ring: stroke-dasharray="603.18"
    ============================================================ */
 
-/* ── PAPER CONTAINER ── */
+/* ── BACKGROUND CANVAS ── */
 .page {
   min-height: 100vh;
   background: #f8f9ff;
-  padding: 2rem 1rem 4rem;
+  padding: 2rem 1rem 5rem;
 }
 
+/* ── MAX-WIDTH CONTAINER (max-w-7xl, mx-auto) ── */
 .container {
   max-width: 1280px;
   margin: 0 auto;
@@ -19,14 +21,15 @@
 
 @media (min-width: 1024px) {
   .page { padding: 2.5rem 40px 5rem; }
+  .container { padding: 0; }
 }
 
 /* ── BREADCRUMB ── */
 .breadcrumb {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.7rem 1.15rem;
+  gap: 0.55rem;
+  padding: 0.7rem 1.1rem;
   background: #ffffff;
   color: #475569;
   border: 1px solid #e2e8f0;
@@ -36,7 +39,6 @@
   font-size: 0.9rem;
   margin-bottom: 1.75rem;
   transition: background 0.2s ease, border-color 0.2s ease;
-  cursor: pointer;
 }
 
 .breadcrumb:hover {
@@ -45,46 +47,60 @@
   color: #00327d;
 }
 
-/* ── 12-COLUMN GRID ── */
-.grid {
+/* ── 12-COLUMN GRID (grid grid-cols-1 lg:grid-cols-12 gap-6 items-start) ── */
+.grid12 {
   display: grid;
+  grid-template-columns: 1fr;
   gap: 24px;
 }
 
 @media (min-width: 1024px) {
-  .grid {
-    grid-template-columns: minmax(0, 1fr) 380px;
-    align-items: start;
+  .grid12 {
+    grid-template-columns: repeat(12, 1fr);
   }
 }
 
+/* ── LEFT COLUMN (lg:col-span-8 space-y-6) ── */
 .leftCol {
-  display: grid;
+  grid-column: span 1;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
 }
 
+@media (min-width: 1024px) {
+  .leftCol {
+    grid-column: span 8;
+  }
+}
+
+/* ── RIGHT SIDEBAR (lg:col-span-4 lg:sticky lg:top-24) ── */
 .rightCol {
-  display: grid;
+  grid-column: span 1;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 
 @media (min-width: 1024px) {
   .rightCol {
+    grid-column: span 4;
     position: sticky;
-    top: 2rem;
+    top: 6rem;
     align-self: start;
   }
 }
 
-/* ── HEADER CANVAS ── */
-.headerCanvas {
+/* ── GENERIC CARD (shared white card with border) ── */
+.card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 1.25rem;
-  padding: 2rem 1.75rem;
+  padding: 1.75rem 1.75rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
+/* ── MAIN HEADER BLOCK ── */
 .headerRow {
   display: flex;
   flex-wrap: wrap;
@@ -93,22 +109,6 @@
   margin-bottom: 1rem;
 }
 
-.title {
-  font-size: clamp(1.75rem, 2.2vw, 2.75rem);
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0 0 1.25rem;
-  line-height: 1.08;
-  letter-spacing: -0.02em;
-}
-
-.headerDate {
-  color: #64748b;
-  font-size: 0.9rem;
-  white-space: nowrap;
-}
-
-/* ── STAGE BADGE ── */
 .stageBadge {
   display: inline-flex;
   align-items: center;
@@ -127,26 +127,41 @@
 .stageMvp        { background: rgba(139, 92, 246, 0.1); color: #5b21b6; }
 .stageArchived   { background: rgba(100, 116, 139, 0.12); color: #475569; }
 
-/* ── AUTHOR CARD ── */
-.authorCard {
+.headerDate {
+  color: #64748b;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.ideaTitle {
+  font-size: clamp(1.8rem, 2.4vw, 2.85rem);
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 1.25rem;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+/* ── AUTHOR ROW ── */
+.authorRow {
   display: inline-flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.8rem;
   text-decoration: none;
   color: inherit;
-  padding: 0.6rem 0.85rem 0.6rem 0.6rem;
+  padding: 0.55rem 0.85rem 0.55rem 0.55rem;
   border-radius: 0.85rem;
   background: #eff4ff;
   transition: background 0.2s ease;
 }
 
-.authorCard:hover {
+.authorRow:hover {
   background: #dbeafe;
 }
 
 .authorAvatar {
-  width: 2.8rem;
-  height: 2.8rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 999px;
   display: flex;
   align-items: center;
@@ -166,7 +181,7 @@
   object-fit: cover;
 }
 
-.authorMeta {
+.authorInfo {
   display: grid;
   gap: 0.1rem;
 }
@@ -182,45 +197,44 @@
   color: #64748b;
 }
 
-/* ── PROBLEM STATEMENT & TARGET MARKET ── */
-.problemMarketGrid {
+/* ── 2-COLUMN GRID (Problem + Market side-by-side) ── */
+.twoColGrid {
   display: grid;
   gap: 20px;
 }
 
 @media (min-width: 700px) {
-  .problemMarketGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .twoColGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-.problemCard,
-.marketCard,
-.solutionCard {
+/* ── ACCENT CARDS (red/blue/green left border) ── */
+.accentCard {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 1.1rem;
   padding: 1.5rem 1.5rem 1.75rem;
-  min-height: 10rem;
+  min-height: 9rem;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .problemCard {
-  border-left: 4px solid #ef4444;
+  border-left: 4px solid #ef4444; /* red accent */
 }
 
 .marketCard {
-  border-left: 4px solid #00327d;
+  border-left: 4px solid #00327d; /* blue accent */
 }
 
 .solutionCard {
-  border-left: 4px solid #10B981;
+  border-left: 4px solid #10B981; /* green accent */
   grid-column: 1 / -1;
 }
 
-.cardLabel {
+.accentLabel {
   display: block;
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.7rem;
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -228,33 +242,35 @@
   color: #64748b;
 }
 
-.cardContent {
+.accentText {
   margin: 0;
   color: #1e293b;
   line-height: 1.75;
   font-size: 0.96rem;
 }
 
-/* ── TARGET USERS ── */
-.targetUsersSection {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1.1rem;
-  padding: 1.5rem 1.75rem;
+/* ── TARGET USERS CHIPS ── */
+.sectionLabel {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  margin-bottom: 0.75rem;
 }
 
-.userTags {
+.chipRow {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
-  margin-top: 0.75rem;
 }
 
-.userTag {
+.chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.55rem 1rem;
+  padding: 0.5rem 1rem;
   border-radius: 999px;
   background: rgba(0, 50, 125, 0.07);
   color: #00327d;
@@ -263,58 +279,51 @@
   border: 1px solid rgba(0, 50, 125, 0.12);
 }
 
-/* ── COMMENTS SECTION ── */
-.commentsSection {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1.25rem;
-  padding: 1.75rem;
-  display: grid;
-  gap: 1.25rem;
-}
-
-.commentsHeader {
+/* ── COMMUNITY FEEDBACK ── */
+.feedbackHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.commentsTitle {
+.feedbackTitle {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 700;
   color: #0f172a;
 }
 
-.commentsCount {
-  margin: 0.2rem 0 0;
+.feedbackCount {
+  margin: 0.15rem 0 0;
   font-size: 0.9rem;
   color: #64748b;
 }
 
-.commentItems {
-  display: grid;
-  gap: 1rem;
+.commentList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.commentItem {
+.commentRow {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.85rem;
+  gap: 0.8rem;
   align-items: flex-start;
-  padding-bottom: 1rem;
+  padding-bottom: 0.85rem;
   border-bottom: 1px solid #f1f5f9;
 }
 
-.commentItem:last-child {
+.commentRow:last-child {
   border-bottom: none;
   padding-bottom: 0;
 }
 
-.commentUserAvatar {
-  width: 2.5rem;
-  height: 2.5rem;
+.commentUserCircle {
+  width: 2.4rem;
+  height: 2.4rem;
   border-radius: 999px;
   background: #eff4ff;
   display: flex;
@@ -323,40 +332,36 @@
   overflow: hidden;
   color: #00327d;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   flex-shrink: 0;
 }
 
-.commentUserAvatar img {
+.commentUserCircle img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
 .commentBody {
-  display: grid;
-  gap: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 }
 
 .commentMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
+  gap: 0.6rem;
   align-items: center;
 }
 
-.commentAuthor {
+.commentAuthorName {
   font-size: 0.9rem;
   font-weight: 700;
   color: #0f172a;
-  text-decoration: none;
 }
 
-.commentAuthor:hover {
-  color: #00327d;
-}
-
-.commentTime {
+.commentDate {
   font-size: 0.78rem;
   color: #94a3b8;
 }
@@ -368,15 +373,14 @@
   font-size: 0.92rem;
 }
 
-/* Comment action links */
 .commentActions {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-top: 0.25rem;
+  margin-top: 0.15rem;
 }
 
-.actionLink {
+.cActionBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -390,28 +394,32 @@
   transition: color 0.15s ease;
 }
 
-.actionLink:hover {
+.cActionBtn:hover {
   color: #00327d;
 }
 
-.actionLiked {
+.cActionLiked {
   color: #dc2626;
 }
 
 .noComments {
   color: #64748b;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   text-align: center;
-  padding: 1rem 0;
+  padding: 1.5rem 0;
 }
 
-/* Comment form */
+/* ── COMMENT FORM ── */
 .commentForm {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 0.85rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
 }
 
-.textarea {
+.textArea {
   width: 100%;
   min-height: 5rem;
   padding: 1rem;
@@ -425,18 +433,18 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.textarea:focus {
+.textArea:focus {
   outline: none;
   border-color: #00327d;
   box-shadow: 0 0 0 3px rgba(0, 50, 125, 0.08);
 }
 
-.textarea::placeholder {
+.textArea::placeholder {
   color: #94a3b8;
 }
 
 .submitBtn {
-  justify-self: start;
+  align-self: flex-start;
   padding: 0.85rem 1.3rem;
   border: none;
   border-radius: 0.85rem;
@@ -479,34 +487,35 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 1.2rem;
-  padding: 1.75rem 1.5rem;
-  display: grid;
+  padding: 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 
-/* Score ring */
-.scoreLabelRow {
+/* ── SCORE RING ── */
+.scoreHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.scoreLabel {
+.scoreTitle {
   font-size: 0.9rem;
   font-weight: 700;
   color: #0f172a;
 }
 
-.scoreSubtext {
+.scoreSub {
   font-size: 0.82rem;
   color: #64748b;
 }
 
-.scoreRingContainer {
+.ringContainer {
   display: flex;
   justify-content: center;
   position: relative;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
 }
 
 .ringSvg {
@@ -533,7 +542,7 @@
   line-height: 1;
 }
 
-.scoreOutOf {
+.scoreOutOfLabel {
   display: block;
   font-size: 0.7rem;
   font-weight: 700;
@@ -542,44 +551,44 @@
   margin-top: 0.15rem;
 }
 
-/* ── VOTE BUTTONS ── */
-.voteBtn {
+/* ── UPVOTE / DOWNVOTE BLOCKS ── */
+.voteBlock {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   width: 100%;
-  padding: 0.9rem 1rem;
+  padding: 0.85rem 1rem;
   border-radius: 0.9rem;
   border: 1px solid transparent;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.voteBtn:hover {
+.voteBlock:hover {
   transform: translateY(-1px);
 }
 
-.voteBtn:disabled {
+.voteBlock:disabled {
   opacity: 0.65;
   cursor: not-allowed;
   transform: none;
 }
 
-.upvoteBtn {
-  background: rgba(16, 185, 129, 0.1);
+.upvoteBlock {
+  background: rgba(16, 185, 129, 0.1);  /* bg-emerald-500 state */
   color: #065f46;
   border-color: rgba(16, 185, 129, 0.2);
 }
 
-.downvoteBtn {
-  background: rgba(245, 158, 11, 0.1);
+.downvoteBlock {
+  background: rgba(245, 158, 11, 0.1);   /* bg-amber-500 state */
   color: #92400e;
   border-color: rgba(245, 158, 11, 0.2);
 }
 
-.voteActive {
+.voteBlockActive {
   box-shadow: 0 4px 16px rgba(0, 50, 125, 0.12);
 }
 
@@ -588,14 +597,14 @@
   text-align: left;
 }
 
-.voteStats {
+.voteCount {
   font-weight: 500;
   font-size: 0.78rem;
   opacity: 0.75;
 }
 
-/* ── CTA BUTTONS ── */
-.ctaBtn {
+/* ── SECONDARY CTA BUTTONS ── */
+.secondaryBtn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -612,23 +621,23 @@
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }
 
-.ctaBtn:hover {
+.secondaryBtn:hover {
   background: #eff4ff;
   border-color: #00327d;
   color: #00327d;
   transform: translateY(-1px);
 }
 
-.ctaSaved {
+.secondaryBtnSaved {
   background: rgba(16, 185, 129, 0.08);
   color: #065f46;
   border-color: rgba(16, 185, 129, 0.25);
 }
 
-/* Convert button */
+/* ── CONVERT BUTTON ── */
 .convertBtn {
   width: 100%;
-  padding: 0.9rem 1rem;
+  padding: 0.85rem 1rem;
   border-radius: 0.85rem;
   border: none;
   background: #00327d;
@@ -644,13 +653,13 @@
   transform: translateY(-1px);
 }
 
-.convertLocked {
+.convertBtnLocked {
   opacity: 0.6;
   cursor: not-allowed;
   background: #94a3b8;
 }
 
-.convertLocked:hover {
+.convertBtnLocked:hover {
   opacity: 0.6;
   transform: none;
 }
@@ -684,8 +693,8 @@
 
 /* ── RESPONSIVE ── */
 @media (max-width: 700px) {
-  .headerCanvas { padding: 1.5rem 1.25rem; }
-  .commentsSection { padding: 1.25rem; }
+  .card { padding: 1.25rem; }
+  .accentCard { padding: 1.25rem; }
   .sideCard { padding: 1.25rem; }
   .scoreNumber { font-size: 2.25rem; }
   .ringSvg { width: 180px; height: 180px; }
