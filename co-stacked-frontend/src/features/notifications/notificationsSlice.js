@@ -67,6 +67,21 @@ export const clearAllNotifications = createAsyncThunk(
   }
 );
 
+/**
+ * Deletes a single notification by ID.
+ */
+export const deleteOneNotification = createAsyncThunk(
+  'notifications/deleteOne',
+  async (notificationId, { rejectWithValue }) => {
+    try {
+      await API.delete(`/notifications/${notificationId}`);
+      return notificationId;
+    } catch (error) {
+      return rejectWithValue(error.response.data?.message || 'Failed to delete notification.');
+    }
+  }
+);
+
 // ===================================================================
 // THE NOTIFICATIONS SLICE
 // ===================================================================
@@ -150,6 +165,21 @@ const notificationsSlice = createSlice({
         state.allItems = [];
       })
       .addCase(clearAllNotifications.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+
+      // Cases for deleting a single notification
+      .addCase(deleteOneNotification.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(deleteOneNotification.fulfilled, (state, action) => {
+        const deletedId = action.payload;
+        state.items = state.items.filter(n => n._id !== deletedId);
+        state.allItems = state.allItems.filter(n => n._id !== deletedId);
+        state.status = 'succeeded';
+      })
+      .addCase(deleteOneNotification.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload;
       });

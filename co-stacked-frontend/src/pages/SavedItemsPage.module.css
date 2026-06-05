@@ -75,3 +75,29 @@
 .badgePost { background: var(--primary-light); color: var(--primary); }
 .badgeShowcase { background: #fef3c7; color: #92400e; }
 .badgeCollab { background: #dcfce7; color: #166534; }
+.badgeProject { background: #dbeafe; color: #1d4ed8; }
+.badgeIdea { background: #f3e8ff; color: #7c3aed; }
+
+.savedTitle {
+  text-decoration: none;
+  color: inherit;
+}
+
+.savedTitle:hover {
+  color: var(--primary);
+}
+
+.linkStats {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--muted-foreground);
+  transition: color 0.2s;
+}
+
+.linkStats:hover {
+  color: var(--primary);
+}

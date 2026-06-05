@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { fetchProjects } from '../features/projects/projectsSlice';
 import { fetchAllNotifications } from '../features/notifications/notificationsSlice';
 import { fetchConnections, fetchPendingRequests, acceptConnectionRequest, removeOrCancelConnection } from '../features/connections/connectionsSlice';
+import { fetchConversations } from '../features/messages/messagesSlice';
 import { Avatar } from '../components/shared/Avatar';
 import {
   LayoutDashboard, Briefcase, UserPlus, MessageSquare, CheckSquare,
@@ -19,19 +20,13 @@ const SkeletonBlock = ({ height = '1rem', width = '100%', borderRadius = '0.5rem
   <div className={styles.skeleton} style={{ height, width, borderRadius }} />
 );
 
-const MetricCard = ({ icon: Icon, label, value, trend, color = '#4f46e5', to, loading }) => {
+const MetricCard = ({ icon: Icon, label, value, to, loading }) => {
   const content = (
     <div className={styles.metricCard}>
       <div className={styles.metricTop}>
-        <div className={styles.metricIcon} style={{ backgroundColor: `${color}15`, color }}>
+        <div className={styles.metricIcon}>
           <Icon size={20} />
         </div>
-        {trend && (
-          <span className={`${styles.metricTrend} ${trend > 0 ? styles.trendUp : styles.trendDown}`}>
-            <TrendingUp size={12} />
-            {Math.abs(trend)}%
-          </span>
-        )}
       </div>
       {loading ? (
         <>
@@ -56,6 +51,7 @@ const NotificationSnapshot = ({ notification, onAccept, onDecline }) => {
   const [actionState, setActionState] = useState(null);
 
   const senderName = notification.sender?.name || 'Someone';
+  const senderAvatar = notification.sender?.avatarUrl;
   const isConnection = notification.type === 'NEW_CONNECTION_REQUEST';
 
   const handleAccept = async (e) => {
@@ -93,14 +89,17 @@ const NotificationSnapshot = ({ notification, onAccept, onDecline }) => {
     <div className={styles.notificationItem}>
       <div className={styles.notifAvatar}>
         <Avatar
-          src={notification.sender?.avatarUrl}
+          src={senderAvatar}
           fallback={senderName.charAt(0)}
           size="small"
         />
       </div>
       <div className={styles.notifContent}>
         <span className={styles.notifText}>
-          <strong>{senderName}</strong> {isConnection ? 'sent a connection request' : notification.message || 'New activity'}
+          <strong className={styles.notifSenderLink}>
+            <Link to={notification.sender?._id ? `/users/${notification.sender._id}` : '#'} onClick={(e) => e.stopPropagation()}>{senderName}</Link>
+          </strong>{' '}
+          {isConnection ? 'sent a connection request' : notification.message || 'New activity'}
         </span>
         <span className={styles.notifTime}>
           {new Date(notification.createdAt).toLocaleDateString()}
@@ -128,19 +127,21 @@ export const DashboardPage = () => {
   const { items: projects = [], status: projectStatus } = useSelector(state => state.projects || {});
   const { allItems: notifications } = useSelector(state => state.notifications);
   const { connections, pendingRequests, status: connStatus } = useSelector(state => state.connections);
+  const { conversations } = useSelector(state => state.messages);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Fetch all data on mount
+  // Fetch all real data on mount
   useEffect(() => {
     dispatch(fetchProjects());
     dispatch(fetchAllNotifications());
     dispatch(fetchConnections());
     dispatch(fetchPendingRequests());
+    dispatch(fetchConversations());
   }, [dispatch]);
 
-  // Derived metrics
+  // Derivative real-time metrics
   const activeProjects = useMemo(() => {
     if (!Array.isArray(projects)) return [];
     return projects.filter(p => p.status === 'active' || p.status === 'in_progress').slice(0, 4);
@@ -151,8 +152,14 @@ export const DashboardPage = () => {
     return [...projects].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0)).slice(0, 5);
   }, [projects]);
 
-  const unreadNotifs = useMemo(() => notifications.filter(n => !n.isRead).slice(0, 4), [notifications]);
+  const unreadNotifs = useMemo(() => notifications.filter(n => !n.isRead).slice(0, 5), [notifications]);
   const totalUnread = notifications.filter(n => !n.isRead).length;
+
+  // Real unread message count
+  const unreadMessageCount = useMemo(() => {
+    if (!Array.isArray(conversations)) return 0;
+    return conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+  }, [conversations]);
 
   const filteredProjects = useMemo(() => {
     if (!searchQuery.trim()) return recentProjects;
@@ -227,42 +234,35 @@ export const DashboardPage = () => {
             </div>
           </div>
 
-          {/* Metrics Grid */}
+          {/* Metrics Grid - Real-time data */}
           <div className={styles.metricsGrid}>
             <MetricCard
               icon={Briefcase}
               label="Active Projects"
               value={activeProjects.length}
-              trend={8}
-              color="#4f46e5"
               to="/my-projects"
               loading={isLoading}
             />
             <MetricCard
               icon={UserPlus}
-              label="New Connection Requests"
+              label="Connection Requests"
               value={connectionRequests.length}
-              trend={connectionRequests.length > 0 ? 12 : 0}
-              color="#10b981"
               to="/my-network"
               loading={connStatus === 'loading'}
             />
             <MetricCard
               icon={MessageSquare}
               label="Unread Messages"
-              value={totalUnread}
-              color="#f59e0b"
+              value={unreadMessageCount}
               to="/messages"
               loading={false}
             />
             <MetricCard
               icon={CheckSquare}
-              label="Validation Board Score"
-              value="92%"
-              trend={5}
-              color="#8b5cf6"
-              to="/validation-board"
-              loading={isLoading}
+              label="Notifications"
+              value={totalUnread}
+              to="/notifications"
+              loading={false}
             />
           </div>
         </section>
@@ -332,45 +332,21 @@ export const DashboardPage = () => {
               </div>
             </section>
 
-            {/* Validation Board */}
+            {/* Real Validation Board Data */}
             <section className={styles.cardSection}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
                   <Star size={18} />
-                  Recent Validation Board Submissions
+                  Recent Validations
                 </h2>
                 <Link to="/validation-board" className={styles.seeAllLink}>
                   View Board <ArrowRight size={14} />
                 </Link>
               </div>
               <div className={styles.validationPreview}>
-                <div className={styles.validationCard}>
-                  <div className={styles.validationScore}>
-                    <svg viewBox="0 0 36 36" className={styles.gaugeSvg}>
-                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none" stroke="var(--border)" strokeWidth="3" />
-                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831"
-                        fill="none" stroke="#4f46e5" strokeWidth="3" strokeDasharray="85, 100" strokeLinecap="round" />
-                    </svg>
-                    <span className={styles.gaugeValue}>85%</span>
-                  </div>
-                  <div className={styles.validationInfo}>
-                    <h4>AI-Powered Marketplace</h4>
-                    <p>8 upvotes · 3 expert validations</p>
-                    <Link to="/validation-board" className={styles.validationLink}>View Details →</Link>
-                  </div>
-                </div>
-                <div className={styles.validationList}>
-                  {['Design System v2', 'Smart Contract Audit Tool', 'API Gateway'].map((name, i) => (
-                    <div key={i} className={styles.validationItem}>
-                      <span className={styles.validationName}>{name}</span>
-                      <div className={styles.miniGauge}>
-                        <div className={styles.miniGaugeFill} style={{ width: `${75 - i * 10}%` }} />
-                      </div>
-                      <span className={styles.miniScore}>{75 - i * 10}%</span>
-                    </div>
-                  ))}
-                </div>
+                <p className={styles.validationPlaceholder}>
+                  Head to the <Link to="/validation-board">Validation Board</Link> to see community-submitted ideas and their scores.
+                </p>
               </div>
             </section>
           </div>
@@ -407,7 +383,7 @@ export const DashboardPage = () => {
                 )}
               </div>
 
-              {/* Quick connection requests */}
+              {/* Real connection requests */}
               {connectionRequests.length > 0 && (
                 <div className={styles.connRequestsSection}>
                   <h4 className={styles.subSectionTitle}>
@@ -416,15 +392,17 @@ export const DashboardPage = () => {
                   </h4>
                   {connectionRequests.map(req => (
                     <div key={req._id} className={styles.connRequestCard}>
-                      <Avatar
-                        src={req.requester?.avatarUrl}
-                        fallback={(req.requester?.name || '?').charAt(0)}
-                        size="small"
-                      />
-                      <div className={styles.connReqInfo}>
-                        <span className={styles.connReqName}>{req.requester?.name || 'Unknown'}</span>
-                        <span className={styles.connReqRole}>{req.requester?.headline || 'Professional'}</span>
-                      </div>
+                      <Link to={req.requester?._id ? `/users/${req.requester._id}` : '#'} className={styles.connReqLink}>
+                        <Avatar
+                          src={req.requester?.avatarUrl}
+                          fallback={(req.requester?.name || '?').charAt(0)}
+                          size="small"
+                        />
+                        <div className={styles.connReqInfo}>
+                          <span className={styles.connReqName}>{req.requester?.name || 'Unknown'}</span>
+                          <span className={styles.connReqRole}>{req.requester?.headline || 'Professional'}</span>
+                        </div>
+                      </Link>
                       <div className={styles.connReqActions}>
                         <button
                           className={styles.acceptMiniBtn}
@@ -447,7 +425,7 @@ export const DashboardPage = () => {
               )}
             </section>
 
-            {/* Recent Workspace Interactions */}
+            {/* Recent Interactions - Clickable real items */}
             <section className={styles.cardSection}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
@@ -456,22 +434,26 @@ export const DashboardPage = () => {
                 </h2>
               </div>
               <div className={styles.timelineList}>
-                {[
-                  { actor: 'Sarah Chen', action: 'updated the design specs in', target: 'AI Marketplace', time: '2 hours ago' },
-                  { actor: 'Marcus Williams', action: 'commented on', target: 'API Gateway', time: '5 hours ago' },
-                  { actor: 'Alex Johnson', action: 'joined the project', target: 'Smart Contract Audit', time: '1 day ago' },
-                ].map((item, i) => (
-                  <div key={i} className={styles.timelineItem}>
-                    <div className={styles.timelineDot} />
-                    <div className={styles.timelineContent}>
-                      <p>
-                        <strong>{item.actor}</strong> {item.action}{' '}
-                        <span className={styles.timelineTarget}>{item.target}</span>
-                      </p>
-                      <span className={styles.timelineTime}>{item.time}</span>
-                    </div>
+                {recentProjects.slice(0, 3).length > 0 ? (
+                  recentProjects.slice(0, 3).map((project, i) => (
+                    <Link key={project._id || i} to={`/projects/${project._id}`} className={styles.timelineItem}>
+                      <div className={styles.timelineDot} />
+                      <div className={styles.timelineContent}>
+                        <p>
+                          <strong>{project.title || 'Project'}</strong> updated {project.stage ? `to ${project.stage}` : ''}
+                        </p>
+                        <span className={styles.timelineTime}>
+                          {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString() : 'Recently'}
+                        </span>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className={styles.emptyBlock}>
+                    <Clock size={24} className={styles.emptyIcon} />
+                    <p>No recent interactions</p>
                   </div>
-                ))}
+                )}
               </div>
             </section>
 

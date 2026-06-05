@@ -1,16 +1,20 @@
 // src/pages/NotificationsPage.jsx
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { 
   fetchAllNotifications, 
   markNotificationsAsRead,
-  clearAllNotifications
+  clearAllNotifications,
+  deleteOneNotification
 } from '../features/notifications/notificationsSlice';
-import { fetchConnections, fetchPendingRequests } from '../features/connections/connectionsSlice';
+import { fetchConnections, fetchPendingRequests, acceptConnectionRequest, removeOrCancelConnection } from '../features/connections/connectionsSlice';
 import { NotificationCard } from '../components/notifications/NotificationCard';
-import { Bell, Check, Trash2, Loader2 } from 'lucide-react';
+import { Bell, Check, Trash2, Loader2, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import styles from './NotificationsPage.module.css';
+
+const PER_PAGE = 10;
 
 const TABS = [
   { id: 'all', label: 'All' },
@@ -32,6 +36,9 @@ export const NotificationsPage = () => {
   const { allItems: notifications, status } = useSelector(state => state.notifications);
   const [activeTab, setActiveTab] = useState('all');
   const [isClearing, setIsClearing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     dispatch(fetchAllNotifications());
@@ -41,7 +48,6 @@ export const NotificationsPage = () => {
 
   const handleMarkAllRead = async () => {
     await dispatch(markNotificationsAsRead());
-    // Refresh to reflect read status
     setTimeout(() => dispatch(fetchAllNotifications()), 500);
   };
 
@@ -49,19 +55,51 @@ export const NotificationsPage = () => {
     setIsClearing(true);
     try {
       await dispatch(clearAllNotifications());
-      // Refresh the list
       setTimeout(() => dispatch(fetchAllNotifications()), 500);
+      setSelectedIds([]);
     } finally {
       setIsClearing(false);
     }
   };
 
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return;
+    setIsDeleting(true);
+    try {
+      // Delete selected notifications individually via API
+      for (const id of selectedIds) {
+        try {
+          await dispatch(deleteOneNotification(id));
+        } catch (e) {
+          console.error('Failed to delete notification:', id);
+        }
+      }
+      setSelectedIds([]);
+      setTimeout(() => dispatch(fetchAllNotifications()), 500);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const toggleSelectNotification = useCallback((id) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(nid => nid !== id) : [...prev, id]
+    );
+  }, []);
+
   const filteredNotifications = useMemo(() => {
     if (activeTab === 'all') return notifications;
-    
     const allowedTypes = TAB_TYPE_MAP[activeTab] || [];
     return notifications.filter(notif => allowedTypes.includes(notif.type));
   }, [notifications, activeTab]);
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredNotifications.length / PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedNotifications = filteredNotifications.slice(
+    (safePage - 1) * PER_PAGE,
+    safePage * PER_PAGE
+  );
 
   const getTabCount = (tabId) => {
     if (tabId === 'all') {
@@ -72,6 +110,10 @@ export const NotificationsPage = () => {
   };
 
   const totalUnreadCount = notifications.filter(n => !n.isRead).length;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
 
   return (
     <div className={styles.pageContainer}>
@@ -85,6 +127,20 @@ export const NotificationsPage = () => {
             <button className={styles.markAllBtn} onClick={handleMarkAllRead}>
               <Check size={18} />
               Mark all as read
+            </button>
+          )}
+          {selectedIds.length > 0 && (
+            <button 
+              className={`${styles.markAllBtn} ${styles.deleteBtn}`} 
+              onClick={handleDeleteSelected}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <Loader2 size={18} className={styles.spinner} />
+              ) : (
+                <Trash2 size={18} />
+              )}
+              Delete ({selectedIds.length})
             </button>
           )}
           {notifications.length > 0 && (
@@ -122,20 +178,63 @@ export const NotificationsPage = () => {
         })}
       </div>
 
+      {/* Selection bar */}
+      {selectedIds.length > 0 && (
+        <div className={styles.selectionBar}>
+          <span>{selectedIds.length} selected</span>
+          <button onClick={() => setSelectedIds([])} className={styles.deselectBtn}>
+            <X size={16} />
+            Deselect all
+          </button>
+        </div>
+      )}
+
       <div className={styles.notificationsList}>
         {status === 'loading' && notifications.length === 0 ? (
           <div className={styles.emptyState}>
             <Loader2 size={36} className={styles.spinner} />
             <p>Loading notifications...</p>
           </div>
-        ) : filteredNotifications.length > 0 ? (
-          filteredNotifications.map(notif => (
-            <NotificationCard key={notif._id} notification={notif} />
-          ))
+        ) : paginatedNotifications.length > 0 ? (
+          <>
+            {paginatedNotifications.map(notif => (
+              <div key={notif._id} className={styles.notificationRow}>
+                <input
+                  type="checkbox"
+                  className={styles.selectCheckbox}
+                  checked={selectedIds.includes(notif._id)}
+                  onChange={() => toggleSelectNotification(notif._id)}
+                />
+                <NotificationCard key={notif._id} notification={notif} />
+              </div>
+            ))}
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className={styles.pagination}>
+                <button
+                  className={styles.pageBtn}
+                  disabled={safePage <= 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className={styles.pageInfo}>
+                  Page {safePage} of {totalPages}
+                </span>
+                <button
+                  className={styles.pageBtn}
+                  disabled={safePage >= totalPages}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className={styles.emptyState}>
             <Bell size={48} className={styles.emptyIcon} />
-            <h3 className={styles.emptyTitle}>You have no notifications right now</h3>
+            <h3 className={styles.emptyTitle}>No notifications right now</h3>
             <p className={styles.emptySubtitle}>
               {activeTab !== 'all' 
                 ? `No ${activeTab} notifications to show.` 

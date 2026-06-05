@@ -11,6 +11,7 @@ import { FeatureCard } from '../components/shared/FeatureCard';
 import { ProjectCard } from '../components/shared/ProjectCard';
 import { UserCard } from '../components/shared/UserCard';
 import { Carousel } from '../components/shared/Carousel';
+import DiscoverProjectCard from '../components/discover/ProjectCard';
 import { Lightbulb, Users, ShieldCheck, ArrowRight } from 'lucide-react';
 
 import heroLight from '../assets/hero-light.png';
@@ -25,7 +26,7 @@ const features = [
 
 export const HomePage = () => {
   const dispatch = useDispatch();
-  const { theme } = useTheme(); // This is critical for Dark Mode
+  const { theme } = useTheme();
   
   const { token } = useSelector((state) => state.auth);
   const isLoggedIn = !!token;
@@ -58,7 +59,6 @@ export const HomePage = () => {
   const heroBgImage = theme === 'light' ? heroLight : heroDark;
 
   return (
-    /* We add a data-theme attribute here so CSS can react to Dark Mode */
     <div className={styles.pageContainer} data-theme={theme}>
       
       {/* Hero Section */}
@@ -81,17 +81,17 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* Logged In Dashboard */}
+      {/* Logged In Dashboard - Discover-style cards */}
       {isLoggedIn && (
         <div className={styles.loggedInContent}>
           
-          {/* 1. Featured Projects */}
+          {/* 1. Featured Projects - Using Discover-style cards */}
           {featuredProjects.length > 0 && (
             <div className={styles.dashboardSection}>
               <h2 className={styles.dashboardTitle}>Featured Projects</h2>
-              <Carousel>
-                {featuredProjects.map(p => <ProjectCard key={p._id} project={p} />)}
-              </Carousel>
+              <div className={styles.carouselGrid}>
+                {featuredProjects.map(p => <DiscoverProjectCard key={p._id} project={p} />)}
+              </div>
             </div>
           )}
 
@@ -105,14 +105,14 @@ export const HomePage = () => {
             </div>
           )}
 
-          {/* 3. Latest Projects */}
+          {/* 3. Latest Projects - Discover-style cards */}
           <div className={styles.dashboardSection}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.dashboardTitle}>Latest Projects</h2>
               <Link to="/projects" className={styles.seeAll}>See all <ArrowRight size={16}/></Link>
             </div>
             <div className={styles.contentGrid}>
-              {latestProjects.map(p => <ProjectCard key={p._id} project={p} />)}
+              {latestProjects.map(p => <DiscoverProjectCard key={p._id} project={p} />)}
             </div>
           </div>
 

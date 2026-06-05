@@ -479,6 +479,20 @@ export const ProfilePage = () => {
                     )}
                   </section>
 
+                  {/* Stats Summary - Moved above endorsements for mobile-friendliness */}
+                  <section className={styles.section}>
+                    <div className={styles.statsRow}>
+                      <div className={styles.statChip}>
+                        <span className={styles.statChipValue}>{endorsementState.count}</span>
+                        <span className={styles.statChipLabel}>Endorsements</span>
+                      </div>
+                      <div className={styles.statChip}>
+                        <span className={styles.statChipValue}>{developerReviews.length}</span>
+                        <span className={styles.statChipLabel}>Reviews</span>
+                      </div>
+                    </div>
+                  </section>
+
                   <section className={styles.section}>
                     <div className={styles.sectionHeader}>
                       <h2 className={styles.sectionTitle}>Endorsements</h2>
@@ -499,7 +513,6 @@ export const ProfilePage = () => {
                         {isOwnProfile && endorsementState.count > 0 && (
                           <span className={styles.endorseCountLabel}>{endorsementState.count} endorsements</span>
                         )}
-                        <button className={styles.requestBtn}>Request Endorsement</button>
                       </div>
                     </div>
                     <div className={styles.endorsementsGrid}>
