@@ -58,6 +58,12 @@ const collabThreadSchema = mongoose.Schema(
       default: '',
       maxlength: 50,
     },
+    upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    downvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    views: {
+      type: Number,
+      default: 0,
+    },
     commentCount: {
       type: Number,
       default: 0,

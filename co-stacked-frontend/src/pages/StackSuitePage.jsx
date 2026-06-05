@@ -182,11 +182,6 @@ export function StackSuitePage() {
   };
 
   // Computed: unique tags from current data for trending
-  const { data: allPosts = [] } = useQuery({
-    queryKey: ['stackPosts', {}],
-    queryFn: () => [],
-    enabled: false,
-  });
 
   const modalTitle = contentType === 'discussion' ? 'Create a New Post'
     : contentType === 'showcase' ? 'Launch Your Showcase'
@@ -360,9 +355,9 @@ export function StackSuitePage() {
               </div>
 
               <div role="tabpanel">
-                {activeTab === 'discussions'   && <DiscussionsTab search={search} tagFilter={tagFilter} />}
-                {activeTab === 'showcases'     && <ShowcasesTab search={search} tagFilter={tagFilter} />}
-                {activeTab === 'collaboration' && <CollaborationTab search={search} tagFilter={tagFilter} />}
+                {activeTab === 'discussions'   && <DiscussionsTab search={search} tagFilter={tagFilter} onTagClick={handleTagClick} />}
+                {activeTab === 'showcases'     && <ShowcasesTab search={search} tagFilter={tagFilter} onTagClick={handleTagClick} />}
+                {activeTab === 'collaboration' && <CollaborationTab search={search} tagFilter={tagFilter} onTagClick={handleTagClick} />}
               </div>
             </div>
           </div>

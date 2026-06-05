@@ -32,6 +32,11 @@ export const upvoteStackPost = async (id) => {
   return res.data;
 };
 
+export const downvoteStackPost = async (id) => {
+  const res = await API.put(`/stack-suite/posts/${id}/downvote`);
+  return res.data;
+};
+
 export const deleteStackPost = async (id) => {
   const res = await API.delete(`/stack-suite/posts/${id}`);
   return res.data;
@@ -62,6 +67,11 @@ export const upvoteShowcase = async (id) => {
   return res.data;
 };
 
+export const downvoteShowcase = async (id) => {
+  const res = await API.put(`/stack-suite/showcases/${id}/downvote`);
+  return res.data;
+};
+
 export const updateShowcase = async (id, showcaseData) => {
   const res = await API.put(`/stack-suite/showcases/${id}`, showcaseData);
   return res.data;
@@ -84,6 +94,16 @@ export const getCollabThreads = async (filters = {}) => {
 
 export const getCollabThreadById = async (id) => {
   const res = await API.get(`/stack-suite/collab/${id}`);
+  return res.data;
+};
+
+export const upvoteCollabThread = async (id) => {
+  const res = await API.put(`/stack-suite/collab/${id}/upvote`);
+  return res.data;
+};
+
+export const downvoteCollabThread = async (id) => {
+  const res = await API.put(`/stack-suite/collab/${id}/downvote`);
   return res.data;
 };
 

@@ -38,6 +38,11 @@ const showcaseSchema = mongoose.Schema(
       default: [],
     },
     upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    downvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    views: {
+      type: Number,
+      default: 0,
+    },
     commentCount: {
       type: Number,
       default: 0,
@@ -47,6 +52,18 @@ const showcaseSchema = mongoose.Schema(
       default: 1,
     },
     launched: {
+      type: String,
+      default: '',
+    },
+    imageUrl: {
+      type: String,
+      default: '',
+    },
+    liveUrl: {
+      type: String,
+      default: '',
+    },
+    githubUrl: {
       type: String,
       default: '',
     },
