@@ -80,8 +80,11 @@ const getPostById = async (req, res) => {
     res.json({
       ...post,
       upvoteCount: post.upvotes.length,
+      downvoteCount: post.downvotes.length,
+      viewCount: post.viewCount + 1,
       time: timeAgo(post.createdAt),
       isUpvoted: req.user ? post.upvotes.some(id => id.toString() === req.user._id.toString()) : false,
+      isDownvoted: req.user ? post.downvotes.some(id => id.toString() === req.user._id.toString()) : false,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -126,13 +129,41 @@ const upvotePost = async (req, res) => {
 
     const uid = req.user._id.toString();
     const idx = post.upvotes.findIndex(id => id.toString() === uid);
+    // Remove from downvotes if present
+    const downIdx = post.downvotes.findIndex(id => id.toString() === uid);
+    if (downIdx > -1) post.downvotes.splice(downIdx, 1);
+    
     if (idx > -1) {
       post.upvotes.splice(idx, 1); // toggle off
     } else {
       post.upvotes.push(req.user._id);
     }
     await post.save();
-    res.json({ upvoteCount: post.upvotes.length, isUpvoted: idx === -1 });
+    res.json({ upvoteCount: post.upvotes.length, downvoteCount: post.downvotes.length, isUpvoted: idx === -1, isDownvoted: false });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// PUT /api/stack-suite/posts/:id/downvote
+const downvotePost = async (req, res) => {
+  try {
+    const post = await StackPost.findById(req.params.id);
+    if (!post || post.isDeleted) return res.status(404).json({ message: 'Post not found' });
+
+    const uid = req.user._id.toString();
+    const idx = post.downvotes.findIndex(id => id.toString() === uid);
+    // Remove from upvotes if present
+    const upIdx = post.upvotes.findIndex(id => id.toString() === uid);
+    if (upIdx > -1) post.upvotes.splice(upIdx, 1);
+    
+    if (idx > -1) {
+      post.downvotes.splice(idx, 1); // toggle off
+    } else {
+      post.downvotes.push(req.user._id);
+    }
+    await post.save();
+    res.json({ upvoteCount: post.upvotes.length, downvoteCount: post.downvotes.length, isDownvoted: idx === -1, isUpvoted: false });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -176,8 +207,10 @@ const getShowcases = async (req, res) => {
     const shaped = showcases.map(s => ({
       ...s,
       upvoteCount: s.upvotes.length,
+      downvoteCount: s.downvotes.length,
       time: timeAgo(s.createdAt),
       isUpvoted: req.user ? s.upvotes.some(id => id.toString() === req.user._id.toString()) : false,
+      isDownvoted: req.user ? s.downvotes.some(id => id.toString() === req.user._id.toString()) : false,
     }));
 
     res.json(shaped);
@@ -193,11 +226,18 @@ const getShowcaseById = async (req, res) => {
       .populate('founder', 'name avatarUrl role')
       .lean();
     if (!s || s.isDeleted) return res.status(404).json({ message: 'Showcase not found' });
+    
+    // Increment view count
+    await Showcase.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
+    
     res.json({
       ...s,
       upvoteCount: s.upvotes.length,
+      downvoteCount: s.downvotes.length,
+      views: s.views + 1,
       time: timeAgo(s.createdAt),
       isUpvoted: req.user ? s.upvotes.some(id => id.toString() === req.user._id.toString()) : false,
+      isDownvoted: req.user ? s.downvotes.some(id => id.toString() === req.user._id.toString()) : false,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -242,9 +282,33 @@ const upvoteShowcase = async (req, res) => {
 
     const uid = req.user._id.toString();
     const idx = showcase.upvotes.findIndex(id => id.toString() === uid);
+    // Remove from downvotes if present
+    const downIdx = showcase.downvotes.findIndex(id => id.toString() === uid);
+    if (downIdx > -1) showcase.downvotes.splice(downIdx, 1);
+    
     if (idx > -1) { showcase.upvotes.splice(idx, 1); } else { showcase.upvotes.push(req.user._id); }
     await showcase.save();
-    res.json({ upvoteCount: showcase.upvotes.length, isUpvoted: idx === -1 });
+    res.json({ upvoteCount: showcase.upvotes.length, downvoteCount: showcase.downvotes.length, isUpvoted: idx === -1, isDownvoted: false });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// PUT /api/stack-suite/showcases/:id/downvote
+const downvoteShowcase = async (req, res) => {
+  try {
+    const showcase = await Showcase.findById(req.params.id);
+    if (!showcase || showcase.isDeleted) return res.status(404).json({ message: 'Showcase not found' });
+
+    const uid = req.user._id.toString();
+    const idx = showcase.downvotes.findIndex(id => id.toString() === uid);
+    // Remove from upvotes if present
+    const upIdx = showcase.upvotes.findIndex(id => id.toString() === uid);
+    if (upIdx > -1) showcase.upvotes.splice(upIdx, 1);
+    
+    if (idx > -1) { showcase.downvotes.splice(idx, 1); } else { showcase.downvotes.push(req.user._id); }
+    await showcase.save();
+    res.json({ upvoteCount: showcase.upvotes.length, downvoteCount: showcase.downvotes.length, isDownvoted: idx === -1, isUpvoted: false });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -320,7 +384,12 @@ const getCollabThreads = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    res.json(threads.map(t => ({ ...t, time: timeAgo(t.createdAt) })));
+    res.json(threads.map(t => ({ 
+      ...t, 
+      upvoteCount: t.upvotes.length, 
+      downvoteCount: t.downvotes.length,
+      time: timeAgo(t.createdAt) 
+    })));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -333,7 +402,17 @@ const getCollabThreadById = async (req, res) => {
       .populate('author', 'name avatarUrl role')
       .lean();
     if (!t || t.isDeleted) return res.status(404).json({ message: 'Thread not found' });
-    res.json({ ...t, time: timeAgo(t.createdAt) });
+    
+    // Increment view count
+    await CollabThread.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
+    
+    res.json({ 
+      ...t, 
+      upvoteCount: t.upvotes.length, 
+      downvoteCount: t.downvotes.length,
+      views: t.views + 1,
+      time: timeAgo(t.createdAt) 
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -644,10 +723,48 @@ const getStats = async (req, res) => {
   }
 };
 
+// PUT /api/stack-suite/collab/:id/upvote
+const upvoteCollab = async (req, res) => {
+  try {
+    const thread = await CollabThread.findById(req.params.id);
+    if (!thread || thread.isDeleted) return res.status(404).json({ message: 'Thread not found' });
+
+    const uid = req.user._id.toString();
+    const idx = thread.upvotes.findIndex(id => id.toString() === uid);
+    const downIdx = thread.downvotes.findIndex(id => id.toString() === uid);
+    if (downIdx > -1) thread.downvotes.splice(downIdx, 1);
+    
+    if (idx > -1) { thread.upvotes.splice(idx, 1); } else { thread.upvotes.push(req.user._id); }
+    await thread.save();
+    res.json({ upvoteCount: thread.upvotes.length, downvoteCount: thread.downvotes.length, isUpvoted: idx === -1, isDownvoted: false });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// PUT /api/stack-suite/collab/:id/downvote
+const downvoteCollab = async (req, res) => {
+  try {
+    const thread = await CollabThread.findById(req.params.id);
+    if (!thread || thread.isDeleted) return res.status(404).json({ message: 'Thread not found' });
+
+    const uid = req.user._id.toString();
+    const idx = thread.downvotes.findIndex(id => id.toString() === uid);
+    const upIdx = thread.upvotes.findIndex(id => id.toString() === uid);
+    if (upIdx > -1) thread.upvotes.splice(upIdx, 1);
+    
+    if (idx > -1) { thread.downvotes.splice(idx, 1); } else { thread.downvotes.push(req.user._id); }
+    await thread.save();
+    res.json({ upvoteCount: thread.upvotes.length, downvoteCount: thread.downvotes.length, isDownvoted: idx === -1, isUpvoted: false });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
-  getPosts, getPostById, createPost, upvotePost, deletePost,
-  getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase,
-  getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread,
+  getPosts, getPostById, createPost, upvotePost, downvotePost, deletePost,
+  getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase, downvoteShowcase,
+  getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread, upvoteCollab, downvoteCollab,
   getComments, addComment, upvoteComment, likeComment, deleteComment,
   getBookmarks, getStats,
 };

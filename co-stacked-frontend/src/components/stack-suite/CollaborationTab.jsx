@@ -4,11 +4,13 @@ import { useState } from 'react';
 import {
   MessageSquare, Paperclip, CheckCircle2, Clock, AlertCircle,
   ArrowLeft, GitBranch, CalendarDays, Rocket, Loader2, Edit2, Trash2,
-  Bookmark, Share2, Users, Zap, Send, X, UserPlus, Briefcase
+  Bookmark, Share2, Users, Zap, Send, X, UserPlus, Briefcase,
+  ChevronUp, ChevronDown, Eye
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSelector, useDispatch } from 'react-redux';
-import { getCollabThreads, getStackComments, deleteCollabThread } from '../../api/stackSuiteApi';
+import { useNavigate } from 'react-router-dom';
+import { getCollabThreads, getStackComments, deleteCollabThread, upvoteCollabThread, downvoteCollabThread } from '../../api/stackSuiteApi';
 import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
 import { EditCollabModal } from './EditCollabModal';
@@ -82,16 +84,11 @@ function PitchModal({ thread, onClose }) {
   );
 }
 
-/* ─── Modal Overlay Base ─── */
-const modalOverlayBase = {
-  position: 'fixed', inset: 0, background: 'var(--backdrop)',
-  zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-};
-
 /* ─── Detail View ─── */
 function ThreadDetail({ threadId, onBack }) {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [pitchOpen, setPitchOpen] = useState(false);
   const { user } = useSelector(state => state.auth);
@@ -105,6 +102,22 @@ function ThreadDetail({ threadId, onBack }) {
     queryKey: ['stackComments', 'collabThread', threadId],
     queryFn: () => getStackComments('collabThread', threadId),
     enabled: !!threadId,
+  });
+
+  const upvoteMutation = useMutation({
+    mutationFn: upvoteCollabThread,
+    onSuccess: (data) => {
+      queryClient.setQueryData(['thread', threadId], (old) => old ? { ...old, upvoteCount: data.upvoteCount, downvoteCount: data.downvoteCount, isUpvoted: data.isUpvoted, isDownvoted: data.isDownvoted } : old);
+      queryClient.invalidateQueries(['threads']);
+    }
+  });
+
+  const downvoteMutation = useMutation({
+    mutationFn: downvoteCollabThread,
+    onSuccess: (data) => {
+      queryClient.setQueryData(['thread', threadId], (old) => old ? { ...old, upvoteCount: data.upvoteCount, downvoteCount: data.downvoteCount, isUpvoted: data.isUpvoted, isDownvoted: data.isDownvoted } : old);
+      queryClient.invalidateQueries(['threads']);
+    }
   });
 
   const deleteMutation = useMutation({
@@ -124,6 +137,7 @@ function ThreadDetail({ threadId, onBack }) {
   const ProgressIcon = cfg.Icon;
   const isOwner = user && thread.author && user._id === thread.author._id;
   const isBookmarked = user?.bookmarks?.some(b => b.itemId === threadId && b.itemType === 'collabThread');
+  const netScore = (thread.upvoteCount || 0) - (thread.downvoteCount || 0);
 
   const handleShare = async () => {
     try {
@@ -131,6 +145,15 @@ function ThreadDetail({ threadId, onBack }) {
       else { await navigator.clipboard.writeText(window.location.href); alert('Link copied!'); }
     } catch (err) { console.error(err); }
   };
+
+  const handleDelete = () => {
+    if (window.confirm('Delete this thread? This action cannot be undone.')) {
+      deleteMutation.mutate(threadId);
+    }
+  };
+
+  const authorName = thread.author?.name;
+  const authorId = thread.author?._id;
 
   return (
     <div style={{ maxWidth: 768, margin: '0 auto' }}>
@@ -150,8 +173,8 @@ function ThreadDetail({ threadId, onBack }) {
           </span>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, lineHeight: 1.3, color: 'var(--foreground)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, lineHeight: 1.3, color: 'var(--foreground)', wordBreak: 'break-word' }}>
             {thread.milestone}
           </h1>
           {isOwner && (
@@ -159,7 +182,7 @@ function ThreadDetail({ threadId, onBack }) {
               <button onClick={() => setIsEditModalOpen(true)} className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`}>
                 <Edit2 size={14} /> Edit
               </button>
-              <button onClick={() => { if(window.confirm('Delete this thread?')) deleteMutation.mutate(thread._id); }}
+              <button onClick={handleDelete}
                 className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`}
                 style={{ color: 'var(--destructive)', borderColor: 'var(--destructive)' }}>
                 <Trash2 size={14} /> Delete
@@ -181,7 +204,26 @@ function ThreadDetail({ threadId, onBack }) {
           )}
         </div>
 
-        <div style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--foreground)', whiteSpace: 'pre-line', marginBottom: 20, opacity: 0.9 }}>
+        {/* Voting row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+          <button
+            className={`${styles.upvoteBtn} ${styles.upvoteBtnSm} ${thread.isUpvoted ? styles.upvoteBtnActive : ''}`}
+            onClick={() => upvoteMutation.mutate(threadId)}
+          >
+            <ChevronUp size={14} /> {thread.upvoteCount || 0}
+          </button>
+          <button
+            className={`${styles.upvoteBtn} ${styles.upvoteBtnSm} ${thread.isDownvoted ? styles.upvoteBtnActive : ''}`}
+            onClick={() => downvoteMutation.mutate(threadId)}
+          >
+            <ChevronDown size={14} /> {thread.downvoteCount || 0}
+          </button>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--muted-foreground)' }}>
+            <Eye size={14} /> {thread.views || 0} views
+          </span>
+        </div>
+
+        <div style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--foreground)', whiteSpace: 'pre-line', marginBottom: 20, opacity: 0.9, wordBreak: 'break-word' }}>
           {thread.longDescription || thread.description}
         </div>
 
@@ -226,7 +268,7 @@ function ThreadDetail({ threadId, onBack }) {
         </div>
 
         {/* Action Footer */}
-        <div style={{ padding: '16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', marginTop: 16 }}>
+        <div style={{ padding: '16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, borderTop: '1px solid var(--border)', marginTop: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--muted-foreground)' }}>
               <MessageSquare size={16} />
@@ -246,10 +288,10 @@ function ThreadDetail({ threadId, onBack }) {
 
       {/* Pitch CTA (non-owner) */}
       {!isOwner && (
-        <div style={{ padding: '20px 24px', background: 'var(--card-background)', border: '1px solid var(--border)', borderRadius: 12, marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+        <div style={{ padding: '20px 24px', background: 'var(--card-background)', border: '1px solid var(--border)', borderRadius: 12, marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <div>
             <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)', marginBottom: 4 }}>Want to join this milestone?</h4>
-            <p style={{ fontSize: 12, color: 'var(--muted-foreground)', margin: 0 }}>Pitch your skills to {thread.author?.name || 'the founder'}.</p>
+            <p style={{ fontSize: 12, color: 'var(--muted-foreground)', margin: 0 }}>Pitch your skills to {authorName || 'the founder'}.</p>
           </div>
           <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => setPitchOpen(true)}>
             <UserPlus size={15} /> Apply / Pitch Founder
@@ -279,8 +321,12 @@ function ThreadDetail({ threadId, onBack }) {
 }
 
 /* ─── Timeline / List View ─── */
-export function CollaborationTab({ search, tagFilter }) {
+export function CollaborationTab({ search, tagFilter, onTagClick }) {
   const [selectedId, setSelectedId] = useState(null);
+  const queryClient = useQueryClient();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user } = useSelector(state => state.auth);
 
   const { data: threads = [], isLoading } = useQuery({
     queryKey: ['threads', { search }],
@@ -313,11 +359,28 @@ export function CollaborationTab({ search, tagFilter }) {
     );
   }
 
+  const handleUpvote = (e, id) => {
+    e.stopPropagation();
+    queryClient.setQueryData(['threads', { search }], (old) =>
+      old?.map(t => t._id === id ? { ...t, upvoteCount: (t.upvoteCount || 0) + (t.isUpvoted ? -1 : 1), isUpvoted: !t.isUpvoted, isDownvoted: false, downvoteCount: t.isDownvoted ? (t.downvoteCount || 1) - 1 : (t.downvoteCount || 0) } : t)
+    );
+    upvoteCollabThread(id).catch(() => queryClient.invalidateQueries({ queryKey: ['threads', { search }] }));
+  };
+
+  const handleDownvote = (e, id) => {
+    e.stopPropagation();
+    queryClient.setQueryData(['threads', { search }], (old) =>
+      old?.map(t => t._id === id ? { ...t, downvoteCount: (t.downvoteCount || 0) + (t.isDownvoted ? -1 : 1), isDownvoted: !t.isDownvoted, isUpvoted: false, upvoteCount: t.isUpvoted ? (t.upvoteCount || 1) - 1 : (t.upvoteCount || 0) } : t)
+    );
+    downvoteCollabThread(id).catch(() => queryClient.invalidateQueries({ queryKey: ['threads', { search }] }));
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {filtered.map(thread => {
         const cfg = progressConfig[thread.progress] || progressConfig['In Progress'];
         const ProgressIcon = cfg.Icon;
+        const netScore = (thread.upvoteCount || 0) - (thread.downvoteCount || 0);
 
         return (
           <article
@@ -338,13 +401,27 @@ export function CollaborationTab({ search, tagFilter }) {
               </span>
             </div>
 
-            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: 'var(--foreground)', lineHeight: 1.35 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: 'var(--foreground)', lineHeight: 1.35, wordBreak: 'break-word' }}>
               {thread.milestone}
             </h3>
 
-            <p style={{ fontSize: 13, color: 'var(--muted-foreground)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5, marginBottom: 16 }}>
+            <p style={{ fontSize: 13, color: 'var(--muted-foreground)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5, marginBottom: 16, wordBreak: 'break-word' }}>
               {thread.description}
             </p>
+
+            {/* Voting row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <ChevronUp size={14}
+                style={{ color: thread.isUpvoted ? 'var(--primary)' : 'var(--muted-foreground)', cursor: 'pointer' }}
+                onClick={(e) => handleUpvote(e, thread._id)} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: netScore > 0 ? 'var(--primary)' : 'var(--muted-foreground)' }}>{netScore}</span>
+              <ChevronDown size={14}
+                style={{ color: thread.isDownvoted ? 'var(--primary)' : 'var(--muted-foreground)', cursor: 'pointer' }}
+                onClick={(e) => handleDownvote(e, thread._id)} />
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginLeft: 6, fontSize: 11, color: 'var(--muted-foreground)' }}>
+                <Eye size={11} /> {thread.views || 0}
+              </span>
+            </div>
 
             {/* Roles recruitment section */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
@@ -373,9 +450,9 @@ export function CollaborationTab({ search, tagFilter }) {
               </div>
             )}
 
-            {/* Footer */}
+            {/* Footer with author */}
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 14 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ display: 'flex' }}>
                   {thread.team?.slice(0, 3).map((member, i) => (
                     <div key={i} className={`${styles.avatar} ${styles.avatarSm}`}
@@ -389,14 +466,30 @@ export function CollaborationTab({ search, tagFilter }) {
                     {thread.team.length} member{thread.team.length > 1 ? 's' : ''}
                   </span>
                 )}
+                {(!thread.team || thread.team.length === 0) && thread.author && (
+                  <>
+                    <div className={`${styles.avatar} ${styles.avatarSm}`}
+                      style={{ cursor: 'pointer' }}
+                      onClick={e => { e.stopPropagation(); navigate(`/profile/${thread.author._id}`); }}>
+                      {thread.author.avatarUrl ? (
+                        <img src={thread.author.avatarUrl} alt={thread.author.name} />
+                      ) : (
+                        thread.author.name ? thread.author.name.slice(0, 2).toUpperCase() : 'U'
+                      )}
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--muted-foreground)', cursor: 'pointer' }}
+                      onClick={e => { e.stopPropagation(); navigate(`/profile/${thread.author._id}`); }}>
+                      {thread.author.name || 'Anonymous'}
+                    </span>
+                  </>
+                )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--muted-foreground)' }}>
                   <MessageSquare size={14} />
                   <span style={{ fontSize: 12, fontWeight: 500 }}>{thread.commentCount || 0}</span>
                 </div>
-                {/* Pitch/Apply CTA button on every card */}
-                <button onClick={e => { e.stopPropagation(); /* open pitch from card */ }}
+                <button onClick={e => { e.stopPropagation(); }}
                   className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`}
                   style={{ fontSize: 11 }}>
                   <UserPlus size={12} /> Apply

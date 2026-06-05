@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   Rocket, ExternalLink, Github, MessageCircle, ChevronUp, ChevronDown,
-  Loader2, Users, ArrowLeft, Star, Share2, Bookmark, Eye, Globe, Image
+  Loader2, Users, ArrowLeft, Star, Share2, Bookmark, Eye, Globe, Image,
+  Edit2, Trash2
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { getShowcases, upvoteShowcase, deleteShowcase } from '../../api/stackSuiteApi';
+import { getShowcases, upvoteShowcase, downvoteShowcase, deleteShowcase } from '../../api/stackSuiteApi';
 import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
 import styles from './StackSuite.module.css';
@@ -36,6 +37,22 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
     }),
   });
 
+  const upvoteMutation = useMutation({
+    mutationFn: upvoteShowcase,
+    onSuccess: (data) => {
+      queryClient.setQueryData(['showcase', showcaseId], (old) => old ? { ...old, upvoteCount: data.upvoteCount, downvoteCount: data.downvoteCount, isUpvoted: data.isUpvoted, isDownvoted: data.isDownvoted } : old);
+      queryClient.invalidateQueries(['showcases']);
+    }
+  });
+
+  const downvoteMutation = useMutation({
+    mutationFn: downvoteShowcase,
+    onSuccess: (data) => {
+      queryClient.setQueryData(['showcase', showcaseId], (old) => old ? { ...old, upvoteCount: data.upvoteCount, downvoteCount: data.downvoteCount, isUpvoted: data.isUpvoted, isDownvoted: data.isDownvoted } : old);
+      queryClient.invalidateQueries(['showcases']);
+    }
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteShowcase(id),
     onSuccess: () => { queryClient.invalidateQueries(['showcases']); onBack(); }
@@ -49,9 +66,11 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
     );
   }
 
-  const isOwner = user && showcase.author && user._id === showcase.author._id;
+  const isOwner = user && showcase.author?._id && user._id === showcase.author._id;
+  const isFounder = user && showcase.founder?._id && user._id === showcase.founder._id;
+  const isAuthorized = isOwner || isFounder;
   const isBookmarked = user?.bookmarks?.some(b => b.itemId === showcaseId && b.itemType === 'showcase');
-  const netScore = (showcase.upvotes?.length || showcase.upvoteCount || 0);
+  const netScore = (showcase.upvoteCount || 0) - (showcase.downvoteCount || 0);
 
   const handleShare = async () => {
     try {
@@ -59,6 +78,16 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
       else { await navigator.clipboard.writeText(window.location.href); alert('Link copied!'); }
     } catch (err) { console.error(err); }
   };
+
+  const handleDelete = () => {
+    if (window.confirm('Delete this showcase? This action cannot be undone.')) {
+      deleteMutation.mutate(showcaseId);
+    }
+  };
+
+  const authorField = showcase.founder || showcase.author;
+  const authorId = authorField?._id;
+  const authorName = authorField?.name;
 
   return (
     <div className={styles.detailContainer}>
@@ -89,21 +118,34 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
             ))}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--foreground)', margin: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--foreground)', margin: 0, wordBreak: 'break-word' }}>
               {showcase.name}
             </h1>
-            {isOwner && (
-              <button onClick={() => { if (window.confirm('Delete this showcase?')) deleteMutation.mutate(showcase._id); }}
-                className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} style={{ color: 'var(--destructive)', borderColor: 'var(--destructive)' }}>
-                Delete
-              </button>
-            )}
           </div>
 
-          <p style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--foreground)', opacity: 0.9, marginBottom: 24, whiteSpace: 'pre-line' }}>
+          <p style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--foreground)', opacity: 0.9, marginBottom: 24, whiteSpace: 'pre-line', wordBreak: 'break-word' }}>
             {showcase.description}
           </p>
+
+          {/* Vote column inline */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+            <button
+              className={`${styles.upvoteBtn} ${styles.upvoteBtnSm} ${showcase.isUpvoted ? styles.upvoteBtnActive : ''}`}
+              onClick={() => upvoteMutation.mutate(showcaseId)}
+            >
+              <ChevronUp size={14} /> {showcase.upvoteCount || 0}
+            </button>
+            <button
+              className={`${styles.upvoteBtn} ${styles.upvoteBtnSm} ${showcase.isDownvoted ? styles.upvoteBtnActive : ''}`}
+              onClick={() => downvoteMutation.mutate(showcaseId)}
+            >
+              <ChevronDown size={14} /> {showcase.downvoteCount || 0}
+            </button>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--muted-foreground)' }}>
+              <Eye size={14} /> {showcase.views || 0} views
+            </span>
+          </div>
 
           {/* External links */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 24 }}>
@@ -138,26 +180,31 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
           )}
 
           {/* Author */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', paddingTop: 16, borderTop: '1px solid var(--border)' }}>
             <div className={`${styles.avatar} ${styles.avatarMd} ${styles.avatarPrimary}`}
               style={{ cursor: 'pointer' }}
-              onClick={() => { if (showcase.author?._id) navigate(`/profile/${showcase.author._id}`); }}>
-              {showcase.author?.avatarUrl ? (
-                <img src={showcase.author.avatarUrl} alt={showcase.author.name} />
+              onClick={() => { if (authorId) navigate(`/profile/${authorId}`); }}>
+              {authorField?.avatarUrl ? (
+                <img src={authorField.avatarUrl} alt={authorName} />
               ) : (
-                showcase.author?.name ? showcase.author.name.slice(0, 2).toUpperCase() : 'U'
+                authorName ? authorName.slice(0, 2).toUpperCase() : 'U'
               )}
             </div>
             <div>
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)', cursor: 'pointer' }}
-                onClick={() => { if (showcase.author?._id) navigate(`/profile/${showcase.author._id}`); }}>
-                {showcase.author?.name || 'Anonymous'}
+                onClick={() => { if (authorId) navigate(`/profile/${authorId}`); }}>
+                {authorName || 'Anonymous'}
               </span>
               <span style={{ fontSize: 11, color: 'var(--muted-foreground)', marginLeft: 10 }}>
                 {showcase.createdAt ? new Date(showcase.createdAt).toLocaleDateString() : ''}
               </span>
             </div>
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+              {isAuthorized && (
+                <button onClick={handleDelete} className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} style={{ color: 'var(--destructive)', borderColor: 'var(--destructive)' }}>
+                  <Trash2 size={14} /> Delete
+                </button>
+              )}
               <button onClick={() => dispatch(toggleBookmark({ itemId: showcaseId, itemType: 'showcase' }))}
                 className={styles.iconBtn}
                 style={{ color: isBookmarked ? 'var(--star-color)' : 'var(--muted-foreground)' }}>
@@ -169,7 +216,6 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
 
           {/* Stats */}
           <div style={{ display: 'flex', gap: 20, marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--border)', color: 'var(--muted-foreground)', fontSize: 13 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><ChevronUp size={14} /> {netScore} upvotes</span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><MessageCircle size={14} /> {showcase.commentCount || 0} comments</span>
           </div>
         </div>
@@ -189,7 +235,7 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
 }
 
 /* ─── List View ─── */
-export function ShowcasesTab({ search, tagFilter }) {
+export function ShowcasesTab({ search, tagFilter, onTagClick }) {
   const [selectedId, setSelectedId] = useState(null);
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
@@ -227,104 +273,143 @@ export function ShowcasesTab({ search, tagFilter }) {
     );
   }
 
+  const handleUpvote = (e, id) => {
+    e.stopPropagation();
+    queryClient.setQueryData(['showcases', { search }], (old) =>
+      old?.map(s => s._id === id ? { ...s, upvoteCount: (s.upvoteCount || 0) + (s.isUpvoted ? -1 : 1), isUpvoted: !s.isUpvoted, isDownvoted: false, downvoteCount: s.isDownvoted ? (s.downvoteCount || 1) - 1 : (s.downvoteCount || 0) } : s)
+    );
+    upvoteShowcase(id).catch(() => queryClient.invalidateQueries({ queryKey: ['showcases', { search }] }));
+  };
+
+  const handleDownvote = (e, id) => {
+    e.stopPropagation();
+    queryClient.setQueryData(['showcases', { search }], (old) =>
+      old?.map(s => s._id === id ? { ...s, downvoteCount: (s.downvoteCount || 0) + (s.isDownvoted ? -1 : 1), isDownvoted: !s.isDownvoted, isUpvoted: false, upvoteCount: s.isUpvoted ? (s.upvoteCount || 1) - 1 : (s.upvoteCount || 0) } : s)
+    );
+    downvoteShowcase(id).catch(() => queryClient.invalidateQueries({ queryKey: ['showcases', { search }] }));
+  };
+
   return (
     <div className={styles.showcaseGrid}>
-      {filtered.map(showcase => (
-        <article
-          key={showcase._id}
-          className={styles.card}
-          style={{ cursor: 'pointer', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
-          onClick={() => setSelectedId(showcase._id)}
-        >
-          {/* Media thumbnail */}
-          <div style={{ aspectRatio: '16/10', overflow: 'hidden', background: 'var(--input-background)', position: 'relative' }}>
-            {showcase.imageUrl ? (
-              <img src={showcase.imageUrl} alt={showcase.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--muted-foreground)', opacity: 0.3 }}>
-                <Image size={40} />
-              </div>
-            )}
-            {showcase.stage && (
-              <span className={`${styles.badge} ${stageBadge[showcase.stage] || styles.badgeIdea}`}
-                style={{ position: 'absolute', top: 10, left: 10, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)' }}>
-                <Rocket size={10} /> {showcase.stage}
-              </span>
-            )}
-          </div>
-
-          <div style={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--foreground)', marginBottom: 6, lineHeight: 1.3 }}>
-              {showcase.name}
-            </h3>
-            <p style={{ fontSize: 13, color: 'var(--muted-foreground)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5, marginBottom: 12, flex: 1 }}>
-              {showcase.description}
-            </p>
-
-            {/* Tech tags */}
-            {showcase.techStack?.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
-                {showcase.techStack.slice(0, 3).map(tech => (
-                  <span key={tech} className={styles.chip} style={{ fontSize: 10 }}>{tech}</span>
-                ))}
-                {showcase.techStack.length > 3 && (
-                  <span style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>+{showcase.techStack.length - 3}</span>
-                )}
-              </div>
-            )}
-
-            {/* Action row */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 12, marginTop: 'auto' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--muted-foreground)', fontSize: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <ChevronUp size={13} />
-                  <span>{showcase.upvotes?.length || showcase.upvoteCount || 0}</span>
+      {filtered.map(showcase => {
+        const netScore = (showcase.upvoteCount || 0) - (showcase.downvoteCount || 0);
+        const authorField = showcase.founder || showcase.author;
+        const authorId = authorField?._id;
+        const authorName = authorField?.name;
+        return (
+          <article
+            key={showcase._id}
+            className={styles.card}
+            style={{ cursor: 'pointer', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+            onClick={() => setSelectedId(showcase._id)}
+          >
+            {/* Media thumbnail */}
+            <div style={{ aspectRatio: '16/10', overflow: 'hidden', background: 'var(--input-background)', position: 'relative' }}>
+              {showcase.imageUrl ? (
+                <img src={showcase.imageUrl} alt={showcase.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--muted-foreground)', opacity: 0.3 }}>
+                  <Image size={40} />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <MessageCircle size={13} />
-                  <span>{showcase.commentCount || 0}</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {showcase.liveUrl && (
-                  <a href={showcase.liveUrl} target="_blank" rel="noopener noreferrer"
-                    className={styles.iconBtn}
-                    onClick={e => e.stopPropagation()}
-                    title="Live Demo">
-                    <ExternalLink size={14} style={{ color: 'var(--primary)' }} />
-                  </a>
-                )}
-                {showcase.githubUrl && (
-                  <a href={showcase.githubUrl} target="_blank" rel="noopener noreferrer"
-                    className={styles.iconBtn}
-                    onClick={e => e.stopPropagation()}
-                    title="Source Code">
-                    <Github size={14} />
-                  </a>
-                )}
-              </div>
+              )}
+              {showcase.stage && (
+                <span className={`${styles.badge} ${stageBadge[showcase.stage] || styles.badgeIdea}`}
+                  style={{ position: 'absolute', top: 10, left: 10, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)' }}>
+                  <Rocket size={10} /> {showcase.stage}
+                </span>
+              )}
             </div>
 
-            {/* Author */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
-              <div className={`${styles.avatar} ${styles.avatarSm}`}
-                style={{ cursor: 'pointer' }}
-                onClick={e => { e.stopPropagation(); if (showcase.author?._id) navigate(`/profile/${showcase.author._id}`); }}>
-                {showcase.author?.avatarUrl ? (
-                  <img src={showcase.author.avatarUrl} alt={showcase.author.name} />
-                ) : (
-                  showcase.author?.name ? showcase.author.name.slice(0, 2).toUpperCase() : 'U'
-                )}
+            <div style={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--foreground)', marginBottom: 6, lineHeight: 1.3, wordBreak: 'break-word' }}>
+                {showcase.name}
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--muted-foreground)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5, marginBottom: 12, flex: 1, wordBreak: 'break-word' }}>
+                {showcase.description}
+              </p>
+
+              {/* Tech tags */}
+              {showcase.techStack?.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
+                  {showcase.techStack.slice(0, 3).map(tech => (
+                    <span
+                      key={tech}
+                      className={styles.chip}
+                      style={{ fontSize: 10, cursor: 'pointer' }}
+                      onClick={(e) => { e.stopPropagation(); if (onTagClick) onTagClick(tech); }}
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                  {showcase.techStack.length > 3 && (
+                    <span style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>+{showcase.techStack.length - 3}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Vote + views row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <ChevronUp size={14}
+                  style={{ color: showcase.isUpvoted ? 'var(--primary)' : 'var(--muted-foreground)', cursor: 'pointer' }}
+                  onClick={(e) => handleUpvote(e, showcase._id)} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: netScore > 0 ? 'var(--primary)' : 'var(--muted-foreground)' }}>{netScore}</span>
+                <ChevronDown size={14}
+                  style={{ color: showcase.isDownvoted ? 'var(--primary)' : 'var(--muted-foreground)', cursor: 'pointer' }}
+                  onClick={(e) => handleDownvote(e, showcase._id)} />
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginLeft: 6, fontSize: 11, color: 'var(--muted-foreground)' }}>
+                  <Eye size={11} /> {showcase.views || 0}
+                </span>
               </div>
-              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--muted-foreground)', cursor: 'pointer' }}
-                onClick={e => { e.stopPropagation(); if (showcase.author?._id) navigate(`/profile/${showcase.author._id}`); }}>
-                {showcase.author?.name || 'Anonymous'}
-              </span>
+
+              {/* Action row */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 12, marginTop: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--muted-foreground)', fontSize: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <MessageCircle size={13} />
+                    <span>{showcase.commentCount || 0}</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {showcase.liveUrl && (
+                    <a href={showcase.liveUrl} target="_blank" rel="noopener noreferrer"
+                      className={styles.iconBtn}
+                      onClick={e => e.stopPropagation()}
+                      title="Live Demo">
+                      <ExternalLink size={14} style={{ color: 'var(--primary)' }} />
+                    </a>
+                  )}
+                  {showcase.githubUrl && (
+                    <a href={showcase.githubUrl} target="_blank" rel="noopener noreferrer"
+                      className={styles.iconBtn}
+                      onClick={e => e.stopPropagation()}
+                      title="Source Code">
+                      <Github size={14} />
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              {/* Author */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
+                <div className={`${styles.avatar} ${styles.avatarSm}`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={e => { e.stopPropagation(); if (authorId) navigate(`/profile/${authorId}`); }}>
+                  {authorField?.avatarUrl ? (
+                    <img src={authorField.avatarUrl} alt={authorName} />
+                  ) : (
+                    authorName ? authorName.slice(0, 2).toUpperCase() : 'U'
+                  )}
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--muted-foreground)', cursor: 'pointer' }}
+                  onClick={e => { e.stopPropagation(); if (authorId) navigate(`/profile/${authorId}`); }}>
+                  {authorName || 'Anonymous'}
+                </span>
+              </div>
             </div>
-          </div>
-        </article>
-      ))}
+          </article>
+        );
+      })}
     </div>
   );
 }

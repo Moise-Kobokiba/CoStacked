@@ -34,6 +34,7 @@ const stackPostSchema = mongoose.Schema(
       default: [],
     },
     upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    downvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     pinned: {
       type: Boolean,
       default: false,

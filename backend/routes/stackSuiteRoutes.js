@@ -5,9 +5,9 @@ const router  = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 
 const {
-  getPosts, getPostById, createPost, upvotePost, deletePost,
-  getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase,
-  getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread,
+  getPosts, getPostById, createPost, upvotePost, downvotePost, deletePost,
+  getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase, downvoteShowcase,
+  getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread, upvoteCollab, downvoteCollab,
   getComments, addComment, upvoteComment, likeComment, deleteComment,
   getBookmarks, getStats,
 } = require('../controllers/stackSuiteController');
@@ -50,6 +50,7 @@ router.route('/posts/:id')
   .delete(protect, deletePost);
 
 router.put('/posts/:id/upvote', protect, upvotePost);
+router.put('/posts/:id/downvote', protect, downvotePost);
 
 /* ─── Showcases ─── */
 router.route('/showcases')
@@ -62,6 +63,7 @@ router.route('/showcases/:id')
   .delete(protect, deleteShowcase);
 
 router.put('/showcases/:id/upvote', protect, upvoteShowcase);
+router.put('/showcases/:id/downvote', protect, downvoteShowcase);
 
 /* ─── Collab Threads ─── */
 router.route('/collab')
@@ -72,6 +74,9 @@ router.route('/collab/:id')
   .get(optionalProtect, getCollabThreadById)
   .put(protect, updateCollabThread)
   .delete(protect, deleteCollabThread);
+
+router.put('/collab/:id/upvote', protect, upvoteCollab);
+router.put('/collab/:id/downvote', protect, downvoteCollab);
 
 /* ─── Comments (shared) ─── */
 router.route('/comments/:parentType/:parentId')
