@@ -178,7 +178,7 @@ export const IdeaDetailPage = () => {
   }, []);
 
   const author = idea?.founder;
-  const authorInitials = author?.name
+  const authorAvatarInitial = author?.name
     ? author.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
     : 'U';
 
@@ -188,9 +188,9 @@ export const IdeaDetailPage = () => {
 
   const commentsToRender = [...newComments, ...(comments || [])];
 
-  // SVG ring constants
+  // SVG ring constants for the score meter
   const SVG_RADIUS = 96;
-  const SVG_CIRCUMFERENCE = 2 * Math.PI * SVG_RADIUS;
+  const SVG_CIRCUMFERENCE = 2 * Math.PI * SVG_RADIUS; // ~603.18
   const clampedScore = Math.max(0, Math.min(100, ideaScore));
   const dashOffset = SVG_CIRCUMFERENCE - (clampedScore / 100) * SVG_CIRCUMFERENCE;
 
@@ -207,90 +207,96 @@ export const IdeaDetailPage = () => {
   if (!idea) {
     return (
       <main className={styles.page}>
-        <div className={styles.emptyState}>Idea not found.</div>
+        <div className={styles.emptyState}>
+          <h2>Idea not found.</h2>
+        </div>
       </main>
     );
   }
 
   return (
     <main className={styles.page}>
+      {/* Max-width container */}
       <div className={styles.container}>
+        
         {/* ===== BREADCRUMB ===== */}
         <Link to="/validation-board" className={styles.breadcrumb}>
           <ArrowLeft size={18} />
           <span>Back to Validation Board</span>
         </Link>
 
-        {/* ===== 12-COLUMN GRID ===== */}
-        <div className={styles.grid}>
-          {/* ===== LEFT COLUMN ===== */}
+        {/* ===== 12-COLUMN SPLIT GRID ===== */}
+        <div className={styles.grid12}>
+
+          {/* ===== LEFT COLUMN (col-span-8) ===== */}
           <div className={styles.leftCol}>
 
-            {/* HEADER CANVAS */}
-            <section className={styles.headerCanvas}>
+            {/* ===== MAIN HEADER BLOCK ===== */}
+            <section className={styles.card}>
               <div className={styles.headerRow}>
                 <span className={`${styles.stageBadge} ${stageClassName(displayStage(idea))}`}>
                   {displayStage(idea)}
                 </span>
                 <span className={styles.headerDate}>{formatDate(idea.createdAt)}</span>
               </div>
-              <h1 className={styles.title}>{idea.title}</h1>
-              <Link to={getAuthorLink(author)} className={styles.authorCard}>
+              <h1 className={styles.ideaTitle}>{idea.title}</h1>
+              <Link to={getAuthorLink(author)} className={styles.authorRow}>
                 <span className={styles.authorAvatar}>
                   {author?.avatarUrl ? (
                     <img src={author.avatarUrl} alt={author.name} />
                   ) : (
-                    authorInitials
+                    authorAvatarInitial
                   )}
                 </span>
-                <span className={styles.authorMeta}>
+                <span className={styles.authorInfo}>
                   <span className={styles.authorName}>{author?.name || 'Alex Rivera'}</span>
                   <span className={styles.authorRole}>{author?.headline || 'Project Lead & AI Researcher'}</span>
                 </span>
               </Link>
             </section>
 
-            {/* PROBLEM STATEMENT & TARGET MARKET */}
-            <div className={styles.problemMarketGrid}>
-              <article className={styles.problemCard}>
-                <span className={styles.cardLabel}>Problem Statement</span>
-                <p className={styles.cardContent}>{idea.problemStatement || 'No problem statement provided yet.'}</p>
+            {/* ===== PROBLEM STATEMENT & TARGET MARKET (2-col grid) ===== */}
+            <div className={styles.twoColGrid}>
+              <article className={`${styles.accentCard} ${styles.problemCard}`}>
+                <span className={styles.accentLabel}>Problem Statement</span>
+                <p className={styles.accentText}>{idea.problemStatement || 'No problem statement provided yet.'}</p>
               </article>
-              <article className={styles.marketCard}>
-                <span className={styles.cardLabel}>Target Market</span>
-                <p className={styles.cardContent}>{idea.industry || 'No target market defined yet.'}</p>
+              <article className={`${styles.accentCard} ${styles.marketCard}`}>
+                <span className={styles.accentLabel}>Target Market</span>
+                <p className={styles.accentText}>{idea.industry || 'No target market defined yet.'}</p>
               </article>
             </div>
 
-            {/* TARGET USERS */}
-            <section className={styles.targetUsersSection}>
-              <span className={styles.cardLabel}>Target Audience</span>
-              <div className={styles.userTags}>
+            {/* ===== TARGET USERS ===== */}
+            <section className={styles.card}>
+              <span className={styles.sectionLabel}>Target Audience</span>
+              <div className={styles.chipRow}>
                 {targetUsers.length > 0 ? (
-                  targetUsers.map((tag, i) => <span key={i} className={styles.userTag}>{tag}</span>)
+                  targetUsers.map((tag, i) => <span key={i} className={styles.chip}>{tag}</span>)
                 ) : (
-                  <span className={styles.userTag}>No target users specified yet.</span>
+                  <span className={styles.chip}>No target users specified yet.</span>
                 )}
               </div>
             </section>
 
-            {/* OUR SOLUTION */}
-            <article className={styles.solutionCard}>
-              <span className={styles.cardLabel}>Our Solution</span>
-              <p className={styles.cardContent}>{idea.valueProposition || 'No solution details added yet.'}</p>
+            {/* ===== OUR SOLUTION (green accent banner) ===== */}
+            <article className={`${styles.accentCard} ${styles.solutionCard}`}>
+              <span className={styles.accentLabel}>Our Solution</span>
+              <p className={styles.accentText}>{idea.valueProposition || 'No solution details added yet.'}</p>
             </article>
 
-            {/* COMMUNITY COMMENTS THREAD */}
-            <section className={styles.commentsSection}>
-              <div className={styles.commentsHeader}>
+            {/* ===== COMMUNITY FEEDBACK SECTION ===== */}
+            <section className={styles.card}>
+              <div className={styles.feedbackHeader}>
                 <div>
-                  <h2 className={styles.commentsTitle}>Community Feedback</h2>
-                  <p className={styles.commentsCount}>{commentsToRender.length} comments</p>
+                  <h2 className={styles.feedbackTitle}>Community Feedback</h2>
+                  <p className={styles.feedbackCount}>{commentsToRender.length} comments</p>
                 </div>
                 {(commentsLoading || commentMutation.isLoading) && <Loader2 size={20} className={styles.spinner} />}
               </div>
 
-              <div className={styles.commentItems}>
+              {/* Comment items loop */}
+              <div className={styles.commentList}>
                 {commentsToRender.length > 0 ? (
                   commentsToRender.map((comment) => {
                     const commenter = comment.author || {};
@@ -302,28 +308,28 @@ export const IdeaDetailPage = () => {
                     const initialLikeCount = comment.likes?.length ?? 0;
                     const totalLikes = initialLikeCount + likeState.count;
                     return (
-                      <div key={commentId} className={styles.commentItem}>
-                        <span className={styles.commentUserAvatar}>
+                      <div key={commentId} className={styles.commentRow}>
+                        <span className={styles.commentUserCircle}>
                           {commenter.avatarUrl ? (
                             <img src={commenter.avatarUrl} alt={commenter.name} />
                           ) : initials}
                         </span>
                         <div className={styles.commentBody}>
                           <div className={styles.commentMeta}>
-                            <span className={styles.commentAuthor}>{commenter.name || 'Community'}</span>
-                            <span className={styles.commentTime}>{formatDate(comment.createdAt)}</span>
+                            <span className={styles.commentAuthorName}>{commenter.name || 'Community'}</span>
+                            <span className={styles.commentDate}>{formatDate(comment.createdAt)}</span>
                           </div>
                           <p className={styles.commentContent}>{comment.content || comment.text || 'No comment text.'}</p>
                           <div className={styles.commentActions}>
                             <button
                               type="button"
-                              className={`${styles.actionLink} ${likeState.liked ? styles.actionLiked : ''}`}
+                              className={`${styles.cActionBtn} ${likeState.liked ? styles.cActionLiked : ''}`}
                               onClick={() => handleCommentLike(commentId)}
                             >
                               <Heart size={15} />
                               <span>{totalLikes > 0 ? totalLikes : 'Like'}</span>
                             </button>
-                            <button type="button" className={styles.actionLink}>
+                            <button type="button" className={styles.cActionBtn}>
                               <Reply size={15} />
                               <span>Reply</span>
                             </button>
@@ -337,11 +343,12 @@ export const IdeaDetailPage = () => {
                 )}
               </div>
 
+              {/* Comment form */}
               <div className={styles.commentForm}>
                 {isAuthenticated ? (
                   <>
                     <textarea
-                      className={styles.textarea}
+                      className={styles.textArea}
                       rows={4}
                       placeholder="Add your feedback to help refine this idea..."
                       value={commentDraft}
@@ -365,22 +372,25 @@ export const IdeaDetailPage = () => {
             </section>
           </div>
 
-          {/* ===== RIGHT SIDEBAR (sticky) ===== */}
+          {/* ===== RIGHT SIDEBAR (col-span-4, sticky) ===== */}
           <aside className={styles.rightCol}>
-            {/* VALIDATION SCORE RING */}
+
+            {/* ===== VALIDATION SCORE RING ===== */}
             <section className={styles.sideCard}>
-              <div className={styles.scoreLabelRow}>
-                <span className={styles.scoreLabel}>Validation Score</span>
-                <span className={styles.scoreSubtext}>Out of 100</span>
+              <div className={styles.scoreHeader}>
+                <span className={styles.scoreTitle}>Validation Score</span>
+                <span className={styles.scoreSub}>Out of 100</span>
               </div>
-              <div className={styles.scoreRingContainer}>
+              <div className={styles.ringContainer}>
                 <svg width="220" height="220" viewBox="0 0 220 220" className={styles.ringSvg}>
+                  {/* Background track */}
                   <circle
                     cx="110" cy="110" r={SVG_RADIUS}
                     fill="none"
-                    stroke="var(--input-background)"
+                    stroke="#e2e8f0"
                     strokeWidth="8"
                   />
+                  {/* Foreground arc — stroke-dasharray="603.18" */}
                   <circle
                     cx="110" cy="110" r={SVG_RADIUS}
                     fill="none"
@@ -395,16 +405,16 @@ export const IdeaDetailPage = () => {
                 </svg>
                 <div className={styles.scoreValueBox}>
                   <span className={styles.scoreNumber}>{clampedScore}</span>
-                  <span className={styles.scoreOutOf}>OUT OF 100</span>
+                  <span className={styles.scoreOutOfLabel}>OUT OF 100</span>
                 </div>
               </div>
             </section>
 
-            {/* UPVOTE & DOWNVOTE */}
+            {/* ===== UPVOTE / DOWNVOTE BUTTONS ===== */}
             <section className={styles.sideCard}>
               <button
                 type="button"
-                className={`${styles.voteBtn} ${styles.upvoteBtn} ${isUpvoted ? styles.voteActive : ''}`}
+                className={`${styles.voteBlock} ${styles.upvoteBlock} ${isUpvoted ? styles.voteBlockActive : ''}`}
                 onClick={() => {
                   if (!isAuthenticated) { navigate('/login'); return; }
                   voteMutation.mutate('up');
@@ -413,11 +423,11 @@ export const IdeaDetailPage = () => {
               >
                 <ThumbsUp size={20} />
                 <span className={styles.voteLabel}>Upvote</span>
-                <span className={styles.voteStats}>{upvoteCount} people agree</span>
+                <span className={styles.voteCount}>{upvoteCount} people agree</span>
               </button>
               <button
                 type="button"
-                className={`${styles.voteBtn} ${styles.downvoteBtn} ${isDownvoted ? styles.voteActive : ''}`}
+                className={`${styles.voteBlock} ${styles.downvoteBlock} ${isDownvoted ? styles.voteBlockActive : ''}`}
                 onClick={() => {
                   if (!isAuthenticated) { navigate('/login'); return; }
                   voteMutation.mutate('down');
@@ -426,33 +436,30 @@ export const IdeaDetailPage = () => {
               >
                 <ThumbsDown size={20} />
                 <span className={styles.voteLabel}>Downvote</span>
-                <span className={styles.voteStats}>{downvoteCount} people disagree</span>
+                <span className={styles.voteCount}>{downvoteCount} people disagree</span>
               </button>
             </section>
 
-            {/* ACTION CTA BLOCKS */}
+            {/* ===== SHARE & SAVE CTAs ===== */}
             <section className={styles.sideCard}>
-              <button
-                type="button"
-                className={styles.ctaBtn}
-                onClick={handleShare}
-              >
+              <button type="button" className={styles.secondaryBtn} onClick={handleShare}>
                 <Share2 size={18} />
                 <span>{shareFeedback === 'copied' ? 'Link Copied!' : 'Share Idea'}</span>
               </button>
               <button
                 type="button"
-                className={`${styles.ctaBtn} ${isSaved ? styles.ctaSaved : ''}`}
+                className={`${styles.secondaryBtn} ${isSaved ? styles.secondaryBtnSaved : ''}`}
                 onClick={handleSaveToggle}
               >
                 {isSaved ? <Check size={18} /> : <Bookmark size={18} />}
                 <span>{isSaved ? 'Saved' : 'Save for Later'}</span>
               </button>
 
+              {/* Convert to project */}
               {showConversionButton && (
                 <button
                   type="button"
-                  className={`${styles.convertBtn} ${conversionEnabled ? '' : styles.convertLocked}`}
+                  className={`${styles.convertBtn} ${conversionEnabled ? '' : styles.convertBtnLocked}`}
                   onClick={() => {
                     if (!isAuthenticated) { navigate('/login'); return; }
                     if (!conversionEnabled) return;
@@ -469,7 +476,7 @@ export const IdeaDetailPage = () => {
                 </p>
               )}
               {idea?.status === 'converted' && (
-                <p className={styles.convertHint} style={{ color: 'var(--success)' }}>
+                <p className={styles.convertHint} style={{ color: '#10B981' }}>
                   This idea has already been converted to a project.
                 </p>
               )}
