@@ -301,6 +301,221 @@
 }
 
 /* ===========================
+   SEARCH CLEAR
+=========================== */
+.searchClear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  margin-right: 4px;
+}
+
+.searchClear:hover {
+  color: var(--foreground);
+  background: var(--input-background);
+}
+
+/* ===========================
+   THREE-COLUMN LAYOUT
+=========================== */
+.layoutGrid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 32px;
+  align-items: start;
+}
+
+.feedColumn {
+  min-width: 0;
+}
+
+/* ===========================
+   SIDEBAR
+=========================== */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 24px;
+}
+
+.sideCard {
+  background: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.sideCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.sideCardBody {
+  padding: 12px 16px;
+}
+
+/* Tag Cloud */
+.tagCloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tagPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--input-background);
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.tagPill:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(79,70,229,0.06);
+}
+
+.tagPillActive {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Stat Rows */
+.statRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.statRow + .statRow {
+  border-top: 1px solid var(--border);
+}
+
+.statRowLabel {
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+.statRowValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* Side Action Buttons */
+.sideActionBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--input-background);
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.sideActionBtn:hover {
+  border-color: var(--primary);
+  background: rgba(79,70,229,0.06);
+  color: var(--primary);
+}
+
+.sideActionBtn + .sideActionBtn {
+  margin-top: 8px;
+}
+
+/* Content Type Selector */
+.contentTypeSelector {
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.contentTypeGrid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.contentTypeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--input-background);
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.contentTypeChip:hover {
+  border-color: var(--primary);
+  color: var(--foreground);
+}
+
+.contentTypeChipActive {
+  border-color: var(--primary);
+  background: rgba(79,70,229,0.08);
+  color: var(--primary);
+}
+
+/* Links section */
+.linksSection {
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--background);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+@media (max-width: 900px) {
+  .layoutGrid {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    display: none;
+  }
+}
+
+/* ===========================
    FOOTER
 =========================== */
 .footer {
