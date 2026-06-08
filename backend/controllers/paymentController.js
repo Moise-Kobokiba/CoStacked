@@ -9,8 +9,6 @@ const fetch = require('node-fetch');
 // Maps for boost durations
 const PROFILE_BOOST_DURATIONS = { '3d': 3, '5d': 5, '7d': 7 };
 const PROJECT_BOOST_DURATIONS = { '3d': 3, '5d': 5, '7d': 7 };
-const PROFILE_BOOST_AMOUNTS = { '3d': 10000, '5d': 25000, '7d': 35000 };
-const PROJECT_BOOST_AMOUNTS = { '3d': 10000, '5d': 20000, '7d': 35000 };
 
 /**
  * @desc    Verify a Yoco payment for boosting a project
@@ -40,11 +38,10 @@ const verifyPaymentAndBoost = async (req, res) => {
     project.boostExpiresAt = new Date(new Date().setDate(now.getDate() + durationDays));
     const updatedProject = await project.save();
 
-    const paymentAmount = PROJECT_BOOST_AMOUNTS[tierId] || 10000;
     await Transaction.create({
       userId: req.user._id,
       type: 'project_boost',
-      amountInCents: paymentAmount,
+      amountInCents: 10000, // TODO: Replace with dynamic amount based on tierId
       yocoChargeId: chargeToken,
       status: 'succeeded',
       metadata: { projectId: updatedProject._id, projectTitle: updatedProject.title },
@@ -161,11 +158,10 @@ const verifyProfileBoost = async (req, res) => {
         user.boostExpiresAt = new Date(new Date().setDate(now.getDate() + durationDays));
         const updatedUser = await user.save();
 
-        const paymentAmount = PROFILE_BOOST_AMOUNTS[tierId] || 10000;
         await Transaction.create({
           userId: updatedUser._id,
           type: 'profile_boost',
-          amountInCents: paymentAmount,
+          amountInCents: 10000, // TODO: Replace with dynamic amount based on tierId
           yocoChargeId: chargeToken,
           status: 'succeeded',
         });
