@@ -72,6 +72,11 @@ export const ProfileHeader = ({
           <p className={styles.role}>
             {user.headline || (user.role === 'developer' ? 'Full-Stack Developer & Tech Architect' : 'Founder & Product Strategist')}
           </p>
+          <div className={styles.statusRow}>
+            <span className={`${styles.statusPill} ${isOnline ? styles.statusPillOnline : styles.statusPillOffline}`}>
+              {isOnline ? 'Active now' : lastActiveText}
+            </span>
+          </div>
           
           <div className={styles.metaRow}>
             <div className={styles.metaItem}>
@@ -104,7 +109,12 @@ export const ProfileHeader = ({
                   isLoading={isConnectionLoading}
                 />
               </div>
-              <Button onClick={onMessage} className={styles.messageBtn}>
+              <Button
+                onClick={connectionStatus === 'connected' ? onMessage : undefined}
+                className={styles.messageBtn}
+                disabled={connectionStatus !== 'connected'}
+                title={connectionStatus === 'connected' ? 'Message' : 'Connect to message'}
+              >
                 <MessageSquare size={18} />
                 Message
               </Button>

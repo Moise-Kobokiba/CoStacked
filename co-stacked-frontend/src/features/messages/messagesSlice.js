@@ -55,7 +55,7 @@ export const accessConversation = createAsyncThunk(
   'messages/accessConversation',
   async (userId, { rejectWithValue }) => {
     try {
-      const response = await API.post('/conversations/access', { userId });
+      const response = await API.post('/messages/access', { userId });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data?.message || 'Failed to access conversation.');

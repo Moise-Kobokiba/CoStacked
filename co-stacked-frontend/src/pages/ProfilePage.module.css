@@ -221,6 +221,38 @@ git/* src/pages/ProfilePage.module.css */
   flex-shrink: 0;
 }
 
+.statusRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.825rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--card-background);
+  color: var(--muted-foreground);
+}
+
+.statusPillOnline {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  color: #166534;
+}
+
+.statusPillOffline {
+  border-color: #94a3b8;
+  background: rgba(148, 163, 184, 0.12);
+  color: #475569;
+}
+
 .shareBtn {
   flex: 1;
   min-width: fit-content;

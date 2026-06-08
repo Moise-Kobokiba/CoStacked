@@ -38,15 +38,15 @@
 - [x] Updated to fetch only current user's projects (fetchMyProjects)
 - [x] Active Projects widget shows user's projects only
 - [x] Recent Interactions shows user's own project updates
-- [ ] Profile active status mobile fix (remaining)
+- [x] Profile active status mobile fix
 
-## Phase 7: Frontend - Messages
-- [ ] Restrict new conversations to network only
-- [ ] File upload/view/download
+## ✅ Phase 7: Frontend - Messages
+- [x] Restrict new conversations to network only
+- [x] File upload/view/download
 
-## Phase 8: Frontend - StackSuite
-- [ ] 7 content types
-- [ ] Real-time updates
+## ✅ Phase 8: Frontend - StackSuite
+- [x] 7 content types
+- [x] Real-time updates
 
 ## Phase 9: Full Audit
 - [ ] Dark mode review

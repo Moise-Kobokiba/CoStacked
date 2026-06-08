@@ -29,7 +29,7 @@ function timeAgo(date) {
 // GET /api/stack-suite/posts
 const getPosts = async (req, res) => {
   try {
-    const { category, sort, search, phase, boardType } = req.query;
+    const { category, sort, search, phase, boardType, contentType } = req.query;
     let query = { isDeleted: false };
 
     // Isolate by board — defaults to 'stack-suite' so Validation Board posts never bleed in.
@@ -37,6 +37,7 @@ const getPosts = async (req, res) => {
 
     if (category && category !== 'all') query.category = category;
     if (phase && phase !== 'all') query.phase = phase;
+    if (contentType && contentType !== 'all') query.contentType = contentType;
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -96,7 +97,7 @@ const getPostById = async (req, res) => {
 // POST /api/stack-suite/posts  (auth required)
 const createPost = async (req, res) => {
   try {
-    const { title, body, category, tags, phase, confidenceScore, links, boardType } = req.body;
+    const { title, body, category, contentType, tags, phase, confidenceScore, links, boardType } = req.body;
     if (!title || !body) return res.status(400).json({ message: 'Title and body are required' });
 
     const tagList = typeof tags === 'string'
@@ -108,6 +109,7 @@ const createPost = async (req, res) => {
       title,
       body,
       category: category || 'General',
+      contentType: contentType || 'discussion',
       boardType: boardType === 'validation-board' ? 'validation-board' : 'stack-suite',
       tags: tagList,
       phase: phase || 'General',
