@@ -79,12 +79,14 @@ const getPostById = async (req, res) => {
 
     res.json({
       ...post,
-      upvoteCount: post.upvotes.length,
-      downvoteCount: post.downvotes.length,
-      viewCount: post.viewCount + 1,
-      time: timeAgo(post.createdAt),
-      isUpvoted: req.user ? post.upvotes.some(id => id.toString() === req.user._id.toString()) : false,
-      isDownvoted: req.user ? post.downvotes.some(id => id.toString() === req.user._id.toString()) : false,
+        upvoteCount: post.upvotes.length,
+        downvoteCount: post.downvotes.length,
+        viewCount: post.viewCount + 1,
+        followerCount: post.followers ? post.followers.length : 0,
+        time: timeAgo(post.createdAt),
+        isUpvoted: req.user ? post.upvotes.some(id => id.toString() === req.user._id.toString()) : false,
+        isDownvoted: req.user ? post.downvotes.some(id => id.toString() === req.user._id.toString()) : false,
+        isFollowing: req.user ? (post.followers ? post.followers.some(id => id.toString() === req.user._id.toString()) : false) : false,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -116,6 +118,16 @@ const createPost = async (req, res) => {
     await post.populate('author', 'name avatarUrl role');
     const p = post.toObject();
     res.status(201).json({ ...p, upvoteCount: 0, time: 'just now', isUpvoted: false });
+
+    // Emit real-time created event to stacksuite feed and post room
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) {
+        io.to('stacksuite_feed').emit('stacksuite_post_created', { post: { ...p, upvoteCount: 0, time: 'just now', isUpvoted: false } });
+        io.to(`stacksuite:${post._id}`).emit('stacksuite_post_created', { post: { ...p, upvoteCount: 0, time: 'just now', isUpvoted: false } });
+      }
+    } catch (e) { console.error('Socket emit error (stacksuite create):', e); }
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -140,9 +152,53 @@ const upvotePost = async (req, res) => {
     }
     await post.save();
     res.json({ upvoteCount: post.upvotes.length, downvoteCount: post.downvotes.length, isUpvoted: idx === -1, isDownvoted: false });
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) io.to(`stacksuite:${post._id}`).emit('stacksuite_vote_update', { postId: post._id, upvoteCount: post.upvotes.length, downvoteCount: post.downvotes.length });
+    } catch (e) { console.error('Socket emit error (stacksuite upvote):', e); }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+};
+
+// PUT /api/stack-suite/posts/:id/follow
+const followPost = async (req, res) => {
+  try {
+    const post = await StackPost.findById(req.params.id);
+    if (!post || post.isDeleted) return res.status(404).json({ message: 'Post not found' });
+    const uid = req.user._id.toString();
+    if (!post.followers) post.followers = [];
+    if (!post.followers.some(id => id.toString() === uid)) {
+      post.followers.push(req.user._id);
+      await post.save();
+
+      // Notify author
+      if (post.author.toString() !== uid) {
+        const Notification = require('../models/Notification');
+        const notif = await Notification.create({ recipient: post.author, sender: req.user._id, type: 'FOLLOW_POST', relatedId: post._id, onModel: 'StackPost' });
+        try { const socketUtil = require('../utils/socket'); const io = socketUtil.getIo(); if (io) io.to(post.author.toString()).emit('notification_created', notif); } catch (e) {}
+      }
+
+      try { const socketUtil = require('../utils/socket'); const io = socketUtil.getIo(); if (io) io.to(`stacksuite:${post._id}`).emit('stacksuite_follow_update', { postId: post._id, followerCount: post.followers.length }); } catch (e) { console.error('Socket emit error (follow):', e); }
+    }
+    res.json({ followerCount: post.followers.length });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// PUT /api/stack-suite/posts/:id/unfollow
+const unfollowPost = async (req, res) => {
+  try {
+    const post = await StackPost.findById(req.params.id);
+    if (!post || post.isDeleted) return res.status(404).json({ message: 'Post not found' });
+    const uid = req.user._id.toString();
+    if (post.followers && post.followers.some(id => id.toString() === uid)) {
+      post.followers = post.followers.filter(id => id.toString() !== uid);
+      await post.save();
+      try { const socketUtil = require('../utils/socket'); const io = socketUtil.getIo(); if (io) io.to(`stacksuite:${post._id}`).emit('stacksuite_follow_update', { postId: post._id, followerCount: post.followers.length }); } catch (e) { console.error('Socket emit error (unfollow):', e); }
+    }
+    res.json({ followerCount: post.followers ? post.followers.length : 0 });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // PUT /api/stack-suite/posts/:id/downvote
@@ -164,6 +220,11 @@ const downvotePost = async (req, res) => {
     }
     await post.save();
     res.json({ upvoteCount: post.upvotes.length, downvoteCount: post.downvotes.length, isDownvoted: idx === -1, isUpvoted: false });
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) io.to(`stacksuite:${post._id}`).emit('stacksuite_vote_update', { postId: post._id, upvoteCount: post.upvotes.length, downvoteCount: post.downvotes.length });
+    } catch (e) { console.error('Socket emit error (stacksuite downvote):', e); }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -208,9 +269,11 @@ const getShowcases = async (req, res) => {
       ...s,
       upvoteCount: s.upvotes.length,
       downvoteCount: s.downvotes.length,
+      followerCount: s.followers ? s.followers.length : 0,
       time: timeAgo(s.createdAt),
       isUpvoted: req.user ? s.upvotes.some(id => id.toString() === req.user._id.toString()) : false,
       isDownvoted: req.user ? s.downvotes.some(id => id.toString() === req.user._id.toString()) : false,
+      isFollowing: req.user ? (s.followers ? s.followers.some(id => id.toString() === req.user._id.toString()) : false) : false,
     }));
 
     res.json(shaped);
@@ -269,6 +332,14 @@ const createShowcase = async (req, res) => {
     await showcase.populate('founder', 'name avatarUrl role');
     const s = showcase.toObject();
     res.status(201).json({ ...s, upvoteCount: 0, time: 'just now', isUpvoted: false });
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) {
+        io.to('stacksuite_feed').emit('stacksuite_showcase_created', { showcase: { ...s, upvoteCount: 0, time: 'just now', isUpvoted: false } });
+        io.to(`stacksuite:showcase:${showcase._id}`).emit('stacksuite_showcase_created', { showcase: { ...s, upvoteCount: 0, time: 'just now', isUpvoted: false } });
+      }
+    } catch (e) { console.error('Socket emit error (showcase create):', e); }
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -289,6 +360,11 @@ const upvoteShowcase = async (req, res) => {
     if (idx > -1) { showcase.upvotes.splice(idx, 1); } else { showcase.upvotes.push(req.user._id); }
     await showcase.save();
     res.json({ upvoteCount: showcase.upvotes.length, downvoteCount: showcase.downvotes.length, isUpvoted: idx === -1, isDownvoted: false });
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) io.to(`stacksuite:showcase:${showcase._id}`).emit('stacksuite_showcase_vote_update', { showcaseId: showcase._id, upvoteCount: showcase.upvotes.length, downvoteCount: showcase.downvotes.length });
+    } catch (e) { console.error('Socket emit error (showcase upvote):', e); }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -309,9 +385,54 @@ const downvoteShowcase = async (req, res) => {
     if (idx > -1) { showcase.downvotes.splice(idx, 1); } else { showcase.downvotes.push(req.user._id); }
     await showcase.save();
     res.json({ upvoteCount: showcase.upvotes.length, downvoteCount: showcase.downvotes.length, isDownvoted: idx === -1, isUpvoted: false });
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) io.to(`stacksuite:showcase:${showcase._id}`).emit('stacksuite_showcase_vote_update', { showcaseId: showcase._id, upvoteCount: showcase.upvotes.length, downvoteCount: showcase.downvotes.length });
+    } catch (e) { console.error('Socket emit error (showcase downvote):', e); }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+};
+
+// PUT /api/stack-suite/showcases/:id/follow
+const followShowcase = async (req, res) => {
+  try {
+    const showcase = await Showcase.findById(req.params.id);
+    if (!showcase || showcase.isDeleted) return res.status(404).json({ message: 'Showcase not found' });
+    const uid = req.user._id.toString();
+    if (!showcase.followers) showcase.followers = [];
+    if (!showcase.followers.some(id => id.toString() === uid)) {
+      showcase.followers.push(req.user._id);
+      await showcase.save();
+
+      // Notify founder/author
+      const recipient = showcase.founder ? showcase.founder : null;
+      if (recipient && recipient.toString() !== uid) {
+        const Notification = require('../models/Notification');
+        const notif = await Notification.create({ recipient, sender: req.user._id, type: 'FOLLOW_SHOWCASE', relatedId: showcase._id, onModel: 'Showcase' });
+        try { const socketUtil = require('../utils/socket'); const io = socketUtil.getIo(); if (io) io.to(recipient.toString()).emit('notification_created', notif); } catch (e) {}
+      }
+
+      try { const socketUtil = require('../utils/socket'); const io = socketUtil.getIo(); if (io) io.to(`stacksuite:showcase:${showcase._id}`).emit('stacksuite_showcase_follow_update', { showcaseId: showcase._id, followerCount: showcase.followers.length }); } catch (e) { console.error('Socket emit error (showcase follow):', e); }
+    }
+    res.json({ followerCount: showcase.followers.length });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// PUT /api/stack-suite/showcases/:id/unfollow
+const unfollowShowcase = async (req, res) => {
+  try {
+    const showcase = await Showcase.findById(req.params.id);
+    if (!showcase || showcase.isDeleted) return res.status(404).json({ message: 'Showcase not found' });
+    const uid = req.user._id.toString();
+    if (showcase.followers && showcase.followers.some(id => id.toString() === uid)) {
+      showcase.followers = showcase.followers.filter(id => id.toString() !== uid);
+      await showcase.save();
+      try { const socketUtil = require('../utils/socket'); const io = socketUtil.getIo(); if (io) io.to(`stacksuite:showcase:${showcase._id}`).emit('stacksuite_showcase_follow_update', { showcaseId: showcase._id, followerCount: showcase.followers.length }); } catch (e) { console.error('Socket emit error (showcase unfollow):', e); }
+    }
+    res.json({ followerCount: showcase.followers ? showcase.followers.length : 0 });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // PUT /api/stack-suite/showcases/:id  (auth)
@@ -388,7 +509,9 @@ const getCollabThreads = async (req, res) => {
       ...t, 
       upvoteCount: t.upvotes.length, 
       downvoteCount: t.downvotes.length,
-      time: timeAgo(t.createdAt) 
+      followerCount: t.followers ? t.followers.length : 0,
+      time: timeAgo(t.createdAt),
+      isFollowing: req.user ? (t.followers ? t.followers.some(id => id.toString() === req.user._id.toString()) : false) : false
     })));
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -411,11 +534,50 @@ const getCollabThreadById = async (req, res) => {
       upvoteCount: t.upvotes.length, 
       downvoteCount: t.downvotes.length,
       views: t.views + 1,
-      time: timeAgo(t.createdAt) 
+      followerCount: t.followers ? t.followers.length : 0,
+      time: timeAgo(t.createdAt),
+      isFollowing: req.user ? (t.followers ? t.followers.some(id => id.toString() === req.user._id.toString()) : false) : false
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+};
+
+// PUT /api/stack-suite/collab/:id/follow
+const followCollab = async (req, res) => {
+  try {
+    const thread = await CollabThread.findById(req.params.id);
+    if (!thread || thread.isDeleted) return res.status(404).json({ message: 'Thread not found' });
+    const uid = req.user._id.toString();
+    if (!thread.followers) thread.followers = [];
+    if (!thread.followers.some(id => id.toString() === uid)) {
+      thread.followers.push(req.user._id);
+      await thread.save();
+      // Notify author
+      if (thread.author && thread.author.toString() !== uid) {
+        const Notification = require('../models/Notification');
+        const notif = await Notification.create({ recipient: thread.author, sender: req.user._id, type: 'FOLLOW_COLLAB', relatedId: thread._id, onModel: 'CollabThread' });
+        try { const socketUtil = require('../utils/socket'); const io = socketUtil.getIo(); if (io) io.to(thread.author.toString()).emit('notification_created', notif); } catch (e) {}
+      }
+      try { const socketUtil = require('../utils/socket'); const io = socketUtil.getIo(); if (io) io.to(`stacksuite:collab:${thread._id}`).emit('stacksuite_collab_follow_update', { threadId: thread._id, followerCount: thread.followers.length }); } catch (e) { console.error('Socket emit error (collab follow):', e); }
+    }
+    res.json({ followerCount: thread.followers.length });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// PUT /api/stack-suite/collab/:id/unfollow
+const unfollowCollab = async (req, res) => {
+  try {
+    const thread = await CollabThread.findById(req.params.id);
+    if (!thread || thread.isDeleted) return res.status(404).json({ message: 'Thread not found' });
+    const uid = req.user._id.toString();
+    if (thread.followers && thread.followers.some(id => id.toString() === uid)) {
+      thread.followers = thread.followers.filter(id => id.toString() !== uid);
+      await thread.save();
+      try { const socketUtil = require('../utils/socket'); const io = socketUtil.getIo(); if (io) io.to(`stacksuite:collab:${thread._id}`).emit('stacksuite_collab_follow_update', { threadId: thread._id, followerCount: thread.followers.length }); } catch (e) { console.error('Socket emit error (collab unfollow):', e); }
+    }
+    res.json({ followerCount: thread.followers ? thread.followers.length : 0 });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // POST /api/stack-suite/collab  (auth)
@@ -440,6 +602,14 @@ const createCollabThread = async (req, res) => {
     await thread.populate('author', 'name avatarUrl role');
     const t = thread.toObject();
     res.status(201).json({ ...t, time: 'just now' });
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) {
+        io.to('stacksuite_feed').emit('stacksuite_collab_created', { thread: { ...t, time: 'just now' } });
+        io.to(`stacksuite:collab:${thread._id}`).emit('stacksuite_collab_created', { thread: { ...t, time: 'just now' } });
+      }
+    } catch (e) { console.error('Socket emit error (collab create):', e); }
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -469,6 +639,11 @@ const updateCollabThread = async (req, res) => {
     await thread.save();
     await thread.populate('author', 'name avatarUrl role');
     res.json({ ...thread.toObject(), time: timeAgo(thread.createdAt) });
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) io.to(`stacksuite:collab:${thread._id}`).emit('stacksuite_collab_updated', { threadId: thread._id });
+    } catch (e) { console.error('Socket emit error (collab update):', e); }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -573,6 +748,21 @@ const addComment = async (req, res) => {
 
     const c = comment.toObject();
     res.status(201).json({ ...c, upvoteCount: 0, likeCount: 0, time: 'just now', isUpvoted: false, isLiked: false, replies: [] });
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) {
+        // Emit to post/showcase/collab room
+        io.to(`stacksuite:${parentId}`).emit('stacksuite_comment_added', { parentType, parentId, comment: { ...c, time: 'just now' } });
+        // Notify the author of parent if not the commenter
+        const Model = parentType === 'post' ? StackPost : parentType === 'showcase' ? Showcase : CollabThread;
+        const parent = await Model.findById(parentId);
+        if (parent && parent.author && parent.author.toString() !== req.user._id.toString()) {
+          const notif = await require('../models/Notification').create({ recipient: parent.author, sender: req.user._id, type: 'STACK_COMMENT', relatedId: parentId, onModel: parentType === 'post' ? 'StackPost' : parentType === 'showcase' ? 'Showcase' : 'CollabThread' });
+          try { if (io) io.to(parent.author.toString()).emit('notification_created', notif); } catch (e) {}
+        }
+      }
+    } catch (e) { console.error('Socket emit error (stacksuite comment):', e); }
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -737,6 +927,11 @@ const upvoteCollab = async (req, res) => {
     if (idx > -1) { thread.upvotes.splice(idx, 1); } else { thread.upvotes.push(req.user._id); }
     await thread.save();
     res.json({ upvoteCount: thread.upvotes.length, downvoteCount: thread.downvotes.length, isUpvoted: idx === -1, isDownvoted: false });
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) io.to(`stacksuite:collab:${thread._id}`).emit('stacksuite_collab_vote_update', { threadId: thread._id, upvoteCount: thread.upvotes.length, downvoteCount: thread.downvotes.length });
+    } catch (e) { console.error('Socket emit error (collab upvote):', e); }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -756,6 +951,11 @@ const downvoteCollab = async (req, res) => {
     if (idx > -1) { thread.downvotes.splice(idx, 1); } else { thread.downvotes.push(req.user._id); }
     await thread.save();
     res.json({ upvoteCount: thread.upvotes.length, downvoteCount: thread.downvotes.length, isDownvoted: idx === -1, isUpvoted: false });
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) io.to(`stacksuite:collab:${thread._id}`).emit('stacksuite_collab_vote_update', { threadId: thread._id, upvoteCount: thread.upvotes.length, downvoteCount: thread.downvotes.length });
+    } catch (e) { console.error('Socket emit error (collab downvote):', e); }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -767,5 +967,8 @@ module.exports = {
   getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread, upvoteCollab, downvoteCollab,
   getComments, addComment, upvoteComment, likeComment, deleteComment,
   getBookmarks, getStats,
+  followShowcase, unfollowShowcase, followCollab, unfollowCollab,
 };
+module.exports.followPost = followPost;
+module.exports.unfollowPost = unfollowPost;
 

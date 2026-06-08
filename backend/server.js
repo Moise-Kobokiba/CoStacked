@@ -7,6 +7,9 @@ const passport = require('passport');
 const connectDB = require('./config/db');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
+const { body, validationResult } = require('express-validator');
 
 const validationTipRoutes = require('./routes/validationTipRoutes');
 const startSubscriptionCron = require('./cron/subscriptionCron');
@@ -119,6 +122,16 @@ app.use('/api/validation-tips', validationTipRoutes);
 app.use('/api/saved-items', savedItemRoutes);
 app.use('/api/stack-suite', stackSuiteRoutes);
 
+// --- Rate limiters for high-traffic / abuse-prone endpoints ---
+const voteLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, message: 'Too many votes, slow down.' });
+const commentLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, message: 'Too many comments, slow down.' });
+const authLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, message: 'Too many authentication attempts, slow down.' });
+
+// Apply limiters to specific route patterns
+app.use('/api/ideas/:id/vote', voteLimiter);
+app.use('/api/ideas/:id/comments', commentLimiter);
+app.use('/api/auth', authLimiter);
+
 // --- 6. DEFAULT ROUTE ---
 app.get('/', (req, res) => res.send('API is running successfully...'));
 
@@ -131,41 +144,69 @@ const io = new Server(server, {
   }
 });
 
+// Expose io instance to controllers via utils/socket
+const socketUtil = require('./utils/socket');
+socketUtil.init(io);
+
 // --- 8. SOCKET.IO CONNECTION HANDLING ---
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
-
-  // --- Presence & Setup ---
-  socket.on('setup', async (userId) => {
-    if (!userId) return;
-    
-    socket.userId = userId;
-    socket.join(userId); // Join a personal room for targeted notifications
-    
+  // --- Authenticate socket if token provided in handshake ---
+  (async () => {
     try {
+      const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+      if (!token) return; // no auth provided, keep as anonymous socket
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+      if (!decoded || !decoded.id) return;
+
+      const userId = decoded.id;
+      socket.userId = userId;
+      socket.join(userId);
+
       const User = require('./models/User');
-      await User.findByIdAndUpdate(userId, { 
-        isOnline: true,
-        lastActiveAt: new Date()
-      });
-      
-      // Broadcast to everyone that this user is now online
-      io.emit('user_status_changed', {
-        userId,
-        isOnline: true,
-        lastActiveAt: new Date()
-      });
-      
-      console.log(`User ${userId} is now online (Socket: ${socket.id})`);
-    } catch (error) {
-      console.error('Error in socket setup:', error);
+      await User.findByIdAndUpdate(userId, { isOnline: true, lastActiveAt: new Date() });
+
+      // Broadcast presence change to clients subscribed to presence
+      io.to('presence').emit('user_status_changed', { userId, isOnline: true, lastActiveAt: new Date() });
+      console.log(`Authenticated socket for user ${userId} (Socket: ${socket.id})`);
+    } catch (err) {
+      console.log('Socket auth failed or no token provided for', socket.id);
     }
-  });
+  })();
 
   // Join conversation room
   socket.on('joinConversation', (conversationId) => {
     socket.join(conversationId);
     console.log(`User ${socket.id} joined conversation ${conversationId}`);
+  });
+
+  // Generic join/leave handlers for client-side requested rooms
+  socket.on('joinRoom', (room) => {
+    try {
+      if (!room) return;
+
+      // Prevent joining arbitrary user rooms — only allow joining your own user room
+      const isObjectIdLike = (s) => typeof s === 'string' && /^[0-9a-fA-F]{24}$/.test(s);
+      if (isObjectIdLike(room)) {
+        if (!socket.userId || socket.userId.toString() !== room.toString()) {
+          console.log(`Socket ${socket.id} attempted to join user room ${room} but is not authorized`);
+          return;
+        }
+      }
+
+      // Allow client rooms for stacksuite feed and content (no special auth required)
+      socket.join(room);
+      console.log(`Socket ${socket.id} joined room ${room}`);
+    } catch (e) { console.error('joinRoom error:', e); }
+  });
+
+  socket.on('leaveRoom', (room) => {
+    try {
+      if (!room) return;
+      socket.leave(room);
+      console.log(`Socket ${socket.id} left room ${room}`);
+    } catch (e) { console.error('leaveRoom error:', e); }
   });
 
   // Leave conversation room
@@ -177,10 +218,16 @@ io.on('connection', (socket) => {
   // Handle sending messages
   socket.on('send_message', async (data) => {
     try {
-      const { conversationId, senderId, content, type = 'text' } = data;
+      const { conversationId, content, type = 'text' } = data;
 
-      // Validate required fields
-      if (!conversationId || !senderId || !content) {
+      // Require authenticated socket user
+      const senderId = socket.userId;
+      if (!senderId) {
+        socket.emit('messageError', { error: 'Authentication required to send messages' });
+        return;
+      }
+
+      if (!conversationId || !content) {
         socket.emit('messageError', { error: 'Missing required fields' });
         return;
       }
@@ -202,7 +249,7 @@ io.on('connection', (socket) => {
         sender: senderId,
         type,
         content,
-        status: 'delivered', // Mark as delivered when successfully saved
+        status: 'delivered',
       });
 
       // Update conversation timestamp
@@ -214,13 +261,16 @@ io.on('connection', (socket) => {
       const recipients = conversation.participants.filter(p => p.toString() !== senderId.toString());
 
       for (const recipientId of recipients) {
-        await Notification.create({
+        const notif = await Notification.create({
           recipient: recipientId,
           sender: senderId,
           type: 'NEW_MESSAGE',
           conversationId: conversation._id,
           projectId: conversation.projectId
         });
+        try {
+          if (io) io.to(recipientId.toString()).emit('notification_created', notif);
+        } catch (e) { console.error('Socket emit error (message notification):', e); }
       }
 
       // Populate sender details for the response
@@ -325,8 +375,8 @@ io.on('connection', (socket) => {
           lastActiveAt
         });
         
-        // Broadcast to everyone that this user is now offline
-        io.emit('user_status_changed', {
+        // Broadcast to clients subscribed to presence that this user is now offline
+        io.to('presence').emit('user_status_changed', {
           userId: socket.userId,
           isOnline: false,
           lastActiveAt

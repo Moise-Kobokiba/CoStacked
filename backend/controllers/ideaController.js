@@ -2,6 +2,7 @@ const Idea = require('../models/Idea');
 const Project = require('../models/Project');
 const Comment = require('../models/Comment');
 const Notification = require('../models/Notification'); // If you want to notify on votes
+const socketUtil = require('../utils/socket');
 
 // @desc    Get all ideas
 // @route   GET /api/ideas
@@ -119,6 +120,9 @@ const updateIdea = async (req, res) => {
 const voteIdea = async (req, res) => {
     try {
         const { voteType } = req.body; // 'up' or 'down'
+        if (!['up', 'down'].includes(voteType)) {
+            return res.status(400).json({ message: 'Invalid voteType. Use "up" or "down".' });
+        }
         const idea = await Idea.findById(req.params.id);
 
         if (!idea) {
@@ -140,7 +144,7 @@ const voteIdea = async (req, res) => {
                 
                 // Create notification for founder (only on new upvote)
                 if (idea.founder.toString() !== userId) {
-                    await Notification.create({
+                    const notif = await Notification.create({
                         recipient: idea.founder,
                         sender: req.user._id,
                         type: 'IDEA_VOTE',
@@ -149,6 +153,10 @@ const voteIdea = async (req, res) => {
                         relatedId: idea._id,
                         onModel: 'Idea'
                     });
+                    try {
+                        const io = socketUtil.getIo();
+                        if (io) io.to(idea.founder.toString()).emit('notification_created', notif);
+                    } catch (e) { console.error('Socket emit error (notification vote):', e); }
                 }
             }
         } else if (voteType === 'down') {
@@ -179,7 +187,24 @@ const voteIdea = async (req, res) => {
 
         await idea.save();
 
-        res.status(200).json(idea);
+                // Emit real-time update for votes/validation score
+                try {
+                    const io = socketUtil.getIo();
+                    if (io) {
+                        // Emit to the idea-specific room to avoid broadcasting to everyone
+                        io.to(`idea:${idea._id}`).emit('idea_vote_update', {
+                            ideaId: idea._id,
+                            validationScore: idea.validationScore,
+                            upvoteCount: upvoteCount,
+                            downvoteCount: downvoteCount,
+                            voteCount: idea.voteCount
+                        });
+                    }
+                } catch (e) {
+                    console.error('Socket emit error (vote):', e);
+                }
+
+                res.status(200).json(idea);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -228,7 +253,20 @@ const convertIdeaToProject = async (req, res) => {
         idea.status = 'converted';
         await idea.save();
 
-        res.status(201).json({ message: 'Idea converted to Project', projectId: project._id, project });
+                // Emit real-time conversion and new project event
+                try {
+                    const io = socketUtil.getIo();
+                    if (io) {
+                        // Notify viewers of the idea that it was converted
+                        io.to(`idea:${idea._id}`).emit('idea_converted', { ideaId: idea._id, projectId: project._id, project });
+                        // Notify clients that subscribe to project listings
+                        io.to('projects').emit('project_created', { projectId: project._id, project });
+                    }
+                } catch (e) {
+                    console.error('Socket emit error (convert):', e);
+                }
+
+                res.status(201).json({ message: 'Idea converted to Project', projectId: project._id, project });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -346,7 +384,7 @@ const addIdeaComment = async (req, res) => {
             // Notify parent comment author about reply
             const parentComment = await Comment.findById(parentCommentId).populate('author');
             if (parentComment && parentComment.author._id.toString() !== req.user._id.toString()) {
-                await Notification.create({
+                const notif = await Notification.create({
                     recipient: parentComment.author._id,
                     sender: req.user._id,
                     type: 'IDEA_COMMENT',
@@ -355,10 +393,14 @@ const addIdeaComment = async (req, res) => {
                     relatedId: idea._id,
                     onModel: 'Idea'
                 });
+                try {
+                    const io = socketUtil.getIo();
+                    if (io) io.to(parentComment.author._id.toString()).emit('notification_created', notif);
+                } catch (e) { console.error('Socket emit error (notification reply):', e); }
             }
         } else if (idea.founder.toString() !== req.user._id.toString()) {
             // Notify idea founder about new comment
-            await Notification.create({
+            const notif = await Notification.create({
                 recipient: idea.founder,
                 sender: req.user._id,
                 type: 'IDEA_COMMENT',
@@ -367,9 +409,27 @@ const addIdeaComment = async (req, res) => {
                 relatedId: idea._id,
                 onModel: 'Idea'
             });
+            try {
+                const io = socketUtil.getIo();
+                if (io) io.to(idea.founder.toString()).emit('notification_created', notif);
+            } catch (e) { console.error('Socket emit error (notification comment):', e); }
         }
 
         res.status(201).json(comment);
+        
+                // Emit real-time comment event
+                try {
+                    const io = socketUtil.getIo();
+                    if (io) {
+                        io.to(`idea:${idea._id}`).emit('idea_comment_added', {
+                            ideaId: idea._id,
+                            comment,
+                            engagementCount: idea.engagementCount
+                        });
+                    }
+                } catch (e) {
+                    console.error('Socket emit error (comment):', e);
+                }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

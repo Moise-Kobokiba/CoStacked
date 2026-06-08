@@ -32,6 +32,16 @@ export const upvoteStackPost = async (id) => {
   return res.data;
 };
 
+export const followStackPost = async (id) => {
+  const res = await API.put(`/stack-suite/posts/${id}/follow`);
+  return res.data;
+};
+
+export const unfollowStackPost = async (id) => {
+  const res = await API.put(`/stack-suite/posts/${id}/unfollow`);
+  return res.data;
+};
+
 export const downvoteStackPost = async (id) => {
   const res = await API.put(`/stack-suite/posts/${id}/downvote`);
   return res.data;
@@ -72,6 +82,16 @@ export const downvoteShowcase = async (id) => {
   return res.data;
 };
 
+export const followShowcase = async (id) => {
+  const res = await API.put(`/stack-suite/showcases/${id}/follow`);
+  return res.data;
+};
+
+export const unfollowShowcase = async (id) => {
+  const res = await API.put(`/stack-suite/showcases/${id}/unfollow`);
+  return res.data;
+};
+
 export const updateShowcase = async (id, showcaseData) => {
   const res = await API.put(`/stack-suite/showcases/${id}`, showcaseData);
   return res.data;
@@ -104,6 +124,16 @@ export const upvoteCollabThread = async (id) => {
 
 export const downvoteCollabThread = async (id) => {
   const res = await API.put(`/stack-suite/collab/${id}/downvote`);
+  return res.data;
+};
+
+export const followCollabThread = async (id) => {
+  const res = await API.put(`/stack-suite/collab/${id}/follow`);
+  return res.data;
+};
+
+export const unfollowCollabThread = async (id) => {
+  const res = await API.put(`/stack-suite/collab/${id}/unfollow`);
   return res.data;
 };
 

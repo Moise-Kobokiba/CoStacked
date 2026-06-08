@@ -1,5 +1,6 @@
 const ValidationTip = require('../models/ValidationTip');
 const Article = require('../models/Article');
+const socketUtil = require('../utils/socket');
 
 exports.getValidationTips = async (req, res) => {
   try {
@@ -44,6 +45,11 @@ exports.createValidationTip = async (req, res) => {
     }
     const tip = await ValidationTip.create({ title, content, order: order || 0, isActive: true });
     res.status(201).json(tip);
+
+    try {
+      const io = socketUtil.getIo();
+      if (io) io.to('validation_tips').emit('validation_tips_updated', { action: 'create', tip });
+    } catch (e) { console.error('Socket emit error (validation tip create):', e); }
   } catch (error) {
     console.error('Error creating validation tip:', error);
     res.status(500).json({ message: 'Server error' });
@@ -62,6 +68,11 @@ exports.updateValidationTip = async (req, res) => {
     tip.isActive = req.body.isActive ?? tip.isActive;
     await tip.save();
     res.status(200).json(tip);
+
+    try {
+      const io = socketUtil.getIo();
+      if (io) io.to('validation_tips').emit('validation_tips_updated', { action: 'update', tip });
+    } catch (e) { console.error('Socket emit error (validation tip update):', e); }
   } catch (error) {
     console.error('Error updating validation tip:', error);
     res.status(500).json({ message: 'Server error' });
@@ -76,6 +87,11 @@ exports.deleteValidationTip = async (req, res) => {
     }
     await tip.deleteOne();
     res.status(200).json({ message: 'Validation tip deleted' });
+
+    try {
+      const io = socketUtil.getIo();
+      if (io) io.to('validation_tips').emit('validation_tips_updated', { action: 'delete', tipId: req.params.id });
+    } catch (e) { console.error('Socket emit error (validation tip delete):', e); }
   } catch (error) {
     console.error('Error deleting validation tip:', error);
     res.status(500).json({ message: 'Server error' });

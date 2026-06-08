@@ -45,6 +45,8 @@ export function ValidationBoardPage() {
     queryFn: () => getValidationTips(),
   });
 
+  // Subscribe to socket events via query invalidation handled in SocketProvider
+
   const queryClient = useQueryClient();
   const { token, user } = useSelector((state) => state.auth || {});
 

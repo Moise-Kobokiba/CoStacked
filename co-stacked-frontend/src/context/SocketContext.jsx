@@ -1,3 +1,8 @@
+import { useSocket } from './SocketProvider';
+
+export const useSocketContext = () => useSocket();
+
+export default useSocketContext;
 // src/context/SocketContext.jsx
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';

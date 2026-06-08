@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useSocket } from '../context/SocketProvider';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -77,6 +78,18 @@ export const IdeaDetailPage = () => {
       if (data.savedItem) setSavedItemId(data.savedItem._id);
     }).catch(() => {});
   }, [id, token, isAuthenticated]);
+
+  // Join idea-specific socket room so we receive targeted real-time updates
+  const socket = useSocket();
+  useEffect(() => {
+    if (!socket || !id) return;
+    try {
+      socket.emit('joinRoom', `idea:${id}`);
+    } catch (e) { console.error('Failed to join idea room:', e); }
+    return () => {
+      try { socket.emit('leaveRoom', `idea:${id}`); } catch (e) {}
+    };
+  }, [socket, id]);
 
   useEffect(() => {
     if (!idea) return;

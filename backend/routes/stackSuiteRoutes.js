@@ -6,8 +6,8 @@ const { protect } = require('../middleware/authMiddleware');
 
 const {
   getPosts, getPostById, createPost, upvotePost, downvotePost, deletePost,
-  getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase, downvoteShowcase,
-  getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread, upvoteCollab, downvoteCollab,
+  getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase, downvoteShowcase, followShowcase, unfollowShowcase,
+  getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread, upvoteCollab, downvoteCollab, followCollab, unfollowCollab,
   getComments, addComment, upvoteComment, likeComment, deleteComment,
   getBookmarks, getStats,
 } = require('../controllers/stackSuiteController');
@@ -51,6 +51,8 @@ router.route('/posts/:id')
 
 router.put('/posts/:id/upvote', protect, upvotePost);
 router.put('/posts/:id/downvote', protect, downvotePost);
+router.put('/posts/:id/follow', protect, followPost);
+router.put('/posts/:id/unfollow', protect, unfollowPost);
 
 /* ─── Showcases ─── */
 router.route('/showcases')
@@ -64,6 +66,8 @@ router.route('/showcases/:id')
 
 router.put('/showcases/:id/upvote', protect, upvoteShowcase);
 router.put('/showcases/:id/downvote', protect, downvoteShowcase);
+router.put('/showcases/:id/follow', protect, followShowcase);
+router.put('/showcases/:id/unfollow', protect, unfollowShowcase);
 
 /* ─── Collab Threads ─── */
 router.route('/collab')
@@ -77,6 +81,8 @@ router.route('/collab/:id')
 
 router.put('/collab/:id/upvote', protect, upvoteCollab);
 router.put('/collab/:id/downvote', protect, downvoteCollab);
+router.put('/collab/:id/follow', protect, followCollab);
+router.put('/collab/:id/unfollow', protect, unfollowCollab);
 
 /* ─── Comments (shared) ─── */
 router.route('/comments/:parentType/:parentId')
