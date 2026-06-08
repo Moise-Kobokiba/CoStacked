@@ -163,9 +163,22 @@ export function DiscussionDetail({ discussionId, onBack }) {
   const socket = useSocket();
   useEffect(() => {
     if (!socket || !discussionId) return;
+
+    const handleCommentAdded = (payload) => {
+      if (payload?.parentType === 'post' && payload?.parentId === discussionId) {
+        queryClient.invalidateQueries(['stackComments', 'post', discussionId]);
+        queryClient.invalidateQueries(['stackPost', discussionId]);
+      }
+    };
+
     try { socket.emit('joinRoom', `stacksuite:${discussionId}`); } catch (e) {}
-    return () => { try { socket.emit('leaveRoom', `stacksuite:${discussionId}`); } catch (e) {} };
-  }, [socket, discussionId]);
+    socket.on('stacksuite_comment_added', handleCommentAdded);
+
+    return () => {
+      try { socket.emit('leaveRoom', `stacksuite:${discussionId}`); } catch (e) {}
+      socket.off('stacksuite_comment_added', handleCommentAdded);
+    };
+  }, [socket, discussionId, queryClient]);
 
   return (
     <div style={{ maxWidth: '48rem', margin: '0 auto' }}>

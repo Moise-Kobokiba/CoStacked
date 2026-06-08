@@ -89,9 +89,22 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
   const socket = useSocket();
   useEffect(() => {
     if (!socket || !showcaseId) return;
+
+    const handleCommentAdded = (payload) => {
+      if (payload?.parentType === 'showcase' && payload?.parentId === showcaseId) {
+        queryClient.invalidateQueries(['stackComments', 'showcase', showcaseId]);
+        queryClient.invalidateQueries(['showcase', showcaseId]);
+      }
+    };
+
     try { socket.emit('joinRoom', `stacksuite:showcase:${showcaseId}`); } catch (e) {}
-    return () => { try { socket.emit('leaveRoom', `stacksuite:showcase:${showcaseId}`); } catch (e) {} };
-  }, [socket, showcaseId]);
+    socket.on('stacksuite_comment_added', handleCommentAdded);
+
+    return () => {
+      try { socket.emit('leaveRoom', `stacksuite:showcase:${showcaseId}`); } catch (e) {}
+      socket.off('stacksuite_comment_added', handleCommentAdded);
+    };
+  }, [socket, showcaseId, queryClient]);
 
   const handleShare = async () => {
     try {

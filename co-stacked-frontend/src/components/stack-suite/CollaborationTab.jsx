@@ -103,9 +103,22 @@ function ThreadDetail({ threadId, onBack }) {
   const socket = useSocket();
   useEffect(() => {
     if (!socket || !threadId) return;
+
+    const handleCommentAdded = (payload) => {
+      if (payload?.parentType === 'collabThread' && payload?.parentId === threadId) {
+        queryClient.invalidateQueries(['stackComments', 'collabThread', threadId]);
+        queryClient.invalidateQueries(['thread', threadId]);
+      }
+    };
+
     try { socket.emit('joinRoom', `stacksuite:collab:${threadId}`); } catch (e) {}
-    return () => { try { socket.emit('leaveRoom', `stacksuite:collab:${threadId}`); } catch (e) {} };
-  }, [socket, threadId]);
+    socket.on('stacksuite_comment_added', handleCommentAdded);
+
+    return () => {
+      try { socket.emit('leaveRoom', `stacksuite:collab:${threadId}`); } catch (e) {}
+      socket.off('stacksuite_comment_added', handleCommentAdded);
+    };
+  }, [socket, threadId, queryClient]);
 
   const { data: comments = [], isLoading: commentsLoading } = useQuery({
     queryKey: ['stackComments', 'collabThread', threadId],
