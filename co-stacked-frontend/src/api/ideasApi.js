@@ -97,3 +97,14 @@ export const deleteIdeaComment = async (ideaId, commentId, token) => {
     const response = await axios.delete(`${API_URL}/${ideaId}/comments/${commentId}`, config);
     return response.data;
 };
+
+// Edit comment
+export const editIdeaComment = async (ideaId, commentId, content, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+    const response = await axios.put(`${API_URL}/${ideaId}/comments/${commentId}`, { content }, config);
+    return response.data;
+};

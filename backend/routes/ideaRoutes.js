@@ -10,7 +10,8 @@ const {
   deleteIdea,
   getIdeaComments,
   addIdeaComment,
-  deleteIdeaComment
+  deleteIdeaComment,
+  editIdeaComment
 } = require('../controllers/ideaController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -32,6 +33,7 @@ router.route('/:id/comments')
     .post(protect, addIdeaComment);
 
 router.route('/:id/comments/:commentId')
-    .delete(protect, deleteIdeaComment);
+    .delete(protect, deleteIdeaComment)
+    .put(protect, editIdeaComment);
 
 module.exports = router;

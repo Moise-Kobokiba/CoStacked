@@ -692,10 +692,128 @@
 }
 
 /* ── RESPONSIVE ── */
+/* ── VALIDATION BANNERS ── */
+.validationBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.85rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.bannerWarning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #92400e;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.bannerSuccess {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* ── VOTE RATIO & STATUS ── */
+.voteRatio {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  margin-top: 0.5rem;
+}
+
+.statusLabel {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
+}
+
+.voteBlockActiveUp {
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+  border-color: #10B981;
+}
+
+.voteBlockActiveDown {
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
+  border-color: #f59e0b;
+}
+
+/* ── THREADED COMMENTS ── */
+.commentThread {
+  margin-bottom: 0.5rem;
+}
+
+.repliesList {
+  margin-left: 2rem;
+  border-left: 2px solid var(--border);
+  padding-left: 1rem;
+  margin-top: 0.75rem;
+}
+
+.replyRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem;
+  align-items: flex-start;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.replyRow:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.replyAvatar {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.75rem;
+}
+
+.replyForm {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ── EDIT COMMENT ── */
+.editCommentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.editActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cancelBtn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted-foreground);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.cancelBtn:hover {
+  background: var(--input-background);
+}
+
 @media (max-width: 700px) {
   .card { padding: 1.25rem; }
   .accentCard { padding: 1.25rem; }
   .sideCard { padding: 1.25rem; }
   .scoreNumber { font-size: 2.25rem; }
   .ringSvg { width: 180px; height: 180px; }
+  .repliesList { margin-left: 1rem; padding-left: 0.75rem; }
 }

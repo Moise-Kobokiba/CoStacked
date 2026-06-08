@@ -29,6 +29,7 @@ require('./models/StackPost');
 require('./models/Showcase');
 require('./models/CollabThread');
 require('./models/StackComment');
+require('./models/SavedItem');
 
 // Start the subscription renewal cron job
 startSubscriptionCron();
@@ -94,6 +95,7 @@ const emailRoutes = require('./routes/emailRoutes');
 const articleRoutes = require('./routes/articleRoutes');
 const ideaRoutes = require('./routes/ideaRoutes');
 const statsRoutes = require('./routes/stats');
+const savedItemRoutes = require('./routes/savedItemRoutes');
 const stackSuiteRoutes = require('./routes/stackSuiteRoutes');
 
 // Mount API routes
@@ -114,6 +116,7 @@ app.use('/api/articles', articleRoutes);
 app.use('/api/ideas', ideaRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/validation-tips', validationTipRoutes);
+app.use('/api/saved-items', savedItemRoutes);
 app.use('/api/stack-suite', stackSuiteRoutes);
 
 // --- 6. DEFAULT ROUTE ---
