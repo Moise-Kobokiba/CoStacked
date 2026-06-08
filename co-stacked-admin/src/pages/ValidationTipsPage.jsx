@@ -27,7 +27,9 @@ export const ValidationTipsPage = () => {
     try {
       const res = await API.get('/validation-tips?admin=true');
       setTips(res.data.manualTips || []);
-    } catch (e) { console.error(e); }
+    } catch (error) {
+      console.error(error);
+    }
     setLoading(false);
   };
 
@@ -37,8 +39,16 @@ export const ValidationTipsPage = () => {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
     const socket = io(API_URL, { transports: ['websocket'] });
     socket.on('validation_tips_updated', () => fetchTips());
-    return () => { try { socket.disconnect(); } catch (e) {} };
+    return () => {
+      try {
+        socket.disconnect();
+      } catch (error) {
+        console.error(error);
+      }
+    };
   }, []);
+
+  const normalizeDate = (value) => (value ? value : null);
 
   const handleCreate = async () => {
     if (!title.trim() || !content.trim()) return alert('Title and content required');
@@ -48,24 +58,36 @@ export const ValidationTipsPage = () => {
         content: content.trim(),
         order: tips.length,
         isActive,
-        startAt: startAt || null,
-        endAt: endAt || null,
+        startAt: normalizeDate(startAt),
+        endAt: normalizeDate(endAt),
       });
       setTitle(''); setContent(''); setStartAt(''); setEndAt(''); setIsActive(true);
       fetchTips();
-    } catch (e) { alert('Failed to create tip'); }
+    } catch (error) {
+      console.error(error);
+      alert('Failed to create tip');
+    }
   };
 
   const handleUpdate = async (id, data) => {
     try {
       await API.put(`/validation-tips/${id}`, data);
       fetchTips();
-    } catch (e) { alert('Failed to update tip'); }
+    } catch (error) {
+      console.error(error);
+      alert('Failed to update tip');
+    }
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this tip?')) return;
-    try { await API.delete(`/validation-tips/${id}`); fetchTips(); } catch (e) { alert('Failed to delete tip'); }
+    try {
+      await API.delete(`/validation-tips/${id}`);
+      fetchTips();
+    } catch (error) {
+      console.error(error);
+      alert('Failed to delete tip');
+    }
   };
 
   return (
@@ -123,14 +145,14 @@ export const ValidationTipsPage = () => {
                     <input
                       type="datetime-local"
                       defaultValue={formatDateTimeLocal(t.startAt)}
-                      onBlur={(e)=>handleUpdate(t._id, { startAt: e.target.value || '' })}
+                      onBlur={(e)=>handleUpdate(t._id, { startAt: normalizeDate(e.target.value) })}
                     />
                   </td>
                   <td>
                     <input
                       type="datetime-local"
                       defaultValue={formatDateTimeLocal(t.endAt)}
-                      onBlur={(e)=>handleUpdate(t._id, { endAt: e.target.value || '' })}
+                      onBlur={(e)=>handleUpdate(t._id, { endAt: normalizeDate(e.target.value) })}
                     />
                   </td>
                   <td>
