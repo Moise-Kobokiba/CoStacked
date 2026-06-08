@@ -8,7 +8,10 @@ import {
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { createStackPost, createShowcase, createCollabThread, getStackSuiteStats } from '../api/stackSuiteApi';
+import {
+  createStackPost, createShowcase, createCollabThread, getStackSuiteStats,
+  followStackPost, joinChallenge, encourageAccountability,
+} from '../api/stackSuiteApi';
 import { DiscussionsTab }   from '../components/stack-suite/DiscussionsTab';
 import { ShowcasesTab }     from '../components/stack-suite/ShowcasesTab';
 import { CollaborationTab } from '../components/stack-suite/CollaborationTab';
@@ -127,15 +130,51 @@ export function StackSuitePage() {
     alert(`Failed to publish: ${error.response?.data?.message || error.message}`);
   };
 
-  const createPostMutation = useMutation({
-    mutationFn: (data) => createStackPost(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
-      setPostSubmitted(true);
-      setTimeout(closeCreate, 1500);
-    },
-    onError: (err) => handleError(err, 'createPostMutation')
-  });
+// Unified mutation that works for all StackPost-backed content types
+const createUnifiedPostMutation = useMutation({
+  mutationFn: (data) => createStackPost(data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
+    queryClient.invalidateQueries({ queryKey: ['stackSuiteStats'] });
+    setPostSubmitted(true);
+    setTimeout(closeCreate, 1500);
+  },
+  onError: (err) => handleError(err, 'createUnifiedPostMutation')
+});
+
+const followPostMutation = useMutation({
+  mutationFn: (id) => followStackPost(id),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
+  },
+  onError: (err) => handleError(err, 'followPostMutation')
+});
+
+const joinChallengeMutation = useMutation({
+  mutationFn: (id) => joinChallenge(id),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
+  },
+  onError: (err) => handleError(err, 'joinChallengeMutation')
+});
+
+const encourageMutation = useMutation({
+  mutationFn: (id) => encourageAccountability(id),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
+  },
+  onError: (err) => handleError(err, 'encourageMutation')
+});
+
+const oldCreatePostMutation = useMutation({
+  mutationFn: (data) => createStackPost(data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
+    setPostSubmitted(true);
+    setTimeout(closeCreate, 1500);
+  },
+  onError: (err) => handleError(err, 'createPostMutation')
+});
 
   const createShowcaseMutation = useMutation({
     mutationFn: (data) => createShowcase(data),
@@ -160,15 +199,19 @@ export function StackSuitePage() {
   const handleCreateSubmit = (e) => {
     if (e) e.preventDefault();
 
+    // ── Discussion ──
     if (contentType === 'discussion') {
       if (!postTitle.trim() || !postBody.trim()) return;
-      createPostMutation.mutate({
+      createUnifiedPostMutation.mutate({
+        contentType: 'discussion',
         title: postTitle, body: postBody, category: postCategory,
         boardType: 'stack-suite',
         tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
         links
       });
-    } else if (contentType === 'showcase') {
+    }
+    // ── Showcase (dedicated Showcase model) ──
+    else if (contentType === 'showcase') {
       if (!showcaseName.trim() || !showcaseDesc.trim()) return;
       createShowcaseMutation.mutate({
         name: showcaseName, description: showcaseDesc, stage: showcaseStage,
@@ -179,7 +222,9 @@ export function StackSuitePage() {
         looking: showcaseLooking.split(',').map(t => t.trim()).filter(Boolean),
         links
       });
-    } else if (contentType === 'collaboration') {
+    }
+    // ── Collaboration (dedicated CollabThread model) ──
+    else if (contentType === 'collaboration') {
       if (!collabProject.trim() || !collabMilestone.trim() || !collabDesc.trim()) return;
       createCollabMutation.mutate({
         project: collabProject, milestone: collabMilestone,
@@ -188,9 +233,65 @@ export function StackSuitePage() {
         links
       });
     }
+    // ── Build In Public (StackPost) ──
+    else if (contentType === 'build-in-public') {
+      if (!postTitle.trim() || !postBody.trim()) return;
+      createUnifiedPostMutation.mutate({
+        contentType: 'build-in-public',
+        title: postTitle, body: postBody,
+        category: 'General',
+        boardType: 'stack-suite',
+        bipType, bipMilestone, bipRevenue, bipUsers,
+        bipProgress, bipLookingFor,
+        tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
+        links
+      });
+    }
+    // ── Founder Matching (StackPost) ──
+    else if (contentType === 'founder-matching') {
+      if (!postTitle.trim() || !postBody.trim()) return;
+      createUnifiedPostMutation.mutate({
+        contentType: 'founder-matching',
+        title: postTitle, body: postBody,
+        category: 'General',
+        boardType: 'stack-suite',
+        fmRole,
+        fmSkills: fmSkills.split(',').map(s => s.trim()).filter(Boolean),
+        fmAvailability, fmLocation,
+        tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
+        links
+      });
+    }
+    // ── Community Challenge (StackPost) ──
+    else if (contentType === 'challenge') {
+      if (!postTitle.trim() || !postBody.trim()) return;
+      createUnifiedPostMutation.mutate({
+        contentType: 'challenge',
+        title: postTitle, body: postBody,
+        challengeGoal, challengeType, challengeDuration, challengeRewards,
+        category: 'General',
+        boardType: 'stack-suite',
+        tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
+        links
+      });
+    }
+    // ── Accountability (StackPost) ──
+    else if (contentType === 'accountability') {
+      if (!accGoal.trim() || !postBody.trim()) return;
+      createUnifiedPostMutation.mutate({
+        contentType: 'accountability',
+        title: accGoal,
+        body: postBody,
+        accGoal, accWeeklyTarget, accStatus,
+        category: 'General',
+        boardType: 'stack-suite',
+        tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
+        links
+      });
+    }
   };
 
-  const isSubmitting = createPostMutation.isPending || createShowcaseMutation.isPending || createCollabMutation.isPending;
+  const isSubmitting = createUnifiedPostMutation.isPending || createShowcaseMutation.isPending || createCollabMutation.isPending;
 
   const btnLabel = contentType === 'discussion' ? 'Create Post'
     : contentType === 'showcase' ? 'Launch Showcase'
@@ -208,15 +309,40 @@ export function StackSuitePage() {
 
   // Computed: unique tags from current data for trending
 
-  const modalTitle = contentType === 'discussion' ? 'Create a New Post'
-    : contentType === 'showcase' ? 'Launch Your Showcase'
-    : 'Start a Collaboration Thread';
+  const MODAL_META = {
+    'discussion': {
+      title: 'Start a Discussion',
+      desc: 'Share a question, insight, or update with the community.'
+    },
+    'showcase': {
+      title: 'Launch Your Showcase',
+      desc: 'Share what you are building, get feedback, and find collaborators.'
+    },
+    'collaboration': {
+      title: 'Create a Collaboration',
+      desc: 'Post a project milestone or progress update to find team members.'
+    },
+    'build-in-public': {
+      title: 'Build In Public',
+      desc: 'Share weekly progress, revenue, milestones, and growth with the community.'
+    },
+    'founder-matching': {
+      title: 'Find a Co-Founder',
+      desc: 'Post what you are building and the kind of teammate you are looking for.'
+    },
+    'challenge': {
+      title: 'Create a Challenge',
+      desc: 'Launch a community challenge and invite founders to participate.'
+    },
+    'accountability': {
+      title: 'Set a Weekly Goal',
+      desc: 'Commit publicly to a goal for the week and track your progress.'
+    },
+  };
 
-  const modalDesc = contentType === 'discussion'
-    ? 'Share a question, insight, or update with the community.'
-    : contentType === 'showcase'
-    ? 'Share what you are building, get feedback, and find collaborators.'
-    : 'Create a milestone for your project and find team members.';
+  const meta = MODAL_META[contentType] || MODAL_META['discussion'];
+  const modalTitle = meta.title;
+  const modalDesc = meta.desc;
 
   const handleSortSelect = (opt) => {
     setSortBy(opt);
@@ -877,7 +1003,11 @@ export function StackSuitePage() {
                       isSubmitting ||
                       (contentType === 'discussion' && (!postTitle.trim() || !postBody.trim())) ||
                       (contentType === 'showcase' && (!showcaseName.trim() || !showcaseDesc.trim())) ||
-                      (contentType === 'collaboration' && (!collabProject.trim() || !collabMilestone.trim() || !collabDesc.trim()))
+                      (contentType === 'collaboration' && (!collabProject.trim() || !collabMilestone.trim() || !collabDesc.trim())) ||
+                      (contentType === 'build-in-public' && (!postTitle.trim() || !postBody.trim())) ||
+                      (contentType === 'founder-matching' && (!postTitle.trim() || !postBody.trim())) ||
+                      (contentType === 'challenge' && (!postTitle.trim() || !postBody.trim())) ||
+                      (contentType === 'accountability' && (!accGoal.trim() || !postBody.trim()))
                     }
                   >
                     {isSubmitting ? <Loader2 size={15} className={sharedStyles.spinner} /> : <Send size={15} />}

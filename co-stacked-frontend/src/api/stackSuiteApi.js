@@ -8,7 +8,9 @@ const cleanFilters = (filters) => {
 };
 
 /* ═══════════════════════════════════════════════
-   POSTS (DISCUSSIONS)
+   POSTS — covers all 7 content types
+   (discussion, validation, build-in-public,
+    showcase, founder-matching, challenge, accountability)
 ═══════════════════════════════════════════════ */
 
 export const getStackPosts = async (filters = {}) => {
@@ -27,6 +29,11 @@ export const createStackPost = async (postData) => {
   return res.data;
 };
 
+export const updateStackPost = async (id, postData) => {
+  const res = await API.put(`/stack-suite/posts/${id}`, postData);
+  return res.data;
+};
+
 export const upvoteStackPost = async (id) => {
   const res = await API.put(`/stack-suite/posts/${id}/upvote`);
   return res.data;
@@ -34,6 +41,26 @@ export const upvoteStackPost = async (id) => {
 
 export const downvoteStackPost = async (id) => {
   const res = await API.put(`/stack-suite/posts/${id}/downvote`);
+  return res.data;
+};
+
+export const followStackPost = async (id) => {
+  const res = await API.put(`/stack-suite/posts/${id}/follow`);
+  return res.data;
+};
+
+export const joinChallenge = async (id) => {
+  const res = await API.put(`/stack-suite/posts/${id}/join`);
+  return res.data;
+};
+
+export const updateChallengeProgress = async (id, progress) => {
+  const res = await API.put(`/stack-suite/posts/${id}/progress`, { progress });
+  return res.data;
+};
+
+export const encourageAccountability = async (id) => {
+  const res = await API.put(`/stack-suite/posts/${id}/encourage`);
   return res.data;
 };
 
@@ -123,7 +150,7 @@ export const deleteCollabThread = async (id) => {
 };
 
 /* ═══════════════════════════════════════════════
-   COMMENTS (SHARED)
+   COMMENTS (SHARED across all content types)
 ═══════════════════════════════════════════════ */
 
 export const getStackComments = async (parentType, parentId) => {
@@ -133,6 +160,11 @@ export const getStackComments = async (parentType, parentId) => {
 
 export const addStackComment = async (parentType, parentId, content, parentCommentId = null) => {
   const res = await API.post(`/stack-suite/comments/${parentType}/${parentId}`, { content, parentCommentId });
+  return res.data;
+};
+
+export const editStackComment = async (id, content) => {
+  const res = await API.put(`/stack-suite/comments/${id}`, { content });
   return res.data;
 };
 
@@ -153,7 +185,7 @@ export const deleteStackComment = async (id) => {
 
 /* ═══════════════════════════════════════════════
    BOOKMARKS / SAVED ITEMS
-   ═══════════════════════════════════════════════ */
+═══════════════════════════════════════════════ */
 
 export const getSavedItems = async () => {
   const res = await API.get('/stack-suite/bookmarks');
@@ -162,9 +194,53 @@ export const getSavedItems = async () => {
 
 /* ═══════════════════════════════════════════════
    STATS
-   ═══════════════════════════════════════════════ */
+═══════════════════════════════════════════════ */
 
 export const getStackSuiteStats = async () => {
   const res = await API.get('/stack-suite/stats');
   return res.data;
+};
+
+/* ═══════════════════════════════════════════════
+   CONTENT TYPE CONSTANTS
+═══════════════════════════════════════════════ */
+
+export const CONTENT_TYPES = {
+  DISCUSSION: 'discussion',
+  VALIDATION: 'validation',
+  BUILD_IN_PUBLIC: 'build-in-public',
+  SHOWCASE: 'showcase',
+  FOUNDER_MATCHING: 'founder-matching',
+  CHALLENGE: 'challenge',
+  ACCOUNTABILITY: 'accountability',
+};
+
+export const CONTENT_TYPE_LABELS = {
+  [CONTENT_TYPES.DISCUSSION]: 'Discussion',
+  [CONTENT_TYPES.VALIDATION]: 'Validation',
+  [CONTENT_TYPES.BUILD_IN_PUBLIC]: 'Build In Public',
+  [CONTENT_TYPES.SHOWCASE]: 'Showcase',
+  [CONTENT_TYPES.FOUNDER_MATCHING]: 'Founder Match',
+  [CONTENT_TYPES.CHALLENGE]: 'Challenge',
+  [CONTENT_TYPES.ACCOUNTABILITY]: 'Accountability',
+};
+
+export const CONTENT_TYPE_ICONS = {
+  [CONTENT_TYPES.DISCUSSION]: 'MessageCircle',
+  [CONTENT_TYPES.VALIDATION]: 'Lightbulb',
+  [CONTENT_TYPES.BUILD_IN_PUBLIC]: 'TrendingUp',
+  [CONTENT_TYPES.SHOWCASE]: 'Rocket',
+  [CONTENT_TYPES.FOUNDER_MATCHING]: 'Users',
+  [CONTENT_TYPES.CHALLENGE]: 'Zap',
+  [CONTENT_TYPES.ACCOUNTABILITY]: 'Briefcase',
+};
+
+export const CONTENT_TYPE_COLORS = {
+  [CONTENT_TYPES.DISCUSSION]: '#3b82f6',
+  [CONTENT_TYPES.VALIDATION]: '#f59e0b',
+  [CONTENT_TYPES.BUILD_IN_PUBLIC]: '#10b981',
+  [CONTENT_TYPES.SHOWCASE]: '#8b5cf6',
+  [CONTENT_TYPES.FOUNDER_MATCHING]: '#ec4899',
+  [CONTENT_TYPES.CHALLENGE]: '#ef4444',
+  [CONTENT_TYPES.ACCOUNTABILITY]: '#06b6d4',
 };

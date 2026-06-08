@@ -251,6 +251,32 @@ io.on('connection', (socket) => {
     socket.to(conversationId).emit('userTyping', { userId, isTyping });
   });
 
+  // ── StackSuite real-time events ──
+  // Broadcast post vote updates to all clients viewing the same content type
+  socket.on('stack_vote', (data) => {
+    const { contentType, postId, upvoteCount, downvoteCount, isUpvoted, isDownvoted } = data;
+    if (!contentType || !postId) return;
+    socket.broadcast.emit('stack_vote_update', {
+      contentType, postId, upvoteCount, downvoteCount, isUpvoted, isDownvoted
+    });
+  });
+
+  // Broadcast comment updates
+  socket.on('stack_comment', (data) => {
+    const { parentType, parentId, action, comment } = data;
+    if (!parentType || !parentId || !action) return;
+    socket.broadcast.emit('stack_comment_update', {
+      parentType, parentId, action, comment
+    });
+  });
+
+  // Broadcast challenge/follow/encourage updates
+  socket.on('stack_interaction', (data) => {
+    const { postId, type, payload } = data;
+    if (!postId || !type) return;
+    socket.broadcast.emit('stack_interaction_update', { postId, type, payload });
+  });
+
   // Handle marking messages as read
   socket.on('mark_messages_read', async (data) => {
     try {

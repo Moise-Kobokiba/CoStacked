@@ -33,6 +33,7 @@ const stackCommentSchema = mongoose.Schema(
     },
     upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     likes:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    editedAt: { type: Date, default: null },
     isDeleted: {
       type: Boolean,
       default: false,
