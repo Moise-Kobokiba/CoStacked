@@ -9,17 +9,34 @@ const socketUtil = require('../utils/socket');
 // @access  Public (with filters)
 const getIdeas = async (req, res) => {
   try {
-    const { visibility, status, sort } = req.query;
+    const { visibility, status, sort, search, stage } = req.query;
     
-    let query = { status: status || 'active' };
+    const query = {};
+    if (!status || status === 'active') {
+      query.status = 'active';
+    } else if (status !== 'all') {
+      query.status = status;
+    }
 
     // If viewing public board, only show public ideas unless specific filter logic applied
     if (visibility) {
         query.visibility = visibility;
     } else {
-        // Default to public active ideas?
-        // Or if user is logged in, show public + their own + connections (complex logic omitted for MVP)
         query.visibility = 'public';
+    }
+
+    if (stage && stage !== 'all') {
+      query.stage = stage;
+    }
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { problemStatement: { $regex: search, $options: 'i' } },
+        { valueProposition: { $regex: search, $options: 'i' } },
+        { industry: { $regex: search, $options: 'i' } },
+        { tags: { $regex: search, $options: 'i' } },
+      ];
     }
 
     let ideas = Idea.find(query).populate('founder', 'name avatarUrl headline');
@@ -67,7 +84,8 @@ const createIdea = async (req, res) => {
   try {
     const { 
         title, problemStatement, targetAudience, valueProposition, 
-        monetizationModel, risks, assumptions, visibility, industry 
+        monetizationModel, risks, assumptions, visibility, industry,
+        tags, stage, validationScore
     } = req.body;
 
     const idea = await Idea.create({
@@ -80,8 +98,20 @@ const createIdea = async (req, res) => {
       risks,
       assumptions,
       visibility,
-      industry
+      industry,
+      tags: Array.isArray(tags) ? tags : [],
+      stage: stage || 'Concept',
+      validationScore: validationScore ?? 0,
     });
+
+    try {
+      const io = socketUtil.getIo();
+      if (io) {
+        io.to('validation_feed').emit('idea_created', { ideaId: idea._id, idea });
+      }
+    } catch (e) {
+      console.error('Socket emit error (idea create):', e);
+    }
 
     res.status(201).json(idea);
   } catch (error) {
@@ -199,6 +229,13 @@ const voteIdea = async (req, res) => {
                             downvoteCount: downvoteCount,
                             voteCount: idea.voteCount
                         });
+                        io.to('validation_feed').emit('idea_vote_update', {
+                            ideaId: idea._id,
+                            validationScore: idea.validationScore,
+                            upvoteCount: upvoteCount,
+                            downvoteCount: downvoteCount,
+                            voteCount: idea.voteCount
+                        });
                     }
                 } catch (e) {
                     console.error('Socket emit error (vote):', e);
@@ -259,6 +296,7 @@ const convertIdeaToProject = async (req, res) => {
                     if (io) {
                         // Notify viewers of the idea that it was converted
                         io.to(`idea:${idea._id}`).emit('idea_converted', { ideaId: idea._id, projectId: project._id, project });
+                        io.to('validation_feed').emit('idea_converted', { ideaId: idea._id, projectId: project._id, project });
                         // Notify clients that subscribe to project listings
                         io.to('projects').emit('project_created', { projectId: project._id, project });
                     }
@@ -422,6 +460,11 @@ const addIdeaComment = async (req, res) => {
                     const io = socketUtil.getIo();
                     if (io) {
                         io.to(`idea:${idea._id}`).emit('idea_comment_added', {
+                            ideaId: idea._id,
+                            comment,
+                            engagementCount: idea.engagementCount
+                        });
+                        io.to('validation_feed').emit('idea_comment_added', {
                             ideaId: idea._id,
                             comment,
                             engagementCount: idea.engagementCount

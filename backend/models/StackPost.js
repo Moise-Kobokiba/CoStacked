@@ -29,11 +29,6 @@ const stackPostSchema = mongoose.Schema(
       enum: ['discussion', 'showcase', 'collaboration', 'build-in-public', 'founder-matching', 'challenge', 'accountability'],
       default: 'discussion',
     },
-    boardType: {
-      type: String,
-      enum: ['stack-suite', 'validation-board'],
-      default: 'stack-suite',
-    },
     tags: {
       type: [String],
       default: [],

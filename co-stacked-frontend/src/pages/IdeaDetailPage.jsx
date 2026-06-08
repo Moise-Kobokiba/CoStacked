@@ -167,21 +167,23 @@ export const IdeaDetailPage = () => {
     },
   });
 
-  const convertMutation = useMutation({
-    mutationFn: () => convertIdeaToProject(id, token),
-    onSuccess: (res) => {
-      const projectId = res?.projectId || res?.project?._id;
-      if (projectId) navigate(`/projects/${projectId}`);
-      else alert('Idea converted to project');
-    },
-    onError: (err) => {
-      alert(err?.response?.data?.message || 'Failed to convert idea');
-    }
-  });
-
   const isIdeaOwner = idea?.founder?._id === user?._id;
   const hasConversionAccess = isIdeaOwner || user?.isAdmin;
   const conversionEnabled = idea && idea.validationScore >= MIN_CONVERSION_SCORE && idea.status !== 'converted';
+
+  const handleConvertToProject = () => {
+    if (!idea) return;
+    const draftProject = {
+      title: idea.title || '',
+      description: `${idea.problemStatement || ''}\n\nSolution: ${idea.valueProposition || ''}`.trim(),
+      skills: Array.isArray(idea.tags) ? idea.tags.join(', ') : (idea.targetAudience || ''),
+      compensation: 'Equity-based',
+      location: 'Remote',
+      stage: idea.stage || 'Concept',
+      originIdeaId: idea._id,
+    };
+    navigate('/post-project', { state: { draftProject, originIdeaId: idea._id } });
+  };
 
   const commentMutation = useMutation({
     mutationFn: (content) => addIdeaComment(id, content, token),
@@ -690,12 +692,11 @@ export const IdeaDetailPage = () => {
                   onClick={() => {
                     if (!isAuthenticated) { navigate('/login'); return; }
                     if (confirm('Convert this validated idea into a project? The project will be pre-filled with your idea details.')) {
-                      convertMutation.mutate();
+                      handleConvertToProject();
                     }
                   }}
-                  disabled={convertMutation.isLoading}
                 >
-                  {convertMutation.isLoading ? <Loader2 size={18} className={styles.spinner} /> : 'Convert To Project'}
+                  Convert To Project
                 </button>
               )}
               {idea?.status === 'converted' && (

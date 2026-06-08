@@ -15,11 +15,10 @@ export const ValidationDashboardPage = () => {
     const fetchIdeas = async (searchTerm = '') => {
         setIsFetching(true);
         try {
-            // Using StackSuite posts with category=Validation to match the frontend Validation Board
-            const response = await API.get(`/stack-suite/posts?category=Validation&search=${searchTerm}`);
+            const response = await API.get(`/ideas?search=${encodeURIComponent(searchTerm)}`);
             setIdeas(response.data);
         } catch (error) {
-            console.error('Error fetching validation posts:', error);
+            console.error('Error fetching validation ideas:', error);
         } finally {
             setLoading(false);
             setIsFetching(false);
@@ -32,13 +31,13 @@ export const ValidationDashboardPage = () => {
 
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this validation post?')) return;
+        if (!window.confirm('Are you sure you want to delete this validation idea?')) return;
         try {
-            await API.delete(`/stack-suite/posts/${id}`);
+            await API.delete(`/ideas/${id}`);
             setIdeas(ideas.filter(idea => idea._id !== id));
         } catch (error) {
-            console.error('Error deleting validation post:', error);
-            alert('Failed to delete validation post');
+            console.error('Error deleting validation idea:', error);
+            alert('Failed to delete validation idea');
         }
     };
 
@@ -104,28 +103,28 @@ export const ValidationDashboardPage = () => {
                                         <td>
                                             <div className={styles.ideaTitle}>{idea.title}</div>
                                             <div className={styles.ideaIndustry}>
-                                                {idea.tags && idea.tags.length > 0 ? idea.tags.join(', ') : 'No tags'}
+                                                {idea.tags && idea.tags.length > 0 ? idea.tags.join(', ') : idea.industry || 'No tags'}
                                             </div>
                                         </td>
                                         <td>
                                             <div className={styles.userCell}>
-                                                {idea.author?.avatarUrl ? (
-                                                    <img src={idea.author.avatarUrl} alt="" className={styles.avatar} />
+                                                {idea.founder?.avatarUrl ? (
+                                                    <img src={idea.founder.avatarUrl} alt="" className={styles.avatar} />
                                                 ) : (
                                                     <div className={styles.avatarPlaceholder}>
-                                                        {idea.author?.name?.slice(0, 2).toUpperCase() || '??'}
+                                                        {idea.founder?.name?.slice(0, 2).toUpperCase() || '??'}
                                                     </div>
                                                 )}
-                                                <span>{idea.author?.name || 'Unknown'}</span>
+                                                <span>{idea.founder?.name || 'Unknown'}</span>
                                             </div>
                                         </td>
                                         <td>
-                                            <div className={styles.scoreBadge}>{idea.confidenceScore}%</div>
+                                            <div className={styles.scoreBadge}>{idea.validationScore ?? 0}%</div>
                                         </td>
-                                        <td>{idea.phase}</td>
+                                        <td>{idea.stage || 'Unknown'}</td>
                                         <td>
                                             <div style={{ fontSize: '0.85rem' }}>
-                                                {idea.upvoteCount || 0} Upvotes • {idea.commentCount || 0} Comments
+                                                {(idea.upvotes?.length ?? 0)} Upvotes • {(idea.engagementCount ?? 0)} Engagements
                                             </div>
                                         </td>
                                         <td>{new Date(idea.createdAt).toLocaleDateString()}</td>

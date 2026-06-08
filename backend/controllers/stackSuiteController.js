@@ -29,11 +29,8 @@ function timeAgo(date) {
 // GET /api/stack-suite/posts
 const getPosts = async (req, res) => {
   try {
-    const { category, sort, search, phase, boardType, contentType } = req.query;
-    let query = { isDeleted: false };
-
-    // Isolate by board — defaults to 'stack-suite' so Validation Board posts never bleed in.
-    query.boardType = (boardType === 'validation-board') ? 'validation-board' : 'stack-suite';
+    const { category, sort, search, phase, contentType } = req.query;
+    const query = { isDeleted: false };
 
     if (category && category !== 'all') query.category = category;
     if (phase && phase !== 'all') query.phase = phase;
@@ -97,7 +94,7 @@ const getPostById = async (req, res) => {
 // POST /api/stack-suite/posts  (auth required)
 const createPost = async (req, res) => {
   try {
-    const { title, body, category, contentType, tags, phase, confidenceScore, links, boardType } = req.body;
+    const { title, body, category, contentType, tags, phase, confidenceScore, links } = req.body;
     if (!title || !body) return res.status(400).json({ message: 'Title and body are required' });
 
     const tagList = typeof tags === 'string'
@@ -110,7 +107,6 @@ const createPost = async (req, res) => {
       body,
       category: category || 'General',
       contentType: contentType || 'discussion',
-      boardType: boardType === 'validation-board' ? 'validation-board' : 'stack-suite',
       tags: tagList,
       phase: phase || 'General',
       confidenceScore: confidenceScore || 0,
@@ -891,13 +887,11 @@ const getStats = async (req, res) => {
   try {
     const [
       totalPosts,
-      totalValidations,
       totalShowcases,
       totalCollabThreads,
       totalMembers
     ] = await Promise.all([
-      StackPost.countDocuments({ boardType: 'stack-suite', isDeleted: false }),
-      StackPost.countDocuments({ boardType: 'validation-board', isDeleted: false }),
+      StackPost.countDocuments({ isDeleted: false }),
       Showcase.countDocuments({ isDeleted: false }),
       CollabThread.countDocuments({ isDeleted: false }),
       User.countDocuments({})
@@ -905,7 +899,7 @@ const getStats = async (req, res) => {
 
     res.json({
       totalPosts,
-      totalValidations,
+      totalValidations: 0,
       totalShowcases,
       totalCollabThreads,
       totalMembers

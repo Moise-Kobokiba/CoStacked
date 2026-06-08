@@ -168,7 +168,6 @@ export function StackSuitePage() {
       title: postTitle,
       body: postBody,
       category: postCategory || 'General',
-      boardType: 'stack-suite',
       tags: tagList,
       links,
       contentType,

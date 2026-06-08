@@ -30,6 +30,7 @@ export const SocketProvider = ({ children }) => {
           socket.emit('joinRoom', 'presence');
         }
         socket.emit('joinRoom', 'validation_tips');
+        socket.emit('joinRoom', 'validation_feed');
         socket.emit('joinRoom', 'stacksuite_feed');
         socket.emit('joinRoom', 'projects');
       } catch (e) {
@@ -54,14 +55,21 @@ export const SocketProvider = ({ children }) => {
     socket.on('idea_vote_update', (payload) => {
       // Invalidate idea lists and specific idea detail if present
       queryClient.invalidateQueries(['validationPosts']);
+      queryClient.invalidateQueries(['communityStats']);
       if (payload?.ideaId) queryClient.invalidateQueries(['ideaDetail', payload.ideaId]);
     });
 
     socket.on('idea_comment_added', (payload) => {
+      queryClient.invalidateQueries(['communityStats']);
       if (payload?.ideaId) {
         queryClient.invalidateQueries(['ideaComments', payload.ideaId]);
         queryClient.invalidateQueries(['ideaDetail', payload.ideaId]);
       }
+    });
+
+    socket.on('idea_created', () => {
+      queryClient.invalidateQueries(['validationPosts']);
+      queryClient.invalidateQueries(['communityStats']);
     });
 
     socket.on('idea_converted', (payload) => {

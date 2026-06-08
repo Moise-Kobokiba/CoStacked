@@ -5,10 +5,9 @@ import {
   Search, PlusCircle, Lightbulb, ChevronLeft, ChevronRight, Loader2,
   ThumbsUp, MessageSquare, X
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getStackPosts } from '../api/stackSuiteApi';
-import { DiscussionDetail } from '../components/stack-suite/DiscussionDetail';
+import { getIdeas } from '../api/ideasApi';
 import { createValidationTip, updateValidationTip, deleteValidationTip } from '../api/validationTipApi';
 import { useSelector } from 'react-redux';
 import { getCommunityStats } from '../api/statsApi';
@@ -26,13 +25,13 @@ const PHASE_BADGE_CLASS = {
 export function ValidationBoardPage() {
   const [phaseFilter, setPhaseFilter] = useState('all');
   const [search, setSearch]             = useState('');
-  const [selectedId, setSelectedId]     = useState(null);
+  const navigate = useNavigate();
 
   const debouncedSearch = useDebounce(search, 500);
 
   const { data: posts = [], isLoading, isFetching } = useQuery({
-    queryKey: ['validationPosts', { search: debouncedSearch, phase: phaseFilter }],
-    queryFn: () => getStackPosts({ boardType: 'validation-board', search: debouncedSearch, phase: phaseFilter }),
+    queryKey: ['validationPosts', { search: debouncedSearch, stage: phaseFilter }],
+    queryFn: () => getIdeas({ search: debouncedSearch, stage: phaseFilter, visibility: 'public', status: 'active' }),
   });
 
   const { data: statsData } = useQuery({
@@ -75,14 +74,6 @@ export function ValidationBoardPage() {
     { id: 'Solution', label: 'Solution Validation' },
     { id: 'MVP', label: 'MVP/Landing Page' },
   ];
-
-  if (selectedId) {
-    return (
-      <div className={styles.container}>
-        <DiscussionDetail discussionId={selectedId} onBack={() => setSelectedId(null)} />
-      </div>
-    );
-  }
 
   return (
     <main className={styles.container}>
@@ -152,48 +143,53 @@ export function ValidationBoardPage() {
           ) : (
             <div className={styles.grid}>
               {posts.map(post => {
-                const phaseClass = PHASE_BADGE_CLASS[post.phase] || styles.badgeGeneral;
+                const phaseClass = PHASE_BADGE_CLASS[post.stage] || styles.badgeGeneral;
+                const description = post.problemStatement || post.valueProposition || post.targetAudience || '';
+                const tags = post.tags?.length > 0 ? post.tags : post.industry ? [post.industry] : [];
+                const author = post.founder || post.author;
+                const upvoteCount = post.upvotes?.length ?? 0;
+                const commentCount = post.engagementCount ?? post.commentCount ?? 0;
                 return (
                   <div 
                     key={post._id} 
-                    onClick={() => setSelectedId(post._id)}
+                    onClick={() => navigate(`/validation-board/${post._id}`)}
                     className={styles.ideaCard}
                   >
                     <div className={styles.cardHeader}>
                       <span className={`${styles.phaseBadge} ${phaseClass}`}>
-                        {post.phase} Phase
+                        {post.stage || 'General'} Phase
                       </span>
                       <div style={{ textAlign: 'right' }}>
-                        <span className={styles.confidenceValue}>{post.confidenceScore || 0}%</span>
+                        <span className={styles.confidenceValue}>{post.validationScore ?? 0}%</span>
                         <div className={styles.confidenceLabel}>Confidence</div>
                       </div>
                     </div>
                     <h3 className={styles.cardTitle}>{post.title}</h3>
-                    <p className={styles.cardBody}>{post.body}</p>
+                    <p className={styles.cardBody}>{description}</p>
                     <div className={styles.tagList}>
-                      {post.tags?.map(tag => (
+                      {tags.map(tag => (
                         <span key={tag} className={styles.tag}>{tag}</span>
                       ))}
                     </div>
                     <div className={styles.cardFooter}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <div style={{ width: '1.5rem', height: '1.5rem', borderRadius: '50%', backgroundColor: 'var(--input-background)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>
-                          {post.author?.avatarUrl ? (
-                            <img src={post.author.avatarUrl} alt={post.author.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          {author?.avatarUrl ? (
+                            <img src={author.avatarUrl} alt={author.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
-                            post.author?.name?.slice(0, 2).toUpperCase() || '??'
+                            author?.name?.slice(0, 2).toUpperCase() || '??'
                           )}
                         </div>
-                        <span style={{ fontSize: '12px', fontWeight: '600' }}>{post.author?.name || 'Unknown'}</span>
+                        <span style={{ fontSize: '12px', fontWeight: '600' }}>{author?.name || 'Unknown'}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--muted-foreground)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                           <ThumbsUp size={14} />
-                          <span style={{ fontSize: '12px', fontWeight: '700' }}>{post.upvoteCount || 0}</span>
+                          <span style={{ fontSize: '12px', fontWeight: '700' }}>{upvoteCount}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                           <MessageSquare size={14} />
-                          <span style={{ fontSize: '12px', fontWeight: '700' }}>{post.commentCount || 0}</span>
+                          <span style={{ fontSize: '12px', fontWeight: '700' }}>{commentCount}</span>
                         </div>
                       </div>
                     </div>

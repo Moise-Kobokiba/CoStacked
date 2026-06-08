@@ -72,6 +72,10 @@ const ideaSchema = mongoose.Schema(
     industry: {
       type: String,
     },
+    tags: {
+      type: [String],
+      default: [],
+    },
     stage: {
       type: String, // e.g., 'Concept', 'Problem-Fit'
       default: 'Concept',

@@ -1,10 +1,3 @@
-import { useSocket } from './SocketProvider';
-
-export const useSocketContext = () => useSocket();
-
-export default useSocketContext;
-// src/context/SocketContext.jsx
-
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useDispatch, useSelector } from 'react-redux';
