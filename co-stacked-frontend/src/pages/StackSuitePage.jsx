@@ -6,6 +6,7 @@ import {
   ChevronDown, Sparkles, TrendingUp, Users, X, Send, Loader2,
   Zap, Hash, Image, ExternalLink, Briefcase, Grid3X3, List
 } from 'lucide-react';
+import { useSelector } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { createStackPost, createShowcase, createCollabThread, getStackSuiteStats } from '../api/stackSuiteApi';
@@ -31,6 +32,7 @@ const TRENDING_TAGS = ['validation', 'saas', 'nextjs', 'react', 'startup', 'mvp'
 export function StackSuitePage() {
   const queryClient = useQueryClient();
   const navigate    = useNavigate();
+  const { isAuthenticated } = useSelector(state => state.auth);
 
   const [search, setSearch]       = useState('');
   const [filter, setFilter]       = useState('all');
@@ -440,8 +442,11 @@ export function StackSuitePage() {
               )}
             </div>
 
-            <button className={styles.createBtn} onClick={() => setCreateOpen(true)}>
-              <Plus size={16} /> + Create New Post
+            <button className={styles.createBtn} onClick={() => {
+              if (!isAuthenticated) return navigate('/login', { state: { from: '/stack-suite' } });
+              setCreateOpen(true);
+            }}>
+              <Plus size={16} /> {isAuthenticated ? '+ Create New Post' : 'Login to Create'}
             </button>
           </div>
         </section>
@@ -531,13 +536,25 @@ export function StackSuitePage() {
                 <span>Quick Actions</span>
               </div>
               <div className={styles.sideCardBody}>
-                <button className={styles.sideActionBtn} onClick={() => { setContentType('discussion'); setCreateOpen(true); }}>
+                <button className={styles.sideActionBtn} onClick={() => {
+                  if (!isAuthenticated) return navigate('/login', { state: { from: '/stack-suite' } });
+                  setContentType('discussion');
+                  setCreateOpen(true);
+                }}>
                   <MessageCircle size={15} /> Start Discussion
                 </button>
-                <button className={styles.sideActionBtn} onClick={() => { setContentType('showcase'); setCreateOpen(true); }}>
+                <button className={styles.sideActionBtn} onClick={() => {
+                  if (!isAuthenticated) return navigate('/login', { state: { from: '/stack-suite' } });
+                  setContentType('showcase');
+                  setCreateOpen(true);
+                }}>
                   <Rocket size={15} /> Showcase Project
                 </button>
-                <button className={styles.sideActionBtn} onClick={() => { setContentType('collaboration'); setCreateOpen(true); }}>
+                <button className={styles.sideActionBtn} onClick={() => {
+                  if (!isAuthenticated) return navigate('/login', { state: { from: '/stack-suite' } });
+                  setContentType('collaboration');
+                  setCreateOpen(true);
+                }}>
                   <GitBranch size={15} /> Create Milestone
                 </button>
               </div>

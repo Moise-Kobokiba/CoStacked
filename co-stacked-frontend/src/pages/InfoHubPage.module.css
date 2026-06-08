@@ -13,8 +13,8 @@
   --toast-text: #ffffff;
 }
 
-/* Dark mode – activated when <html> has class "dark" */
-html.dark {
+/* Dark mode – activated when <html> has data-theme="dark" */
+html[data-theme='dark'] {
   --background: #0b1120;
   --foreground: #f8fafc;
   --card-background: #111827;
