@@ -1,12 +1,28 @@
 // src/components/discover/DiscoverProjectCard.jsx
 
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { Heart } from 'lucide-react';
+import { saveItem, unsaveItemByType, checkSaved } from '../../api/savedItemsApi';
 import styles from './DiscoverProjectCard.module.css';
 
 export const DiscoverProjectCard = ({ project }) => {
   const navigate = useNavigate();
+  const { token, isAuthenticated } = useSelector((state) => state.auth || {});
+  const [isFavorited, setIsFavorited] = useState(false);
+
+  useEffect(() => {
+    if (!project?._id || !token || !isAuthenticated) return;
+
+    checkSaved(token, 'project', project._id)
+      .then((data) => {
+        setIsFavorited(data.isSaved);
+      })
+      .catch((error) => {
+        console.error('Failed to check saved state:', error);
+      });
+  }, [project?._id, token, isAuthenticated]);
 
   if (!project) return null;
 
@@ -53,12 +69,30 @@ export const DiscoverProjectCard = ({ project }) => {
           </span>
           <button 
             className={styles.favoriteBtn} 
-            onClick={(e) => {
+            onClick={async (e) => {
               e.stopPropagation();
-              // TODO: Implement actual favorite logic
-              console.log('Toggle favorite for', project._id);
+
+              if (!isAuthenticated) {
+                navigate('/login');
+                return;
+              }
+
+              try {
+                if (isFavorited) {
+                  await unsaveItemByType(token, { itemType: 'project', itemId: project._id });
+                  setIsFavorited(false);
+                  setSavedItemId(null);
+                } else {
+                  const savedItem = await saveItem(token, { itemType: 'project', itemId: project._id });
+                  setIsFavorited(true);
+                  setSavedItemId(savedItem._id);
+                }
+              } catch (error) {
+                console.error('Failed to toggle favorite:', error);
+              }
             }}
-            aria-label="Save project"
+            aria-label={isFavorited ? 'Remove from saved projects' : 'Save project'}
+            style={{ color: isFavorited ? '#ef4444' : undefined }}
           >
             <Heart size={18} />
           </button>
