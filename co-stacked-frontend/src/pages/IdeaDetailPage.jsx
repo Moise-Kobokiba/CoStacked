@@ -1,10 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSocket } from '../context/SocketProvider';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, ThumbsUp, ThumbsDown, Share2, Bookmark, Reply, Loader2, Check, Edit3, Trash2, MessageSquare, AlertTriangle, CheckCircle, Send } from 'lucide-react';
-import { getIdeaById, getIdeaComments, addIdeaComment, voteIdea, convertIdeaToProject, deleteIdeaComment, editIdeaComment } from '../api/ideasApi';
+import { getIdeaById, getIdeaComments, addIdeaComment, voteIdea, convertIdeaToProject, deleteIdeaComment, editIdeaComment, incrementIdeaViewCount, shareIdea, likeIdeaComment } from '../api/ideasApi';
 import { saveItem, unsaveItemByType, checkSaved } from '../api/savedItemsApi';
 import styles from './IdeaDetailPage.module.css';
 
@@ -42,6 +42,51 @@ const getVoteType = (idea, user) => {
   return null;
 };
 
+const renderRichText = (text) => {
+  if (!text) return <p className={styles.accentText}>No content provided.</p>;
+  const lines = text.split(/\r?\n/).map((line) => line.trim());
+  const blocks = [];
+  let listItems = [];
+
+  lines.forEach((line) => {
+    if (line.startsWith('- ') || line.startsWith('* ') || line.startsWith('+ ')) {
+      listItems.push(line.slice(2).trim());
+      return;
+    }
+
+    if (listItems.length) {
+      blocks.push({ type: 'list', items: listItems });
+      listItems = [];
+    }
+
+    if (line) {
+      blocks.push({ type: 'paragraph', content: line });
+    }
+  });
+
+  if (listItems.length) {
+    blocks.push({ type: 'list', items: listItems });
+  }
+
+  return blocks.map((block, index) => {
+    if (block.type === 'list') {
+      return (
+        <ul key={index} className={styles.richList}>
+          {block.items.map((item, itemIndex) => (
+            <li key={itemIndex}>{item}</li>
+          ))}
+        </ul>
+      );
+    }
+
+    return (
+      <p key={index} className={styles.accentText}>
+        {block.content}
+      </p>
+    );
+  });
+};
+
 export const IdeaDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -57,6 +102,10 @@ export const IdeaDetailPage = () => {
   const [savedItemId, setSavedItemId] = useState(null);
   const [shareFeedback, setShareFeedback] = useState(null);
   const [showReplies, setShowReplies] = useState({});
+  const [commentPage, setCommentPage] = useState(1);
+
+  const viewRecordedRef = useRef(false);
+  const COMMENT_PAGE_SIZE = 10;
 
   const { data: idea, isLoading: ideaLoading } = useQuery(
     ['ideaDetail', id],
@@ -64,10 +113,10 @@ export const IdeaDetailPage = () => {
     { enabled: !!id }
   );
 
-  const { data: comments = [], isLoading: commentsLoading } = useQuery(
-    ['ideaComments', id],
-    () => getIdeaComments(id),
-    { enabled: !!id }
+  const { data: commentsData, isLoading: commentsLoading } = useQuery(
+    ['ideaComments', id, commentPage],
+    () => getIdeaComments(id, { page: commentPage, limit: COMMENT_PAGE_SIZE }),
+    { enabled: !!id, keepPreviousData: true }
   );
 
   // Check if idea is saved
@@ -92,6 +141,20 @@ export const IdeaDetailPage = () => {
   }, [socket, id]);
 
   useEffect(() => {
+    if (!id || viewRecordedRef.current || typeof window === 'undefined') return;
+    const viewKey = `idea_viewed_${id}`;
+    if (window.sessionStorage.getItem(viewKey)) return;
+
+    incrementIdeaViewCount(id)
+      .then(() => {
+        queryClient.invalidateQueries(['ideaDetail', id]);
+        window.sessionStorage.setItem(viewKey, '1');
+      })
+      .catch(() => {});
+    viewRecordedRef.current = true;
+  }, [id, queryClient]);
+
+  useEffect(() => {
     if (!idea) return;
     setVoteState({
       type: getVoteType(idea, user),
@@ -102,6 +165,15 @@ export const IdeaDetailPage = () => {
   const ideaScore = voteState.score;
   const isUpvoted = voteState.type === 'up';
   const isDownvoted = voteState.type === 'down';
+
+  const comments = commentsData?.comments ?? [];
+  const totalComments = idea?.commentCount ?? commentsData?.totalTopComments ?? 0;
+  const hasMoreComments = commentsData?.hasMore ?? false;
+  const saveCount = idea?.saveCount ?? 0;
+  const shareCount = idea?.shareCount ?? 0;
+  const viewCount = idea?.viewCount ?? 0;
+  const engagementRate = idea?.engagementRate ?? 0;
+  const validationTrend = idea?.validationTrend ?? 'Stable';
 
   // Prefer backend-provided metadata when available; fall back to arrays if needed
   const upvoteCount = idea?.upvoteCount ?? idea?.upvotes?.length ?? 0;
@@ -216,9 +288,18 @@ export const IdeaDetailPage = () => {
       setEditingComment(null);
       setEditDraft('');
       queryClient.invalidateQueries(['ideaComments', id]);
+      queryClient.invalidateQueries(['ideaDetail', id]);
     },
     onError: (err) => {
       alert(err?.response?.data?.message || 'Failed to edit comment');
+    },
+  });
+
+  const commentLikeMutation = useMutation({
+    mutationFn: ({ commentId }) => likeIdeaComment(id, commentId, token),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ideaComments', id]);
+      queryClient.invalidateQueries(['ideaDetail', id]);
     },
   });
 
@@ -247,11 +328,17 @@ export const IdeaDetailPage = () => {
 
   const handleShare = useCallback(async () => {
     try {
+      await shareIdea(id);
       await navigator.clipboard.writeText(window.location.href);
       setShareFeedback('copied');
+      queryClient.invalidateQueries(['ideaDetail', id]);
       setTimeout(() => setShareFeedback(null), 2000);
-    } catch (err) { console.error(err); }
-  }, []);
+    } catch (err) {
+      console.error(err);
+      setShareFeedback('error');
+      setTimeout(() => setShareFeedback(null), 2000);
+    }
+  }, [id, queryClient]);
 
   const author = idea?.founder;
   const authorAvatarInitial = author?.name
@@ -298,18 +385,42 @@ export const IdeaDetailPage = () => {
         </Link>
 
         {/* Validation Status Banners */}
-        {showValidationFailure && (
-          <div className={styles.validationBanner + ' ' + styles.bannerWarning}>
-            <AlertTriangle size={20} />
-            <span>This idea currently shows low validation from the community.</span>
-          </div>
-        )}
-        {showValidationSuccess && (
-          <div className={styles.validationBanner + ' ' + styles.bannerSuccess}>
-            <CheckCircle size={20} />
-            <span>Community Validation Achieved</span>
-          </div>
-        )}
+        <div
+          className={
+            styles.validationBanner + ' ' +
+            (showValidationSuccess
+              ? styles.bannerSuccess
+              : showValidationFailure
+              ? styles.bannerWarning
+              : styles.bannerNeutral)
+          }
+        >
+          {showValidationSuccess ? (
+            <>
+              <CheckCircle size={20} />
+              <span>This idea has earned strong community validation.</span>
+            </>
+          ) : showValidationFailure ? (
+            <>
+              <AlertTriangle size={20} />
+              <span>This idea currently shows low validation from the community.</span>
+            </>
+          ) : (
+            <>
+              <MessageSquare size={20} />
+              <span>Validation is in progress. Track community feedback and vote activity live.</span>
+            </>
+          )}
+          {showValidationSuccess && conversionEnabled && hasConversionAccess && idea.status !== 'converted' && (
+            <button className={styles.bannerAction} onClick={() => {
+              if (confirm('Convert this validated idea into a project? The project will be pre-filled with your idea details.')) {
+                handleConvertToProject();
+              }
+            }}>
+              Turn Into Project
+            </button>
+          )}
+        </div>
 
         {/* 12-Column Grid */}
         <div className={styles.grid12}>
@@ -317,15 +428,34 @@ export const IdeaDetailPage = () => {
           {/* LEFT COLUMN */}
           <div className={styles.leftCol}>
             <section className={styles.card}>
-              <div className={styles.headerRow}>
-                <span className={`${styles.stageBadge} ${styles.stageConcept}`}>
-                  {idea.status || 'Active'}
+              <div className={styles.topRow}>
+                <span className={styles.categoryBadge}>
+                  {idea.industry || idea.tags?.[0] || 'Validation'}
                 </span>
-                <span className={styles.headerDate}>{formatDate(idea.createdAt)}</span>
+                <div className={styles.actionButtons}>
+                  <button type="button" className={styles.secondaryBtn} onClick={handleShare}>
+                    <Share2 size={18} />
+                    <span>{shareFeedback === 'copied' ? 'Link Copied!' : 'Share'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.secondaryBtn} ${isSaved ? styles.secondaryBtnSaved : ''}`}
+                    onClick={handleSaveToggle}
+                    disabled={saveMutation.isLoading || unsaveMutation.isLoading}
+                  >
+                    {isSaved ? <Check size={18} /> : <Bookmark size={18} />}
+                    <span>{isSaved ? 'Saved' : 'Save'}</span>
+                  </button>
+                </div>
               </div>
-              <h1 className={styles.ideaTitle}>{idea.title}</h1>
 
-              {/* Clickable Creator Avatar & Username */}
+              <h1 className={styles.ideaTitle}>{idea.title}</h1>
+              <div className={styles.metaRow}>
+                <span>Posted {formatDate(idea.createdAt)}</span>
+                <span>{viewCount} views</span>
+                <span>{idea.stage || 'Validation'}</span>
+              </div>
+
               <Link to={author?._id ? `/users/${author._id}` : '/profile'} className={styles.authorRow}>
                 <span className={styles.authorAvatar}>
                   {author?.avatarUrl ? (
@@ -376,7 +506,7 @@ export const IdeaDetailPage = () => {
               <div className={styles.feedbackHeader}>
                 <div>
                   <h2 className={styles.feedbackTitle}>Community Feedback</h2>
-                  <p className={styles.feedbackCount}>{comments.length} comments</p>
+                  <p className={styles.feedbackCount}>{totalComments} comments</p>
                 </div>
                 {(commentsLoading || commentMutation.isLoading) && <Loader2 size={20} className={styles.spinner} />}
               </div>
@@ -389,7 +519,11 @@ export const IdeaDetailPage = () => {
                     const initials = commenter.name
                       ? commenter.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
                       : 'U';
-                    const isCommentOwner = commenter._id === user?._id;
+                    const isCommentOwner = commenter._id?.toString() === user?._id?.toString();
+                    const isCommentLiked = comment.likes?.some((item) => {
+                      const id = item?._id || item;
+                      return id?.toString() === user?._id?.toString();
+                    });
                     const replies = comment.replies || [];
                     const isEditing = editingComment === comment._id;
 
@@ -457,7 +591,18 @@ export const IdeaDetailPage = () => {
                                 <Reply size={15} />
                                 <span>{replies.length > 0 ? `${replies.length} replies` : 'Reply'}</span>
                               </button>
-                              
+                              <button
+                                type="button"
+                                className={styles.cActionBtn}
+                                onClick={() => {
+                                  if (!isAuthenticated) { navigate('/login'); return; }
+                                  commentLikeMutation.mutate({ commentId: comment._id });
+                                }}
+                              >
+                                <ThumbsUp size={15} />
+                                <span>{comment.likeCount > 0 ? `${comment.likeCount} Like${comment.likeCount === 1 ? '' : 's'}` : 'Like'}</span>
+                              </button>
+                              {isCommentLiked && <span className={styles.likedBadge}>You liked this</span>}
                               {isCommentOwner && (
                                 <>
                                   <button
@@ -517,7 +662,7 @@ export const IdeaDetailPage = () => {
                                   const replyInitials = replyAuthor.name
                                     ? replyAuthor.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
                                     : 'U';
-                                  const isReplyOwner = replyAuthor._id === user?._id;
+                                  const isReplyOwner = replyAuthor._id?.toString() === user?._id?.toString();
 
                                   return (
                                     <div key={reply._id} className={styles.replyRow}>
@@ -566,6 +711,16 @@ export const IdeaDetailPage = () => {
                   <p className={styles.noComments}>No feedback yet. Leave the first constructive comment.</p>
                 )}
               </div>
+              {hasMoreComments && (
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  onClick={() => setCommentPage((current) => current + 1)}
+                  disabled={commentsLoading}
+                >
+                  Load more feedback
+                </button>
+              )}
 
               {/* Comment Form */}
               <div className={styles.commentForm}>
@@ -637,6 +792,60 @@ export const IdeaDetailPage = () => {
               <div className={styles.statusLabel}>
                 Status: <strong>{idea.status === 'converted' ? 'Converted to Project' : idea.status === 'validated' ? 'Validated' : 'Active'}</strong>
               </div>
+            </section>
+
+            <section className={`${styles.metricCard} ${styles.sideCard}`}>
+              <span className={styles.sectionLabel}>Real-Time Metrics</span>
+              <div className={styles.metricGrid}>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Engagement Rate</span>
+                  <span className={styles.metricValue}>{engagementRate} / day</span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Total Views</span>
+                  <span className={styles.metricValue}>{viewCount}</span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Comments</span>
+                  <span className={styles.metricValue}>{totalComments}</span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Saves</span>
+                  <span className={styles.metricValue}>{saveCount}</span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Shares</span>
+                  <span className={styles.metricValue}>{shareCount}</span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Validation Trend</span>
+                  <span className={styles.metricValue}>{validationTrend}</span>
+                </div>
+              </div>
+            </section>
+
+            <section className={styles.sideCard}>
+              <span className={styles.sectionLabel}>Proposed By</span>
+              <Link to={author?._id ? `/users/${author._id}` : '/profile'} className={styles.authorRow}>
+                <span className={styles.authorAvatar}>
+                  {author?.avatarUrl ? (
+                    <img src={author.avatarUrl} alt={author.name} />
+                  ) : (
+                    authorAvatarInitial
+                  )}
+                </span>
+                <span className={styles.authorInfo}>
+                  <span className={styles.authorName}>{author?.name || 'Unknown User'}</span>
+                  <span className={styles.authorRole}>{author?.headline || 'Platform User'}</span>
+                </span>
+              </Link>
+              <button
+                type="button"
+                className={styles.bannerAction}
+                onClick={() => navigate(author?._id ? `/users/${author._id}` : '/profile')}
+              >
+                View Talent Profile
+              </button>
             </section>
 
             {/* Vote Buttons */}

@@ -35,6 +35,8 @@ router.route('/:id')
 
 router.route('/:id/vote').post(protect, body('voteType').isIn(['up','down']), validate, voteIdea);
 router.route('/:id/convert').post(protect, convertIdeaToProject);
+router.route('/:id/view').post(incrementIdeaViewCount);
+router.route('/:id/share').post(shareIdea);
 
 // Comment routes
 router.route('/:id/comments')
@@ -44,5 +46,7 @@ router.route('/:id/comments')
 router.route('/:id/comments/:commentId')
     .delete(protect, deleteIdeaComment)
     .put(protect, editIdeaComment);
+
+router.route('/:id/comments/:commentId/like').post(protect, likeIdeaComment);
 
 module.exports = router;

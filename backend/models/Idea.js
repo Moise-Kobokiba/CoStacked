@@ -59,6 +59,22 @@ const ideaSchema = mongoose.Schema(
         type: Number,
         default: 0
     },
+    viewCount: {
+      type: Number,
+      default: 0,
+    },
+    shareCount: {
+      type: Number,
+      default: 0,
+    },
+    saveCount: {
+      type: Number,
+      default: 0,
+    },
+    commentCount: {
+      type: Number,
+      default: 0,
+    },
     // Simple way to track "validation score" - could be weighted later
     validationScore: {
       type: Number,

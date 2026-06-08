@@ -67,9 +67,21 @@ export const deleteIdea = async (id, token) => {
 };
 
 // Get comments for an idea
-export const getIdeaComments = async (ideaId) => {
-    const response = await axios.get(`${API_URL}/${ideaId}/comments`);
+export const getIdeaComments = async (ideaId, { page = 1, limit = 10 } = {}) => {
+    const response = await axios.get(`${API_URL}/${ideaId}/comments`, {
+        params: { page, limit },
+    });
     return response.data;
+};
+
+export const incrementIdeaViewCount = async (ideaId) => {
+  const response = await axios.post(`${API_URL}/${ideaId}/view`);
+  return response.data;
+};
+
+export const shareIdea = async (ideaId) => {
+  const response = await axios.post(`${API_URL}/${ideaId}/share`);
+  return response.data;
 };
 
 // Add comment to an idea (optional parentCommentId for replies)
@@ -106,5 +118,15 @@ export const editIdeaComment = async (ideaId, commentId, content, token) => {
         },
     };
     const response = await axios.put(`${API_URL}/${ideaId}/comments/${commentId}`, { content }, config);
+    return response.data;
+};
+
+export const likeIdeaComment = async (ideaId, commentId, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+    const response = await axios.post(`${API_URL}/${ideaId}/comments/${commentId}/like`, {}, config);
     return response.data;
 };

@@ -1,6 +1,7 @@
 const Idea = require('../models/Idea');
 const Project = require('../models/Project');
 const Comment = require('../models/Comment');
+const SavedItem = require('../models/SavedItem');
 const Notification = require('../models/Notification'); // If you want to notify on votes
 const socketUtil = require('../utils/socket');
 const { VALIDATION } = require('../config/validation');
@@ -8,16 +9,20 @@ const { VALIDATION } = require('../config/validation');
 // Helper: compute validation metadata for an idea doc
 const computeValidationMeta = (idea) => {
     const upvoteCount = Array.isArray(idea.upvotes) ? idea.upvotes.length : (idea.upvoteCount || 0);
-    const downvoteCount = Array.isArray(idea.downvotes) ? idea.downvotes.length : 0;
+    const downvoteCount = Array.isArray(idea.downvotes) ? idea.downvotes.length : (idea.downvoteCount || 0);
     const totalVotes = upvoteCount + downvoteCount;
     const upvotePercentage = totalVotes > 0 ? Math.round((upvoteCount / totalVotes) * 100) : 0;
     const downvotePercentage = totalVotes > 0 ? Math.round((downvoteCount / totalVotes) * 100) : 0;
+    const commentCount = idea.commentCount ?? 0;
+    const saveCount = idea.saveCount ?? 0;
+    const viewCount = idea.viewCount ?? 0;
+    const shareCount = idea.shareCount ?? 0;
+    const engagementCount = idea.engagementCount ?? (totalVotes + commentCount);
     const createdAt = idea.createdAt ? new Date(idea.createdAt) : new Date();
-    const daysOld = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+    const daysOld = Math.max(1, Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)));
 
     // Determine status per spec
     let validationStatus = 'Validating';
-
     if (daysOld >= VALIDATION.WEAK_VALIDATION_DAYS && downvotePercentage >= VALIDATION.WEAK_VALIDATION_DOWNVOTE_PERCENT) {
         validationStatus = 'Unsuccessful';
     } else if (upvoteCount >= VALIDATION.HIGHLY_VALIDATED_UPVOTE_THRESHOLD) {
@@ -28,6 +33,14 @@ const computeValidationMeta = (idea) => {
         validationStatus = 'Validating';
     }
 
+    const validationTrend = (() => {
+        if (upvoteCount >= downvoteCount + 10 && upvotePercentage >= 55) return 'Upward';
+        if (downvotePercentage >= 50 && totalVotes >= 10) return 'Declining';
+        if (idea.validationScore >= 75) return 'Strong';
+        return 'Stable';
+    })();
+
+    const engagementRate = Math.round((engagementCount / daysOld) * 10) / 10;
     const canConvert = (idea.validationScore || 0) >= VALIDATION.MIN_CONVERSION_SCORE || upvoteCount >= VALIDATION.HIGHLY_VALIDATED_UPVOTE_THRESHOLD;
 
     return {
@@ -36,8 +49,15 @@ const computeValidationMeta = (idea) => {
         totalVotes,
         upvotePercentage,
         downvotePercentage,
+        commentCount,
+        saveCount,
+        viewCount,
+        shareCount,
+        engagementCount,
+        engagementRate,
         daysOld,
         validationStatus,
+        validationTrend,
         canConvert,
     };
 };
@@ -115,10 +135,14 @@ const getIdeaById = async (req, res) => {
         if (!idea) {
             return res.status(404).json({ message: 'Idea not found' });
         }
-        
-        // Visibility check logic could go here (e.g. if private, check if req.user is connected)
-        // Augment idea with computed validation metadata so frontend doesn't re-implement rules
-        const meta = computeValidationMeta(idea);
+
+        const commentCount = await Comment.countDocuments({ idea: idea._id, isDeleted: false });
+        const saveCount = await SavedItem.countDocuments({ itemType: 'idea', itemId: idea._id });
+
+        idea.commentCount = commentCount;
+        idea.saveCount = saveCount;
+
+        const meta = computeValidationMeta({ ...idea.toObject(), commentCount, saveCount });
         res.status(200).json({ ...idea.toObject(), ...meta });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -390,36 +414,48 @@ const deleteIdea = async (req, res) => {
 // @access  Public
 const getIdeaComments = async (req, res) => {
     try {
-        // Get top-level comments (no parent)
-        const comments = await Comment.find({ 
-            idea: req.params.id, 
+        const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+        const limit = Math.min(25, Math.max(5, parseInt(req.query.limit, 10) || 10));
+        const skip = (page - 1) * limit;
+
+        const topCommentFilter = {
+            idea: req.params.id,
             isDeleted: false,
-            parentComment: null
-        })
+            parentComment: null,
+        };
+
+        const totalTopComments = await Comment.countDocuments(topCommentFilter);
+        const topComments = await Comment.find(topCommentFilter)
             .populate('author', 'name avatarUrl')
-            .sort({ createdAt: -1 });
-        
-        // Get all replies for this idea
-        const replies = await Comment.find({ 
-            idea: req.params.id, 
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const replies = await Comment.find({
+            idea: req.params.id,
             isDeleted: false,
-            parentComment: { $ne: null }
+            parentComment: { $ne: null },
         })
             .populate('author', 'name avatarUrl')
             .sort({ createdAt: 1 });
-        
-        // Organize replies by parent comment
-        const commentsWithReplies = comments.map(comment => {
-            const commentReplies = replies.filter(reply => 
+
+        const commentsWithReplies = topComments.map(comment => {
+            const commentReplies = replies.filter(reply =>
                 reply.parentComment.toString() === comment._id.toString()
             );
             return {
                 ...comment.toObject(),
-                replies: commentReplies
+                replies: commentReplies,
             };
         });
-        
-        res.status(200).json(commentsWithReplies);
+
+        res.status(200).json({
+            comments: commentsWithReplies,
+            page,
+            limit,
+            totalTopComments,
+            hasMore: skip + topComments.length < totalTopComments,
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -460,8 +496,9 @@ const addIdeaComment = async (req, res) => {
         // Populate author info for response
         await comment.populate('author', 'name avatarUrl');
 
-        // Update engagement count
+        // Update engagement count and comment count
         const commentCount = await Comment.countDocuments({ idea: req.params.id, isDeleted: false });
+        idea.commentCount = commentCount;
         idea.engagementCount = idea.voteCount + commentCount;
         await idea.save();
 
@@ -502,25 +539,26 @@ const addIdeaComment = async (req, res) => {
         }
 
         res.status(201).json(comment);
-        
-                // Emit real-time comment event
-                try {
-                    const io = socketUtil.getIo();
-                    if (io) {
-                        io.to(`idea:${idea._id}`).emit('idea_comment_added', {
-                            ideaId: idea._id,
-                            comment,
-                            engagementCount: idea.engagementCount
-                        });
-                        io.to('validation_feed').emit('idea_comment_added', {
-                            ideaId: idea._id,
-                            comment,
-                            engagementCount: idea.engagementCount
-                        });
-                    }
-                } catch (e) {
-                    console.error('Socket emit error (comment):', e);
-                }
+
+        try {
+            const io = socketUtil.getIo();
+            if (io) {
+                io.to(`idea:${idea._id}`).emit('idea_comment_added', {
+                    ideaId: idea._id,
+                    comment,
+                    engagementCount: idea.engagementCount,
+                    commentCount: commentCount,
+                });
+                io.to('validation_feed').emit('idea_comment_added', {
+                    ideaId: idea._id,
+                    comment,
+                    engagementCount: idea.engagementCount,
+                    commentCount: commentCount,
+                });
+            }
+        } catch (e) {
+            console.error('Socket emit error (comment):', e);
+        }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -546,12 +584,33 @@ const deleteIdeaComment = async (req, res) => {
         comment.isDeleted = true;
         await comment.save();
 
-        // Update engagement count
+        // Update engagement count and comment counter
         const idea = await Idea.findById(req.params.id);
         if (idea) {
             const commentCount = await Comment.countDocuments({ idea: req.params.id, isDeleted: false });
+            idea.commentCount = commentCount;
             idea.engagementCount = idea.voteCount + commentCount;
             await idea.save();
+
+            try {
+                const io = socketUtil.getIo();
+                if (io) {
+                    io.to(`idea:${idea._id}`).emit('idea_comment_deleted', {
+                        ideaId: idea._id,
+                        commentId: comment._id,
+                        commentCount,
+                        engagementCount: idea.engagementCount,
+                    });
+                    io.to('validation_feed').emit('idea_comment_deleted', {
+                        ideaId: idea._id,
+                        commentId: comment._id,
+                        commentCount,
+                        engagementCount: idea.engagementCount,
+                    });
+                }
+            } catch (e) {
+                console.error('Socket emit error (comment delete):', e);
+            }
         }
 
         res.status(200).json({ message: 'Comment deleted' });
@@ -586,7 +645,133 @@ const editIdeaComment = async (req, res) => {
 
         await comment.populate('author', 'name avatarUrl');
 
+        try {
+            const io = socketUtil.getIo();
+            if (io) {
+                io.to(`idea:${req.params.id}`).emit('idea_comment_updated', {
+                    ideaId: req.params.id,
+                    comment: comment.toObject(),
+                });
+            }
+        } catch (e) {
+            console.error('Socket emit error (comment update):', e);
+        }
+
         res.status(200).json(comment);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Increment idea view count
+// @route   POST /api/ideas/:id/view
+// @access  Public
+const incrementIdeaViewCount = async (req, res) => {
+    try {
+        const idea = await Idea.findById(req.params.id);
+        if (!idea) {
+            return res.status(404).json({ message: 'Idea not found' });
+        }
+
+        idea.viewCount = (idea.viewCount || 0) + 1;
+        await idea.save();
+
+        try {
+            const io = socketUtil.getIo();
+            if (io) {
+                io.to(`idea:${idea._id}`).emit('idea_viewed', {
+                    ideaId: idea._id,
+                    viewCount: idea.viewCount,
+                });
+                io.to('validation_feed').emit('idea_viewed', {
+                    ideaId: idea._id,
+                    viewCount: idea.viewCount,
+                });
+            }
+        } catch (e) {
+            console.error('Socket emit error (view):', e);
+        }
+
+        res.status(200).json({ viewCount: idea.viewCount });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Record idea share
+// @route   POST /api/ideas/:id/share
+// @access  Public
+const shareIdea = async (req, res) => {
+    try {
+        const idea = await Idea.findById(req.params.id);
+        if (!idea) {
+            return res.status(404).json({ message: 'Idea not found' });
+        }
+
+        idea.shareCount = (idea.shareCount || 0) + 1;
+        await idea.save();
+
+        try {
+            const io = socketUtil.getIo();
+            if (io) {
+                io.to(`idea:${idea._id}`).emit('idea_share_update', {
+                    ideaId: idea._id,
+                    shareCount: idea.shareCount,
+                });
+                io.to('validation_feed').emit('idea_share_update', {
+                    ideaId: idea._id,
+                    shareCount: idea.shareCount,
+                });
+            }
+        } catch (e) {
+            console.error('Socket emit error (share):', e);
+        }
+
+        res.status(200).json({ shareCount: idea.shareCount });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Like or unlike a comment
+// @route   POST /api/ideas/:id/comments/:commentId/like
+// @access  Private
+const likeIdeaComment = async (req, res) => {
+    try {
+        const comment = await Comment.findById(req.params.commentId);
+        if (!comment) {
+            return res.status(404).json({ message: 'Comment not found' });
+        }
+
+        if (comment.idea.toString() !== req.params.id) {
+            return res.status(400).json({ message: 'Comment does not belong to this idea' });
+        }
+
+        const userId = req.user._id.toString();
+        const alreadyLiked = comment.likes.some((id) => id.toString() === userId);
+
+        if (alreadyLiked) {
+            comment.likes = comment.likes.filter((id) => id.toString() !== userId);
+        } else {
+            comment.likes.push(req.user._id);
+        }
+        comment.likeCount = comment.likes.length;
+        await comment.save();
+        await comment.populate('author', 'name avatarUrl');
+
+        try {
+            const io = socketUtil.getIo();
+            if (io) {
+                io.to(`idea:${req.params.id}`).emit('idea_comment_updated', {
+                    ideaId: req.params.id,
+                    comment: comment.toObject(),
+                });
+            }
+        } catch (e) {
+            console.error('Socket emit error (comment like):', e);
+        }
+
+        res.status(200).json({ comment, liked: !alreadyLiked });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -603,5 +788,8 @@ module.exports = {
   getIdeaComments,
   addIdeaComment,
   deleteIdeaComment,
-  editIdeaComment
+  editIdeaComment,
+  incrementIdeaViewCount,
+  shareIdea,
+  likeIdeaComment,
 };

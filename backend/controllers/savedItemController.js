@@ -130,6 +130,12 @@ const saveItem = async (req, res) => {
           itemType,
           itemId,
         });
+        if (itemType === 'idea') {
+          io.to(`idea:${itemId}`).emit('idea_save_update', {
+            ideaId: itemId,
+            action: 'saved',
+          });
+        }
       }
     } catch (e) {
       console.error('Failed to emit saved_items_updated socket event:', e);
@@ -172,6 +178,12 @@ const unsaveItem = async (req, res) => {
           itemType: savedItem.itemType,
           itemId: savedItem.itemId,
         });
+        if (savedItem.itemType === 'idea') {
+          io.to(`idea:${savedItem.itemId}`).emit('idea_save_update', {
+            ideaId: savedItem.itemId,
+            action: 'unsaved',
+          });
+        }
       }
     } catch (e) {
       console.error('Failed to emit saved_items_updated socket event:', e);
@@ -215,6 +227,12 @@ const unsaveItemByType = async (req, res) => {
           itemType: savedItem.itemType,
           itemId: savedItem.itemId,
         });
+        if (savedItem.itemType === 'idea') {
+          io.to(`idea:${savedItem.itemId}`).emit('idea_save_update', {
+            ideaId: savedItem.itemId,
+            action: 'unsaved',
+          });
+        }
       }
     } catch (e) {
       console.error('Failed to emit saved_items_updated socket event:', e);

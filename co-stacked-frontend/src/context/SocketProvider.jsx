@@ -59,8 +59,34 @@ export const SocketProvider = ({ children }) => {
       if (payload?.ideaId) queryClient.invalidateQueries(['ideaDetail', payload.ideaId]);
     });
 
+    socket.on('idea_viewed', (payload) => {
+      if (payload?.ideaId) queryClient.invalidateQueries(['ideaDetail', payload.ideaId]);
+    });
+
+    socket.on('idea_share_update', (payload) => {
+      if (payload?.ideaId) queryClient.invalidateQueries(['ideaDetail', payload.ideaId]);
+    });
+
+    socket.on('idea_save_update', (payload) => {
+      if (payload?.ideaId) queryClient.invalidateQueries(['ideaDetail', payload.ideaId]);
+    });
+
     socket.on('idea_comment_added', (payload) => {
       queryClient.invalidateQueries(['communityStats']);
+      if (payload?.ideaId) {
+        queryClient.invalidateQueries(['ideaComments', payload.ideaId]);
+        queryClient.invalidateQueries(['ideaDetail', payload.ideaId]);
+      }
+    });
+
+    socket.on('idea_comment_deleted', (payload) => {
+      if (payload?.ideaId) {
+        queryClient.invalidateQueries(['ideaComments', payload.ideaId]);
+        queryClient.invalidateQueries(['ideaDetail', payload.ideaId]);
+      }
+    });
+
+    socket.on('idea_comment_updated', (payload) => {
       if (payload?.ideaId) {
         queryClient.invalidateQueries(['ideaComments', payload.ideaId]);
         queryClient.invalidateQueries(['ideaDetail', payload.ideaId]);
