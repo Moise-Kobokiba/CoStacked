@@ -35,6 +35,12 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
     queryFn: () => getShowcaseById(showcaseId),
   });
 
+  const { data: comments = [], isLoading: commentsLoading } = useQuery({
+    queryKey: ['stackComments', 'showcase', showcaseId],
+    queryFn: () => getStackComments('showcase', showcaseId),
+    enabled: !!showcaseId,
+  });
+
   const upvoteMutation = useMutation({
     mutationFn: upvoteShowcase,
     onSuccess: (data) => {
@@ -247,7 +253,11 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
           Feedback & Discussion ({showcase.commentCount || 0})
         </h2>
         <div className={styles.card} style={{ padding: 24 }}>
-          <CommentThread comments={[]} parentType="showcase" parentId={showcase._id} />
+          {commentsLoading ? (
+            <p style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>Loading comments...</p>
+          ) : (
+            <CommentThread comments={comments} parentType="showcase" parentId={showcase._id} />
+          )}
         </div>
       </div>
     </div>
