@@ -1,5 +1,3 @@
-// src/pages/NotificationsPage.jsx
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -7,11 +5,12 @@ import {
   fetchAllNotifications, 
   markNotificationsAsRead,
   clearAllNotifications,
-  deleteOneNotification
+  deleteOneNotification,
+  toggleNotificationRead
 } from '../features/notifications/notificationsSlice';
 import { fetchConnections, fetchPendingRequests, acceptConnectionRequest, removeOrCancelConnection } from '../features/connections/connectionsSlice';
 import { NotificationCard } from '../components/notifications/NotificationCard';
-import { Bell, Check, Trash2, Loader2, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Bell, Check, Trash2, Loader2, ChevronLeft, ChevronRight, X, Mail, MailOpen } from 'lucide-react';
 import styles from './NotificationsPage.module.css';
 
 const PER_PAGE = 10;
@@ -26,14 +25,14 @@ const TABS = [
 
 const TAB_TYPE_MAP = {
   connections: ['NEW_CONNECTION_REQUEST', 'CONNECTION_ACCEPTED'],
-  projects: ['NEW_INTEREST', 'INTEREST_APPROVED', 'INTEREST_REJECTED', 'BOOST_SUCCESS', 'NEW_PROJECT_POSTED'],
+  projects: ['NEW_INTEREST', 'INTEREST_APPROVED', 'INTEREST_REJECTED', 'BOOST_SUCCESS'],
   comments: ['IDEA_COMMENT', 'NEW_REVIEW', 'NEW_MESSAGE'],
   account: ['SUBSCRIPTION_SUCCESS', 'PAYMENT_SUCCESS']
 };
 
 export const NotificationsPage = () => {
   const dispatch = useDispatch();
-  const { allItems: notifications, status } = useSelector(state => state.notifications);
+  const { allItems: notifications, pagination, status } = useSelector(state => state.notifications);
   const [activeTab, setActiveTab] = useState('all');
   const [isClearing, setIsClearing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -41,22 +40,23 @@ export const NotificationsPage = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchAllNotifications());
+    dispatch(fetchAllNotifications({ page: currentPage, limit: PER_PAGE }));
     dispatch(fetchConnections());
     dispatch(fetchPendingRequests());
-  }, [dispatch]);
+  }, [dispatch, currentPage]);
 
   const handleMarkAllRead = async () => {
     await dispatch(markNotificationsAsRead());
-    setTimeout(() => dispatch(fetchAllNotifications()), 500);
+    setTimeout(() => dispatch(fetchAllNotifications({ page: currentPage, limit: PER_PAGE })), 500);
   };
 
   const handleClearAll = async () => {
     setIsClearing(true);
     try {
       await dispatch(clearAllNotifications());
-      setTimeout(() => dispatch(fetchAllNotifications()), 500);
+      setTimeout(() => dispatch(fetchAllNotifications({ page: 1, limit: PER_PAGE })), 500);
       setSelectedIds([]);
+      setCurrentPage(1);
     } finally {
       setIsClearing(false);
     }
@@ -66,7 +66,6 @@ export const NotificationsPage = () => {
     if (selectedIds.length === 0) return;
     setIsDeleting(true);
     try {
-      // Delete selected notifications individually via API
       for (const id of selectedIds) {
         try {
           await dispatch(deleteOneNotification(id));
@@ -75,10 +74,26 @@ export const NotificationsPage = () => {
         }
       }
       setSelectedIds([]);
-      setTimeout(() => dispatch(fetchAllNotifications()), 500);
+      setTimeout(() => dispatch(fetchAllNotifications({ page: currentPage, limit: PER_PAGE })), 500);
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleToggleRead = async (id) => {
+    await dispatch(toggleNotificationRead(id));
+  };
+
+  const handleAcceptConnection = async (requesterId) => {
+    await dispatch(acceptConnectionRequest(requesterId));
+    dispatch(fetchPendingRequests());
+    setTimeout(() => dispatch(fetchAllNotifications({ page: currentPage, limit: PER_PAGE })), 500);
+  };
+
+  const handleDeclineConnection = async (requesterId) => {
+    await dispatch(removeOrCancelConnection(requesterId));
+    dispatch(fetchPendingRequests());
+    setTimeout(() => dispatch(fetchAllNotifications({ page: currentPage, limit: PER_PAGE })), 500);
   };
 
   const toggleSelectNotification = useCallback((id) => {
@@ -93,13 +108,9 @@ export const NotificationsPage = () => {
     return notifications.filter(notif => allowedTypes.includes(notif.type));
   }, [notifications, activeTab]);
 
-  // Pagination
-  const totalPages = Math.max(1, Math.ceil(filteredNotifications.length / PER_PAGE));
+  const totalPages = Math.max(1, pagination?.pages || Math.ceil(filteredNotifications.length / PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
-  const paginatedNotifications = filteredNotifications.slice(
-    (safePage - 1) * PER_PAGE,
-    safePage * PER_PAGE
-  );
+  const paginatedNotifications = filteredNotifications;
 
   const getTabCount = (tabId) => {
     if (tabId === 'all') {
@@ -178,7 +189,6 @@ export const NotificationsPage = () => {
         })}
       </div>
 
-      {/* Selection bar */}
       {selectedIds.length > 0 && (
         <div className={styles.selectionBar}>
           <span>{selectedIds.length} selected</span>
@@ -205,10 +215,17 @@ export const NotificationsPage = () => {
                   checked={selectedIds.includes(notif._id)}
                   onChange={() => toggleSelectNotification(notif._id)}
                 />
-                <NotificationCard key={notif._id} notification={notif} />
+                <NotificationCard notification={notif} />
+                <button
+                  className={styles.toggleReadBtn}
+                  onClick={() => handleToggleRead(notif._id)}
+                  title={notif.isRead ? 'Mark as unread' : 'Mark as read'}
+                >
+                  {notif.isRead ? <MailOpen size={14} /> : <Mail size={14} />}
+                </button>
               </div>
             ))}
-            {/* Pagination */}
+            {/* Server-side Pagination */}
             {totalPages > 1 && (
               <div className={styles.pagination}>
                 <button

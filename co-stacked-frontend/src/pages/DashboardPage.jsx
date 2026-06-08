@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { fetchProjects } from '../features/projects/projectsSlice';
+import { fetchMyProjects } from '../features/projects/projectsSlice';
 import { fetchAllNotifications } from '../features/notifications/notificationsSlice';
 import { fetchConnections, fetchPendingRequests, acceptConnectionRequest, removeOrCancelConnection } from '../features/connections/connectionsSlice';
 import { fetchConversations } from '../features/messages/messagesSlice';
@@ -132,25 +132,27 @@ export const DashboardPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Fetch all real data on mount
+  // Fetch all real data on mount - use myProjects for user-specific data
   useEffect(() => {
-    dispatch(fetchProjects());
+    dispatch(fetchMyProjects());
     dispatch(fetchAllNotifications());
     dispatch(fetchConnections());
     dispatch(fetchPendingRequests());
     dispatch(fetchConversations());
   }, [dispatch]);
 
-  // Derivative real-time metrics
+  // Derivative real-time metrics - only user's own projects
   const activeProjects = useMemo(() => {
     if (!Array.isArray(projects)) return [];
-    return projects.filter(p => p.status === 'active' || p.status === 'in_progress').slice(0, 4);
-  }, [projects]);
+    return projects.filter(p => (p.status === 'active' || p.status === 'in_progress') && p.founderId?._id === currentUser?._id).slice(0, 4);
+  }, [projects, currentUser]);
 
   const recentProjects = useMemo(() => {
     if (!Array.isArray(projects)) return [];
-    return [...projects].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0)).slice(0, 5);
-  }, [projects]);
+    return [...projects]
+      .filter(p => p.founderId?._id === currentUser?._id || p.founderId === currentUser?._id)
+      .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0)).slice(0, 5);
+  }, [projects, currentUser]);
 
   const unreadNotifs = useMemo(() => notifications.filter(n => !n.isRead).slice(0, 5), [notifications]);
   const totalUnread = notifications.filter(n => !n.isRead).length;

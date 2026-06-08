@@ -219,17 +219,21 @@ export function ValidationBoardPage() {
             <h4 className={styles.sidebarLabel}>Community Stats</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <p style={{ fontSize: '1.875rem', fontWeight: '900', color: 'var(--foreground)' }}>{statsData?.totalIdeas ?? '—'}</p>
+                <p style={{ fontSize: '1.875rem', fontWeight: '900', color: 'var(--foreground)' }}>{statsData?.totalIdeas ?? 0}</p>
                 <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Total Ideas</p>
               </div>
               <div>
-                <p style={{ fontSize: '1.375rem', fontWeight: '800', color: 'var(--foreground)' }}>{statsData?.validatedIdeasCount ?? '—'}</p>
-                <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Ideas Validated (score ≥ 100)</p>
+                <p style={{ fontSize: '1.375rem', fontWeight: '800', color: 'var(--foreground)' }}>{statsData?.activeIdeas ?? 0}</p>
+                <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Active Ideas</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '1.375rem', fontWeight: '800', color: 'var(--foreground)' }}>{statsData?.validatedIdeasCount ?? 0}</p>
+                <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Validated Ideas</p>
               </div>
               <div className={styles.progressWrapper}>
-                <div className={styles.progressBar} style={{ width: `${Math.min(100, (statsData?.totalValidations || 0) / 10)}%` }}></div>
+                <div className={styles.progressBar} style={{ width: `${Math.min(100, ((statsData?.validatedIdeasCount || 0) / Math.max(statsData?.totalIdeas || 1, 1)) * 100)}%` }}></div>
               </div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{statsData?.totalUsers ?? '—'} users on the platform</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{statsData?.totalUsers ?? 0} users on the platform</p>
             </div>
           </div>
 
@@ -246,50 +250,24 @@ export function ValidationBoardPage() {
                     <p className={styles.tipText}>
                       <span style={{ fontWeight: '600', color: 'var(--foreground)' }}>{tip.title}</span> {tip.content}
                     </p>
-                    {/* Admin controls for manual tips only */}
-                    {user?.isAdmin && String(tip._id).startsWith('article-') === false && (
-                      <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => {
-                          const newTitle = prompt('Edit title', tip.title);
-                          if (newTitle === null) return;
-                          const newContent = prompt('Edit content', tip.content);
-                          if (newContent === null) return;
-                          updateTipMutation.mutate({ id: tip._id, data: { title: newTitle, content: newContent } });
-                        }}>Edit</button>
-                        <button onClick={() => {
-                          if (!confirm('Delete this tip?')) return;
-                          deleteTipMutation.mutate(tip._id);
-                        }}>Delete</button>
-                      </div>
-                    )}
                   </div>
                 ))
               ) : (
                 <div>Loading tips…</div>
               )}
-
-              {/* Admin management area */}
-              {user?.isAdmin && (
-                <div style={{ marginTop: '1rem', borderTop: '1px dashed var(--border)', paddingTop: '0.75rem' }}>
-                  <button onClick={() => setManageOpen((s) => !s)} style={{ fontWeight: 700 }}>{manageOpen ? 'Close Tip Manager' : 'Manage Tips'}</button>
-                  {manageOpen && (
-                    <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      <input placeholder='Tip title' value={newTipTitle} onChange={(e) => setNewTipTitle(e.target.value)} />
-                      <input placeholder='Tip content' value={newTipContent} onChange={(e) => setNewTipContent(e.target.value)} />
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => {
-                          if (!newTipTitle.trim() || !newTipContent.trim()) return alert('Title and content required');
-                          createTipMutation.mutate({ title: newTipTitle.trim(), content: newTipContent.trim(), order: 0 });
-                          setNewTipTitle(''); setNewTipContent('');
-                        }}>Create Tip</button>
-                        <button onClick={() => { setNewTipTitle(''); setNewTipContent(''); }}>Cancel</button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
-            <a style={{ marginTop: '1.5rem', display: 'inline-block', fontSize: '0.875rem', fontWeight: '700', color: 'var(--primary)', textDecoration: 'none' }} href="#">Read full guide →</a>
+            {user?.isAdmin && (
+              <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem' }}>
+                <a
+                  href="/admin/validation-tips"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: '0.875rem', fontWeight: '700', color: 'var(--primary)', textDecoration: 'none' }}
+                >
+                  Manage Tips in Admin Panel →
+                </a>
+              </div>
+            )}
           </div>
         </aside>
       </div>

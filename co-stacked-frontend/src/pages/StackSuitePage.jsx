@@ -45,11 +45,36 @@ export function StackSuitePage() {
   const [postSubmitted, setPostSubmitted] = useState(false);
   const [contentType, setContentType] = useState('discussion');
 
-  // Discussions Form State
+  // Discussions Form State (used by multiple content types)
   const [postTitle, setPostTitle]       = useState('');
   const [postBody, setPostBody]         = useState('');
   const [postCategory, setPostCategory] = useState('General');
   const [postTags, setPostTags]         = useState('');
+
+  // Build In Public / Founder Matching / Challenges / Accountability
+  const [bipType, setBipType] = useState('weekly-update');
+  const [bipMilestone, setBipMilestone] = useState('');
+  const [bipRevenue, setBipRevenue] = useState('');
+  const [bipUsers, setBipUsers] = useState('');
+  const [bipLookingFor, setBipLookingFor] = useState('');
+  const [bipProgress, setBipProgress] = useState(0);
+
+  // Founder Matching
+  const [fmRole, setFmRole] = useState('co-founder');
+  const [fmSkills, setFmSkills] = useState('');
+  const [fmAvailability, setFmAvailability] = useState('part-time');
+  const [fmLocation, setFmLocation] = useState('remote');
+
+  // Community Challenges
+  const [challengeType, setChallengeType] = useState('build-in-public');
+  const [challengeGoal, setChallengeGoal] = useState('');
+  const [challengeDuration, setChallengeDuration] = useState('30');
+  const [challengeRewards, setChallengeRewards] = useState('');
+
+  // Accountability
+  const [accGoal, setAccGoal] = useState('');
+  const [accWeeklyTarget, setAccWeeklyTarget] = useState('');
+  const [accStatus, setAccStatus] = useState('in-progress');
 
   // Showcases Form State
   const [showcaseName, setShowcaseName]     = useState('');
@@ -477,6 +502,10 @@ export function StackSuitePage() {
                       { id: 'discussion', label: 'Discussion', Icon: MessageCircle },
                       { id: 'showcase', label: 'Showcase', Icon: Rocket },
                       { id: 'collaboration', label: 'Collaboration', Icon: GitBranch },
+                      { id: 'build-in-public', label: 'Build In Public', Icon: TrendingUp },
+                      { id: 'founder-matching', label: 'Founder Match', Icon: Users },
+                      { id: 'challenge', label: 'Challenge', Icon: Zap },
+                      { id: 'accountability', label: 'Goals', Icon: Briefcase },
                     ].map(({ id, label, Icon }) => (
                       <button
                         key={id}
@@ -605,6 +634,203 @@ export function StackSuitePage() {
                         <textarea id="collab-desc" className={styles.formTextarea} value={collabDesc}
                           onChange={e => setCollabDesc(e.target.value)}
                           placeholder="Summarize what your team accomplished or needs review on..." rows={4} />
+                      </div>
+                    </>
+                  )}
+
+                  {/* === BUILD IN PUBLIC FORM === */}
+                  {contentType === 'build-in-public' && (
+                    <>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="bip-title">Update Title</label>
+                        <input id="bip-title" type="text" className={styles.formInput} value={postTitle}
+                          onChange={e => setPostTitle(e.target.value)} placeholder="e.g. Week 4: Launched our beta!" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel}>Update Type</label>
+                        <div className={styles.categoryGrid}>
+                          {['weekly-update', 'milestone', 'revenue', 'growth', 'launch'].map(t => (
+                            <button key={t} onClick={() => setBipType(t)}
+                              className={`${styles.categoryChip} ${bipType === t ? styles.categoryChipActive : ''}`} type="button">
+                              {t.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="bip-body">What happened?</label>
+                        <textarea id="bip-body" className={styles.formTextarea} value={postBody}
+                          onChange={e => setPostBody(e.target.value)}
+                          placeholder="Share your progress, challenges, learnings..." rows={4} />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div>
+                          <label className={styles.formLabel}>Revenue ($)</label>
+                          <input type="text" className={styles.formInput} value={bipRevenue}
+                            onChange={e => setBipRevenue(e.target.value)} placeholder="e.g. 500" />
+                        </div>
+                        <div>
+                          <label className={styles.formLabel}>Users</label>
+                          <input type="text" className={styles.formInput} value={bipUsers}
+                            onChange={e => setBipUsers(e.target.value)} placeholder="e.g. 150" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel}>Progress %</label>
+                        <input type="range" min="0" max="100" value={bipProgress}
+                          onChange={e => setBipProgress(Number(e.target.value))}
+                          className={styles.slider} />
+                        <span style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>{bipProgress}%</span>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="bip-looking">Looking for feedback on?</label>
+                        <input id="bip-looking" type="text" className={styles.formInput} value={bipLookingFor}
+                          onChange={e => setBipLookingFor(e.target.value)} placeholder="Landing page, pricing, onboarding..." />
+                      </div>
+                    </>
+                  )}
+
+                  {/* === FOUNDER MATCHING FORM === */}
+                  {contentType === 'founder-matching' && (
+                    <>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="fm-title">Post Title</label>
+                        <input id="fm-title" type="text" className={styles.formInput} value={postTitle}
+                          onChange={e => setPostTitle(e.target.value)} placeholder="e.g. Looking for Technical Co-Founder" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel}>I am a...</label>
+                        <div className={styles.categoryGrid}>
+                          {['co-founder', 'developer', 'designer', 'marketer', 'product-manager'].map(r => (
+                            <button key={r} onClick={() => setFmRole(r)}
+                              className={`${styles.categoryChip} ${fmRole === r ? styles.categoryChipActive : ''}`} type="button">
+                              {r.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="fm-body">Description</label>
+                        <textarea id="fm-body" className={styles.formTextarea} value={postBody}
+                          onChange={e => setPostBody(e.target.value)}
+                          placeholder="Describe your startup idea, what stage you're at, and who you're looking for..." rows={4} />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="fm-skills">Skills You Bring <span className={styles.formLabelMuted}>(comma separated)</span></label>
+                        <input id="fm-skills" type="text" className={styles.formInput} value={fmSkills}
+                          onChange={e => setFmSkills(e.target.value)} placeholder="React, Python, UI Design, Growth" />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div>
+                          <label className={styles.formLabel}>Availability</label>
+                          <select className={styles.formInput} value={fmAvailability}
+                            onChange={e => setFmAvailability(e.target.value)}>
+                            <option value="full-time">Full Time</option>
+                            <option value="part-time">Part Time</option>
+                            <option value="weekends">Weekends</option>
+                            <option value="flexible">Flexible</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className={styles.formLabel}>Location</label>
+                          <select className={styles.formInput} value={fmLocation}
+                            onChange={e => setFmLocation(e.target.value)}>
+                            <option value="remote">Remote</option>
+                            <option value="hybrid">Hybrid</option>
+                            <option value="onsite">On-Site</option>
+                          </select>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* === COMMUNITY CHALLENGES FORM === */}
+                  {contentType === 'challenge' && (
+                    <>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="challenge-title">Challenge Name</label>
+                        <input id="challenge-title" type="text" className={styles.formInput} value={postTitle}
+                          onChange={e => setPostTitle(e.target.value)} placeholder="e.g. Build an MVP in 30 Days" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel}>Challenge Type</label>
+                        <div className={styles.categoryGrid}>
+                          {['build-in-public', 'saas', 'ai', 'landing-page', 'design', 'growth'].map(t => (
+                            <button key={t} onClick={() => setChallengeType(t)}
+                              className={`${styles.categoryChip} ${challengeType === t ? styles.categoryChipActive : ''}`} type="button">
+                              {t.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="challenge-goal">Goal / Objective</label>
+                        <textarea id="challenge-goal" className={styles.formTextarea} value={challengeGoal}
+                          onChange={e => setChallengeGoal(e.target.value)}
+                          placeholder="What should participants achieve?" rows={3} />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="challenge-body">Rules & Details</label>
+                        <textarea id="challenge-body" className={styles.formTextarea} value={postBody}
+                          onChange={e => setPostBody(e.target.value)}
+                          placeholder="Add start date, submission guidelines, judging criteria..." rows={3} />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div>
+                          <label className={styles.formLabel}>Duration (days)</label>
+                          <select className={styles.formInput} value={challengeDuration}
+                            onChange={e => setChallengeDuration(e.target.value)}>
+                            <option value="7">7 days</option>
+                            <option value="14">14 days</option>
+                            <option value="30">30 days</option>
+                            <option value="60">60 days</option>
+                            <option value="90">90 days</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className={styles.formLabel}>Rewards</label>
+                          <input type="text" className={styles.formInput} value={challengeRewards}
+                            onChange={e => setChallengeRewards(e.target.value)} placeholder="e.g. Featured on homepage" />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* === ACCOUNTABILITY TRACKING FORM === */}
+                  {contentType === 'accountability' && (
+                    <>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="acc-goal">Weekly Goal</label>
+                        <input id="acc-goal" type="text" className={styles.formInput} value={accGoal}
+                          onChange={e => setAccGoal(e.target.value)} placeholder="e.g. Ship landing page redesign" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="acc-target">Target / Deliverable</label>
+                        <textarea id="acc-target" className={styles.formTextarea} value={accWeeklyTarget}
+                          onChange={e => setAccWeeklyTarget(e.target.value)}
+                          placeholder="What do you commit to completing this week?" rows={3} />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel}>Status</label>
+                        <div className={styles.categoryGrid}>
+                          {[
+                            { id: 'in-progress', label: 'In Progress', color: '#3b82f6' },
+                            { id: 'completed', label: 'Completed', color: '#10b981' },
+                            { id: 'missed', label: 'Missed', color: '#ef4444' },
+                          ].map(s => (
+                            <button key={s.id} onClick={() => setAccStatus(s.id)}
+                              className={`${styles.categoryChip} ${accStatus === s.id ? styles.categoryChipActive : ''}`}
+                              type="button" style={accStatus === s.id ? { borderColor: s.color, color: s.color } : {}}>
+                              {s.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="acc-body">Notes / Reflection</label>
+                        <textarea id="acc-body" className={styles.formTextarea} value={postBody}
+                          onChange={e => setPostBody(e.target.value)}
+                          placeholder="What went well? What blockers did you face? Need encouragement?" rows={3} />
                       </div>
                     </>
                   )}

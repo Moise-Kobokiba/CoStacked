@@ -409,6 +409,38 @@ const deleteIdeaComment = async (req, res) => {
     }
 };
 
+// @desc    Edit a comment
+// @route   PUT /api/ideas/:id/comments/:commentId
+// @access  Private (Comment author)
+const editIdeaComment = async (req, res) => {
+    try {
+        const { content } = req.body;
+
+        if (!content || content.trim().length === 0) {
+            return res.status(400).json({ message: 'Comment content is required' });
+        }
+
+        const comment = await Comment.findById(req.params.commentId);
+
+        if (!comment) {
+            return res.status(404).json({ message: 'Comment not found' });
+        }
+
+        if (comment.author.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ message: 'Not authorized to edit this comment' });
+        }
+
+        comment.content = content.trim();
+        await comment.save();
+
+        await comment.populate('author', 'name avatarUrl');
+
+        res.status(200).json(comment);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
   getIdeas,
   getIdeaById,
@@ -419,5 +451,6 @@ module.exports = {
   deleteIdea,
   getIdeaComments,
   addIdeaComment,
-  deleteIdeaComment
+  deleteIdeaComment,
+  editIdeaComment
 };
