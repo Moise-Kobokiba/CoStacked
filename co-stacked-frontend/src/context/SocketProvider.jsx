@@ -126,6 +126,25 @@ export const SocketProvider = ({ children }) => {
       }
     });
 
+    // Saved items updates (user-specific)
+    socket.on('saved_items_updated', (payload) => {
+      // Refresh saved items list
+      queryClient.invalidateQueries(['savedItems']);
+
+      // Optionally refresh related item detail if provided
+      if (payload?.itemType && payload?.itemId) {
+        const keyMap = {
+          idea: ['ideaDetail', payload.itemId],
+          project: ['project', payload.itemId],
+          showcase: ['showcase', payload.itemId],
+          stackpost: ['stackPost', payload.itemId],
+          collab: ['thread', payload.itemId],
+        };
+        const key = keyMap[payload.itemType];
+        if (key) queryClient.invalidateQueries(key);
+      }
+    });
+
     socket.on('stacksuite_collab_created', (payload) => {
       queryClient.invalidateQueries(['collabThreads']);
     });

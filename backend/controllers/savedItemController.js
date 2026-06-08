@@ -7,6 +7,7 @@ const StackPost = require('../models/StackPost');
 const Showcase = require('../models/Showcase');
 const CollabThread = require('../models/CollabThread');
 const User = require('../models/User');
+const socketUtil = require('../utils/socket');
 
 const MODEL_MAP = {
   project: { model: Project, refModel: 'Project', populate: 'founderId name avatarUrl headline' },
@@ -118,6 +119,22 @@ const saveItem = async (req, res) => {
       itemRefModel: mapping.refModel,
     });
 
+    // Emit socket event so clients can refresh saved items in real-time
+    try {
+      const io = socketUtil.getIo();
+      if (io) {
+        io.to(req.user._id.toString()).emit('saved_items_updated', {
+          userId: req.user._id,
+          action: 'saved',
+          savedItem: savedItem,
+          itemType,
+          itemId,
+        });
+      }
+    } catch (e) {
+      console.error('Failed to emit saved_items_updated socket event:', e);
+    }
+
     res.status(201).json(savedItem);
   } catch (error) {
     console.error('Error saving item:', error);
@@ -143,6 +160,22 @@ const unsaveItem = async (req, res) => {
     }
 
     await savedItem.deleteOne();
+
+    // Emit socket event to notify clients
+    try {
+      const io = socketUtil.getIo();
+      if (io) {
+        io.to(req.user._id.toString()).emit('saved_items_updated', {
+          userId: req.user._id,
+          action: 'unsaved',
+          savedItemId: savedItem._id,
+          itemType: savedItem.itemType,
+          itemId: savedItem.itemId,
+        });
+      }
+    } catch (e) {
+      console.error('Failed to emit saved_items_updated socket event:', e);
+    }
 
     res.json({ message: 'Item removed from saved items' });
   } catch (error) {
@@ -171,6 +204,21 @@ const unsaveItemByType = async (req, res) => {
     }
 
     await savedItem.deleteOne();
+
+    try {
+      const io = socketUtil.getIo();
+      if (io) {
+        io.to(req.user._id.toString()).emit('saved_items_updated', {
+          userId: req.user._id,
+          action: 'unsaved',
+          savedItemId: savedItem._id,
+          itemType: savedItem.itemType,
+          itemId: savedItem.itemId,
+        });
+      }
+    } catch (e) {
+      console.error('Failed to emit saved_items_updated socket event:', e);
+    }
 
     res.json({ message: 'Item removed from saved items' });
   } catch (error) {
