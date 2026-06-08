@@ -847,6 +847,46 @@ const deleteComment = async (req, res) => {
   }
 };
 
+// PUT /api/stack-suite/comments/:id  (auth — author only)
+const updateComment = async (req, res) => {
+  try {
+    const comment = await StackComment.findById(req.params.id);
+    if (!comment || comment.isDeleted) return res.status(404).json({ message: 'Comment not found' });
+    if (comment.author.toString() !== req.user._id.toString())
+      return res.status(401).json({ message: 'Not authorized' });
+
+    const { content } = req.body;
+    if (!content || !content.trim()) return res.status(400).json({ message: 'Content is required' });
+
+    comment.content = content.trim();
+    await comment.save();
+    await comment.populate('author', 'name avatarUrl role');
+
+    const shaped = {
+      ...comment.toObject(),
+      upvoteCount: comment.upvotes.length,
+      likeCount: comment.likes.length,
+      time: timeAgo(comment.createdAt),
+      isUpvoted: req.user ? comment.upvotes.some(id => id.toString() === req.user._id.toString()) : false,
+      isLiked: req.user ? comment.likes.some(id => id.toString() === req.user._id.toString()) : false,
+      replies: []
+    };
+
+    // Emit update to room
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) {
+        io.to(`stacksuite:${comment.parentId}`).emit('stacksuite_comment_updated', { parentType: comment.parentType, parentId: comment.parentId, comment: shaped });
+      }
+    } catch (e) { console.error('Socket emit error (stacksuite comment update):', e); }
+
+    res.json(shaped);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 /**
  * @desc    Get all bookmarked items for the logged-in user
  * @route   GET /api/stack-suite/bookmarks
@@ -967,7 +1007,7 @@ module.exports = {
   getPosts, getPostById, createPost, upvotePost, downvotePost, deletePost,
   getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase, downvoteShowcase,
   getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread, upvoteCollab, downvoteCollab,
-  getComments, addComment, upvoteComment, likeComment, deleteComment,
+  getComments, addComment, upvoteComment, likeComment, deleteComment, updateComment,
   getBookmarks, getStats,
   followShowcase, unfollowShowcase, followCollab, unfollowCollab,
 };

@@ -9,6 +9,7 @@ const {
   getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase, downvoteShowcase, followShowcase, unfollowShowcase,
   getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread, upvoteCollab, downvoteCollab, followCollab, unfollowCollab,
   getComments, addComment, upvoteComment, likeComment, deleteComment,
+  updateComment,
   getBookmarks, getStats,
 } = require('../controllers/stackSuiteController');
 
@@ -91,6 +92,7 @@ router.route('/comments/:parentType/:parentId')
 
 router.put('/comments/:id/upvote', protect, upvoteComment);
 router.put('/comments/:id/like',   protect, likeComment);
+router.put('/comments/:id',        protect, updateComment);
 router.delete('/comments/:id',     protect, deleteComment);
 
 module.exports = router;

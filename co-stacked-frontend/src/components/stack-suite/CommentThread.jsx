@@ -1,9 +1,9 @@
 // src/components/stack-suite/CommentThread.jsx
 
 import { useState } from 'react';
-import { ArrowBigUp, Reply, Heart, Send, Loader2, Trash2 } from 'lucide-react';
+import { ArrowBigUp, Reply, Heart, Send, Loader2, Trash2, Edit2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { addStackComment, upvoteStackComment, likeStackComment, deleteStackComment } from '../../api/stackSuiteApi';
+import { addStackComment, upvoteStackComment, likeStackComment, deleteStackComment, updateStackComment } from '../../api/stackSuiteApi';
 import styles from './StackSuite.module.css';
 import { useSelector } from 'react-redux';
 
@@ -22,8 +22,11 @@ function SingleComment({ comment, depth = 0, onReplySubmit, parentType, parentId
   const [liked, setLiked]               = useState(comment.isLiked || false);
   const [upvoteCount, setUpvoteCount]   = useState(comment.upvotes?.length || comment.upvoteCount || 0);
   const [likeCount, setLikeCount]       = useState(comment.likes?.length || comment.likeCount || 0);
+  const [content, setContent]           = useState(comment.content || '');
   const [showReply, setShowReply]       = useState(false);
   const [replyText, setReplyText]       = useState('');
+  const [isEditing, setIsEditing]       = useState(false);
+  const [editText, setEditText]         = useState(comment.content || '');
 
   const handleUpvote = async () => {
     setUpvoteCount(c => upvoted ? c - 1 : c + 1);
@@ -71,6 +74,20 @@ function SingleComment({ comment, depth = 0, onReplySubmit, parentType, parentId
       deleteMutation.mutate(comment._id || comment.id);
     }
   };
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, text }) => updateStackComment(id, text),
+    onSuccess: (data) => {
+      // Refresh comment list and parent counts
+      queryClient.invalidateQueries(['stackComments', parentType, parentId]);
+      invalidateParent();
+      setContent(data.content || data.body || '');
+      setIsEditing(false);
+    },
+    onError: (err) => {
+      alert(`Failed to update comment: ${err.response?.data?.message || err.message}`);
+    }
+  });
   
   const authorName = comment.author?.name || comment.author || 'Unknown';
   const authorInitials = authorName.slice(0, 2).toUpperCase();
@@ -127,17 +144,47 @@ function SingleComment({ comment, depth = 0, onReplySubmit, parentType, parentId
                 <span>Reply</span>
               </button>
               {isAuthor && (
-                <button
-                  onClick={handleDelete}
-                  className={styles.commentActionBtn}
-                  style={{ color: 'var(--destructive)', marginLeft: 'auto' }}
-                  disabled={deleteMutation.isLoading}
-                >
-                  {deleteMutation.isLoading ? <Loader2 size={13} className={styles.spinner} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={13} />}
-                  <span>Delete</span>
-                </button>
+                <>
+                  <button
+                    onClick={() => { setIsEditing(true); setEditText(content); }}
+                    className={styles.commentActionBtn}
+                    title="Edit"
+                  >
+                    <Edit2 size={13} />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className={styles.commentActionBtn}
+                    style={{ color: 'var(--destructive)' }}
+                    disabled={deleteMutation.isLoading}
+                  >
+                    {deleteMutation.isLoading ? <Loader2 size={13} className={styles.spinner} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={13} />}
+                    <span>Delete</span>
+                  </button>
+                </>
               )}
             </div>
+
+            {isEditing && (
+              <div className={styles.replyForm}>
+                <div className={styles.replyInputWrap}>
+                  <textarea
+                    className={styles.replyTextarea}
+                    value={editText}
+                    onChange={e => setEditText(e.target.value)}
+                    rows={3}
+                    aria-label={`Edit comment by ${authorName}`}
+                  />
+                  <div className={styles.replyActions}>
+                    <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={() => { setIsEditing(false); setEditText(content); }}>Cancel</button>
+                    <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`} onClick={() => updateMutation.mutate({ id: comment._id || comment.id, text: editText })} disabled={!editText.trim() || updateMutation.isLoading}>
+                      {updateMutation.isLoading ? <Loader2 size={11} /> : <Send size={11} />} Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {showReply && (
               <div className={styles.replyForm}>

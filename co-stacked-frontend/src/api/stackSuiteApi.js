@@ -181,6 +181,11 @@ export const deleteStackComment = async (id) => {
   return res.data;
 };
 
+export const updateStackComment = async (id, content) => {
+  const res = await API.put(`/stack-suite/comments/${id}`, { content });
+  return res.data;
+};
+
 /* ═══════════════════════════════════════════════
    BOOKMARKS / SAVED ITEMS
    ═══════════════════════════════════════════════ */
