@@ -3,6 +3,44 @@ const Project = require('../models/Project');
 const Comment = require('../models/Comment');
 const Notification = require('../models/Notification'); // If you want to notify on votes
 const socketUtil = require('../utils/socket');
+const { VALIDATION } = require('../config/validation');
+
+// Helper: compute validation metadata for an idea doc
+const computeValidationMeta = (idea) => {
+    const upvoteCount = Array.isArray(idea.upvotes) ? idea.upvotes.length : (idea.upvoteCount || 0);
+    const downvoteCount = Array.isArray(idea.downvotes) ? idea.downvotes.length : 0;
+    const totalVotes = upvoteCount + downvoteCount;
+    const upvotePercentage = totalVotes > 0 ? Math.round((upvoteCount / totalVotes) * 100) : 0;
+    const downvotePercentage = totalVotes > 0 ? Math.round((downvoteCount / totalVotes) * 100) : 0;
+    const createdAt = idea.createdAt ? new Date(idea.createdAt) : new Date();
+    const daysOld = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Determine status per spec
+    let validationStatus = 'Validating';
+
+    if (daysOld >= VALIDATION.WEAK_VALIDATION_DAYS && downvotePercentage >= VALIDATION.WEAK_VALIDATION_DOWNVOTE_PERCENT) {
+        validationStatus = 'Unsuccessful';
+    } else if (upvoteCount >= VALIDATION.HIGHLY_VALIDATED_UPVOTE_THRESHOLD) {
+        validationStatus = 'Highly Validated';
+    } else if ((idea.validationScore || 0) >= 70) {
+        validationStatus = 'Promising';
+    } else {
+        validationStatus = 'Validating';
+    }
+
+    const canConvert = (idea.validationScore || 0) >= VALIDATION.MIN_CONVERSION_SCORE || upvoteCount >= VALIDATION.HIGHLY_VALIDATED_UPVOTE_THRESHOLD;
+
+    return {
+        upvoteCount,
+        downvoteCount,
+        totalVotes,
+        upvotePercentage,
+        downvotePercentage,
+        daysOld,
+        validationStatus,
+        canConvert,
+    };
+};
 
 // @desc    Get all ideas
 // @route   GET /api/ideas
@@ -50,9 +88,18 @@ const getIdeas = async (req, res) => {
         ideas = ideas.sort({ createdAt: -1 });
     }
 
-    const results = await ideas.exec();
+        let results = await ideas.exec();
+        // Augment results with computed validation metadata to keep frontend simple and consistent
+        results = results.map((idea) => {
+            try {
+                const meta = computeValidationMeta(idea);
+                return { ...idea.toObject(), ...meta };
+            } catch (e) {
+                return idea;
+            }
+        });
 
-    res.status(200).json(results);
+        res.status(200).json(results);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -70,8 +117,9 @@ const getIdeaById = async (req, res) => {
         }
         
         // Visibility check logic could go here (e.g. if private, check if req.user is connected)
-
-        res.status(200).json(idea);
+        // Augment idea with computed validation metadata so frontend doesn't re-implement rules
+        const meta = computeValidationMeta(idea);
+        res.status(200).json({ ...idea.toObject(), ...meta });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -266,10 +314,10 @@ const convertIdeaToProject = async (req, res) => {
         // Optional: Check threshold
         // if (idea.validationScore < 50) { return res.status(400).json({message: 'Not enough validation'}); }
 
-        const MIN_CONVERSION_SCORE = 60;
-        if (idea.validationScore < MIN_CONVERSION_SCORE) {
-          return res.status(400).json({ message: `Idea must reach a validation score of ${MIN_CONVERSION_SCORE} before conversion.` });
-        }
+                const MIN_CONVERSION_SCORE = VALIDATION.MIN_CONVERSION_SCORE || 60;
+                if (idea.validationScore < MIN_CONVERSION_SCORE) {
+                    return res.status(400).json({ message: `Idea must reach a validation score of ${MIN_CONVERSION_SCORE} before conversion.` });
+                }
 
         // Create Project
         const projectData = {

@@ -19,6 +19,11 @@ const createReview = async (req, res) => {
       return res.status(403).json({ message: 'Only founders can leave reviews.' });
     }
 
+    // Enforce that a written comment is required for endorsements/reviews
+    if (!comment || comment.trim().length === 0) {
+      return res.status(400).json({ message: 'Comment text is required for a review/endorsement.' });
+    }
+
     const connectionExists = await Interest.findOne({
       projectId,
       senderId: developerId,

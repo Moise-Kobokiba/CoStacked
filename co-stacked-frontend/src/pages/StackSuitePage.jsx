@@ -1,6 +1,6 @@
 // src/pages/StackSuitePage.jsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Search, Plus, MessageCircle, Rocket, GitBranch,
   ChevronDown, Sparkles, TrendingUp, Users, X, Send, Loader2,
@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { createStackPost, createShowcase, createCollabThread, getStackSuiteStats } from '../api/stackSuiteApi';
 import { DiscussionsTab }   from '../components/stack-suite/DiscussionsTab';
 import { ShowcasesTab }     from '../components/stack-suite/ShowcasesTab';
@@ -32,9 +32,11 @@ const TRENDING_TAGS = ['validation', 'saas', 'nextjs', 'react', 'startup', 'mvp'
 export function StackSuitePage() {
   const queryClient = useQueryClient();
   const navigate    = useNavigate();
+  const location    = useLocation();
   const { isAuthenticated } = useSelector(state => state.auth);
 
   const [search, setSearch]       = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filter, setFilter]       = useState('all');
   const [filterOpen, setFilterOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('discussions');
@@ -111,6 +113,21 @@ export function StackSuitePage() {
   };
 
   const filterLabel = filter === 'founder' ? 'Founders' : filter === 'developer' ? 'Developers' : 'All Roles';
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab && ['discussions', 'showcases', 'collaboration'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
 
   const closeCreate = () => {
     setCreateOpen(false);
@@ -472,9 +489,48 @@ export function StackSuitePage() {
               </div>
 
               <div role="tabpanel">
-                {activeTab === 'discussions'   && <DiscussionsTab search={search} tagFilter={tagFilter} onTagClick={handleTagClick} />}
-                {activeTab === 'showcases'     && <ShowcasesTab search={search} tagFilter={tagFilter} onTagClick={handleTagClick} />}
-                {activeTab === 'collaboration' && <CollaborationTab search={search} tagFilter={tagFilter} onTagClick={handleTagClick} />}
+                {activeTab === 'discussions' && (
+                  <DiscussionsTab
+                    search={debouncedSearch}
+                    tagFilter={tagFilter}
+                    roleFilter={filter}
+                    sortBy={sortBy}
+                    onTagClick={handleTagClick}
+                  />
+                )}
+                {activeTab === 'showcases' && (
+                  <ShowcasesTab
+                    search={debouncedSearch}
+                    tagFilter={tagFilter}
+                    roleFilter={filter}
+                    sortBy={sortBy}
+                    onTagClick={handleTagClick}
+                  />
+                )}
+                {activeTab === 'collaboration' && (
+                  <CollaborationTab
+                    search={debouncedSearch}
+                    tagFilter={tagFilter}
+                    roleFilter={filter}
+                    sortBy={sortBy}
+                    onTagClick={handleTagClick}
+                  />
+                )}
+                    tagFilter={tagFilter}
+                    roleFilter={filter}
+                    sortBy={sortBy}
+                    onTagClick={handleTagClick}
+                  />
+                )}
+                {activeTab === 'collaboration' && (
+                  <CollaborationTab
+                    search={search}
+                    tagFilter={tagFilter}
+                    roleFilter={filter}
+                    sortBy={sortBy}
+                    onTagClick={handleTagClick}
+                  />
+                )}
               </div>
             </div>
           </div>

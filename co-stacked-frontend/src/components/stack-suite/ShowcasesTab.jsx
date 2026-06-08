@@ -9,7 +9,7 @@ import {
   Loader2, Users, ArrowLeft, Star, Share2, Bookmark, Eye, Globe, Image,
   Edit2, Trash2
 } from 'lucide-react';
-import { getShowcases, upvoteShowcase, downvoteShowcase, deleteShowcase, followShowcase, unfollowShowcase } from '../../api/stackSuiteApi';
+import { getShowcases, getShowcaseById, upvoteShowcase, downvoteShowcase, deleteShowcase, followShowcase, unfollowShowcase } from '../../api/stackSuiteApi';
 import { useSocket } from '../../context/SocketProvider';
 import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
@@ -32,10 +32,7 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
 
   const { data: showcase, isLoading } = useQuery({
     queryKey: ['showcase', showcaseId],
-    queryFn: () => getShowcases({ id: showcaseId }).then(items => {
-      if (Array.isArray(items)) return items.find(i => i._id === showcaseId);
-      return items;
-    }),
+    queryFn: () => getShowcaseById(showcaseId),
   });
 
   const upvoteMutation = useMutation({
@@ -258,21 +255,29 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
 }
 
 /* ─── List View ─── */
-export function ShowcasesTab({ search, tagFilter, onTagClick }) {
+export function ShowcasesTab({ search, tagFilter, roleFilter, sortBy, onTagClick }) {
   const [selectedId, setSelectedId] = useState(null);
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
 
+  const sortParam = sortBy === 'Most Upvoted' || sortBy === 'Trending' ? 'popular' : undefined;
+
   const { data: showcases = [], isLoading } = useQuery({
-    queryKey: ['showcases', { search }],
-    queryFn: () => getShowcases({ search }),
+    queryKey: ['showcases', { search, sortBy, roleFilter }],
+    queryFn: () => getShowcases({ search, sort: sortParam }),
   });
 
-  const filtered = tagFilter
-    ? showcases.filter(s => s.techStack?.some(t => t.toLowerCase() === tagFilter.toLowerCase()) || s.looking?.some(l => l.toLowerCase() === tagFilter.toLowerCase()))
-    : showcases;
+  const filtered = showcases.filter(showcase => {
+    const matchesTag = tagFilter
+      ? showcase.techStack?.some(t => t.toLowerCase() === tagFilter.toLowerCase()) || showcase.looking?.some(l => l.toLowerCase() === tagFilter.toLowerCase())
+      : true;
+    const matchesRole = roleFilter && roleFilter !== 'all'
+      ? showcase.founder?.role?.toLowerCase() === roleFilter.toLowerCase() || showcase.author?.role?.toLowerCase() === roleFilter.toLowerCase()
+      : true;
+    return matchesTag && matchesRole;
+  });
 
   if (selectedId) {
     return <ShowcaseDetailView showcaseId={selectedId} onBack={() => setSelectedId(null)} />;

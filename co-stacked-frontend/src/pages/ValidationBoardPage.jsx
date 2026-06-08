@@ -147,7 +147,7 @@ export function ValidationBoardPage() {
                 const description = post.problemStatement || post.valueProposition || post.targetAudience || '';
                 const tags = post.tags?.length > 0 ? post.tags : post.industry ? [post.industry] : [];
                 const author = post.founder || post.author;
-                const upvoteCount = post.upvotes?.length ?? 0;
+                const upvoteCount = post.upvoteCount ?? post.upvotes?.length ?? 0;
                 const commentCount = post.engagementCount ?? post.commentCount ?? 0;
                 return (
                   <div 

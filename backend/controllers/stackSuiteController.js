@@ -258,9 +258,12 @@ const getShowcases = async (req, res) => {
       { description: { $regex: search, $options: 'i' } },
     ];
 
+    let sortOpt = { createdAt: -1 };
+    if (req.query.sort === 'popular') sortOpt = { upvotes: -1, createdAt: -1 };
+
     const showcases = await Showcase.find(query)
       .populate('founder', 'name avatarUrl role')
-      .sort({ createdAt: -1 })
+      .sort(sortOpt)
       .lean();
 
     const shaped = showcases.map(s => ({
@@ -498,9 +501,12 @@ const getCollabThreads = async (req, res) => {
       { description: { $regex: search, $options: 'i' } },
     ];
 
+    let sortOpt = { createdAt: -1 };
+    if (req.query.sort === 'popular') sortOpt = { upvotes: -1, createdAt: -1 };
+
     const threads = await CollabThread.find(query)
       .populate('author', 'name avatarUrl role')
-      .sort({ createdAt: -1 })
+      .sort(sortOpt)
       .lean();
 
     res.json(threads.map(t => ({ 

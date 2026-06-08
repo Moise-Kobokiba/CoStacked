@@ -10,7 +10,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { getCollabThreads, getStackComments, deleteCollabThread, upvoteCollabThread, downvoteCollabThread, followCollabThread, unfollowCollabThread } from '../../api/stackSuiteApi';
+import { getCollabThreads, getCollabThreadById, getStackComments, deleteCollabThread, upvoteCollabThread, downvoteCollabThread, followCollabThread, unfollowCollabThread } from '../../api/stackSuiteApi';
 import { useSocket } from '../../context/SocketProvider';
 import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
@@ -96,7 +96,7 @@ function ThreadDetail({ threadId, onBack }) {
 
   const { data: thread, isLoading } = useQuery({
     queryKey: ['thread', threadId],
-    queryFn: () => getCollabThreads().then(items => items.find(i => i._id === threadId)),
+    queryFn: () => getCollabThreadById(threadId),
   });
 
   // Join thread-specific room for realtime updates
@@ -346,21 +346,29 @@ function ThreadDetail({ threadId, onBack }) {
 }
 
 /* ─── Timeline / List View ─── */
-export function CollaborationTab({ search, tagFilter, onTagClick }) {
+export function CollaborationTab({ search, tagFilter, roleFilter, sortBy, onTagClick }) {
   const [selectedId, setSelectedId] = useState(null);
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
 
+  const sortParam = sortBy === 'Most Upvoted' || sortBy === 'Trending' ? 'popular' : undefined;
+
   const { data: threads = [], isLoading } = useQuery({
-    queryKey: ['threads', { search }],
-    queryFn: () => getCollabThreads({ search }),
+    queryKey: ['threads', { search, sortBy, roleFilter }],
+    queryFn: () => getCollabThreads({ search, sort: sortParam }),
   });
 
-  const filtered = tagFilter
-    ? threads.filter(t => t.tags?.some(tg => tg.toLowerCase() === tagFilter.toLowerCase()) || t.roles?.some(r => r.toLowerCase() === tagFilter.toLowerCase()))
-    : threads;
+  const filtered = threads.filter(thread => {
+    const matchesTag = tagFilter
+      ? thread.tags?.some(tg => tg.toLowerCase() === tagFilter.toLowerCase()) || thread.roles?.some(r => r.toLowerCase() === tagFilter.toLowerCase())
+      : true;
+    const matchesRole = roleFilter && roleFilter !== 'all'
+      ? thread.author?.role?.toLowerCase() === roleFilter.toLowerCase()
+      : true;
+    return matchesTag && matchesRole;
+  });
 
   if (selectedId) {
     return <ThreadDetail threadId={selectedId} onBack={() => setSelectedId(null)} />;

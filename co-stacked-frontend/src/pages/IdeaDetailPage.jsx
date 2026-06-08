@@ -103,15 +103,16 @@ export const IdeaDetailPage = () => {
   const isUpvoted = voteState.type === 'up';
   const isDownvoted = voteState.type === 'down';
 
-  const upvoteCount = idea?.upvotes?.length ?? 0;
-  const downvoteCount = idea?.downvotes?.length ?? 0;
-  const totalVotes = upvoteCount + downvoteCount;
-  const downvotePercentage = totalVotes > 0 ? (downvoteCount / totalVotes) * 100 : 0;
+  // Prefer backend-provided metadata when available; fall back to arrays if needed
+  const upvoteCount = idea?.upvoteCount ?? idea?.upvotes?.length ?? 0;
+  const downvoteCount = idea?.downvoteCount ?? idea?.downvotes?.length ?? 0;
+  const totalVotes = idea?.totalVotes ?? (upvoteCount + downvoteCount);
+  const downvotePercentage = idea?.downvotePercentage ?? (totalVotes > 0 ? (downvoteCount / totalVotes) * 100 : 0);
 
-  // Validation logic
+  // Use backend validationStatus / canConvert when provided
   const ideaAge = idea ? (new Date() - new Date(idea.createdAt)) / (1000 * 60 * 60 * 24) : 0;
-  const showValidationFailure = ideaAge >= 3 && downvotePercentage >= 50;
-  const showValidationSuccess = upvoteCount >= 80;
+  const showValidationFailure = (idea?.validationStatus === 'Unsuccessful') || (ideaAge >= 3 && downvotePercentage >= 50);
+  const showValidationSuccess = (idea?.validationStatus === 'Highly Validated') || (upvoteCount >= 80);
   const MIN_CONVERSION_SCORE = 60;
 
   const voteMutation = useMutation({
@@ -169,7 +170,7 @@ export const IdeaDetailPage = () => {
 
   const isIdeaOwner = idea?.founder?._id === user?._id;
   const hasConversionAccess = isIdeaOwner || user?.isAdmin;
-  const conversionEnabled = idea && idea.validationScore >= MIN_CONVERSION_SCORE && idea.status !== 'converted';
+  const conversionEnabled = idea && (idea.canConvert || idea.validationScore >= MIN_CONVERSION_SCORE) && idea.status !== 'converted';
 
   const handleConvertToProject = () => {
     if (!idea) return;
