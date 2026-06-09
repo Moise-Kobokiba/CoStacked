@@ -92,11 +92,16 @@ const sendRequest = async (req, res) => {
     
     await Connection.create({ requester: requesterId, recipient: recipientId });
 
-     await Notification.create({
+    const notif = await Notification.create({
       recipient: recipientId,
       sender: requesterId,
       type: 'NEW_CONNECTION_REQUEST',
     });
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) io.to(recipientId.toString()).emit('notification_created', notif);
+    } catch (e) { console.error('Socket emit error (connection request):', e); }
 
     res.status(201).json({ status: 'pending_sent' });
   } catch (error) { res.status(500).json({ message: 'Server Error' }); }
@@ -124,6 +129,11 @@ const acceptRequest = async (req, res) => {
       sender: recipientId,
       type: 'CONNECTION_ACCEPTED',
     });
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) io.to(requesterId.toString()).emit('notification_created', { recipient: requesterId, sender: recipientId, type: 'CONNECTION_ACCEPTED' });
+    } catch (e) { console.error('Socket emit error (connection accepted):', e); }
 
     res.json({ status: 'connected', user: connection.requester });
   } catch (error) { res.status(500).json({ message: 'Server Error' }); }

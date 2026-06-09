@@ -21,8 +21,12 @@ router.route('/myprojects').get(protect, getMyProjects); // GET /api/projects/my
 
 router
   .route('/:id')
-  // We'll add getProjectById later if needed
-  .put(protect, updateProject)    // PUT /api/projects/:id (updates a project)
-  .delete(protect, deleteProject); // DELETE /api/projects/:id (deletes a project)
+  .get(protect, async (req, res, next) => {
+    // lazy import controller to avoid circular require
+    const { getProjectById } = require('../controllers/projectController');
+    return getProjectById(req, res, next);
+  })
+  .put(protect, updateProject)
+  .delete(protect, deleteProject);
 
 module.exports = router;

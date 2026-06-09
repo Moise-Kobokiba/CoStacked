@@ -36,8 +36,6 @@ import {
   Quote, ThumbsUp
 } from "lucide-react";
 
-import { endorseUser } from "../api/usersApi";
-
 const LoadingSpinner = () => (
   <div className={styles.loader}>
     <Card className={styles.card}>Loading profile...</Card>
@@ -80,9 +78,6 @@ export const ProfilePage = () => {
   const [isImageViewerOpen, setImageViewerOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState("");
 
-  // Endorsement state
-  const [endorsementState, setEndorsementState] = useState({ count: 0, endorsed: false, loading: false });
-
   // State from Redux
   const { user: loggedInUser } = useSelector((state) => state.auth);
   const { items: allUsers, status: usersStatus, responseRates } = useSelector((state) => state.users);
@@ -93,19 +88,6 @@ export const ProfilePage = () => {
 
   const userToDisplay = userId ? allUsers.find((u) => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
-
-  // Initialize endorsement state when user data is available
-  useEffect(() => {
-    if (!userToDisplay) return;
-    const alreadyEndorsed = loggedInUser && userToDisplay.endorsedBy?.some(
-      (id) => id?.toString() === loggedInUser._id?.toString()
-    );
-    setEndorsementState({
-      count: userToDisplay.endorsementCount || 0,
-      endorsed: !!alreadyEndorsed,
-      loading: false,
-    });
-  }, [userToDisplay, loggedInUser]);
 
   // Connection status helpers
   const getConnectionStatus = () => {
@@ -118,6 +100,8 @@ export const ProfilePage = () => {
 
   const connectionStatus = getConnectionStatus();
   const isConnectionLoading = actionStatus === 'loading';
+
+  const { token, isAuthenticated } = useSelector((state) => state.auth || {});
 
   const handleShare = useCallback(async () => {
     if (!userToDisplay) return;
@@ -135,38 +119,13 @@ export const ProfilePage = () => {
     }
   }, [userToDisplay]);
 
-  const handleEndorse = useCallback(async () => {
+  const handleOpenEndorsement = useCallback(() => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
-    if (!userToDisplay?._id) return;
-
-    // Optimistic update
-    setEndorsementState((prev) => ({
-      count: prev.endorsed ? prev.count - 1 : prev.count + 1,
-      endorsed: !prev.endorsed,
-      loading: true,
-    }));
-
-    try {
-      const result = await endorseUser(userToDisplay._id);
-      // Sync with server response
-      setEndorsementState({
-        count: result.endorsementCount,
-        endorsed: result.endorsed,
-        loading: false,
-      });
-    } catch (err) {
-      // Rollback on error
-      setEndorsementState((prev) => ({
-        count: prev.endorsed ? prev.count - 1 : prev.count - 1,
-        endorsed: !prev.endorsed,
-        loading: false,
-      }));
-      console.error(err);
-    }
-  }, [userToDisplay, navigate]);
+    setReviewModalOpen(true);
+  }, [isAuthenticated, navigate]);
 
   // Connection handlers
   const connectionHandlers = {
@@ -178,8 +137,6 @@ export const ProfilePage = () => {
   };
 
   const handleMessage = () => userToDisplay?._id && navigate(`/messages/${userToDisplay._id}`);
-
-  const { token, isAuthenticated } = useSelector((state) => state.auth || {});
 
   // Data fetching
   useEffect(() => {
@@ -483,7 +440,7 @@ export const ProfilePage = () => {
                   <section className={styles.section}>
                     <div className={styles.statsRow}>
                       <div className={styles.statChip}>
-                        <span className={styles.statChipValue}>{endorsementState.count}</span>
+                        <span className={styles.statChipValue}>{developerReviews.length}</span>
                         <span className={styles.statChipLabel}>Endorsements</span>
                       </div>
                       <div className={styles.statChip}>
@@ -495,48 +452,60 @@ export const ProfilePage = () => {
 
                   <section className={styles.section}>
                     <div className={styles.sectionHeader}>
-                      <h2 className={styles.sectionTitle}>Endorsements</h2>
+                      <div>
+                        <h2 className={styles.sectionTitle}>Endorsements & Reviews</h2>
+                        <p className={styles.sectionSubtitle}>Verified feedback from founders who have worked with this developer.</p>
+                      </div>
                       <div className={styles.endorsementActions}>
-                        {!isOwnProfile && isAuthenticated && (
-                          <button
-                            className={`${styles.endorseButton} ${endorsementState.endorsed ? styles.endorseButtonActive : ''}`}
-                            onClick={handleEndorse}
-                            disabled={endorsementState.loading}
-                          >
+                        {!isOwnProfile && isAuthenticated && canLeaveReview && (
+                          <button className={styles.endorseButton} onClick={handleOpenEndorsement}>
                             <ThumbsUp size={16} />
-                            <span>{endorsementState.endorsed ? 'Endorsed' : 'Endorse'}</span>
-                            {endorsementState.count > 0 && (
-                              <span className={styles.endorseCount}>{endorsementState.count}</span>
-                            )}
+                            <span>Leave Endorsement</span>
+                            <span className={styles.endorseCount}>{developerReviews.length}</span>
                           </button>
                         )}
-                        {isOwnProfile && endorsementState.count > 0 && (
-                          <span className={styles.endorseCountLabel}>{endorsementState.count} endorsements</span>
+                        {isOwnProfile && (
+                          <span className={styles.endorseCountLabel}>{developerReviews.length} endorsements</span>
                         )}
                       </div>
                     </div>
-                    <div className={styles.endorsementsGrid}>
-                      {developerReviews.length > 0 ? developerReviews.map(review => (
-                        <div key={review._id} className={styles.endorsementCard}>
-                          <Quote className={styles.quoteIcon} size={32} />
-                          <p className={styles.endorsementText}>"{review.comment}"</p>
-                          <div className={styles.endorserInfo}>
-                             <div className={styles.endorserAvatar}>
-                                <img src={review.reviewerId?.avatarUrl || "https://ui-avatars.com/api/?name=" + review.reviewerId?.name} alt={review.reviewerId?.name} />
-                             </div>
-                             <div>
-                                <p className={styles.endorserName}>{review.reviewerId?.name}</p>
-                                <p className={styles.endorserRole}>{review.reviewerId?.role || 'Co-founder'}</p>
-                             </div>
+
+                    {developerReviews.length > 0 ? (
+                      <div className={styles.endorsementsGrid}>
+                        {developerReviews.map((review) => (
+                          <div key={review._id} className={styles.endorsementCard}>
+                            <div className={styles.endorsementHeader}>
+                              <div className={styles.endorserAvatar}>
+                                <img
+                                  src={review.founderId?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.founderId?.name || 'Founder')}`}
+                                  alt={review.founderId?.name || 'Founder'}
+                                />
+                              </div>
+                              <div className={styles.endorsementMeta}>
+                                <p className={styles.endorserName}>{review.founderId?.name}</p>
+                                <p className={styles.endorserRole}>Founder · {review.projectId?.title}</p>
+                                <p className={styles.endorsementDate}>{new Date(review.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                              </div>
+                            </div>
+                            <p className={styles.endorsementText}>&ldquo;{review.comment}&rdquo;</p>
+                            <div className={styles.reviewRating}>
+                              {Array.from({ length: 5 }).map((_, index) => (
+                                <span key={index} className={index < review.rating ? styles.starFilled : styles.starEmpty}>★</span>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )) : (
-                        <div className={styles.emptyStateContainer} style={{ gridColumn: '1 / -1' }}>
-                          <p className={styles.emptyStateText}>No endorsements received yet.</p>
-                          {isOwnProfile && <button className={styles.emptyStateBtn} onClick={() => setCopySuccess("Ask for Endorsement copied!")}>Request Endorsement</button>}
-                        </div>
-                      )}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={styles.emptyStateContainer} style={{ gridColumn: '1 / -1' }}>
+                        <p className={styles.emptyStateText}>No endorsements received yet.</p>
+                        {isOwnProfile ? (
+                          <button className={styles.emptyStateBtn} onClick={() => setCopySuccess('Ask for Endorsement copied!')}>Request an endorsement</button>
+                        ) : (
+                          <p className={styles.emptyStateText}>Work with this developer on an approved project to leave the first endorsement.</p>
+                        )}
+                      </div>
+                    )}
                   </section>
                 </main>
               </div>

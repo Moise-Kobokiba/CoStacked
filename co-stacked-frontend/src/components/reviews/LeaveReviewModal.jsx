@@ -21,11 +21,13 @@ export const LeaveReviewModal = ({ open, onClose, developer, reviewableProjects 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [projectId, setProjectId] = useState('');
+  const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
     if (open) {
       setRating(0);
       setComment('');
+      setValidationError('');
       // Set the default selected project to the first one in the list
       if (reviewableProjects.length > 0) {
         setProjectId(reviewableProjects[0]?.projectId?._id || '');
@@ -35,11 +37,12 @@ export const LeaveReviewModal = ({ open, onClose, developer, reviewableProjects 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (rating === 0 || !projectId) {
-        alert("Please select a project and provide a star rating.");
-        return;
+    if (rating === 0 || !projectId || !comment.trim()) {
+      setValidationError('Please select a project, choose a star rating, and write your review.');
+      return;
     }
-    const reviewData = { rating, comment, developerId: developer._id, projectId };
+    setValidationError('');
+    const reviewData = { rating, comment: comment.trim(), developerId: developer._id, projectId };
     const resultAction = await dispatch(createReview(reviewData));
     if (createReview.fulfilled.match(resultAction)) {
       setTimeout(() => onClose(), 1500); // Close modal on success
@@ -76,7 +79,9 @@ export const LeaveReviewModal = ({ open, onClose, developer, reviewableProjects 
             <Textarea id="comment" value={comment} onChange={(e) => setComment(e.target.value)} rows={4} required />
           </div>
 
-          {createStatus === 'failed' && <p className={styles.error}>{error}</p>}
+          {(validationError || createStatus === 'failed') && (
+            <p className={styles.error}>{validationError || error}</p>
+          )}
           
           <footer className={styles.footer}>
             <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>

@@ -1,10 +1,10 @@
 // src/components/stack-suite/DiscussionDetail.jsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Eye, Pin, Loader2, ArrowBigUp, MessageSquare, Bookmark, Share2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSelector, useDispatch } from 'react-redux';
-import { getStackPostById, getStackPosts, upvoteStackPost, deleteStackPost, getStackComments } from '../../api/stackSuiteApi';
+import { getStackPostById, getStackPosts, upvoteStackPost, deleteStackPost, getStackComments, followStackPost, unfollowStackPost } from '../../api/stackSuiteApi';
 import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
 import { ConnectionButton } from '../profile/ConnectionButton';
@@ -15,6 +15,7 @@ import {
 } from '../../features/connections/connectionsSlice';
 import styles from './StackSuite.module.css';
 import { Globe, Rocket, ExternalLink } from 'lucide-react';
+import { useSocket } from '../../context/SocketProvider';
 
 const categoryBadgeClass = {
   Validation: styles.badgeValidation,
@@ -61,6 +62,15 @@ export function DiscussionDetail({ discussionId, onBack }) {
         upvoteCount: res.upvoteCount,
         isUpvoted: res.isUpvoted
       }));
+      queryClient.invalidateQueries(['stackPosts']);
+    }
+  });
+
+  const followMutation = useMutation({
+    mutationFn: ({ id, follow }) => follow ? followStackPost(id) : unfollowStackPost(id),
+    onSuccess: (res, vars) => {
+      const id = vars.id;
+      queryClient.setQueryData(['stackPost', id], prev => ({ ...prev, followerCount: res.followerCount, isFollowing: (!!vars.follow) }));
       queryClient.invalidateQueries(['stackPosts']);
     }
   });
@@ -148,6 +158,27 @@ export function DiscussionDetail({ discussionId, onBack }) {
 
   const initials = discussion.author?.name ? discussion.author.name.slice(0, 2).toUpperCase() : 'U';
   const isAuthor = currentUser && (currentUser._id === (discussion.author?._id || discussion.author) || currentUser.id === (discussion.author?._id || discussion.author));
+
+  // Join post-specific socket room for real-time updates
+  const socket = useSocket();
+  useEffect(() => {
+    if (!socket || !discussionId) return;
+
+    const handleCommentAdded = (payload) => {
+      if (payload?.parentType === 'post' && payload?.parentId === discussionId) {
+        queryClient.invalidateQueries(['stackComments', 'post', discussionId]);
+        queryClient.invalidateQueries(['stackPost', discussionId]);
+      }
+    };
+
+    try { socket.emit('joinRoom', `stacksuite:${discussionId}`); } catch (e) {}
+    socket.on('stacksuite_comment_added', handleCommentAdded);
+
+    return () => {
+      try { socket.emit('leaveRoom', `stacksuite:${discussionId}`); } catch (e) {}
+      socket.off('stacksuite_comment_added', handleCommentAdded);
+    };
+  }, [socket, discussionId, queryClient]);
 
   return (
     <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
@@ -279,6 +310,13 @@ export function DiscussionDetail({ discussionId, onBack }) {
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button
+              onClick={() => followMutation.mutate({ id: discussion._id, follow: !discussion.isFollowing })}
+              className={styles.iconBtn}
+              style={{ color: discussion.isFollowing ? 'var(--primary-color)' : 'var(--muted-foreground)', fontWeight: 700 }}
+            >
+              {discussion.isFollowing ? 'Following' : 'Follow'} • {discussion.followerCount || 0}
+            </button>
             <button
               onClick={() => dispatch(toggleBookmark({ itemId: discussionId, itemType: 'post' }))}
               className={styles.iconBtn}

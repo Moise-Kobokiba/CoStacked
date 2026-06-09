@@ -40,7 +40,7 @@ const stageOptions = [
  * - If a `projectId` is passed, it operates in "edit" mode.
  * - Otherwise, it operates in "create" mode.
  */
-export const ProjectForm = ({ projectId }) => {
+export const ProjectForm = ({ projectId, initialProject = null }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -57,6 +57,20 @@ export const ProjectForm = ({ projectId }) => {
   const [formData, setFormData] = useState({
     title: '', description: '', skills: '', compensation: '', stage: 'Concept', location: ''
   });
+
+  // Prefill form with passed in draft project details for a conversion flow.
+  useEffect(() => {
+    if (!isEditMode && initialProject) {
+      setFormData({
+        title: initialProject.title || '',
+        description: initialProject.description || '',
+        skills: initialProject.skills || '',
+        compensation: initialProject.compensation || '',
+        stage: initialProject.stage || 'Concept',
+        location: initialProject.location || '',
+      });
+    }
+  }, [initialProject, isEditMode]);
 
   // This effect pre-populates the form with the project's data when in edit mode.
   useEffect(() => {
@@ -161,4 +175,12 @@ export const ProjectForm = ({ projectId }) => {
 // Add PropTypes for our new optional prop
 ProjectForm.propTypes = {
   projectId: PropTypes.string,
+  initialProject: PropTypes.shape({
+    title: PropTypes.string,
+    description: PropTypes.string,
+    skills: PropTypes.string,
+    compensation: PropTypes.string,
+    stage: PropTypes.string,
+    location: PropTypes.string,
+  }),
 };

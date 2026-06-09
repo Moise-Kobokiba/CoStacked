@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { createStackPost } from '../api/stackSuiteApi';
+import { createIdea } from '../api/ideasApi';
 import { Rocket, Info, AlertCircle, Loader2, Target, Lightbulb, BarChart3, Tag } from 'lucide-react';
 import styles from './ValidationBoard.module.css';
 
@@ -37,14 +37,12 @@ export const CreateIdeaPage = () => {
         try {
             const payload = {
                 title: formData.title,
-                body: formData.body,
-                category: 'Validation',
-                boardType: 'validation-board',
+                problemStatement: formData.body,
                 tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
-                phase: formData.phase,
-                confidenceScore: formData.confidenceScore,
+                stage: formData.phase,
+                validationScore: formData.confidenceScore,
             };
-            await createStackPost(payload);
+            await createIdea(payload);
             navigate('/validation-board');
         } catch (err) {
             console.error(err);

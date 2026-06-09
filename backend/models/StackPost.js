@@ -24,10 +24,10 @@ const stackPostSchema = mongoose.Schema(
       enum: ['Validation', 'Tech', 'Equity', 'Growth', 'Legal', 'General'],
       default: 'General',
     },
-    boardType: {
+    contentType: {
       type: String,
-      enum: ['stack-suite', 'validation-board'],
-      default: 'stack-suite',
+      enum: ['discussion', 'showcase', 'collaboration', 'build-in-public', 'founder-matching', 'challenge', 'accountability'],
+      default: 'discussion',
     },
     /**
      * Content type — determines the post's purpose within StackSuite.
@@ -59,6 +59,7 @@ const stackPostSchema = mongoose.Schema(
     },
     upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     downvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     pinned: {
       type: Boolean,
       default: false,

@@ -1,6 +1,6 @@
 // src/components/stack-suite/CollaborationTab.jsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   MessageSquare, Paperclip, CheckCircle2, Clock, AlertCircle,
   ArrowLeft, GitBranch, CalendarDays, Rocket, Loader2, Edit2, Trash2,
@@ -10,7 +10,8 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { getCollabThreads, getStackComments, deleteCollabThread, upvoteCollabThread, downvoteCollabThread } from '../../api/stackSuiteApi';
+import { getCollabThreads, getCollabThreadById, getStackComments, deleteCollabThread, upvoteCollabThread, downvoteCollabThread, followCollabThread, unfollowCollabThread } from '../../api/stackSuiteApi';
+import { useSocket } from '../../context/SocketProvider';
 import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
 import { EditCollabModal } from './EditCollabModal';
@@ -95,8 +96,29 @@ function ThreadDetail({ threadId, onBack }) {
 
   const { data: thread, isLoading } = useQuery({
     queryKey: ['thread', threadId],
-    queryFn: () => getCollabThreads().then(items => items.find(i => i._id === threadId)),
+    queryFn: () => getCollabThreadById(threadId),
   });
+
+  // Join thread-specific room for realtime updates
+  const socket = useSocket();
+  useEffect(() => {
+    if (!socket || !threadId) return;
+
+    const handleCommentAdded = (payload) => {
+      if (payload?.parentType === 'collabThread' && payload?.parentId === threadId) {
+        queryClient.invalidateQueries(['stackComments', 'collabThread', threadId]);
+        queryClient.invalidateQueries(['thread', threadId]);
+      }
+    };
+
+    try { socket.emit('joinRoom', `stacksuite:collab:${threadId}`); } catch (e) {}
+    socket.on('stacksuite_comment_added', handleCommentAdded);
+
+    return () => {
+      try { socket.emit('leaveRoom', `stacksuite:collab:${threadId}`); } catch (e) {}
+      socket.off('stacksuite_comment_added', handleCommentAdded);
+    };
+  }, [socket, threadId, queryClient]);
 
   const { data: comments = [], isLoading: commentsLoading } = useQuery({
     queryKey: ['stackComments', 'collabThread', threadId],
@@ -123,6 +145,15 @@ function ThreadDetail({ threadId, onBack }) {
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteCollabThread(id),
     onSuccess: () => { queryClient.invalidateQueries(['threads']); onBack(); }
+  });
+
+  const followMutation = useMutation({
+    mutationFn: ({ id, follow }) => follow ? followCollabThread(id) : unfollowCollabThread(id),
+    onSuccess: (res, vars) => {
+      const id = vars.id;
+      queryClient.setQueryData(['thread', id], prev => ({ ...prev, followerCount: res.followerCount, isFollowing: (!!vars.follow) }));
+      queryClient.invalidateQueries(['threads']);
+    }
   });
 
   if (isLoading || !thread) {
@@ -276,6 +307,13 @@ function ThreadDetail({ threadId, onBack }) {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              onClick={() => followMutation.mutate({ id: threadId, follow: !thread.isFollowing })}
+              className={styles.iconBtn}
+              style={{ color: thread.isFollowing ? 'var(--primary-color)' : 'var(--muted-foreground)', fontWeight: 700 }}
+            >
+              {thread.isFollowing ? `Following • ${thread.followerCount || 0}` : `Follow • ${thread.followerCount || 0}`}
+            </button>
             <button onClick={() => dispatch(toggleBookmark({ itemId: threadId, itemType: 'collabThread' }))}
               className={styles.iconBtn}
               style={{ color: isBookmarked ? 'var(--star-color)' : 'var(--muted-foreground)' }}>
@@ -321,21 +359,29 @@ function ThreadDetail({ threadId, onBack }) {
 }
 
 /* ─── Timeline / List View ─── */
-export function CollaborationTab({ search, tagFilter, onTagClick }) {
+export function CollaborationTab({ search, tagFilter, roleFilter, sortBy, onTagClick }) {
   const [selectedId, setSelectedId] = useState(null);
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
 
+  const sortParam = sortBy === 'Most Upvoted' || sortBy === 'Trending' ? 'popular' : undefined;
+
   const { data: threads = [], isLoading } = useQuery({
-    queryKey: ['threads', { search }],
-    queryFn: () => getCollabThreads({ search }),
+    queryKey: ['threads', { search, sortBy, roleFilter }],
+    queryFn: () => getCollabThreads({ search, sort: sortParam }),
   });
 
-  const filtered = tagFilter
-    ? threads.filter(t => t.tags?.some(tg => tg.toLowerCase() === tagFilter.toLowerCase()) || t.roles?.some(r => r.toLowerCase() === tagFilter.toLowerCase()))
-    : threads;
+  const filtered = threads.filter(thread => {
+    const matchesTag = tagFilter
+      ? thread.tags?.some(tg => tg.toLowerCase() === tagFilter.toLowerCase()) || thread.roles?.some(r => r.toLowerCase() === tagFilter.toLowerCase())
+      : true;
+    const matchesRole = roleFilter && roleFilter !== 'all'
+      ? thread.author?.role?.toLowerCase() === roleFilter.toLowerCase()
+      : true;
+    return matchesTag && matchesRole;
+  });
 
   if (selectedId) {
     return <ThreadDetail threadId={selectedId} onBack={() => setSelectedId(null)} />;
@@ -489,11 +535,18 @@ export function CollaborationTab({ search, tagFilter, onTagClick }) {
                   <MessageSquare size={14} />
                   <span style={{ fontSize: 12, fontWeight: 500 }}>{thread.commentCount || 0}</span>
                 </div>
-                <button onClick={e => { e.stopPropagation(); }}
-                  className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`}
-                  style={{ fontSize: 11 }}>
-                  <UserPlus size={12} /> Apply
-                </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={e => { e.stopPropagation(); followMutation.mutate({ id: thread._id, follow: !thread.isFollowing }); }}
+                    className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`}
+                    style={{ fontSize: 11 }}>
+                    {thread.isFollowing ? `Following • ${thread.followerCount || 0}` : `Follow • ${thread.followerCount || 0}`}
+                  </button>
+                  <button onClick={e => { e.stopPropagation(); }}
+                    className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`}
+                    style={{ fontSize: 11 }}>
+                    <UserPlus size={12} /> Apply
+                  </button>
+                </div>
               </div>
             </div>
           </article>

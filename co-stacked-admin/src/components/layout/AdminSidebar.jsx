@@ -16,6 +16,7 @@ const adminNavItems = [
   { title: "Project Management", href: "/projects", icon: Briefcase },
   { title: "Articles", href: "/articles", icon: BookOpen },
   { title: "Validation Board", href: "/validation", icon: Lightbulb },
+  { title: "Validation Tips", href: "/validation-tips", icon: Lightbulb },
   { title: "Content Moderation", href: "/reports", icon: Flag },
   { title: "Settings", href: "/settings", icon: Settings },
 ];

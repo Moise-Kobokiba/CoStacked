@@ -59,6 +59,22 @@ const ideaSchema = mongoose.Schema(
         type: Number,
         default: 0
     },
+    viewCount: {
+      type: Number,
+      default: 0,
+    },
+    shareCount: {
+      type: Number,
+      default: 0,
+    },
+    saveCount: {
+      type: Number,
+      default: 0,
+    },
+    commentCount: {
+      type: Number,
+      default: 0,
+    },
     // Simple way to track "validation score" - could be weighted later
     validationScore: {
       type: Number,
@@ -71,6 +87,10 @@ const ideaSchema = mongoose.Schema(
     // --- Tags ---
     industry: {
       type: String,
+    },
+    tags: {
+      type: [String],
+      default: [],
     },
     stage: {
       type: String, // e.g., 'Concept', 'Problem-Fit'

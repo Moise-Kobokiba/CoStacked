@@ -5,11 +5,11 @@ const router  = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 
 const {
-  getPosts, getPostById, createPost, updatePost, upvotePost, downvotePost, deletePost,
-  toggleFollowPost, toggleJoinChallenge, updateChallengeProgress, toggleEncourageAccountability,
-  getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase, downvoteShowcase,
-  getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread, upvoteCollab, downvoteCollab,
-  getComments, addComment, editComment, upvoteComment, likeComment, deleteComment,
+  getPosts, getPostById, createPost, upvotePost, downvotePost, deletePost,
+  getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase, downvoteShowcase, followShowcase, unfollowShowcase,
+  getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread, upvoteCollab, downvoteCollab, followCollab, unfollowCollab,
+  getComments, addComment, upvoteComment, likeComment, deleteComment,
+  updateComment,
   getBookmarks, getStats,
 } = require('../controllers/stackSuiteController');
 
@@ -49,10 +49,8 @@ router.route('/posts/:id')
 
 router.put('/posts/:id/upvote', protect, upvotePost);
 router.put('/posts/:id/downvote', protect, downvotePost);
-router.put('/posts/:id/follow', protect, toggleFollowPost);
-router.put('/posts/:id/join', protect, toggleJoinChallenge);
-router.put('/posts/:id/progress', protect, updateChallengeProgress);
-router.put('/posts/:id/encourage', protect, toggleEncourageAccountability);
+router.put('/posts/:id/follow', protect, followPost);
+router.put('/posts/:id/unfollow', protect, unfollowPost);
 
 /* ─── Showcases ─── */
 router.route('/showcases')
@@ -66,6 +64,8 @@ router.route('/showcases/:id')
 
 router.put('/showcases/:id/upvote', protect, upvoteShowcase);
 router.put('/showcases/:id/downvote', protect, downvoteShowcase);
+router.put('/showcases/:id/follow', protect, followShowcase);
+router.put('/showcases/:id/unfollow', protect, unfollowShowcase);
 
 /* ─── Collab Threads ─── */
 router.route('/collab')
@@ -79,6 +79,8 @@ router.route('/collab/:id')
 
 router.put('/collab/:id/upvote', protect, upvoteCollab);
 router.put('/collab/:id/downvote', protect, downvoteCollab);
+router.put('/collab/:id/follow', protect, followCollab);
+router.put('/collab/:id/unfollow', protect, unfollowCollab);
 
 /* ─── Comments (shared across all content types) ─── */
 router.route('/comments/:parentType/:parentId')
@@ -88,6 +90,7 @@ router.route('/comments/:parentType/:parentId')
 router.put('/comments/:id', protect, editComment);
 router.put('/comments/:id/upvote', protect, upvoteComment);
 router.put('/comments/:id/like',   protect, likeComment);
+router.put('/comments/:id',        protect, updateComment);
 router.delete('/comments/:id',     protect, deleteComment);
 
 module.exports = router;

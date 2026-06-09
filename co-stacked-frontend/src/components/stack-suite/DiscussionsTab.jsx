@@ -8,7 +8,7 @@ import {
   MessageCircle, Eye, ChevronUp, ChevronDown, Loader2,
   MessageSquare, Bookmark, Share2, ArrowLeft, Edit2, Trash2
 } from 'lucide-react';
-import { getStackPosts, upvoteStackPost, downvoteStackPost, deleteStackPost } from '../../api/stackSuiteApi';
+import { getStackPosts, getStackPostById, upvoteStackPost, downvoteStackPost, deleteStackPost } from '../../api/stackSuiteApi';
 import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
 import styles from './StackSuite.module.css';
@@ -32,10 +32,7 @@ function DiscussionDetailView({ postId, onBack }) {
 
   const { data: post, isLoading } = useQuery({
     queryKey: ['stackPost', postId],
-    queryFn: () => getStackPosts({ id: postId }).then(items => {
-      if (Array.isArray(items)) return items.find(i => i._id === postId);
-      return items;
-    }),
+    queryFn: () => getStackPostById(postId),
   });
 
   const upvoteMutation = useMutation({
@@ -195,22 +192,33 @@ function DiscussionDetailView({ postId, onBack }) {
 }
 
 /* ─── List View ─── */
-export function DiscussionsTab({ search, tagFilter, onTagClick }) {
+export function DiscussionsTab({ search, tagFilter, roleFilter, sortBy, onTagClick }) {
   const [selectedId, setSelectedId] = useState(null);
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
 
+  const getSortParam = () => {
+    if (sortBy === 'Most Upvoted') return 'popular';
+    if (sortBy === 'Trending') return 'popular';
+    return undefined;
+  };
+
   const { data: posts = [], isLoading } = useQuery({
-    queryKey: ['stackPosts', { search }],
-    queryFn: () => getStackPosts({ search }),
+    queryKey: ['stackPosts', { search, sortBy, roleFilter }],
+    queryFn: () => getStackPosts({ search, sort: getSortParam() }),
   });
 
-  // Client-side tag filtering
-  const filtered = tagFilter
-    ? posts.filter(p => p.tags?.some(t => t.toLowerCase() === tagFilter.toLowerCase()))
-    : posts;
+  const filtered = posts.filter(post => {
+    const matchesTag = tagFilter
+      ? post.tags?.some(t => t.toLowerCase() === tagFilter.toLowerCase())
+      : true;
+    const matchesRole = roleFilter && roleFilter !== 'all'
+      ? post.author?.role?.toLowerCase() === roleFilter.toLowerCase()
+      : true;
+    return matchesTag && matchesRole;
+  });
 
   if (selectedId) {
     return <DiscussionDetailView postId={selectedId} onBack={() => setSelectedId(null)} />;

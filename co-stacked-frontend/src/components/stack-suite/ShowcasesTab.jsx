@@ -1,6 +1,6 @@
 // src/components/stack-suite/ShowcasesTab.jsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +9,8 @@ import {
   Loader2, Users, ArrowLeft, Star, Share2, Bookmark, Eye, Globe, Image,
   Edit2, Trash2
 } from 'lucide-react';
-import { getShowcases, upvoteShowcase, downvoteShowcase, deleteShowcase } from '../../api/stackSuiteApi';
+import { getShowcases, getShowcaseById, upvoteShowcase, downvoteShowcase, deleteShowcase, followShowcase, unfollowShowcase } from '../../api/stackSuiteApi';
+import { useSocket } from '../../context/SocketProvider';
 import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
 import styles from './StackSuite.module.css';
@@ -31,10 +32,13 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
 
   const { data: showcase, isLoading } = useQuery({
     queryKey: ['showcase', showcaseId],
-    queryFn: () => getShowcases({ id: showcaseId }).then(items => {
-      if (Array.isArray(items)) return items.find(i => i._id === showcaseId);
-      return items;
-    }),
+    queryFn: () => getShowcaseById(showcaseId),
+  });
+
+  const { data: comments = [], isLoading: commentsLoading } = useQuery({
+    queryKey: ['stackComments', 'showcase', showcaseId],
+    queryFn: () => getStackComments('showcase', showcaseId),
+    enabled: !!showcaseId,
   });
 
   const upvoteMutation = useMutation({
@@ -58,6 +62,15 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
     onSuccess: () => { queryClient.invalidateQueries(['showcases']); onBack(); }
   });
 
+  const followMutation = useMutation({
+    mutationFn: ({ id, follow }) => follow ? followShowcase(id) : unfollowShowcase(id),
+    onSuccess: (res, vars) => {
+      const id = vars.id;
+      queryClient.setQueryData(['showcase', id], prev => ({ ...prev, followerCount: res.followerCount, isFollowing: (!!vars.follow) }));
+      queryClient.invalidateQueries(['showcases']);
+    }
+  });
+
   if (isLoading || !showcase) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0', color: 'var(--muted-foreground)' }}>
@@ -71,6 +84,27 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
   const isAuthorized = isOwner || isFounder;
   const isBookmarked = user?.bookmarks?.some(b => b.itemId === showcaseId && b.itemType === 'showcase');
   const netScore = (showcase.upvoteCount || 0) - (showcase.downvoteCount || 0);
+
+  // Join showcase room for live updates
+  const socket = useSocket();
+  useEffect(() => {
+    if (!socket || !showcaseId) return;
+
+    const handleCommentAdded = (payload) => {
+      if (payload?.parentType === 'showcase' && payload?.parentId === showcaseId) {
+        queryClient.invalidateQueries(['stackComments', 'showcase', showcaseId]);
+        queryClient.invalidateQueries(['showcase', showcaseId]);
+      }
+    };
+
+    try { socket.emit('joinRoom', `stacksuite:showcase:${showcaseId}`); } catch (e) {}
+    socket.on('stacksuite_comment_added', handleCommentAdded);
+
+    return () => {
+      try { socket.emit('leaveRoom', `stacksuite:showcase:${showcaseId}`); } catch (e) {}
+      socket.off('stacksuite_comment_added', handleCommentAdded);
+    };
+  }, [socket, showcaseId, queryClient]);
 
   const handleShare = async () => {
     try {
@@ -204,8 +238,13 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
                 <button onClick={handleDelete} className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} style={{ color: 'var(--destructive)', borderColor: 'var(--destructive)' }}>
                   <Trash2 size={14} /> Delete
                 </button>
-              )}
-              <button onClick={() => dispatch(toggleBookmark({ itemId: showcaseId, itemType: 'showcase' }))}
+              )}              <button
+                onClick={() => followMutation.mutate({ id: showcaseId, follow: !showcase.isFollowing })}
+                className={styles.iconBtn}
+                style={{ color: showcase.isFollowing ? 'var(--primary-color)' : 'var(--muted-foreground)', fontWeight: 700 }}
+              >
+                {showcase.isFollowing ? `Following • ${showcase.followerCount || 0}` : `Follow • ${showcase.followerCount || 0}`}
+              </button>              <button onClick={() => dispatch(toggleBookmark({ itemId: showcaseId, itemType: 'showcase' }))}
                 className={styles.iconBtn}
                 style={{ color: isBookmarked ? 'var(--star-color)' : 'var(--muted-foreground)' }}>
                 <Bookmark size={16} fill={isBookmarked ? 'currentColor' : 'none'} />
@@ -227,7 +266,11 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
           Feedback & Discussion ({showcase.commentCount || 0})
         </h2>
         <div className={styles.card} style={{ padding: 24 }}>
-          <CommentThread comments={[]} parentType="showcase" parentId={showcase._id} />
+          {commentsLoading ? (
+            <p style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>Loading comments...</p>
+          ) : (
+            <CommentThread comments={comments} parentType="showcase" parentId={showcase._id} />
+          )}
         </div>
       </div>
     </div>
@@ -235,21 +278,29 @@ function ShowcaseDetailView({ showcaseId, onBack }) {
 }
 
 /* ─── List View ─── */
-export function ShowcasesTab({ search, tagFilter, onTagClick }) {
+export function ShowcasesTab({ search, tagFilter, roleFilter, sortBy, onTagClick }) {
   const [selectedId, setSelectedId] = useState(null);
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
 
+  const sortParam = sortBy === 'Most Upvoted' || sortBy === 'Trending' ? 'popular' : undefined;
+
   const { data: showcases = [], isLoading } = useQuery({
-    queryKey: ['showcases', { search }],
-    queryFn: () => getShowcases({ search }),
+    queryKey: ['showcases', { search, sortBy, roleFilter }],
+    queryFn: () => getShowcases({ search, sort: sortParam }),
   });
 
-  const filtered = tagFilter
-    ? showcases.filter(s => s.techStack?.some(t => t.toLowerCase() === tagFilter.toLowerCase()) || s.looking?.some(l => l.toLowerCase() === tagFilter.toLowerCase()))
-    : showcases;
+  const filtered = showcases.filter(showcase => {
+    const matchesTag = tagFilter
+      ? showcase.techStack?.some(t => t.toLowerCase() === tagFilter.toLowerCase()) || showcase.looking?.some(l => l.toLowerCase() === tagFilter.toLowerCase())
+      : true;
+    const matchesRole = roleFilter && roleFilter !== 'all'
+      ? showcase.founder?.role?.toLowerCase() === roleFilter.toLowerCase() || showcase.author?.role?.toLowerCase() === roleFilter.toLowerCase()
+      : true;
+    return matchesTag && matchesRole;
+  });
 
   if (selectedId) {
     return <ShowcaseDetailView showcaseId={selectedId} onBack={() => setSelectedId(null)} />;
@@ -387,6 +438,14 @@ export function ShowcasesTab({ search, tagFilter, onTagClick }) {
                       <Github size={14} />
                     </a>
                   )}
+                  <button
+                    onClick={e => { e.stopPropagation(); followMutation.mutate({ id: showcase._id, follow: !showcase.isFollowing }); }}
+                    className={styles.iconBtn}
+                    style={{ color: showcase.isFollowing ? 'var(--primary-color)' : 'var(--muted-foreground)', fontWeight: 700 }}
+                    title={showcase.isFollowing ? 'Following' : 'Follow'}
+                  >
+                    {showcase.isFollowing ? 'Following' : 'Follow'} • {showcase.followerCount || 0}
+                  </button>
                 </div>
               </div>
 

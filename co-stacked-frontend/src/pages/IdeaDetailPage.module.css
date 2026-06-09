@@ -49,129 +49,136 @@
   color: #00327d;
 }
 
-/* ── SUCCESS BANNER ── */
-.successBanner {
+.validationBanner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: 1rem;
-  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
-  border: 1px solid #a7f3d0;
-  border-radius: 1rem;
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 1.25rem;
+  border: 1px solid transparent;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
 }
 
-.successBannerLeft {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.successBadge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #10b981;
-  color: #ffffff;
-  flex-shrink: 0;
-}
-
-.successText {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.successTitle {
-  font-size: 1.1rem;
-  font-weight: 800;
+.bannerSuccess {
+  background: #ecfdf5;
   color: #065f46;
+  border-color: #10b981;
 }
 
-.successSubtext {
-  font-size: 0.88rem;
-  color: #047857;
-  line-height: 1.4;
+.bannerWarning {
+  background: #fff7ed;
+  color: #9a3412;
+  border-color: #f59e0b;
 }
 
-.successBannerRight {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
+.bannerNeutral {
+  background: #eff6ff;
+  color: #1e3a8a;
+  border-color: #3b82f6;
 }
 
-.convertBannerBtn {
+.bannerAction {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.7rem 1.25rem;
-  background: #00327d;
-  color: #ffffff;
+  padding: 0.75rem 1rem;
+  border-radius: 0.95rem;
   border: none;
-  border-radius: 0.75rem;
-  font-weight: 700;
-  font-size: 0.88rem;
+  background: #00327d;
+  color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
+  font-weight: 700;
 }
 
-.convertBannerBtn:hover {
-  background: #00266a;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 50, 125, 0.3);
+.bannerAction:hover {
+  background: #0d3a8f;
 }
 
-.convertBannerBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.bannerCloseBtn {
+.topRow {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.categoryBadge {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0, 0, 0, 0.05);
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 50, 125, 0.08);
+  color: #00327d;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 999px;
+  text-transform: uppercase;
 }
 
-.bannerCloseBtn:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: #334155;
-}
-
-/* ── WARNING BANNER ── */
-.warningBanner {
+.actionButtons {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  border-radius: 0.85rem;
-  margin-bottom: 1.5rem;
-  background: rgba(245, 158, 11, 0.08);
-  color: #92400e;
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  font-weight: 600;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  color: #64748b;
   font-size: 0.92rem;
 }
 
-/* ── MAIN 2-COLUMN GRID ── */
-.mainGrid {
+.metricCard {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.metricItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.metricLabel {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.metricValue {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.richList {
+  margin: 0.75rem 0 0 1rem;
+  color: #1e293b;
+  line-height: 1.75;
+}
+
+.richList li {
+  margin-bottom: 0.45rem;
+}
+
+/* ── 12-COLUMN GRID (grid grid-cols-1 lg:grid-cols-12 gap-6 items-start) ── */
+.grid12 {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;

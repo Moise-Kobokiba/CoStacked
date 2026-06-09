@@ -14,7 +14,13 @@ export const MessageItem = ({ msg, isMyMessage, sender }) => {
         return <audio controls src={msg.content} className={styles.audioContent}></audio>;
       case 'file':
         return (
-          <a href={msg.content} target="_blank" rel="noopener noreferrer" className={styles.fileContent}>
+          <a
+            href={msg.content}
+            target="_blank"
+            rel="noopener noreferrer"
+            download={msg.metadata?.name || ''}
+            className={styles.fileContent}
+          >
             {msg.metadata?.name || 'Download File'}
           </a>
         );

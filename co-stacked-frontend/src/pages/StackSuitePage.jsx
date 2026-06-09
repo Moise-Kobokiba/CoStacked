@@ -1,17 +1,15 @@
 // src/pages/StackSuitePage.jsx
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Search, Plus, MessageCircle, Rocket, GitBranch,
   ChevronDown, Sparkles, TrendingUp, Users, X, Send, Loader2,
   Zap, Hash, Image, ExternalLink, Briefcase, Grid3X3, List
 } from 'lucide-react';
+import { useSelector } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import {
-  createStackPost, createShowcase, createCollabThread, getStackSuiteStats,
-  followStackPost, joinChallenge, encourageAccountability,
-} from '../api/stackSuiteApi';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { createStackPost, createShowcase, createCollabThread, getStackSuiteStats } from '../api/stackSuiteApi';
 import { DiscussionsTab }   from '../components/stack-suite/DiscussionsTab';
 import { ShowcasesTab }     from '../components/stack-suite/ShowcasesTab';
 import { CollaborationTab } from '../components/stack-suite/CollaborationTab';
@@ -34,8 +32,11 @@ const TRENDING_TAGS = ['validation', 'saas', 'nextjs', 'react', 'startup', 'mvp'
 export function StackSuitePage() {
   const queryClient = useQueryClient();
   const navigate    = useNavigate();
+  const location    = useLocation();
+  const { isAuthenticated } = useSelector(state => state.auth);
 
   const [search, setSearch]       = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filter, setFilter]       = useState('all');
   const [filterOpen, setFilterOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('discussions');
@@ -112,6 +113,21 @@ export function StackSuitePage() {
   };
 
   const filterLabel = filter === 'founder' ? 'Founders' : filter === 'developer' ? 'Developers' : 'All Roles';
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab && ['discussions', 'showcases', 'collaboration'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
 
   const closeCreate = () => {
     setCreateOpen(false);
@@ -196,22 +212,87 @@ const oldCreatePostMutation = useMutation({
     onError: (err) => handleError(err, 'createCollabMutation')
   });
 
+  const buildStackPostPayload = () => {
+    const tagList = typeof postTags === 'string'
+      ? postTags.split(',').map(t => t.trim()).filter(Boolean)
+      : Array.isArray(postTags) ? postTags : [];
+
+    const basePayload = {
+      title: postTitle,
+      body: postBody,
+      category: postCategory || 'General',
+      tags: tagList,
+      links,
+      contentType,
+    };
+
+    if (contentType === 'build-in-public') {
+      return {
+        ...basePayload,
+        body: [
+          `**Update Type:** ${bipType.replace(/-/g, ' ')}`,
+          postBody,
+          `**Revenue:** ${bipRevenue || 'N/A'}`,
+          `**Users:** ${bipUsers || 'N/A'}`,
+          `**Progress:** ${bipProgress}%`,
+          bipLookingFor ? `**Looking for:** ${bipLookingFor}` : '',
+        ].filter(Boolean).join('\n\n'),
+        tags: ['build-in-public', bipType, ...tagList].filter(Boolean),
+        phase: 'General',
+      };
+    }
+
+    if (contentType === 'founder-matching') {
+      return {
+        ...basePayload,
+        body: [
+          `**Role:** ${fmRole.replace(/-/g, ' ')}`,
+          `**Availability:** ${fmAvailability}`,
+          `**Location:** ${fmLocation}`,
+          fmSkills ? `**Skills:** ${fmSkills}` : '',
+          postBody,
+        ].filter(Boolean).join('\n\n'),
+        tags: ['founder-matching', fmRole, fmAvailability, fmLocation, ...tagList].filter(Boolean),
+        phase: 'General',
+      };
+    }
+
+    if (contentType === 'challenge') {
+      return {
+        ...basePayload,
+        body: [
+          `**Challenge Type:** ${challengeType.replace(/-/g, ' ')}`,
+          `**Goal:** ${challengeGoal}`,
+          `**Duration:** ${challengeDuration} days`,
+          challengeRewards ? `**Rewards:** ${challengeRewards}` : '',
+          postBody,
+        ].filter(Boolean).join('\n\n'),
+        tags: ['challenge', challengeType, ...tagList].filter(Boolean),
+        phase: 'Problem',
+      };
+    }
+
+    if (contentType === 'accountability') {
+      return {
+        ...basePayload,
+        body: [
+          `**Weekly Goal:** ${accGoal}`,
+          `**Target:** ${accWeeklyTarget}`,
+          `**Status:** ${accStatus.replace(/-/g, ' ')}`,
+          postBody,
+        ].filter(Boolean).join('\n\n'),
+        tags: ['accountability', accStatus, ...tagList].filter(Boolean),
+        phase: 'General',
+      };
+    }
+
+    return basePayload;
+  };
+
   const handleCreateSubmit = (e) => {
     if (e) e.preventDefault();
 
-    // ── Discussion ──
-    if (contentType === 'discussion') {
-      if (!postTitle.trim() || !postBody.trim()) return;
-      createUnifiedPostMutation.mutate({
-        contentType: 'discussion',
-        title: postTitle, body: postBody, category: postCategory,
-        boardType: 'stack-suite',
-        tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
-        links
-      });
-    }
-    // ── Showcase (dedicated Showcase model) ──
-    else if (contentType === 'showcase') {
+    if (contentType === 'showcase') {
       if (!showcaseName.trim() || !showcaseDesc.trim()) return;
       createShowcaseMutation.mutate({
         name: showcaseName, description: showcaseDesc, stage: showcaseStage,
@@ -232,6 +313,9 @@ const oldCreatePostMutation = useMutation({
         roles: collabRoles.split(',').map(r => r.trim()).filter(Boolean),
         links
       });
+    } else {
+      if (!postTitle.trim() || !postBody.trim()) return;
+      createPostMutation.mutate(buildStackPostPayload());
     }
     // ── Build In Public (StackPost) ──
     else if (contentType === 'build-in-public') {
@@ -295,8 +379,33 @@ const oldCreatePostMutation = useMutation({
 
   const btnLabel = contentType === 'discussion' ? 'Create Post'
     : contentType === 'showcase' ? 'Launch Showcase'
-    : 'New Milestone';
+    : contentType === 'collaboration' ? 'New Milestone'
+    : contentType === 'build-in-public' ? 'Publish Update'
+    : contentType === 'founder-matching' ? 'Post Match Request'
+    : contentType === 'challenge' ? 'Publish Challenge'
+    : 'Track Goal';
 
+  const modalTitle = contentType === 'discussion' ? 'Create a New Post'
+    : contentType === 'showcase' ? 'Launch Your Showcase'
+    : contentType === 'collaboration' ? 'Start a Collaboration Thread'
+    : contentType === 'build-in-public' ? 'Share a Build-in-Public Update'
+    : contentType === 'founder-matching' ? 'Find a Co-Founder or Partner'
+    : contentType === 'challenge' ? 'Create a Community Challenge'
+    : 'Share Your Accountability Goal';
+
+  const modalDesc = contentType === 'discussion'
+    ? 'Share a question, insight, or update with the community.'
+    : contentType === 'showcase'
+      ? 'Share what you are building, get feedback, and find collaborators.'
+      : contentType === 'collaboration'
+        ? 'Create a milestone for your project and find team members.'
+        : contentType === 'build-in-public'
+          ? 'Publish progress updates and keep the community aligned with your journey.'
+          : contentType === 'founder-matching'
+            ? 'Connect with founders, builders, and teammates who match your goals.'
+            : contentType === 'challenge'
+              ? 'Post a challenge to rally the community around a shared goal.'
+              : 'Track your progress and stay accountable with weekly goals.';
   const { data: stats } = useQuery({
     queryKey: ['stackSuiteStats'],
     queryFn: getStackSuiteStats,
@@ -308,41 +417,6 @@ const oldCreatePostMutation = useMutation({
   };
 
   // Computed: unique tags from current data for trending
-
-  const MODAL_META = {
-    'discussion': {
-      title: 'Start a Discussion',
-      desc: 'Share a question, insight, or update with the community.'
-    },
-    'showcase': {
-      title: 'Launch Your Showcase',
-      desc: 'Share what you are building, get feedback, and find collaborators.'
-    },
-    'collaboration': {
-      title: 'Create a Collaboration',
-      desc: 'Post a project milestone or progress update to find team members.'
-    },
-    'build-in-public': {
-      title: 'Build In Public',
-      desc: 'Share weekly progress, revenue, milestones, and growth with the community.'
-    },
-    'founder-matching': {
-      title: 'Find a Co-Founder',
-      desc: 'Post what you are building and the kind of teammate you are looking for.'
-    },
-    'challenge': {
-      title: 'Create a Challenge',
-      desc: 'Launch a community challenge and invite founders to participate.'
-    },
-    'accountability': {
-      title: 'Set a Weekly Goal',
-      desc: 'Commit publicly to a goal for the week and track your progress.'
-    },
-  };
-
-  const meta = MODAL_META[contentType] || MODAL_META['discussion'];
-  const modalTitle = meta.title;
-  const modalDesc = meta.desc;
 
   const handleSortSelect = (opt) => {
     setSortBy(opt);
@@ -478,8 +552,11 @@ const oldCreatePostMutation = useMutation({
               )}
             </div>
 
-            <button className={styles.createBtn} onClick={() => setCreateOpen(true)}>
-              <Plus size={16} /> + Create New Post
+            <button className={styles.createBtn} onClick={() => {
+              if (!isAuthenticated) return navigate('/login', { state: { from: '/stack-suite' } });
+              setCreateOpen(true);
+            }}>
+              <Plus size={16} /> {isAuthenticated ? '+ Create New Post' : 'Login to Create'}
             </button>
           </div>
         </section>
@@ -506,9 +583,48 @@ const oldCreatePostMutation = useMutation({
               </div>
 
               <div role="tabpanel">
-                {activeTab === 'discussions'   && <DiscussionsTab search={search} tagFilter={tagFilter} onTagClick={handleTagClick} />}
-                {activeTab === 'showcases'     && <ShowcasesTab search={search} tagFilter={tagFilter} onTagClick={handleTagClick} />}
-                {activeTab === 'collaboration' && <CollaborationTab search={search} tagFilter={tagFilter} onTagClick={handleTagClick} />}
+                {activeTab === 'discussions' && (
+                  <DiscussionsTab
+                    search={debouncedSearch}
+                    tagFilter={tagFilter}
+                    roleFilter={filter}
+                    sortBy={sortBy}
+                    onTagClick={handleTagClick}
+                  />
+                )}
+                {activeTab === 'showcases' && (
+                  <ShowcasesTab
+                    search={debouncedSearch}
+                    tagFilter={tagFilter}
+                    roleFilter={filter}
+                    sortBy={sortBy}
+                    onTagClick={handleTagClick}
+                  />
+                )}
+                {activeTab === 'collaboration' && (
+                  <CollaborationTab
+                    search={debouncedSearch}
+                    tagFilter={tagFilter}
+                    roleFilter={filter}
+                    sortBy={sortBy}
+                    onTagClick={handleTagClick}
+                  />
+                )}
+                    tagFilter={tagFilter}
+                    roleFilter={filter}
+                    sortBy={sortBy}
+                    onTagClick={handleTagClick}
+                  />
+                )}
+                {activeTab === 'collaboration' && (
+                  <CollaborationTab
+                    search={search}
+                    tagFilter={tagFilter}
+                    roleFilter={filter}
+                    sortBy={sortBy}
+                    onTagClick={handleTagClick}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -569,13 +685,25 @@ const oldCreatePostMutation = useMutation({
                 <span>Quick Actions</span>
               </div>
               <div className={styles.sideCardBody}>
-                <button className={styles.sideActionBtn} onClick={() => { setContentType('discussion'); setCreateOpen(true); }}>
+                <button className={styles.sideActionBtn} onClick={() => {
+                  if (!isAuthenticated) return navigate('/login', { state: { from: '/stack-suite' } });
+                  setContentType('discussion');
+                  setCreateOpen(true);
+                }}>
                   <MessageCircle size={15} /> Start Discussion
                 </button>
-                <button className={styles.sideActionBtn} onClick={() => { setContentType('showcase'); setCreateOpen(true); }}>
+                <button className={styles.sideActionBtn} onClick={() => {
+                  if (!isAuthenticated) return navigate('/login', { state: { from: '/stack-suite' } });
+                  setContentType('showcase');
+                  setCreateOpen(true);
+                }}>
                   <Rocket size={15} /> Showcase Project
                 </button>
-                <button className={styles.sideActionBtn} onClick={() => { setContentType('collaboration'); setCreateOpen(true); }}>
+                <button className={styles.sideActionBtn} onClick={() => {
+                  if (!isAuthenticated) return navigate('/login', { state: { from: '/stack-suite' } });
+                  setContentType('collaboration');
+                  setCreateOpen(true);
+                }}>
                   <GitBranch size={15} /> Create Milestone
                 </button>
               </div>
@@ -1004,10 +1132,7 @@ const oldCreatePostMutation = useMutation({
                       (contentType === 'discussion' && (!postTitle.trim() || !postBody.trim())) ||
                       (contentType === 'showcase' && (!showcaseName.trim() || !showcaseDesc.trim())) ||
                       (contentType === 'collaboration' && (!collabProject.trim() || !collabMilestone.trim() || !collabDesc.trim())) ||
-                      (contentType === 'build-in-public' && (!postTitle.trim() || !postBody.trim())) ||
-                      (contentType === 'founder-matching' && (!postTitle.trim() || !postBody.trim())) ||
-                      (contentType === 'challenge' && (!postTitle.trim() || !postBody.trim())) ||
-                      (contentType === 'accountability' && (!accGoal.trim() || !postBody.trim()))
+                      ((contentType === 'build-in-public' || contentType === 'founder-matching' || contentType === 'challenge' || contentType === 'accountability') && (!postTitle.trim() || !postBody.trim()))
                     }
                   >
                     {isSubmitting ? <Loader2 size={15} className={sharedStyles.spinner} /> : <Send size={15} />}

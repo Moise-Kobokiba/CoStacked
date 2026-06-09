@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -22,9 +22,9 @@ const getDeepLink = (item) => {
     case 'project': return `/projects/${item.itemId}`;
     case 'talent': return `/users/${item.itemId}`;
     case 'idea': return `/validation-board/${item.itemId}`;
-    case 'stackpost': return `/stack-suite`;
-    case 'showcase': return `/stack-suite`;
-    case 'collab': return `/stack-suite`;
+    case 'stackpost': return `/stack-suite?tab=discussions`;
+    case 'showcase': return `/stack-suite?tab=showcases`;
+    case 'collab': return `/stack-suite?tab=collaboration`;
     case 'article': return `/info-hub`;
     default: return '#';
   }
@@ -58,7 +58,15 @@ export const SavedItemsPage = () => {
   const queryClient = useQueryClient();
   const { token, isAuthenticated, user } = useSelector((state) => state.auth || {});
   const [activeCategory, setActiveCategory] = useState('all');
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [removingId, setRemovingId] = useState(null);
+
+  // Debounce search input to avoid spamming the API
+  React.useEffect(() => {
+    const t = setTimeout(() => setSearchQuery(searchInput.trim()), 350);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ['savedItems', { type: activeCategory, search: searchQuery }],
@@ -66,10 +74,32 @@ export const SavedItemsPage = () => {
     enabled: !!token && !!isAuthenticated,
   });
 
+  // Also fetch all saved items (no filters) to compute category counts for tabs
+  const { data: allItems = [] } = useQuery({
+    queryKey: ['savedItems', 'all'],
+    queryFn: () => getSavedItems(token, { type: 'all', search: '' }),
+    enabled: !!token && !!isAuthenticated,
+  });
+
+  const counts = React.useMemo(() => {
+    const map = { all: allItems.length };
+    allItems.forEach((it) => {
+      map[it.itemType] = (map[it.itemType] || 0) + 1;
+    });
+    return map;
+  }, [allItems]);
+
   const unsaveMutation = useMutation({
     mutationFn: (savedItemId) => unsaveItem(token, savedItemId),
+    onMutate: (savedItemId) => {
+      setRemovingId(savedItemId);
+    },
+    onError: () => {
+      setRemovingId(null);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['savedItems']);
+      setRemovingId(null);
+      queryClient.invalidateQueries({ queryKey: ['savedItems'] });
     },
   });
 
@@ -126,12 +156,12 @@ export const SavedItemsPage = () => {
           <input
             type="text"
             placeholder="Search saved items..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             className={styles.searchInput}
           />
-          {searchQuery && (
-            <button className={styles.clearBtn} onClick={() => setSearchQuery('')}>
+          {searchInput && (
+            <button className={styles.clearBtn} onClick={() => setSearchInput('')}>
               <X size={14} />
             </button>
           )}
@@ -147,6 +177,9 @@ export const SavedItemsPage = () => {
             onClick={() => setActiveCategory(cat.id)}
           >
             {cat.label}
+            {counts[cat.id] > 0 && (
+              <span className={styles.tabCount}>{counts[cat.id]}</span>
+            )}
           </button>
         ))}
       </div>
@@ -196,9 +229,9 @@ export const SavedItemsPage = () => {
                       className={styles.iconBtn}
                       style={{ color: 'var(--destructive)' }}
                       title="Remove"
-                      disabled={unsaveMutation.isLoading}
+                      disabled={unsaveMutation.isLoading && removingId === item._id}
                     >
-                      {unsaveMutation.isLoading ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                      {unsaveMutation.isLoading && removingId === item._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                     </button>
                   </div>
                 </div>
