@@ -38,7 +38,7 @@ import { PaymentCancelPage } from "./pages/PaymentCancelPage";
 import { InfoHubPage } from "./pages/InfoHubPage";
 import { ArticleDetailPage } from "./pages/ArticleDetailPage";
 import { ValidationBoardPage } from "./pages/ValidationBoardPage";
-import { IdeaDetailPage } from "./pages/IdeaDetailPage";
+import { IdeaDetailsPage } from "./pages/IdeaDetailsPage";
 import { CreateIdeaPage } from "./pages/CreateIdeaPage";
 import { StackSuitePage } from "./pages/StackSuitePage";
 import { NotificationsPage } from "./pages/NotificationsPage";
@@ -70,7 +70,7 @@ export const router = createBrowserRouter([
       { path: "auth/callback", element: <OAuthCallback /> },
       { path: "onboarding", element: <OnboardingPage /> },
       { path: "validation-board", element: <ValidationBoardPage /> },
-      { path: "validation-board/:id", element: <IdeaDetailPage /> },
+      { path: "validation-board/:id", element: <IdeaDetailsPage /> },
       { path: "stack-suite", element: <StackSuitePage /> },
 
       // --- PROTECTED CHILDREN ROUTES ---

@@ -54,11 +54,6 @@ export const downvoteStackPost = async (id) => {
   return res.data;
 };
 
-export const followStackPost = async (id) => {
-  const res = await API.put(`/stack-suite/posts/${id}/follow`);
-  return res.data;
-};
-
 export const joinChallenge = async (id) => {
   const res = await API.put(`/stack-suite/posts/${id}/join`);
   return res.data;
