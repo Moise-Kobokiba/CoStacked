@@ -24,16 +24,11 @@ const stackPostSchema = mongoose.Schema(
       enum: ['Validation', 'Tech', 'Equity', 'Growth', 'Legal', 'General'],
       default: 'General',
     },
-    contentType: {
-      type: String,
-      enum: ['discussion', 'showcase', 'collaboration', 'build-in-public', 'founder-matching', 'challenge', 'accountability'],
-      default: 'discussion',
-    },
     /**
      * Content type — determines the post's purpose within StackSuite.
      * Maps to the 7 core content types required by the platform spec.
      *  - discussion       : Startup Discussions
-     *  - validation       : Idea Validation Posts (alias: boardType=validation-board)
+     *  - validation       : Idea Validation Posts
      *  - build-in-public  : Build In Public Posts
      *  - showcase         : Project Showcases (also lives in Showcase model)
      *  - founder-matching : Founder Matching

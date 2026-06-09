@@ -99,7 +99,19 @@ const getPostById = async (req, res) => {
 // POST /api/stack-suite/posts  (auth required) — supports all 7 content types
 const createPost = async (req, res) => {
   try {
-    const { title, body, category, contentType, tags, phase, confidenceScore, links } = req.body;
+    const {
+      title, body, category, contentType, tags, phase, confidenceScore, links,
+      // Build In Public fields
+      bipType, bipMilestone, bipRevenue, bipUsers, bipProgress, bipLookingFor,
+      // Founder Matching fields
+      fmRole, fmSkills, fmAvailability, fmLocation,
+      // Community Challenge fields
+      challengeType, challengeGoal, challengeDuration, challengeRewards,
+      // Accountability Tracking fields
+      accGoal, accWeeklyTarget, accStatus,
+      // Showcase fields (for StackPost-based showcase posts)
+      projectMeta
+    } = req.body;
     if (!title || !body) return res.status(400).json({ message: 'Title and body are required' });
 
     const tagList = toArr(tags);
@@ -469,7 +481,7 @@ const getShowcaseById = async (req, res) => {
 // POST /api/stack-suite/showcases  (auth)
 const createShowcase = async (req, res) => {
   try {
-    const { name, description, longDescription, stage, techStack, looking, teamSize, launched, icon, gradient, links } = req.body;
+    const { name, description, longDescription, stage, techStack, looking, teamSize, launched, icon, gradient, links, imageUrl, liveUrl, githubUrl } = req.body;
     if (!name || !description) return res.status(400).json({ message: 'Name and description are required' });
 
     const showcase = await Showcase.create({
@@ -483,7 +495,10 @@ const createShowcase = async (req, res) => {
       launched:  launched || '',
       icon:      icon || name.slice(0, 2).toUpperCase(),
       gradient:  gradient || 'from-primary/10 to-amber-50',
-      links:     links || []
+      links:     links || [],
+      imageUrl:  imageUrl || '',
+      liveUrl:   liveUrl || '',
+      githubUrl: githubUrl || ''
     });
 
     await showcase.populate('founder', 'name avatarUrl role headline');
@@ -1169,7 +1184,8 @@ const getStats = async (req, res) => {
       totalChallenges,
       totalAccountability,
       totalMembers,
-      onlineNow
+      onlineNow,
+      totalDiscussion: totalPosts - totalBuildInPublic - totalFounderMatches - totalChallenges - totalAccountability
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
