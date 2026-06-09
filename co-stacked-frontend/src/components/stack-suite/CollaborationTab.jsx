@@ -366,6 +366,15 @@ export function CollaborationTab({ search, tagFilter, roleFilter, sortBy, onTagC
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
 
+  const followMutation = useMutation({
+    mutationFn: ({ id, follow }) => follow ? followCollabThread(id) : unfollowCollabThread(id),
+    onSuccess: (res, vars) => {
+      const id = vars.id;
+      queryClient.setQueryData(['thread', id], prev => ({ ...prev, followerCount: res.followerCount, isFollowing: (!!vars.follow) }));
+      queryClient.invalidateQueries(['threads']);
+    }
+  });
+
   const sortParam = sortBy === 'Most Upvoted' || sortBy === 'Trending' ? 'popular' : undefined;
 
   const { data: threads = [], isLoading } = useQuery({

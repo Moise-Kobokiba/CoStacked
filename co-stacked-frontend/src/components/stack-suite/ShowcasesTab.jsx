@@ -285,6 +285,15 @@ export function ShowcasesTab({ search, tagFilter, roleFilter, sortBy, onTagClick
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
 
+  const followMutation = useMutation({
+    mutationFn: ({ id, follow }) => follow ? followShowcase(id) : unfollowShowcase(id),
+    onSuccess: (res, vars) => {
+      const id = vars.id;
+      queryClient.setQueryData(['showcase', id], prev => ({ ...prev, followerCount: res.followerCount, isFollowing: (!!vars.follow) }));
+      queryClient.invalidateQueries(['showcases']);
+    }
+  });
+
   const sortParam = sortBy === 'Most Upvoted' || sortBy === 'Trending' ? 'popular' : undefined;
 
   const { data: showcases = [], isLoading } = useQuery({

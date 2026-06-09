@@ -8,7 +8,7 @@ import {
   MessageCircle, Eye, ChevronUp, ChevronDown, Loader2,
   MessageSquare, Bookmark, Share2, ArrowLeft, Edit2, Trash2
 } from 'lucide-react';
-import { getStackPosts, getStackPostById, upvoteStackPost, downvoteStackPost, deleteStackPost } from '../../api/stackSuiteApi';
+import { getStackPosts, getStackPostById, getStackComments, upvoteStackPost, downvoteStackPost, deleteStackPost } from '../../api/stackSuiteApi';
 import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
 import styles from './StackSuite.module.css';
@@ -33,6 +33,12 @@ function DiscussionDetailView({ postId, onBack }) {
   const { data: post, isLoading } = useQuery({
     queryKey: ['stackPost', postId],
     queryFn: () => getStackPostById(postId),
+  });
+
+  const { data: comments = [], isLoading: commentsLoading } = useQuery({
+    queryKey: ['stackComments', 'post', postId],
+    queryFn: () => getStackComments('post', postId),
+    enabled: !!postId,
   });
 
   const upvoteMutation = useMutation({
@@ -185,7 +191,7 @@ function DiscussionDetailView({ postId, onBack }) {
         <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: 'var(--foreground)' }}>
           Discussion ({post.commentCount || 0})
         </h2>
-        <CommentThread comments={[]} parentType="post" parentId={post._id} />
+        <CommentThread comments={comments} parentType="post" parentId={post._id} />
       </div>
     </div>
   );

@@ -268,10 +268,11 @@ export function StackSuitePage() {
     }
     else if (contentType === 'collaboration') {
       if (!collabProject.trim() || !collabMilestone.trim() || !collabDesc.trim()) return;
+      const rolesList = collabRoles.split(',').map(r => r.trim()).filter(Boolean);
       createCollabMutation.mutate({
         project: collabProject, milestone: collabMilestone,
         description: collabDesc,
-        roles: collabRoles.split(',').map(r => r.trim()).filter(Boolean),
+        team: rolesList.map(role => ({ name: role, role, initials: role.slice(0, 2).toUpperCase() })),
         links
       });
     } 
@@ -652,18 +653,6 @@ export function StackSuitePage() {
           </aside>
         </div>
       </main>
-
-      {/* ── Footer ── */}
-      <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          <p className={styles.footerText}>CoStacked — Connect, Collaborate, Create.</p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <a href="https://www.costacked.co.za" target="_blank" rel="noopener noreferrer" className={styles.footerLink}>
-              costacked.co.za
-            </a>
-          </div>
-        </div>
-      </footer>
 
       {/* ── Create Modal ── */}
       {createOpen && (
