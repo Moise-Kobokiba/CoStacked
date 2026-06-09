@@ -8,6 +8,8 @@ import { getIdeaById, getIdeaComments, addIdeaComment, voteIdea, convertIdeaToPr
 import { saveItem, unsaveItemByType, checkSaved } from '../api/savedItemsApi';
 import styles from './IdeaDetailPage.module.css';
 
+/* ── Helpers ────────────────────────────────────────────── */
+
 const formatDate = (value) => {
   if (!value) return 'Unknown date';
   const date = new Date(value);
@@ -17,12 +19,19 @@ const formatDate = (value) => {
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
-  
+
   if (diffMins < 1) return 'Just now';
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
-  
+
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const formatPostedDate = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
@@ -107,11 +116,12 @@ export const IdeaDetailPage = () => {
   const viewRecordedRef = useRef(false);
   const COMMENT_PAGE_SIZE = 10;
 
-  const { data: idea, isLoading: ideaLoading } = useQuery(
-    ['ideaDetail', id],
-    () => getIdeaById(id, token),
-    { enabled: !!id }
-  );
+  /* ── React Query v5 object syntax ── */
+  const { data: idea, isLoading: ideaLoading } = useQuery({
+    queryKey: ['ideaDetail', id],
+    queryFn: () => getIdeaById(id, token),
+    enabled: !!id,
+  });
 
   const { data: commentsData, isLoading: commentsLoading } = useQuery(
     ['ideaComments', id, commentPage],
@@ -119,13 +129,15 @@ export const IdeaDetailPage = () => {
     { enabled: !!id, keepPreviousData: true }
   );
 
-  // Check if idea is saved
+  /* ── Check if idea is saved ── */
   useEffect(() => {
     if (!id || !token || !isAuthenticated) return;
-    checkSaved(token, 'idea', id).then((data) => {
-      setIsSaved(data.isSaved);
-      if (data.savedItem) setSavedItemId(data.savedItem._id);
-    }).catch(() => {});
+    checkSaved(token, 'idea', id)
+      .then((data) => {
+        setIsSaved(data.isSaved);
+        if (data.savedItem) setSavedItemId(data.savedItem._id);
+      })
+      .catch(() => {});
   }, [id, token, isAuthenticated]);
 
   // Join idea-specific socket room so we receive targeted real-time updates
@@ -162,6 +174,7 @@ export const IdeaDetailPage = () => {
     });
   }, [idea, user]);
 
+  /* ── Derived state ── */
   const ideaScore = voteState.score;
   const isUpvoted = voteState.type === 'up';
   const isDownvoted = voteState.type === 'down';
@@ -187,11 +200,26 @@ export const IdeaDetailPage = () => {
   const showValidationSuccess = (idea?.validationStatus === 'Highly Validated') || (upvoteCount >= 80);
   const MIN_CONVERSION_SCORE = 60;
 
+  const clampedScore = Math.max(0, Math.min(100, ideaScore));
+  const SVG_RADIUS = 72;
+  const SVG_CIRCUMFERENCE = 2 * Math.PI * SVG_RADIUS;
+  const dashOffset = SVG_CIRCUMFERENCE - (clampedScore / 100) * SVG_CIRCUMFERENCE;
+
+  const author = idea?.founder;
+  const targetUsers = idea?.targetAudience
+    ? idea.targetAudience.split(',').map((item) => item.trim()).filter(Boolean)
+    : [];
+
+  const isIdeaOwner = idea?.founder?._id === user?._id;
+  const hasConversionAccess = isIdeaOwner || user?.isAdmin;
+  const conversionEnabled = idea && idea.validationScore >= MIN_CONVERSION_SCORE && idea.status !== 'converted';
+
+  /* ── Mutations ── */
   const voteMutation = useMutation({
     mutationFn: (direction) => voteIdea(id, direction, token),
     onMutate: async (direction) => {
-      await queryClient.cancelQueries(['ideaDetail', id]);
-      const previousVote = voteState;
+      await queryClient.cancelQueries({ queryKey: ['ideaDetail', id] });
+      const previousVote = { ...voteState };
       setVoteState((current) => {
         const currentType = current.type;
         let newType = direction;
@@ -214,7 +242,7 @@ export const IdeaDetailPage = () => {
       if (context?.previousVote) setVoteState(context.previousVote);
     },
     onSettled: () => {
-      queryClient.invalidateQueries(['ideaDetail', id]);
+      queryClient.invalidateQueries({ queryKey: ['ideaDetail', id] });
     },
   });
 
@@ -262,8 +290,8 @@ export const IdeaDetailPage = () => {
     mutationFn: (content) => addIdeaComment(id, content, token),
     onSuccess: () => {
       setCommentDraft('');
-      queryClient.invalidateQueries(['ideaComments', id]);
-      queryClient.invalidateQueries(['ideaDetail', id]);
+      queryClient.invalidateQueries({ queryKey: ['ideaComments', id] });
+      queryClient.invalidateQueries({ queryKey: ['ideaDetail', id] });
     },
   });
 
@@ -271,14 +299,14 @@ export const IdeaDetailPage = () => {
     mutationFn: ({ content, parentCommentId }) => addIdeaComment(id, content, token, parentCommentId),
     onSuccess: () => {
       setReplyDraft({});
-      queryClient.invalidateQueries(['ideaComments', id]);
+      queryClient.invalidateQueries({ queryKey: ['ideaComments', id] });
     },
   });
 
   const deleteCommentMutation = useMutation({
     mutationFn: (commentId) => deleteIdeaComment(id, commentId, token),
     onSuccess: () => {
-      queryClient.invalidateQueries(['ideaComments', id]);
+      queryClient.invalidateQueries({ queryKey: ['ideaComments', id] });
     },
   });
 
@@ -324,7 +352,7 @@ export const IdeaDetailPage = () => {
     } else {
       saveMutation.mutate();
     }
-  }, [isSaved, isAuthenticated, navigate]);
+  }, [isSaved, isAuthenticated, navigate, saveMutation, unsaveMutation]);
 
   const handleShare = useCallback(async () => {
     try {
@@ -340,45 +368,44 @@ export const IdeaDetailPage = () => {
     }
   }, [id, queryClient]);
 
-  const author = idea?.founder;
-  const authorAvatarInitial = author?.name
-    ? author.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
-    : 'U';
-
-  const targetUsers = idea?.targetAudience
-    ? idea.targetAudience.split(',').map((item) => item.trim()).filter(Boolean)
-    : [];
-
-  // SVG ring constants
-  const SVG_RADIUS = 96;
-  const SVG_CIRCUMFERENCE = 2 * Math.PI * SVG_RADIUS;
-  const clampedScore = Math.max(0, Math.min(100, ideaScore));
-  const dashOffset = SVG_CIRCUMFERENCE - (clampedScore / 100) * SVG_CIRCUMFERENCE;
-
+  /* ── Loading state ── */
   if (ideaLoading) {
     return (
       <main className={styles.page}>
-        <div className={styles.loadingState}>
-          <Loader2 size={24} className={styles.spinner} />
+        <div className={styles.container}>
+          <div className={styles.loadingState}>
+            <Loader2 size={32} className={styles.spinner} />
+            <span>Loading idea…</span>
+          </div>
         </div>
       </main>
     );
   }
 
+  /* ── Empty state ── */
   if (!idea) {
     return (
       <main className={styles.page}>
-        <div className={styles.emptyState}>
-          <h2>Idea not found.</h2>
+        <div className={styles.container}>
+          <div className={styles.emptyState}>
+            <AlertTriangle size={40} />
+            <h2>Idea not found</h2>
+            <p>This idea may have been removed or is unavailable.</p>
+            <Link to="/validation-board" className={styles.backLink}>
+              <ArrowLeft size={16} /> Back to Validation Board
+            </Link>
+          </div>
         </div>
       </main>
     );
   }
 
+  /* ── Render ── */
   return (
     <main className={styles.page}>
       <div className={styles.container}>
-        {/* Breadcrumb */}
+
+        {/* ── BREADCRUMB ── */}
         <Link to="/validation-board" className={styles.breadcrumb}>
           <ArrowLeft size={18} />
           <span>Back to Validation Board</span>
@@ -422,10 +449,10 @@ export const IdeaDetailPage = () => {
           )}
         </div>
 
-        {/* 12-Column Grid */}
-        <div className={styles.grid12}>
+        {/* ── MAIN 2-COLUMN GRID ── */}
+        <div className={styles.mainGrid}>
 
-          {/* LEFT COLUMN */}
+          {/* ═══════════ LEFT COLUMN (Main Content) ═══════════ */}
           <div className={styles.leftCol}>
             <section className={styles.card}>
               <div className={styles.topRow}>
@@ -471,38 +498,101 @@ export const IdeaDetailPage = () => {
               </Link>
             </section>
 
-            {/* Problem Statement */}
-            <div className={styles.twoColGrid}>
-              <article className={`${styles.accentCard} ${styles.problemCard}`}>
-                <span className={styles.accentLabel}>Problem Statement</span>
-                <p className={styles.accentText}>{idea.problemStatement || 'No problem statement provided yet.'}</p>
-              </article>
-              <article className={`${styles.accentCard} ${styles.marketCard}`}>
-                <span className={styles.accentLabel}>Target Market</span>
-                <p className={styles.accentText}>{idea.industry || 'No target market defined yet.'}</p>
-              </article>
+            {/* ── Title + Share/Save Row ── */}
+            <div className={styles.titleSection}>
+              <h1 className={styles.ideaTitle}>{idea.title}</h1>
+              <div className={styles.titleActions}>
+                <button
+                  type="button"
+                  className={styles.iconActionBtn}
+                  onClick={handleShare}
+                  title="Share"
+                >
+                  <Share2 size={18} />
+                  {shareFeedback === 'copied' && <span className={styles.tooltip}>Copied!</span>}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.iconActionBtn} ${isSaved ? styles.iconActionBtnActive : ''}`}
+                  onClick={handleSaveToggle}
+                  disabled={saveMutation.isPending || unsaveMutation.isPending}
+                  title={isSaved ? 'Unsave' : 'Save'}
+                >
+                  {isSaved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+                </button>
+              </div>
             </div>
 
-            {/* Target Users */}
-            <section className={styles.card}>
-              <span className={styles.sectionLabel}>Target Users</span>
-              <div className={styles.chipRow}>
+            {/* ── Post Meta (Date + Views) ── */}
+            <div className={styles.postMeta}>
+              <span className={styles.metaItem}>
+                <Calendar size={14} />
+                <span>Posted {formatPostedDate(idea.createdAt)}</span>
+              </span>
+              <span className={styles.metaItem}>
+                <Eye size={14} />
+                <span>{(idea.engagementCount || totalVotes || 0).toLocaleString()} Views</span>
+              </span>
+            </div>
+
+            {/* ── 2×2 Quadrant Grid ── */}
+            <div className={styles.quadrantGrid}>
+              {/* Problem Statement */}
+              <div className={`${styles.quadrantCard} ${styles.problemCard}`}>
+                <div className={styles.quadrantHeader}>
+                  <AlertTriangle size={16} className={styles.quadrantIcon} />
+                  <span className={styles.quadrantLabel}>Problem Statement</span>
+                </div>
+                <p className={styles.quadrantText}>
+                  {idea.problemStatement || 'No problem statement provided yet.'}
+                </p>
+              </div>
+
+              {/* Our Solution */}
+              <div className={`${styles.quadrantCard} ${styles.solutionCard}`}>
+                <div className={styles.quadrantHeader}>
+                  <MapPin size={16} className={styles.quadrantIcon} />
+                  <span className={styles.quadrantLabel}>Our Solution</span>
+                </div>
+                <p className={styles.quadrantText}>
+                  {idea.valueProposition || 'No solution details added yet.'}
+                </p>
+              </div>
+
+              {/* Target Market */}
+              <div className={`${styles.quadrantCard} ${styles.marketCard}`}>
+                <div className={styles.quadrantHeader}>
+                  <Users size={16} className={styles.quadrantIcon} />
+                  <span className={styles.quadrantLabel}>Target Market</span>
+                </div>
+                <p className={styles.quadrantText}>
+                  {idea.industry || 'No target market defined yet.'}
+                </p>
+              </div>
+
+              {/* Target Users */}
+              <div className={`${styles.quadrantCard} ${styles.usersCard}`}>
+                <div className={styles.quadrantHeader}>
+                  <User size={16} className={styles.quadrantIcon} />
+                  <span className={styles.quadrantLabel}>Target Users</span>
+                </div>
                 {targetUsers.length > 0 ? (
-                  targetUsers.map((tag, i) => <span key={i} className={styles.chip}>{tag}</span>)
+                  <ul className={styles.usersList}>
+                    {targetUsers.map((tag, i) => (
+                      <li key={i} className={styles.usersItem}>
+                        <span className={styles.usersBullet} />
+                        {tag}
+                      </li>
+                    ))}
+                  </ul>
                 ) : (
-                  <span className={styles.chip}>No target users specified yet.</span>
+                  <p className={styles.quadrantText}>No target users specified yet.</p>
                 )}
               </div>
-            </section>
+            </div>
 
-            {/* Our Solution */}
-            <article className={`${styles.accentCard} ${styles.solutionCard}`}>
-              <span className={styles.accentLabel}>Our Solution</span>
-              <p className={styles.accentText}>{idea.valueProposition || 'No solution details added yet.'}</p>
-            </article>
-
-            {/* Community Feedback */}
-            <section className={styles.card}>
+            {/* ═══════════ COMMUNITY FEEDBACK ═══════════ */}
+            <section className={styles.feedbackSection}>
               <div className={styles.feedbackHeader}>
                 <div>
                   <h2 className={styles.feedbackTitle}>Community Feedback</h2>
@@ -511,7 +601,42 @@ export const IdeaDetailPage = () => {
                 {(commentsLoading || commentMutation.isLoading) && <Loader2 size={20} className={styles.spinner} />}
               </div>
 
-              {/* Comment List */}
+              {/* ── Comment Input (Top) ── */}
+              {isAuthenticated ? (
+                <div className={styles.commentInputRow}>
+                  <Avatar
+                    src={user?.avatarUrl}
+                    name={user?.name || user?.username}
+                    size={40}
+                  />
+                  <div className={styles.commentInputBody}>
+                    <textarea
+                      className={styles.commentTextarea}
+                      rows={3}
+                      placeholder="Add your constructive feedback…"
+                      value={commentDraft}
+                      onChange={(e) => setCommentDraft(e.target.value)}
+                    />
+                    <div className={styles.commentInputActions}>
+                      <button
+                        type="button"
+                        className={styles.postCommentBtn}
+                        onClick={submitComment}
+                        disabled={!commentDraft.trim() || commentMutation.isPending}
+                      >
+                        {commentMutation.isPending && <Loader2 size={14} className={styles.spinner} />}
+                        <span>Post Comment</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className={styles.loginPrompt}>
+                  <Link to="/login" className={styles.loginLink}>Log in</Link> to leave feedback.
+                </p>
+              )}
+
+              {/* ── Comment List ── */}
               <div className={styles.commentList}>
                 {comments.length > 0 ? (
                   comments.map((comment) => {
@@ -529,66 +654,70 @@ export const IdeaDetailPage = () => {
 
                     return (
                       <div key={comment._id} className={styles.commentThread}>
-                        <div className={styles.commentRow}>
-                          {/* Clickable Avatar */}
-                          <Link to={commenter._id ? `/users/${commenter._id}` : '#'} className={styles.commentUserCircle}>
-                            {commenter.avatarUrl ? (
-                              <img src={commenter.avatarUrl} alt={commenter.name} />
-                            ) : initials}
+                        <div className={styles.commentItem}>
+                          <Link
+                            to={commenter._id ? `/users/${commenter._id}` : '#'}
+                            className={styles.commentAvatarLink}
+                          >
+                            <Avatar src={commenter.avatarUrl} name={commenter.name} size={36} />
                           </Link>
-                          <div className={styles.commentBody}>
-                            <div className={styles.commentMeta}>
-                              {/* Clickable Username */}
-                              <Link to={commenter._id ? `/users/${commenter._id}` : '#'} className={styles.commentAuthorName}>
+                          <div className={styles.commentContent}>
+                            <div className={styles.commentMetaRow}>
+                              <Link
+                                to={commenter._id ? `/users/${commenter._id}` : '#'}
+                                className={styles.commentAuthor}
+                              >
                                 {commenter.name || 'Community'}
                               </Link>
-                              <span className={styles.commentDate}>{formatDate(comment.createdAt)}</span>
+                              <span className={styles.commentDot}>·</span>
+                              <span className={styles.commentTimestamp}>{formatDate(comment.createdAt)}</span>
                             </div>
-                            
+
                             {isEditing ? (
-                              <div className={styles.editCommentForm}>
+                              <div className={styles.editForm}>
                                 <textarea
-                                  className={styles.textArea}
+                                  className={styles.editTextarea}
                                   rows={3}
                                   value={editDraft}
                                   onChange={(e) => setEditDraft(e.target.value)}
                                 />
                                 <div className={styles.editActions}>
                                   <button
-                                    className={styles.submitBtn}
+                                    type="button"
+                                    className={styles.editSaveBtn}
                                     onClick={() => {
                                       if (!editDraft.trim()) return;
                                       editCommentMutation.mutate({ commentId: comment._id, content: editDraft.trim() });
                                     }}
-                                    disabled={!editDraft.trim() || editCommentMutation.isLoading}
+                                    disabled={!editDraft.trim() || editCommentMutation.isPending}
                                   >
-                                    {editCommentMutation.isLoading ? <Loader2 size={14} className={styles.spinner} /> : 'Save'}
+                                    {editCommentMutation.isPending ? <Loader2 size={14} className={styles.spinner} /> : 'Save'}
                                   </button>
                                   <button
-                                    className={styles.cancelBtn}
-                                    onClick={() => setEditingComment(null)}
+                                    type="button"
+                                    className={styles.editCancelBtn}
+                                    onClick={() => { setEditingComment(null); setEditDraft(''); }}
                                   >
                                     Cancel
                                   </button>
                                 </div>
                               </div>
                             ) : (
-                              <p className={styles.commentContent}>{comment.content || comment.text || 'No comment text.'}</p>
+                              <p className={styles.commentText}>
+                                {comment.content || comment.text || 'No comment text.'}
+                              </p>
                             )}
-                            
-                            <div className={styles.commentActions}>
+
+                            <div className={styles.commentActionsRow}>
                               <button
                                 type="button"
-                                className={styles.cActionBtn}
+                                className={styles.commentActionBtn}
                                 onClick={() => {
                                   if (!isAuthenticated) { navigate('/login'); return; }
-                                  setShowReplies((prev) => ({
-                                    ...prev,
-                                    [comment._id]: !prev[comment._id],
-                                  }));
+                                  setShowReplies((prev) => ({ ...prev, [comment._id]: !prev[comment._id] }));
                                 }}
                               >
-                                <Reply size={15} />
+                                <Reply size={14} />
                                 <span>{replies.length > 0 ? `${replies.length} replies` : 'Reply'}</span>
                               </button>
                               <button
@@ -607,46 +736,46 @@ export const IdeaDetailPage = () => {
                                 <>
                                   <button
                                     type="button"
-                                    className={styles.cActionBtn}
+                                    className={styles.commentActionBtn}
                                     onClick={() => {
                                       setEditingComment(comment._id);
                                       setEditDraft(comment.content || comment.text || '');
                                     }}
                                   >
-                                    <Edit3 size={15} />
+                                    <Edit3 size={14} />
                                     <span>Edit</span>
                                   </button>
                                   <button
                                     type="button"
-                                    className={styles.cActionBtn}
-                                    style={{ color: '#ef4444' }}
+                                    className={`${styles.commentActionBtn} ${styles.commentActionDanger}`}
                                     onClick={() => {
-                                      if (confirm('Delete this comment?')) {
+                                      if (window.confirm('Delete this comment?')) {
                                         deleteCommentMutation.mutate(comment._id);
                                       }
                                     }}
                                   >
-                                    <Trash2 size={15} />
+                                    <Trash2 size={14} />
                                     <span>Delete</span>
                                   </button>
                                 </>
                               )}
                             </div>
 
-                            {/* Reply form */}
+                            {/* ── Reply form ── */}
                             {showReplies[comment._id] && (
-                              <div className={styles.replyForm}>
+                              <div className={styles.replyFormArea}>
                                 <textarea
-                                  className={styles.textArea}
+                                  className={styles.replyTextarea}
                                   rows={2}
-                                  placeholder="Write a reply..."
+                                  placeholder="Write a reply…"
                                   value={replyDraft[comment._id] || ''}
                                   onChange={(e) => setReplyDraft((prev) => ({ ...prev, [comment._id]: e.target.value }))}
                                 />
                                 <button
-                                  className={styles.submitBtn}
+                                  type="button"
+                                  className={styles.replySubmitBtn}
                                   onClick={() => submitReply(comment._id)}
-                                  disabled={!(replyDraft[comment._id] || '').trim() || replyMutation.isLoading}
+                                  disabled={!(replyDraft[comment._id] || '').trim() || replyMutation.isPending}
                                 >
                                   <Send size={14} />
                                   Reply
@@ -654,7 +783,7 @@ export const IdeaDetailPage = () => {
                               </div>
                             )}
 
-                            {/* Nested Replies */}
+                            {/* ── Nested Replies ── */}
                             {replies.length > 0 && (
                               <div className={styles.repliesList}>
                                 {replies.map((reply) => {
@@ -665,33 +794,43 @@ export const IdeaDetailPage = () => {
                                   const isReplyOwner = replyAuthor._id?.toString() === user?._id?.toString();
 
                                   return (
-                                    <div key={reply._id} className={styles.replyRow}>
-                                      <Link to={replyAuthor._id ? `/users/${replyAuthor._id}` : '#'} className={styles.commentUserCircle + ' ' + styles.replyAvatar}>
-                                        {replyAuthor.avatarUrl ? (
-                                          <img src={replyAuthor.avatarUrl} alt={replyAuthor.name} />
-                                        ) : replyInitials}
+                                    <div key={reply._id} className={styles.replyItem}>
+                                      <Link
+                                        to={replyAuthor._id ? `/users/${replyAuthor._id}` : '#'}
+                                        className={styles.commentAvatarLink}
+                                      >
+                                        <Avatar
+                                          src={replyAuthor.avatarUrl}
+                                          name={replyAuthor.name}
+                                          size={28}
+                                        />
                                       </Link>
-                                      <div className={styles.commentBody}>
-                                        <div className={styles.commentMeta}>
-                                          <Link to={replyAuthor._id ? `/users/${replyAuthor._id}` : '#'} className={styles.commentAuthorName}>
+                                      <div className={styles.commentContent}>
+                                        <div className={styles.commentMetaRow}>
+                                          <Link
+                                            to={replyAuthor._id ? `/users/${replyAuthor._id}` : '#'}
+                                            className={styles.commentAuthor}
+                                          >
                                             {replyAuthor.name || 'Community'}
                                           </Link>
-                                          <span className={styles.commentDate}>{formatDate(reply.createdAt)}</span>
+                                          <span className={styles.commentDot}>·</span>
+                                          <span className={styles.commentTimestamp}>{formatDate(reply.createdAt)}</span>
                                         </div>
-                                        <p className={styles.commentContent}>{reply.content || reply.text || ''}</p>
+                                        <p className={styles.commentText}>
+                                          {reply.content || reply.text || ''}
+                                        </p>
                                         {isReplyOwner && (
-                                          <div className={styles.commentActions}>
+                                          <div className={styles.commentActionsRow}>
                                             <button
                                               type="button"
-                                              className={styles.cActionBtn}
-                                              style={{ color: '#ef4444' }}
+                                              className={`${styles.commentActionBtn} ${styles.commentActionDanger}`}
                                               onClick={() => {
-                                                if (confirm('Delete this reply?')) {
+                                                if (window.confirm('Delete this reply?')) {
                                                   deleteCommentMutation.mutate(reply._id);
                                                 }
                                               }}
                                             >
-                                              <Trash2 size={14} />
+                                              <Trash2 size={13} />
                                               <span>Delete</span>
                                             </button>
                                           </div>
@@ -751,48 +890,80 @@ export const IdeaDetailPage = () => {
             </section>
           </div>
 
-          {/* RIGHT SIDEBAR */}
+          {/* ═══════════ RIGHT SIDEBAR ═══════════ */}
           <aside className={styles.rightCol}>
-            {/* Validation Score Ring */}
-            <section className={styles.sideCard}>
-              <div className={styles.scoreHeader}>
-                <span className={styles.scoreTitle}>Validation Score</span>
-                <span className={styles.scoreSub}>Out of 100</span>
-              </div>
+
+            {/* ── Validation Score Card ── */}
+            <div className={styles.sidebarCard}>
+              <h3 className={styles.sidebarCardTitle}>Validation Score</h3>
               <div className={styles.ringContainer}>
-                <svg width="220" height="220" viewBox="0 0 220 220" className={styles.ringSvg}>
+                <svg width="180" height="180" viewBox="0 0 180 180" className={styles.ringSvg}>
                   <circle
-                    cx="110" cy="110" r={SVG_RADIUS}
+                    cx="90" cy="90" r={SVG_RADIUS}
                     fill="none"
                     stroke="#e2e8f0"
-                    strokeWidth="8"
+                    strokeWidth="10"
                   />
                   <circle
-                    cx="110" cy="110" r={SVG_RADIUS}
+                    cx="90" cy="90" r={SVG_RADIUS}
                     fill="none"
-                    stroke="#00327d"
-                    strokeWidth="8"
+                    stroke={clampedScore >= 60 ? '#10b981' : clampedScore >= 30 ? '#f59e0b' : '#ef4444'}
+                    strokeWidth="10"
                     strokeDasharray={SVG_CIRCUMFERENCE}
                     strokeDashoffset={dashOffset}
                     strokeLinecap="round"
-                    transform="rotate(-90 110 110)"
+                    transform="rotate(-90 90 90)"
                     className={styles.scoreArc}
                   />
                 </svg>
-                <div className={styles.scoreValueBox}>
-                  <span className={styles.scoreNumber}>{clampedScore}</span>
-                  <span className={styles.scoreOutOfLabel}>OUT OF 100</span>
+                <div className={styles.ringCenter}>
+                  <span className={styles.ringScore}>{clampedScore}</span>
+                  <span className={styles.ringLabel}>VOTES</span>
                 </div>
               </div>
-              <div className={styles.voteRatio}>
-                <span style={{ color: '#10B981' }}>{upvoteCount} upvotes</span>
-                <span> / </span>
-                <span style={{ color: '#f59e0b' }}>{downvoteCount} downvotes</span>
+
+              {/* Upvote / Downvote split */}
+              <div className={styles.voteSplitRow}>
+                <div className={`${styles.voteSplitItem} ${styles.voteSplitUp}`}>
+                  <ThumbsUp size={14} />
+                  <span className={styles.voteSplitCount}>{upvoteCount}</span>
+                  <span className={styles.voteSplitLabel}>UPVOTES</span>
+                </div>
+                <div className={`${styles.voteSplitItem} ${styles.voteSplitDown}`}>
+                  <ThumbsDown size={14} />
+                  <span className={styles.voteSplitCount}>{downvoteCount}</span>
+                  <span className={styles.voteSplitLabel}>DOWNVOTES</span>
+                </div>
               </div>
-              <div className={styles.statusLabel}>
-                Status: <strong>{idea.status === 'converted' ? 'Converted to Project' : idea.status === 'validated' ? 'Validated' : 'Active'}</strong>
+
+              {/* Vouch / Critique Buttons */}
+              <div className={styles.voteActionRow}>
+                <button
+                  type="button"
+                  className={`${styles.voteActionBtn} ${styles.vouchBtn} ${isUpvoted ? styles.vouchBtnActive : ''}`}
+                  onClick={() => {
+                    if (!isAuthenticated) { navigate('/login'); return; }
+                    voteMutation.mutate('up');
+                  }}
+                  disabled={voteMutation.isPending}
+                >
+                  <ThumbsUp size={18} />
+                  <span>Vouch</span>
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.voteActionBtn} ${styles.critiqueBtn} ${isDownvoted ? styles.critiqueBtnActive : ''}`}
+                  onClick={() => {
+                    if (!isAuthenticated) { navigate('/login'); return; }
+                    voteMutation.mutate('down');
+                  }}
+                  disabled={voteMutation.isPending}
+                >
+                  <ThumbsDown size={18} />
+                  <span>Critique</span>
+                </button>
               </div>
-            </section>
+            </div>
 
             <section className={`${styles.metricCard} ${styles.sideCard}`}>
               <span className={styles.sectionLabel}>Real-Time Metrics</span>
@@ -878,29 +1049,56 @@ export const IdeaDetailPage = () => {
               </button>
             </section>
 
-            {/* Actions */}
-            <section className={styles.sideCard}>
-              <button type="button" className={styles.secondaryBtn} onClick={handleShare}>
-                <Share2 size={18} />
+            {/* ── Real-Time Metrics Card ── */}
+            <div className={styles.sidebarCard}>
+              <h3 className={styles.sidebarCardTitle}>Real-Time Metrics</h3>
+              <div className={styles.metricsList}>
+                <div className={styles.metricRow}>
+                  <span className={styles.metricLabel}>
+                    <TrendingUp size={14} />
+                    Engagement Rate
+                  </span>
+                  <span className={styles.metricValue}>{totalVotes > 0 ? `${((upvoteCount / Math.max(totalVotes, 1)) * 100).toFixed(1)}%` : '—'}</span>
+                </div>
+                <div className={styles.metricRow}>
+                  <span className={styles.metricLabel}>
+                    <Zap size={14} />
+                    Virality Score
+                  </span>
+                  <span className={styles.metricValue}>{clampedScore}</span>
+                </div>
+                <div className={styles.metricRow}>
+                  <span className={styles.metricLabel}>
+                    <UserCheck size={14} />
+                    Active Testers
+                  </span>
+                  <span className={styles.metricValue}>{totalVotes}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Share & Save Actions ── */}
+            <div className={styles.sidebarCard}>
+              <button type="button" className={styles.sidebarActionBtn} onClick={handleShare}>
+                <Share2 size={16} />
                 <span>{shareFeedback === 'copied' ? 'Link Copied!' : 'Share Idea'}</span>
               </button>
               <button
                 type="button"
-                className={`${styles.secondaryBtn} ${isSaved ? styles.secondaryBtnSaved : ''}`}
+                className={`${styles.sidebarActionBtn} ${isSaved ? styles.sidebarActionBtnSaved : ''}`}
                 onClick={handleSaveToggle}
-                disabled={saveMutation.isLoading || unsaveMutation.isLoading}
+                disabled={saveMutation.isPending || unsaveMutation.isPending}
               >
-                {isSaved ? <Check size={18} /> : <Bookmark size={18} />}
+                {isSaved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
                 <span>{isSaved ? 'Saved' : 'Save for Later'}</span>
               </button>
 
-              {/* Convert to Project - shown on validation success */}
-              {showValidationSuccess && hasConversionAccess && idea.status !== 'converted' && (
+              {/* Convert to Project (sidebar fallback for non-banner case) */}
+              {!showValidationSuccess && conversionEnabled && hasConversionAccess && (
                 <button
                   type="button"
-                  className={styles.convertBtn}
+                  className={styles.sidebarConvertBtn}
                   onClick={() => {
-                    if (!isAuthenticated) { navigate('/login'); return; }
                     if (confirm('Convert this validated idea into a project? The project will be pre-filled with your idea details.')) {
                       handleConvertToProject();
                     }
@@ -910,11 +1108,11 @@ export const IdeaDetailPage = () => {
                 </button>
               )}
               {idea?.status === 'converted' && (
-                <p className={styles.convertHint} style={{ color: '#10B981' }}>
-                  ✓ This idea has been converted to a project.
+                <p className={styles.convertedHint}>
+                  <Check size={14} /> This idea has been converted to a project.
                 </p>
               )}
-            </section>
+            </div>
           </aside>
         </div>
       </div>

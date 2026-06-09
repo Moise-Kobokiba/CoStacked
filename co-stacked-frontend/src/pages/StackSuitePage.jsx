@@ -146,15 +146,51 @@ export function StackSuitePage() {
     alert(`Failed to publish: ${error.response?.data?.message || error.message}`);
   };
 
-  const createPostMutation = useMutation({
-    mutationFn: (data) => createStackPost(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
-      setPostSubmitted(true);
-      setTimeout(closeCreate, 1500);
-    },
-    onError: (err) => handleError(err, 'createPostMutation')
-  });
+// Unified mutation that works for all StackPost-backed content types
+const createUnifiedPostMutation = useMutation({
+  mutationFn: (data) => createStackPost(data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
+    queryClient.invalidateQueries({ queryKey: ['stackSuiteStats'] });
+    setPostSubmitted(true);
+    setTimeout(closeCreate, 1500);
+  },
+  onError: (err) => handleError(err, 'createUnifiedPostMutation')
+});
+
+const followPostMutation = useMutation({
+  mutationFn: (id) => followStackPost(id),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
+  },
+  onError: (err) => handleError(err, 'followPostMutation')
+});
+
+const joinChallengeMutation = useMutation({
+  mutationFn: (id) => joinChallenge(id),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
+  },
+  onError: (err) => handleError(err, 'joinChallengeMutation')
+});
+
+const encourageMutation = useMutation({
+  mutationFn: (id) => encourageAccountability(id),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
+  },
+  onError: (err) => handleError(err, 'encourageMutation')
+});
+
+const oldCreatePostMutation = useMutation({
+  mutationFn: (data) => createStackPost(data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
+    setPostSubmitted(true);
+    setTimeout(closeCreate, 1500);
+  },
+  onError: (err) => handleError(err, 'createPostMutation')
+});
 
   const createShowcaseMutation = useMutation({
     mutationFn: (data) => createShowcase(data),
@@ -267,7 +303,9 @@ export function StackSuitePage() {
         looking: showcaseLooking.split(',').map(t => t.trim()).filter(Boolean),
         links
       });
-    } else if (contentType === 'collaboration') {
+    }
+    // ── Collaboration (dedicated CollabThread model) ──
+    else if (contentType === 'collaboration') {
       if (!collabProject.trim() || !collabMilestone.trim() || !collabDesc.trim()) return;
       createCollabMutation.mutate({
         project: collabProject, milestone: collabMilestone,
@@ -279,9 +317,65 @@ export function StackSuitePage() {
       if (!postTitle.trim() || !postBody.trim()) return;
       createPostMutation.mutate(buildStackPostPayload());
     }
+    // ── Build In Public (StackPost) ──
+    else if (contentType === 'build-in-public') {
+      if (!postTitle.trim() || !postBody.trim()) return;
+      createUnifiedPostMutation.mutate({
+        contentType: 'build-in-public',
+        title: postTitle, body: postBody,
+        category: 'General',
+        boardType: 'stack-suite',
+        bipType, bipMilestone, bipRevenue, bipUsers,
+        bipProgress, bipLookingFor,
+        tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
+        links
+      });
+    }
+    // ── Founder Matching (StackPost) ──
+    else if (contentType === 'founder-matching') {
+      if (!postTitle.trim() || !postBody.trim()) return;
+      createUnifiedPostMutation.mutate({
+        contentType: 'founder-matching',
+        title: postTitle, body: postBody,
+        category: 'General',
+        boardType: 'stack-suite',
+        fmRole,
+        fmSkills: fmSkills.split(',').map(s => s.trim()).filter(Boolean),
+        fmAvailability, fmLocation,
+        tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
+        links
+      });
+    }
+    // ── Community Challenge (StackPost) ──
+    else if (contentType === 'challenge') {
+      if (!postTitle.trim() || !postBody.trim()) return;
+      createUnifiedPostMutation.mutate({
+        contentType: 'challenge',
+        title: postTitle, body: postBody,
+        challengeGoal, challengeType, challengeDuration, challengeRewards,
+        category: 'General',
+        boardType: 'stack-suite',
+        tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
+        links
+      });
+    }
+    // ── Accountability (StackPost) ──
+    else if (contentType === 'accountability') {
+      if (!accGoal.trim() || !postBody.trim()) return;
+      createUnifiedPostMutation.mutate({
+        contentType: 'accountability',
+        title: accGoal,
+        body: postBody,
+        accGoal, accWeeklyTarget, accStatus,
+        category: 'General',
+        boardType: 'stack-suite',
+        tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
+        links
+      });
+    }
   };
 
-  const isSubmitting = createPostMutation.isPending || createShowcaseMutation.isPending || createCollabMutation.isPending;
+  const isSubmitting = createUnifiedPostMutation.isPending || createShowcaseMutation.isPending || createCollabMutation.isPending;
 
   const btnLabel = contentType === 'discussion' ? 'Create Post'
     : contentType === 'showcase' ? 'Launch Showcase'
