@@ -313,9 +313,6 @@ const oldCreatePostMutation = useMutation({
         roles: collabRoles.split(',').map(r => r.trim()).filter(Boolean),
         links
       });
-    } else {
-      if (!postTitle.trim() || !postBody.trim()) return;
-      createPostMutation.mutate(buildStackPostPayload());
     }
     // ── Build In Public (StackPost) ──
     else if (contentType === 'build-in-public') {
@@ -372,6 +369,11 @@ const oldCreatePostMutation = useMutation({
         tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
         links
       });
+    }
+    // ── Default (Generic StackPost) ──
+    else {
+      if (!postTitle.trim() || !postBody.trim()) return;
+      oldCreatePostMutation.mutate(buildStackPostPayload());
     }
   };
 
@@ -604,21 +606,6 @@ const oldCreatePostMutation = useMutation({
                 {activeTab === 'collaboration' && (
                   <CollaborationTab
                     search={debouncedSearch}
-                    tagFilter={tagFilter}
-                    roleFilter={filter}
-                    sortBy={sortBy}
-                    onTagClick={handleTagClick}
-                  />
-                )}
-                    tagFilter={tagFilter}
-                    roleFilter={filter}
-                    sortBy={sortBy}
-                    onTagClick={handleTagClick}
-                  />
-                )}
-                {activeTab === 'collaboration' && (
-                  <CollaborationTab
-                    search={search}
                     tagFilter={tagFilter}
                     roleFilter={filter}
                     sortBy={sortBy}
