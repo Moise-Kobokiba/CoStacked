@@ -751,3 +751,20 @@
   font-size: 13px;
   color: var(--muted-foreground);
 }
+
+/* Submit Spinner */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Grid helper for form two-column layouts */
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}

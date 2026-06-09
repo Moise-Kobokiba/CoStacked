@@ -728,10 +728,379 @@ export function StackSuitePage() {
                           ))}
                         </div>
                       </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="post-body">Body</label>
+                        <textarea id="post-body" className={styles.formTextarea} rows={4} value={postBody}
+                          onChange={e => setPostBody(e.target.value)} placeholder="Share your thoughts, questions, or insights..." />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="post-tags">Tags</label>
+                        <input id="post-tags" type="text" className={styles.formInput} value={postTags}
+                          onChange={e => setPostTags(e.target.value)} placeholder="e.g. react, saas, mvp (comma separated)" />
+                      </div>
                     </>
                   )}
-                  {/* Additional sub-forms can be appended right here as needed */}
+
+                  {/* === SHOWCASE FORM === */}
+                  {contentType === 'showcase' && (
+                    <>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="showcase-name">Project Name *</label>
+                        <input id="showcase-name" type="text" className={styles.formInput} value={showcaseName}
+                          onChange={e => setShowcaseName(e.target.value)} placeholder="Your project name" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="showcase-desc">Description *</label>
+                        <textarea id="showcase-desc" className={styles.formTextarea} rows={4} value={showcaseDesc}
+                          onChange={e => setShowcaseDesc(e.target.value)} placeholder="Describe your project, what you've built, and what you're looking for..." />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel}>Stage</label>
+                        <div className={styles.categoryGrid}>
+                          {STAGES.map(s => (
+                            <button key={s} type="button"
+                              className={`${styles.categoryChip} ${showcaseStage === s ? styles.categoryChipActive : ''}`}
+                              onClick={() => setShowcaseStage(s)}>
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="showcase-tech">Tech Stack</label>
+                        <input id="showcase-tech" type="text" className={styles.formInput} value={showcaseTech}
+                          onChange={e => setShowcaseTech(e.target.value)} placeholder="e.g. React, Node.js, PostgreSQL" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="showcase-looking">Looking For</label>
+                        <input id="showcase-looking" type="text" className={styles.formInput} value={showcaseLooking}
+                          onChange={e => setShowcaseLooking(e.target.value)} placeholder="e.g. Backend Developer, Designer" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="showcase-image">Image URL <span className={styles.formLabelMuted}>(optional)</span></label>
+                        <input id="showcase-image" type="url" className={styles.formInput} value={showcaseImageUrl}
+                          onChange={e => setShowcaseImageUrl(e.target.value)} placeholder="https://..." />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="showcase-live">Live URL <span className={styles.formLabelMuted}>(optional)</span></label>
+                        <input id="showcase-live" type="url" className={styles.formInput} value={showcaseLiveUrl}
+                          onChange={e => setShowcaseLiveUrl(e.target.value)} placeholder="https://..." />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="showcase-github">GitHub URL <span className={styles.formLabelMuted}>(optional)</span></label>
+                        <input id="showcase-github" type="url" className={styles.formInput} value={showcaseGithubUrl}
+                          onChange={e => setShowcaseGithubUrl(e.target.value)} placeholder="https://github.com/..." />
+                      </div>
+                    </>
+                  )}
+
+                  {/* === COLLABORATION FORM === */}
+                  {contentType === 'collaboration' && (
+                    <>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="collab-project">Project Name *</label>
+                        <input id="collab-project" type="text" className={styles.formInput} value={collabProject}
+                          onChange={e => setCollabProject(e.target.value)} placeholder="Name of the project" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="collab-milestone">Milestone *</label>
+                        <input id="collab-milestone" type="text" className={styles.formInput} value={collabMilestone}
+                          onChange={e => setCollabMilestone(e.target.value)} placeholder="e.g. MVP Launch, Beta Release" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="collab-desc">Description *</label>
+                        <textarea id="collab-desc" className={styles.formTextarea} rows={4} value={collabDesc}
+                          onChange={e => setCollabDesc(e.target.value)} placeholder="Describe the milestone and what you need help with..." />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="collab-roles">Roles Needed</label>
+                        <input id="collab-roles" type="text" className={styles.formInput} value={collabRoles}
+                          onChange={e => setCollabRoles(e.target.value)} placeholder="e.g. Frontend Dev, UI Designer (comma separated)" />
+                        <p className={styles.formHint}>Separate multiple roles with commas</p>
+                      </div>
+                    </>
+                  )}
+
+                  {/* === BUILD IN PUBLIC FORM === */}
+                  {contentType === 'build-in-public' && (
+                    <>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="bip-title">Update Title *</label>
+                        <input id="bip-title" type="text" className={styles.formInput} value={postTitle}
+                          onChange={e => setPostTitle(e.target.value)} placeholder="What did you accomplish?" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel}>Update Type</label>
+                        <div className={styles.categoryGrid}>
+                          {[{ id: 'weekly-update', label: 'Weekly Update' }, { id: 'milestone', label: 'Milestone' },
+                            { id: 'launch', label: 'Launch' }, { id: 'pivot', label: 'Pivot' }].map(t => (
+                            <button key={t.id} type="button"
+                              className={`${styles.categoryChip} ${bipType === t.id ? styles.categoryChipActive : ''}`}
+                              onClick={() => setBipType(t.id)}>
+                              {t.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="bip-body">Details *</label>
+                        <textarea id="bip-body" className={styles.formTextarea} rows={4} value={postBody}
+                          onChange={e => setPostBody(e.target.value)} placeholder="Share your update, what you learned, what's next..." />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div>
+                          <label className={styles.formLabel} htmlFor="bip-revenue">Revenue</label>
+                          <input id="bip-revenue" type="text" className={styles.formInput} value={bipRevenue}
+                            onChange={e => setBipRevenue(e.target.value)} placeholder="e.g. $500 MRR" />
+                        </div>
+                        <div>
+                          <label className={styles.formLabel} htmlFor="bip-users">Users</label>
+                          <input id="bip-users" type="text" className={styles.formInput} value={bipUsers}
+                            onChange={e => setBipUsers(e.target.value)} placeholder="e.g. 150 signups" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="bip-looking">Looking For</label>
+                        <input id="bip-looking" type="text" className={styles.formInput} value={bipLookingFor}
+                          onChange={e => setBipLookingFor(e.target.value)} placeholder="e.g. beta testers, feedback" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel}>Progress: {bipProgress}%</label>
+                        <input type="range" min="0" max="100" value={bipProgress}
+                          onChange={e => setBipProgress(Number(e.target.value))}
+                          style={{ width: '100%' }} />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="bip-tags">Tags</label>
+                        <input id="bip-tags" type="text" className={styles.formInput} value={postTags}
+                          onChange={e => setPostTags(e.target.value)} placeholder="e.g. build-in-public, saas" />
+                      </div>
+                    </>
+                  )}
+
+                  {/* === FOUNDER MATCHING FORM === */}
+                  {contentType === 'founder-matching' && (
+                    <>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="fm-title">Title *</label>
+                        <input id="fm-title" type="text" className={styles.formInput} value={postTitle}
+                          onChange={e => setPostTitle(e.target.value)} placeholder="e.g. Looking for CTO for AI SaaS" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel}>Looking For</label>
+                        <div className={styles.categoryGrid}>
+                          {[{ id: 'co-founder', label: 'Co-Founder' }, { id: 'technical-founder', label: 'Technical Founder' },
+                            { id: 'business-partner', label: 'Business Partner' }, { id: 'mentor', label: 'Mentor' }].map(r => (
+                            <button key={r.id} type="button"
+                              className={`${styles.categoryChip} ${fmRole === r.id ? styles.categoryChipActive : ''}`}
+                              onClick={() => setFmRole(r.id)}>
+                              {r.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="fm-body">About You & The Opportunity *</label>
+                        <textarea id="fm-body" className={styles.formTextarea} rows={4} value={postBody}
+                          onChange={e => setPostBody(e.target.value)} placeholder="Describe yourself, your project, and what kind of partner you're looking for..." />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="fm-skills">Required Skills</label>
+                        <input id="fm-skills" type="text" className={styles.formInput} value={fmSkills}
+                          onChange={e => setFmSkills(e.target.value)} placeholder="e.g. React, Python, Marketing" />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div>
+                          <label className={styles.formLabel}>Availability</label>
+                          <div className={styles.categoryGrid}>
+                            {[{ id: 'full-time', label: 'Full-time' }, { id: 'part-time', label: 'Part-time' }].map(a => (
+                              <button key={a.id} type="button"
+                                className={`${styles.categoryChip} ${fmAvailability === a.id ? styles.categoryChipActive : ''}`}
+                                onClick={() => setFmAvailability(a.id)}>
+                                {a.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <label className={styles.formLabel}>Location</label>
+                          <div className={styles.categoryGrid}>
+                            {[{ id: 'remote', label: 'Remote' }, { id: 'in-person', label: 'In-Person' }].map(l => (
+                              <button key={l.id} type="button"
+                                className={`${styles.categoryChip} ${fmLocation === l.id ? styles.categoryChipActive : ''}`}
+                                onClick={() => setFmLocation(l.id)}>
+                                {l.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="fm-tags">Tags</label>
+                        <input id="fm-tags" type="text" className={styles.formInput} value={postTags}
+                          onChange={e => setPostTags(e.target.value)} placeholder="e.g. founder-matching, remote" />
+                      </div>
+                    </>
+                  )}
+
+                  {/* === CHALLENGE FORM === */}
+                  {contentType === 'challenge' && (
+                    <>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="ch-title">Challenge Title *</label>
+                        <input id="ch-title" type="text" className={styles.formInput} value={postTitle}
+                          onChange={e => setPostTitle(e.target.value)} placeholder="Name your challenge" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel}>Challenge Type</label>
+                        <div className={styles.categoryGrid}>
+                          {[{ id: 'build-in-public', label: 'Build in Public' }, { id: 'mvp-sprint', label: 'MVP Sprint' },
+                            { id: 'design-challenge', label: 'Design Challenge' }, { id: 'revenue', label: 'Revenue Goal' }].map(c => (
+                            <button key={c.id} type="button"
+                              className={`${styles.categoryChip} ${challengeType === c.id ? styles.categoryChipActive : ''}`}
+                              onClick={() => setChallengeType(c.id)}>
+                              {c.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="ch-goal">Goal *</label>
+                        <input id="ch-goal" type="text" className={styles.formInput} value={challengeGoal}
+                          onChange={e => setChallengeGoal(e.target.value)} placeholder="e.g. Ship 3 features in 30 days" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="ch-body">Description *</label>
+                        <textarea id="ch-body" className={styles.formTextarea} rows={4} value={postBody}
+                          onChange={e => setPostBody(e.target.value)} placeholder="Describe the challenge, rules, and how to participate..." />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div>
+                          <label className={styles.formLabel}>Duration (days)</label>
+                          <div className={styles.categoryGrid}>
+                            {['7', '14', '30', '90'].map(d => (
+                              <button key={d} type="button"
+                                className={`${styles.categoryChip} ${challengeDuration === d ? styles.categoryChipActive : ''}`}
+                                onClick={() => setChallengeDuration(d)}>
+                                {d} days
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <label className={styles.formLabel} htmlFor="ch-rewards">Rewards</label>
+                          <input id="ch-rewards" type="text" className={styles.formInput} value={challengeRewards}
+                            onChange={e => setChallengeRewards(e.target.value)} placeholder="e.g. Featured on homepage" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="ch-tags">Tags</label>
+                        <input id="ch-tags" type="text" className={styles.formInput} value={postTags}
+                          onChange={e => setPostTags(e.target.value)} placeholder="e.g. challenge, saas" />
+                      </div>
+                    </>
+                  )}
+
+                  {/* === ACCOUNTABILITY FORM === */}
+                  {contentType === 'accountability' && (
+                    <>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="acc-goal">Weekly Goal *</label>
+                        <input id="acc-goal" type="text" className={styles.formInput} value={accGoal}
+                          onChange={e => setAccGoal(e.target.value)} placeholder="e.g. Ship authentication module" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="acc-target">Weekly Target *</label>
+                        <input id="acc-target" type="text" className={styles.formInput} value={accWeeklyTarget}
+                          onChange={e => setAccWeeklyTarget(e.target.value)} placeholder="e.g. 10 PRs merged, 5 issues closed" />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel}>Status</label>
+                        <div className={styles.categoryGrid}>
+                          {[{ id: 'in-progress', label: 'In Progress' }, { id: 'completed', label: 'Completed' },
+                            { id: 'on-track', label: 'On Track' }, { id: 'needs-help', label: 'Needs Help' }].map(s => (
+                            <button key={s.id} type="button"
+                              className={`${styles.categoryChip} ${accStatus === s.id ? styles.categoryChipActive : ''}`}
+                              onClick={() => setAccStatus(s.id)}>
+                              {s.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="acc-body">Details *</label>
+                        <textarea id="acc-body" className={styles.formTextarea} rows={4} value={postBody}
+                          onChange={e => setPostBody(e.target.value)} placeholder="Share context about your goal, blockers, and progress so far..." />
+                      </div>
+                      <div>
+                        <label className={styles.formLabel} htmlFor="acc-tags">Tags</label>
+                        <input id="acc-tags" type="text" className={styles.formInput} value={postTags}
+                          onChange={e => setPostTags(e.target.value)} placeholder="e.g. accountability, sprint" />
+                      </div>
+                    </>
+                  )}
+
+                  {/* === SHARED: Links Section === */}
+                  {(contentType === 'discussion' || contentType === 'showcase' || contentType === 'collaboration' ||
+                    contentType === 'build-in-public' || contentType === 'founder-matching' || contentType === 'challenge' ||
+                    contentType === 'accountability') && (
+                    <div className={styles.linksSection}>
+                      <label className={styles.formLabel}>
+                        Links <span className={styles.formLabelMuted}>(optional)</span>
+                      </label>
+                      {links.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+                          {links.map((link, idx) => (
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                              <span style={{ color: 'var(--foreground)', fontWeight: 500 }}>{link.name}</span>
+                              <span style={{ color: 'var(--muted-foreground)' }}>{link.url}</span>
+                              <button type="button" onClick={() => removeLink(idx)}
+                                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--destructive, #ef4444)', cursor: 'pointer', fontSize: 12 }}>
+                                Remove
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+                        <div style={{ flex: 1 }}>
+                          <label className={styles.formLabel} style={{ marginBottom: 0 }}>Name</label>
+                          <input type="text" className={styles.formInput} value={newLinkName}
+                            onChange={e => setNewLinkName(e.target.value)} placeholder="e.g. GitHub Repo" style={{ height: 34, fontSize: 12 }} />
+                        </div>
+                        <div style={{ flex: 2 }}>
+                          <label className={styles.formLabel} style={{ marginBottom: 0 }}>URL</label>
+                          <input type="url" className={styles.formInput} value={newLinkUrl}
+                            onChange={e => setNewLinkUrl(e.target.value)} placeholder="https://..." style={{ height: 34, fontSize: 12 }} />
+                        </div>
+                        <button type="button" onClick={addLink}
+                          style={{ height: 34, padding: '0 12px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--input-background)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--foreground)' }}>
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
+              </>
+            )}
+
+            {/* Submit Footer */}
+            {!postSubmitted && (
+              <div className={styles.dialogFooter}>
+                <button type="button" className={styles.dialogClose} onClick={closeCreate}
+                  style={{ fontSize: 13, fontWeight: 500, padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border)' }}>
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={handleCreateSubmit}
+                  className={styles.createBtn}
+                  style={{ opacity: isSubmitting ? 0.7 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}>
+                  {isSubmitting ? <><Loader2 size={14} className={styles.spinner} /> Publishing...</> : btnLabel}
+                </button>
+              </div>
+            )}
               </>
             )}
           </div>
