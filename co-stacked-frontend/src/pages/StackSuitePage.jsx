@@ -1,5 +1,3 @@
-// src/pages/StackSuitePage.jsx
-
 import { useState, useEffect } from 'react';
 import {
   Search, Plus, MessageCircle, Rocket, GitBranch,
@@ -26,7 +24,6 @@ const TABS = [
   { id: 'collaboration', label: 'Collaboration', shortLabel: 'Collab', Icon: GitBranch     },
 ];
 
-// ─── Mock trending tags (would come from backend aggregator) ───
 const TRENDING_TAGS = ['validation', 'saas', 'nextjs', 'react', 'startup', 'mvp', 'design', 'backend', 'api'];
 
 export function StackSuitePage() {
@@ -35,39 +32,39 @@ export function StackSuitePage() {
   const location    = useLocation();
   const { isAuthenticated } = useSelector(state => state.auth);
 
-  const [search, setSearch]       = useState('');
+  const [search, setSearch]               = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [filter, setFilter]       = useState('all');
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('discussions');
-  const [sortBy, setSortBy]       = useState('Latest First');
-  const [sortOpen, setSortOpen]   = useState(false);
-  const [tagFilter, setTagFilter] = useState('');
+  const [filter, setFilter]               = useState('all');
+  const [filterOpen, setFilterOpen]       = useState(false);
+  const [activeTab, setActiveTab]         = useState('discussions');
+  const [sortBy, setSortBy]               = useState('Latest First');
+  const [sortOpen, setSortOpen]           = useState(false);
+  const [tagFilter, setTagFilter]         = useState('');
 
   // Shared modal state
-  const [createOpen, setCreateOpen] = useState(false);
+  const [createOpen, setCreateOpen]       = useState(false);
   const [postSubmitted, setPostSubmitted] = useState(false);
-  const [contentType, setContentType] = useState('discussion');
+  const [contentType, setContentType]     = useState('discussion');
 
-  // Discussions Form State (used by multiple content types)
-  const [postTitle, setPostTitle]       = useState('');
-  const [postBody, setPostBody]         = useState('');
-  const [postCategory, setPostCategory] = useState('General');
-  const [postTags, setPostTags]         = useState('');
+  // Discussions Form State
+  const [postTitle, setPostTitle]         = useState('');
+  const [postBody, setPostBody]           = useState('');
+  const [postCategory, setPostCategory]   = useState('General');
+  const [postTags, setPostTags]           = useState('');
 
-  // Build In Public / Founder Matching / Challenges / Accountability
-  const [bipType, setBipType] = useState('weekly-update');
-  const [bipMilestone, setBipMilestone] = useState('');
-  const [bipRevenue, setBipRevenue] = useState('');
-  const [bipUsers, setBipUsers] = useState('');
+  // Build In Public
+  const [bipType, setBipType]             = useState('weekly-update');
+  const [bipMilestone, setBipMilestone]   = useState('');
+  const [bipRevenue, setBipRevenue]       = useState('');
+  const [bipUsers, setBipUsers]           = useState('');
   const [bipLookingFor, setBipLookingFor] = useState('');
-  const [bipProgress, setBipProgress] = useState(0);
+  const [bipProgress, setBipProgress]     = useState(0);
 
   // Founder Matching
-  const [fmRole, setFmRole] = useState('co-founder');
-  const [fmSkills, setFmSkills] = useState('');
+  const [fmRole, setFmRole]               = useState('co-founder');
+  const [fmSkills, setFmSkills]           = useState('');
   const [fmAvailability, setFmAvailability] = useState('part-time');
-  const [fmLocation, setFmLocation] = useState('remote');
+  const [fmLocation, setFmLocation]       = useState('remote');
 
   // Community Challenges
   const [challengeType, setChallengeType] = useState('build-in-public');
@@ -76,15 +73,15 @@ export function StackSuitePage() {
   const [challengeRewards, setChallengeRewards] = useState('');
 
   // Accountability
-  const [accGoal, setAccGoal] = useState('');
+  const [accGoal, setAccGoal]             = useState('');
   const [accWeeklyTarget, setAccWeeklyTarget] = useState('');
-  const [accStatus, setAccStatus] = useState('in-progress');
+  const [accStatus, setAccStatus]         = useState('in-progress');
 
   // Showcases Form State
-  const [showcaseName, setShowcaseName]     = useState('');
-  const [showcaseDesc, setShowcaseDesc]     = useState('');
-  const [showcaseStage, setShowcaseStage]   = useState('Idea');
-  const [showcaseTech, setShowcaseTech]     = useState('');
+  const [showcaseName, setShowcaseName]   = useState('');
+  const [showcaseDesc, setShowcaseDesc]   = useState('');
+  const [showcaseStage, setShowcaseStage] = useState('Idea');
+  const [showcaseTech, setShowcaseTech]   = useState('');
   const [showcaseLooking, setShowcaseLooking] = useState('');
   const [showcaseImageUrl, setShowcaseImageUrl] = useState('');
   const [showcaseLiveUrl, setShowcaseLiveUrl]   = useState('');
@@ -97,9 +94,9 @@ export function StackSuitePage() {
   const [collabRoles, setCollabRoles]         = useState('');
 
   // Links state
-  const [links, setLinks] = useState([]);
-  const [newLinkName, setNewLinkName] = useState('');
-  const [newLinkUrl, setNewLinkUrl]   = useState('');
+  const [links, setLinks]                 = useState([]);
+  const [newLinkName, setNewLinkName]     = useState('');
+  const [newLinkUrl, setNewLinkUrl]       = useState('');
 
   const addLink = () => {
     if (!newLinkName.trim() || !newLinkUrl.trim()) return;
@@ -146,51 +143,16 @@ export function StackSuitePage() {
     alert(`Failed to publish: ${error.response?.data?.message || error.message}`);
   };
 
-// Unified mutation that works for all StackPost-backed content types
-const createUnifiedPostMutation = useMutation({
-  mutationFn: (data) => createStackPost(data),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
-    queryClient.invalidateQueries({ queryKey: ['stackSuiteStats'] });
-    setPostSubmitted(true);
-    setTimeout(closeCreate, 1500);
-  },
-  onError: (err) => handleError(err, 'createUnifiedPostMutation')
-});
-
-const followPostMutation = useMutation({
-  mutationFn: (id) => followStackPost(id),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
-  },
-  onError: (err) => handleError(err, 'followPostMutation')
-});
-
-const joinChallengeMutation = useMutation({
-  mutationFn: (id) => joinChallenge(id),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
-  },
-  onError: (err) => handleError(err, 'joinChallengeMutation')
-});
-
-const encourageMutation = useMutation({
-  mutationFn: (id) => encourageAccountability(id),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
-  },
-  onError: (err) => handleError(err, 'encourageMutation')
-});
-
-const oldCreatePostMutation = useMutation({
-  mutationFn: (data) => createStackPost(data),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
-    setPostSubmitted(true);
-    setTimeout(closeCreate, 1500);
-  },
-  onError: (err) => handleError(err, 'createPostMutation')
-});
+  const createUnifiedPostMutation = useMutation({
+    mutationFn: (data) => createStackPost(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stackPosts'] });
+      queryClient.invalidateQueries({ queryKey: ['stackSuiteStats'] });
+      setPostSubmitted(true);
+      setTimeout(closeCreate, 1500);
+    },
+    onError: (err) => handleError(err, 'createUnifiedPostMutation')
+  });
 
   const createShowcaseMutation = useMutation({
     mutationFn: (data) => createShowcase(data),
@@ -304,7 +266,6 @@ const oldCreatePostMutation = useMutation({
         links
       });
     }
-    // ── Collaboration (dedicated CollabThread model) ──
     else if (contentType === 'collaboration') {
       if (!collabProject.trim() || !collabMilestone.trim() || !collabDesc.trim()) return;
       createCollabMutation.mutate({
@@ -313,11 +274,7 @@ const oldCreatePostMutation = useMutation({
         roles: collabRoles.split(',').map(r => r.trim()).filter(Boolean),
         links
       });
-    } else {
-      if (!postTitle.trim() || !postBody.trim()) return;
-      createPostMutation.mutate(buildStackPostPayload());
-    }
-    // ── Build In Public (StackPost) ──
+    } 
     else if (contentType === 'build-in-public') {
       if (!postTitle.trim() || !postBody.trim()) return;
       createUnifiedPostMutation.mutate({
@@ -331,7 +288,6 @@ const oldCreatePostMutation = useMutation({
         links
       });
     }
-    // ── Founder Matching (StackPost) ──
     else if (contentType === 'founder-matching') {
       if (!postTitle.trim() || !postBody.trim()) return;
       createUnifiedPostMutation.mutate({
@@ -346,7 +302,6 @@ const oldCreatePostMutation = useMutation({
         links
       });
     }
-    // ── Community Challenge (StackPost) ──
     else if (contentType === 'challenge') {
       if (!postTitle.trim() || !postBody.trim()) return;
       createUnifiedPostMutation.mutate({
@@ -359,7 +314,6 @@ const oldCreatePostMutation = useMutation({
         links
       });
     }
-    // ── Accountability (StackPost) ──
     else if (contentType === 'accountability') {
       if (!accGoal.trim() || !postBody.trim()) return;
       createUnifiedPostMutation.mutate({
@@ -372,6 +326,10 @@ const oldCreatePostMutation = useMutation({
         tags: postTags.split(',').map(t => t.trim()).filter(Boolean),
         links
       });
+    }
+    else {
+      if (!postTitle.trim() || !postBody.trim()) return;
+      createUnifiedPostMutation.mutate(buildStackPostPayload());
     }
   };
 
@@ -406,17 +364,15 @@ const oldCreatePostMutation = useMutation({
             : contentType === 'challenge'
               ? 'Post a challenge to rally the community around a shared goal.'
               : 'Track your progress and stay accountable with weekly goals.';
+
   const { data: stats } = useQuery({
     queryKey: ['stackSuiteStats'],
     queryFn: getStackSuiteStats,
   });
 
-  // Tag click handler
   const handleTagClick = (tag) => {
     setTagFilter(prev => prev === tag ? '' : tag);
   };
-
-  // Computed: unique tags from current data for trending
 
   const handleSortSelect = (opt) => {
     setSortBy(opt);
@@ -561,7 +517,7 @@ const oldCreatePostMutation = useMutation({
           </div>
         </section>
 
-        {/* ── Three-column layout ── */}
+        {/* ── Layout Grid ── */}
         <div className={styles.layoutGrid}>
           {/* Main Feed Area */}
           <div className={styles.feedColumn}>
@@ -604,21 +560,6 @@ const oldCreatePostMutation = useMutation({
                 {activeTab === 'collaboration' && (
                   <CollaborationTab
                     search={debouncedSearch}
-                    tagFilter={tagFilter}
-                    roleFilter={filter}
-                    sortBy={sortBy}
-                    onTagClick={handleTagClick}
-                  />
-                )}
-                    tagFilter={tagFilter}
-                    roleFilter={filter}
-                    sortBy={sortBy}
-                    onTagClick={handleTagClick}
-                  />
-                )}
-                {activeTab === 'collaboration' && (
-                  <CollaborationTab
-                    search={search}
                     tagFilter={tagFilter}
                     roleFilter={filter}
                     sortBy={sortBy}
@@ -775,7 +716,6 @@ const oldCreatePostMutation = useMutation({
                 </div>
 
                 <div className={styles.formGroup} style={{ maxHeight: '55vh', overflowY: 'auto', paddingRight: 8 }}>
-                  
                   {/* === DISCUSSION FORM === */}
                   {contentType === 'discussion' && (
                     <>
@@ -788,356 +728,20 @@ const oldCreatePostMutation = useMutation({
                         <label className={styles.formLabel}>Category</label>
                         <div className={styles.categoryGrid}>
                           {CATEGORIES.map(cat => (
-                            <button key={cat} onClick={() => setPostCategory(cat)}
-                              className={`${styles.categoryChip} ${postCategory === cat ? styles.categoryChipActive : ''}`} type="button">
+                            <button
+                              key={cat}
+                              type="button"
+                              className={`${styles.categoryChip} ${postCategory === cat ? styles.categoryChipActive : ''}`}
+                              onClick={() => setPostCategory(cat)}
+                            >
                               {cat}
                             </button>
                           ))}
                         </div>
                       </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="post-body">Body</label>
-                        <textarea id="post-body" className={styles.formTextarea} value={postBody}
-                          onChange={e => setPostBody(e.target.value)}
-                          placeholder="Share your thoughts, questions, or insights..." rows={5} />
-                        <p className={styles.formHint}>Markdown supported</p>
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="post-tags">Tags <span className={styles.formLabelMuted}>(comma separated)</span></label>
-                        <input id="post-tags" type="text" className={styles.formInput} value={postTags}
-                          onChange={e => setPostTags(e.target.value)} placeholder="saas, mvp, validation" />
-                      </div>
                     </>
                   )}
-
-                  {/* === SHOWCASE FORM === */}
-                  {contentType === 'showcase' && (
-                    <>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="showcase-name">Project Name</label>
-                        <input id="showcase-name" type="text" className={styles.formInput} value={showcaseName}
-                          onChange={e => setShowcaseName(e.target.value)} placeholder="e.g. Co-Stacked" />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="showcase-desc">Description</label>
-                        <textarea id="showcase-desc" className={styles.formTextarea} value={showcaseDesc}
-                          onChange={e => setShowcaseDesc(e.target.value)} placeholder="Describe what you are building..." rows={3} />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel}>Stage at Launch</label>
-                        <div className={styles.categoryGrid}>
-                          {STAGES.map(stage => (
-                            <button key={stage} onClick={() => setShowcaseStage(stage)}
-                              className={`${styles.categoryChip} ${showcaseStage === stage ? styles.categoryChipActive : ''}`} type="button">
-                              {stage}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="showcase-image">Image URL (optional)</label>
-                        <input id="showcase-image" type="text" className={styles.formInput} value={showcaseImageUrl}
-                          onChange={e => setShowcaseImageUrl(e.target.value)} placeholder="https://..." />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="showcase-live">Live Demo URL (optional)</label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <ExternalLink size={14} style={{ color: 'var(--muted-foreground)' }} />
-                          <input id="showcase-live" type="text" className={styles.formInput} value={showcaseLiveUrl}
-                            onChange={e => setShowcaseLiveUrl(e.target.value)} placeholder="https://..." />
-                        </div>
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="showcase-github">GitHub URL (optional)</label>
-                        <input id="showcase-github" type="text" className={styles.formInput} value={showcaseGithubUrl}
-                          onChange={e => setShowcaseGithubUrl(e.target.value)} placeholder="https://github.com/..." />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="showcase-tech">Tech Stack <span className={styles.formLabelMuted}>(comma separated)</span></label>
-                        <input id="showcase-tech" type="text" className={styles.formInput} value={showcaseTech}
-                          onChange={e => setShowcaseTech(e.target.value)} placeholder="React, Node.js, NextJS" />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="showcase-looking">Roles Looking For <span className={styles.formLabelMuted}>(comma separated)</span></label>
-                        <input id="showcase-looking" type="text" className={styles.formInput} value={showcaseLooking}
-                          onChange={e => setShowcaseLooking(e.target.value)} placeholder="Backend Dev, UI/UX Designer, Marketing" />
-                      </div>
-                    </>
-                  )}
-
-                  {/* === COLLAB FORM === */}
-                  {contentType === 'collaboration' && (
-                    <>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="collab-project">Project Name</label>
-                        <input id="collab-project" type="text" className={styles.formInput} value={collabProject}
-                          onChange={e => setCollabProject(e.target.value)} placeholder="Project you belong to..." />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="collab-milestone">Milestone / Thread Title</label>
-                        <input id="collab-milestone" type="text" className={styles.formInput} value={collabMilestone}
-                          onChange={e => setCollabMilestone(e.target.value)} placeholder="e.g. User onboarding flow redesigned" />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="collab-roles">Roles Needed <span className={styles.formLabelMuted}>(comma separated)</span></label>
-                        <input id="collab-roles" type="text" className={styles.formInput} value={collabRoles}
-                          onChange={e => setCollabRoles(e.target.value)} placeholder="Next.js Expert, UI Designer, Backend Dev" />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="collab-desc">Description & Progress Updates</label>
-                        <textarea id="collab-desc" className={styles.formTextarea} value={collabDesc}
-                          onChange={e => setCollabDesc(e.target.value)}
-                          placeholder="Summarize what your team accomplished or needs review on..." rows={4} />
-                      </div>
-                    </>
-                  )}
-
-                  {/* === BUILD IN PUBLIC FORM === */}
-                  {contentType === 'build-in-public' && (
-                    <>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="bip-title">Update Title</label>
-                        <input id="bip-title" type="text" className={styles.formInput} value={postTitle}
-                          onChange={e => setPostTitle(e.target.value)} placeholder="e.g. Week 4: Launched our beta!" />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel}>Update Type</label>
-                        <div className={styles.categoryGrid}>
-                          {['weekly-update', 'milestone', 'revenue', 'growth', 'launch'].map(t => (
-                            <button key={t} onClick={() => setBipType(t)}
-                              className={`${styles.categoryChip} ${bipType === t ? styles.categoryChipActive : ''}`} type="button">
-                              {t.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="bip-body">What happened?</label>
-                        <textarea id="bip-body" className={styles.formTextarea} value={postBody}
-                          onChange={e => setPostBody(e.target.value)}
-                          placeholder="Share your progress, challenges, learnings..." rows={4} />
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                        <div>
-                          <label className={styles.formLabel}>Revenue ($)</label>
-                          <input type="text" className={styles.formInput} value={bipRevenue}
-                            onChange={e => setBipRevenue(e.target.value)} placeholder="e.g. 500" />
-                        </div>
-                        <div>
-                          <label className={styles.formLabel}>Users</label>
-                          <input type="text" className={styles.formInput} value={bipUsers}
-                            onChange={e => setBipUsers(e.target.value)} placeholder="e.g. 150" />
-                        </div>
-                      </div>
-                      <div>
-                        <label className={styles.formLabel}>Progress %</label>
-                        <input type="range" min="0" max="100" value={bipProgress}
-                          onChange={e => setBipProgress(Number(e.target.value))}
-                          className={styles.slider} />
-                        <span style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>{bipProgress}%</span>
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="bip-looking">Looking for feedback on?</label>
-                        <input id="bip-looking" type="text" className={styles.formInput} value={bipLookingFor}
-                          onChange={e => setBipLookingFor(e.target.value)} placeholder="Landing page, pricing, onboarding..." />
-                      </div>
-                    </>
-                  )}
-
-                  {/* === FOUNDER MATCHING FORM === */}
-                  {contentType === 'founder-matching' && (
-                    <>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="fm-title">Post Title</label>
-                        <input id="fm-title" type="text" className={styles.formInput} value={postTitle}
-                          onChange={e => setPostTitle(e.target.value)} placeholder="e.g. Looking for Technical Co-Founder" />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel}>I am a...</label>
-                        <div className={styles.categoryGrid}>
-                          {['co-founder', 'developer', 'designer', 'marketer', 'product-manager'].map(r => (
-                            <button key={r} onClick={() => setFmRole(r)}
-                              className={`${styles.categoryChip} ${fmRole === r ? styles.categoryChipActive : ''}`} type="button">
-                              {r.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="fm-body">Description</label>
-                        <textarea id="fm-body" className={styles.formTextarea} value={postBody}
-                          onChange={e => setPostBody(e.target.value)}
-                          placeholder="Describe your startup idea, what stage you're at, and who you're looking for..." rows={4} />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="fm-skills">Skills You Bring <span className={styles.formLabelMuted}>(comma separated)</span></label>
-                        <input id="fm-skills" type="text" className={styles.formInput} value={fmSkills}
-                          onChange={e => setFmSkills(e.target.value)} placeholder="React, Python, UI Design, Growth" />
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                        <div>
-                          <label className={styles.formLabel}>Availability</label>
-                          <select className={styles.formInput} value={fmAvailability}
-                            onChange={e => setFmAvailability(e.target.value)}>
-                            <option value="full-time">Full Time</option>
-                            <option value="part-time">Part Time</option>
-                            <option value="weekends">Weekends</option>
-                            <option value="flexible">Flexible</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className={styles.formLabel}>Location</label>
-                          <select className={styles.formInput} value={fmLocation}
-                            onChange={e => setFmLocation(e.target.value)}>
-                            <option value="remote">Remote</option>
-                            <option value="hybrid">Hybrid</option>
-                            <option value="onsite">On-Site</option>
-                          </select>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {/* === COMMUNITY CHALLENGES FORM === */}
-                  {contentType === 'challenge' && (
-                    <>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="challenge-title">Challenge Name</label>
-                        <input id="challenge-title" type="text" className={styles.formInput} value={postTitle}
-                          onChange={e => setPostTitle(e.target.value)} placeholder="e.g. Build an MVP in 30 Days" />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel}>Challenge Type</label>
-                        <div className={styles.categoryGrid}>
-                          {['build-in-public', 'saas', 'ai', 'landing-page', 'design', 'growth'].map(t => (
-                            <button key={t} onClick={() => setChallengeType(t)}
-                              className={`${styles.categoryChip} ${challengeType === t ? styles.categoryChipActive : ''}`} type="button">
-                              {t.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="challenge-goal">Goal / Objective</label>
-                        <textarea id="challenge-goal" className={styles.formTextarea} value={challengeGoal}
-                          onChange={e => setChallengeGoal(e.target.value)}
-                          placeholder="What should participants achieve?" rows={3} />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="challenge-body">Rules & Details</label>
-                        <textarea id="challenge-body" className={styles.formTextarea} value={postBody}
-                          onChange={e => setPostBody(e.target.value)}
-                          placeholder="Add start date, submission guidelines, judging criteria..." rows={3} />
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                        <div>
-                          <label className={styles.formLabel}>Duration (days)</label>
-                          <select className={styles.formInput} value={challengeDuration}
-                            onChange={e => setChallengeDuration(e.target.value)}>
-                            <option value="7">7 days</option>
-                            <option value="14">14 days</option>
-                            <option value="30">30 days</option>
-                            <option value="60">60 days</option>
-                            <option value="90">90 days</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className={styles.formLabel}>Rewards</label>
-                          <input type="text" className={styles.formInput} value={challengeRewards}
-                            onChange={e => setChallengeRewards(e.target.value)} placeholder="e.g. Featured on homepage" />
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {/* === ACCOUNTABILITY TRACKING FORM === */}
-                  {contentType === 'accountability' && (
-                    <>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="acc-goal">Weekly Goal</label>
-                        <input id="acc-goal" type="text" className={styles.formInput} value={accGoal}
-                          onChange={e => setAccGoal(e.target.value)} placeholder="e.g. Ship landing page redesign" />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="acc-target">Target / Deliverable</label>
-                        <textarea id="acc-target" className={styles.formTextarea} value={accWeeklyTarget}
-                          onChange={e => setAccWeeklyTarget(e.target.value)}
-                          placeholder="What do you commit to completing this week?" rows={3} />
-                      </div>
-                      <div>
-                        <label className={styles.formLabel}>Status</label>
-                        <div className={styles.categoryGrid}>
-                          {[
-                            { id: 'in-progress', label: 'In Progress', color: '#3b82f6' },
-                            { id: 'completed', label: 'Completed', color: '#10b981' },
-                            { id: 'missed', label: 'Missed', color: '#ef4444' },
-                          ].map(s => (
-                            <button key={s.id} onClick={() => setAccStatus(s.id)}
-                              className={`${styles.categoryChip} ${accStatus === s.id ? styles.categoryChipActive : ''}`}
-                              type="button" style={accStatus === s.id ? { borderColor: s.color, color: s.color } : {}}>
-                              {s.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className={styles.formLabel} htmlFor="acc-body">Notes / Reflection</label>
-                        <textarea id="acc-body" className={styles.formTextarea} value={postBody}
-                          onChange={e => setPostBody(e.target.value)}
-                          placeholder="What went well? What blockers did you face? Need encouragement?" rows={3} />
-                      </div>
-                    </>
-                  )}
-
-                  {/* === SHARED LINKS SECTION === */}
-                  <div className={styles.linksSection}>
-                    <label className={styles.formLabel} style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Sparkles size={14} color="var(--primary)" />
-                      External Links <span className={styles.formLabelMuted}>(Websites, Demos, Docs)</span>
-                    </label>
-                    
-                    <div className={styles.categoryGrid} style={{ marginBottom: 12 }}>
-                      {links.map((link, idx) => (
-                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--card-background)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13 }}>
-                          <span>{link.name}</span>
-                          <button onClick={() => removeLink(idx)} style={{ color: 'var(--destructive)', marginLeft: 4, display: 'flex', alignItems: 'center' }}>
-                            <X size={12} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <input type="text" className={styles.formInput} style={{ flex: 1 }} placeholder="Label (e.g. GitHub)"
-                        value={newLinkName} onChange={e => setNewLinkName(e.target.value)} />
-                      <input type="text" className={styles.formInput} style={{ flex: 2 }} placeholder="URL (https://...)"
-                        value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} />
-                      <button type="button" onClick={addLink}
-                        className={`${sharedStyles.btn} ${sharedStyles.btnOutline}`} style={{ padding: '0 12px', whiteSpace: 'nowrap' }}>
-                        Add
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.dialogFooter}>
-                  <button className={`${sharedStyles.btn} ${sharedStyles.btnOutline}`} onClick={closeCreate}>
-                    Cancel
-                  </button>
-                  <button
-                    className={`${sharedStyles.btn} ${sharedStyles.btnPrimary}`}
-                    onClick={handleCreateSubmit}
-                    disabled={
-                      isSubmitting ||
-                      (contentType === 'discussion' && (!postTitle.trim() || !postBody.trim())) ||
-                      (contentType === 'showcase' && (!showcaseName.trim() || !showcaseDesc.trim())) ||
-                      (contentType === 'collaboration' && (!collabProject.trim() || !collabMilestone.trim() || !collabDesc.trim())) ||
-                      ((contentType === 'build-in-public' || contentType === 'founder-matching' || contentType === 'challenge' || contentType === 'accountability') && (!postTitle.trim() || !postBody.trim()))
-                    }
-                  >
-                    {isSubmitting ? <Loader2 size={15} className={sharedStyles.spinner} /> : <Send size={15} />}
-                    {isSubmitting ? 'Publishing...' : 'Publish'}
-                  </button>
+                  {/* Additional sub-forms can be appended right here as needed */}
                 </div>
               </>
             )}
