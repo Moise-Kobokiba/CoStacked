@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useQueryClient } from '@tanstack/react-query';
+import { updateUserStatus } from '../features/users/usersSlice';
+import { updateUserStatus as updateAuthUserStatus } from '../features/auth/authSlice';
 
 const SocketContext = createContext(null);
 
@@ -10,6 +12,7 @@ export const useSocket = () => useContext(SocketContext);
 export const SocketProvider = ({ children }) => {
   const { token, user } = useSelector((s) => s.auth || {});
   const queryClient = useQueryClient();
+  const dispatch = useDispatch();
   const socketRef = useRef(null);
 
   useEffect(() => {
@@ -48,8 +51,13 @@ export const SocketProvider = ({ children }) => {
     });
 
     socket.on('user_status_changed', (payload) => {
-      queryClient.invalidateQueries(['users']);
-      queryClient.invalidateQueries(['auth']);
+      const { userId, isOnline, lastActiveAt } = payload || {};
+      if (userId) {
+        // Update the users list in Redux (Browse Talent / My Network pages)
+        dispatch(updateUserStatus({ userId, isOnline, lastActiveAt }));
+        // Update the current user's own status in auth Redux (Profile header)
+        dispatch(updateAuthUserStatus({ userId, isOnline, lastActiveAt }));
+      }
     });
 
     socket.on('idea_vote_update', (payload) => {
