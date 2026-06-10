@@ -273,6 +273,10 @@ const user = await User.findOne({ email });
         });
       }
 
+      // Update last active timestamp on login
+      user.lastActiveAt = new Date();
+      await user.save();
+
       // Generate JWT token
       const token = generateToken(user._id);
 
@@ -282,7 +286,9 @@ const user = await User.findOne({ email });
           name: user.name,
           email: user.email,
           role: user.role,
-          isAdmin: user.isAdmin
+          isAdmin: user.isAdmin,
+          isOnline: user.isOnline,
+          lastActiveAt: user.lastActiveAt,
         },
         token
       });
