@@ -7,7 +7,6 @@ import styles from './UserCard.module.css';
 import PropTypes from 'prop-types';
 import verificationBadge from '../../assets/verification-badge.png';
 import { Rocket, MapPin, Eye, MessageCircle } from 'lucide-react';
-import { PresenceBadge } from './PresenceBadge';
 
 export const UserCard = ({ user, variant = 'default' }) => {
   if (!user) return null;
@@ -50,8 +49,6 @@ export const UserCard = ({ user, variant = 'default' }) => {
             )}
           </div>
           <p className={styles.role}>{user.role || 'No role specified'}</p>
-          {/* ── Live Presence Badge ── */}
-          <PresenceBadge user={user} />
           {user.location && (
             <p className={styles.location}>
               <MapPin size={11} /> {user.location}

@@ -10,8 +10,6 @@ import {
   Edit, Share2, MapPin, Briefcase, Clock, 
   MessageSquare 
 } from 'lucide-react';
-import { PresenceBadge } from '../shared/PresenceBadge';
-
 export const ProfileHeader = ({ 
   user, 
   isOwnProfile, 
@@ -68,9 +66,6 @@ export const ProfileHeader = ({
           <p className={styles.role}>
             {user.headline || (user.role === 'developer' ? 'Full-Stack Developer & Tech Architect' : 'Founder & Product Strategist')}
           </p>
-          <div className={styles.statusRow}>
-            <PresenceBadge user={user} />
-          </div>
           
           <div className={styles.metaRow}>
             <div className={styles.metaItem}>
