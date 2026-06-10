@@ -10,8 +10,7 @@ import {
   Edit, Share2, MapPin, Briefcase, Clock, 
   MessageSquare 
 } from 'lucide-react';
-
-import { formatDistanceToNow } from 'date-fns';
+import { PresenceBadge } from '../shared/PresenceBadge';
 
 export const ProfileHeader = ({ 
   user, 
@@ -29,10 +28,7 @@ export const ProfileHeader = ({
   isConnectionLoading,
   onMessage,
 }) => {
-  const isOnline = user.isOnline;
-  const lastActiveText = user.lastActiveAt 
-    ? `Last active ${formatDistanceToNow(new Date(user.lastActiveAt), { addSuffix: true })}`
-    : 'Offline';
+  const isOnline = !!user?.isOnline;
 
   return (
   <div className={styles.profileHeaderCard}>
@@ -50,7 +46,7 @@ export const ProfileHeader = ({
           </div>
           <div 
             className={isOnline ? styles.onlineBadge : styles.offlineBadge} 
-            title={isOnline ? 'Online now' : lastActiveText}
+            title={isOnline ? 'Online now' : 'Offline'}
           ></div>
           {isOwnProfile && (
             <button className={styles.avatarEditButton} onClick={onAvatarClick} aria-label="Change profile picture">
@@ -73,9 +69,7 @@ export const ProfileHeader = ({
             {user.headline || (user.role === 'developer' ? 'Full-Stack Developer & Tech Architect' : 'Founder & Product Strategist')}
           </p>
           <div className={styles.statusRow}>
-            <span className={`${styles.statusPill} ${isOnline ? styles.statusPillOnline : styles.statusPillOffline}`}>
-              {isOnline ? 'Active now' : lastActiveText}
-            </span>
+            <PresenceBadge user={user} />
           </div>
           
           <div className={styles.metaRow}>
