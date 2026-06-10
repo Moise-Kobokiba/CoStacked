@@ -100,7 +100,7 @@ const userSchema = mongoose.Schema(
     // --- Profile Completion Tracking ---
     profileCompleted: { type: Boolean, default: false },
     isOnline: { type: Boolean, default: false },
-    lastActiveAt: { type: Date, default: Date.now },
+    lastActiveAt: { type: Date },
 
     // --- NEW: Account Views History ---
     viewHistory: [
