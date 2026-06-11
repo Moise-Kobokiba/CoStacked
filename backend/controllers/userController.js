@@ -273,17 +273,24 @@ const user = await User.findOne({ email });
         });
       }
 
+      // Mark user as online and update last active timestamp
+      user.isOnline = true;
+      user.lastActiveAt = new Date();
+      await user.save({ validateBeforeSave: false });
+
       // Generate JWT token
       const token = generateToken(user._id);
 
+      // Return full user object (minus password) so frontend has presence fields
+      const userObj = user.toObject();
+      delete userObj.password;
+      delete userObj.passwordResetToken;
+      delete userObj.passwordResetExpires;
+      delete userObj.emailVerificationToken;
+      delete userObj.emailVerificationExpires;
+
       res.json({
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          isAdmin: user.isAdmin
-        },
+        user: userObj,
         token
       });
     } else {

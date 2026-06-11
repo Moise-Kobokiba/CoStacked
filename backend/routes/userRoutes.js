@@ -26,7 +26,7 @@ const {
   getResponseRate
 } = require('../controllers/userController');
 
-const { protect } = require('../middleware/authMiddleware');
+const { protect, trackActivity } = require('../middleware/authMiddleware');
 
 
 // === PUBLIC ROUTES ===
@@ -49,10 +49,10 @@ router.route('/profile/avatar').put(protect, upload.single('avatar'), updateUser
 // === PROTECTED ROUTES ===
 // These routes require a valid token (the 'protect' middleware).
 // Grouping profile-related routes together.
-router
+  router
   .route('/profile')
-  .get(protect, getUserProfile)
-  .put(protect, updateUserProfile)
+  .get(protect, trackActivity, getUserProfile)
+  .put(protect, trackActivity, updateUserProfile)
   .delete(protect, deleteUserAccount);
 
 router.route('/profile/bookmarks').put(protect, toggleBookmark);
@@ -60,10 +60,21 @@ router.route('/profile/change-password').put(protect, changeUserPassword);
 router.route('/complete-profile').put(protect, completeProfile);
 router.route('/profile/views').get(protect, getProfileViews);
 
+// === PRESENCE ROUTE ===
+// Heartbeat endpoint - authenticated users ping this to signal they are active
+// Must be placed BEFORE dynamic ':id' routes to avoid conflicts
+router.post('/heartbeat', protect, trackActivity, (req, res) => {
+  res.json({ 
+    success: true, 
+    isOnline: true, 
+    lastActiveAt: req.user.lastActiveAt || new Date() 
+  });
+});
+
 // Dynamic routes like ':id' should be placed last to avoid conflicts
 // with static routes like '/profile'.
 router.route('/:id/response-rate').get(getResponseRate);
-router.route('/:id/view').put(protect, recordProfileView);
+router.route('/:id/view').put(protect, trackActivity, recordProfileView);
 
 
 module.exports = router;
