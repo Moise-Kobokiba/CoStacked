@@ -5,21 +5,15 @@ const router  = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 
 const {
-  getPosts, getPostById, createPost, upvotePost, deletePost,
-  getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase,
-  getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread,
+  getPosts, getPostById, createPost, upvotePost, downvotePost, deletePost,
+  getShowcases, getShowcaseById, createShowcase, updateShowcase, deleteShowcase, upvoteShowcase, downvoteShowcase, followShowcase, unfollowShowcase,
+  getCollabThreads, getCollabThreadById, createCollabThread, updateCollabThread, deleteCollabThread, upvoteCollab, downvoteCollab, followCollab, unfollowCollab,
   getComments, addComment, upvoteComment, likeComment, deleteComment,
+  updateComment,
   getBookmarks, getStats,
 } = require('../controllers/stackSuiteController');
 
-// ── Optional auth: attach user if token present, but don't block public reads ──
-// ... (omitting middleware but it's there)
-// ...
-
-/* ─── Stats ─── */
-router.get('/stats', getStats);
-
-/* ─── Bookmarks ─── */
+/* ─── Optional auth: attach user if token present, but don't block public reads ─── */
 const optionalProtect = (req, res, next) => {
   const auth = req.headers.authorization;
   if (auth && auth.startsWith('Bearer')) {
@@ -37,19 +31,26 @@ const optionalProtect = (req, res, next) => {
   }
 };
 
+/* ─── Stats ─── */
+router.get('/stats', getStats);
+
 /* ─── Bookmarks ─── */
 router.get('/bookmarks', protect, getBookmarks);
 
-/* ─── Posts / Discussions ─── */
+/* ─── Posts (covers all 7 content types) ─── */
 router.route('/posts')
   .get(optionalProtect, getPosts)
   .post(protect, createPost);
 
 router.route('/posts/:id')
   .get(optionalProtect, getPostById)
+  .put(protect, updatePost)
   .delete(protect, deletePost);
 
 router.put('/posts/:id/upvote', protect, upvotePost);
+router.put('/posts/:id/downvote', protect, downvotePost);
+router.put('/posts/:id/follow', protect, followPost);
+router.put('/posts/:id/unfollow', protect, unfollowPost);
 
 /* ─── Showcases ─── */
 router.route('/showcases')
@@ -62,6 +63,9 @@ router.route('/showcases/:id')
   .delete(protect, deleteShowcase);
 
 router.put('/showcases/:id/upvote', protect, upvoteShowcase);
+router.put('/showcases/:id/downvote', protect, downvoteShowcase);
+router.put('/showcases/:id/follow', protect, followShowcase);
+router.put('/showcases/:id/unfollow', protect, unfollowShowcase);
 
 /* ─── Collab Threads ─── */
 router.route('/collab')
@@ -73,13 +77,20 @@ router.route('/collab/:id')
   .put(protect, updateCollabThread)
   .delete(protect, deleteCollabThread);
 
-/* ─── Comments (shared) ─── */
+router.put('/collab/:id/upvote', protect, upvoteCollab);
+router.put('/collab/:id/downvote', protect, downvoteCollab);
+router.put('/collab/:id/follow', protect, followCollab);
+router.put('/collab/:id/unfollow', protect, unfollowCollab);
+
+/* ─── Comments (shared across all content types) ─── */
 router.route('/comments/:parentType/:parentId')
   .get(optionalProtect, getComments)
   .post(protect, addComment);
 
+router.put('/comments/:id', protect, editComment);
 router.put('/comments/:id/upvote', protect, upvoteComment);
 router.put('/comments/:id/like',   protect, likeComment);
+router.put('/comments/:id',        protect, updateComment);
 router.delete('/comments/:id',     protect, deleteComment);
 
 module.exports = router;

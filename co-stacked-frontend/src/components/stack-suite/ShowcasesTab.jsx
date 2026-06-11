@@ -1,42 +1,38 @@
 // src/components/stack-suite/ShowcasesTab.jsx
 
-import { useState } from 'react';
-import { ArrowBigUp, MessageSquare, ArrowLeft, Bookmark, Share2, ExternalLink, Calendar, Code, Users, Target, Globe, Rocket, Loader2, Edit2, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSelector, useDispatch } from 'react-redux';
-import { getShowcases, upvoteShowcase, getStackComments, deleteShowcase } from '../../api/stackSuiteApi';
+import { useNavigate } from 'react-router-dom';
+import {
+  Rocket, ExternalLink, Github, MessageCircle, ChevronUp, ChevronDown,
+  Loader2, Users, ArrowLeft, Star, Share2, Bookmark, Eye, Globe, Image,
+  Edit2, Trash2
+} from 'lucide-react';
+import { getShowcases, getShowcaseById, upvoteShowcase, downvoteShowcase, deleteShowcase, followShowcase, unfollowShowcase } from '../../api/stackSuiteApi';
+import { useSocket } from '../../context/SocketProvider';
 import { toggleBookmark } from '../../features/auth/authSlice';
 import { CommentThread } from './CommentThread';
-import { EditShowcaseModal } from './EditShowcaseModal';
-import { ConnectionButton } from '../profile/ConnectionButton';
-import { 
-  sendConnectionRequest, 
-  acceptConnectionRequest, 
-  removeOrCancelConnection 
-} from '../../features/connections/connectionsSlice';
 import styles from './StackSuite.module.css';
 
-const stageColorMap = {
-  Idea:       { bg: '#E0F2FE', text: '#0284C7' },  // Blue
-  MVP:        { bg: '#FEF3C7', text: '#D97706' },  // Amber
-  Beta:       { bg: '#F1F5F9', text: '#475569' },  // Slate
-  Launched:   { bg: '#DCFCE7', text: '#16A34A' },  // Green
+/* ─── Stage Color Map ─── */
+const stageBadge = {
+  Idea:     styles.badgeIdea,
+  MVP:      styles.badgeMvp,
+  Beta:     styles.badgeBeta,
+  Launched: styles.badgeLaunched,
 };
 
-/* ─────────── Detail View ─────────── */
-function ShowcaseDetail({ showcaseId, onBack }) {
-  const queryClient = useQueryClient();
+/* ─── Detail View ─── */
+function ShowcaseDetailView({ showcaseId, onBack }) {
   const dispatch = useDispatch();
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
-  
-  // Connection states
-  const { connections, pendingRequests, actionStatus } = useSelector(state => state.connections);
-  const isConnectionLoading = actionStatus === 'loading';
+  const queryClient = useQueryClient();
 
   const { data: showcase, isLoading } = useQuery({
     queryKey: ['showcase', showcaseId],
-    queryFn: () => getShowcases().then(items => items.find(i => i._id === showcaseId)),
+    queryFn: () => getShowcaseById(showcaseId),
   });
 
   const { data: comments = [], isLoading: commentsLoading } = useQuery({
@@ -46,31 +42,32 @@ function ShowcaseDetail({ showcaseId, onBack }) {
   });
 
   const upvoteMutation = useMutation({
-    mutationFn: (id) => upvoteShowcase(id),
-    onMutate: async (id) => {
-      await queryClient.cancelQueries(['showcase', id]);
-      const prev = queryClient.getQueryData(['showcase', id]);
-      if (prev) {
-        queryClient.setQueryData(['showcase', id], {
-          ...prev,
-          upvoteCount: prev.isUpvoted ? prev.upvoteCount - 1 : prev.upvoteCount + 1,
-          isUpvoted: !prev.isUpvoted,
-        });
-      }
-      return { prev };
-    },
-    onError: (err, id, context) => queryClient.setQueryData(['showcase', id], context.prev),
-    onSettled: (id) => {
-      queryClient.invalidateQueries(['showcase', id]);
+    mutationFn: upvoteShowcase,
+    onSuccess: (data) => {
+      queryClient.setQueryData(['showcase', showcaseId], (old) => old ? { ...old, upvoteCount: data.upvoteCount, downvoteCount: data.downvoteCount, isUpvoted: data.isUpvoted, isDownvoted: data.isDownvoted } : old);
+      queryClient.invalidateQueries(['showcases']);
+    }
+  });
+
+  const downvoteMutation = useMutation({
+    mutationFn: downvoteShowcase,
+    onSuccess: (data) => {
+      queryClient.setQueryData(['showcase', showcaseId], (old) => old ? { ...old, upvoteCount: data.upvoteCount, downvoteCount: data.downvoteCount, isUpvoted: data.isUpvoted, isDownvoted: data.isDownvoted } : old);
       queryClient.invalidateQueries(['showcases']);
     }
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteShowcase(id),
-    onSuccess: () => {
+    onSuccess: () => { queryClient.invalidateQueries(['showcases']); onBack(); }
+  });
+
+  const followMutation = useMutation({
+    mutationFn: ({ id, follow }) => follow ? followShowcase(id) : unfollowShowcase(id),
+    onSuccess: (res, vars) => {
+      const id = vars.id;
+      queryClient.setQueryData(['showcase', id], prev => ({ ...prev, followerCount: res.followerCount, isFollowing: (!!vars.follow) }));
       queryClient.invalidateQueries(['showcases']);
-      onBack();
     }
   });
 
@@ -82,48 +79,49 @@ function ShowcaseDetail({ showcaseId, onBack }) {
     );
   }
 
-  const handleShare = async () => {
-    const shareData = {
-      title: showcase.name,
-      text: showcase.description,
-      url: window.location.href,
+  const isOwner = user && showcase.author?._id && user._id === showcase.author._id;
+  const isFounder = user && showcase.founder?._id && user._id === showcase.founder._id;
+  const isAuthorized = isOwner || isFounder;
+  const isBookmarked = user?.bookmarks?.some(b => b.itemId === showcaseId && b.itemType === 'showcase');
+  const netScore = (showcase.upvoteCount || 0) - (showcase.downvoteCount || 0);
+
+  // Join showcase room for live updates
+  const socket = useSocket();
+  useEffect(() => {
+    if (!socket || !showcaseId) return;
+
+    const handleCommentAdded = (payload) => {
+      if (payload?.parentType === 'showcase' && payload?.parentId === showcaseId) {
+        queryClient.invalidateQueries(['stackComments', 'showcase', showcaseId]);
+        queryClient.invalidateQueries(['showcase', showcaseId]);
+      }
     };
 
+    try { socket.emit('joinRoom', `stacksuite:showcase:${showcaseId}`); } catch (e) {}
+    socket.on('stacksuite_comment_added', handleCommentAdded);
+
+    return () => {
+      try { socket.emit('leaveRoom', `stacksuite:showcase:${showcaseId}`); } catch (e) {}
+      socket.off('stacksuite_comment_added', handleCommentAdded);
+    };
+  }, [socket, showcaseId, queryClient]);
+
+  const handleShare = async () => {
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(window.location.href);
-        alert('Link copied to clipboard!');
-      }
-    } catch (err) {
-      console.error('Error sharing:', err);
+      if (navigator.share) await navigator.share({ title: showcase.name, url: window.location.href });
+      else { await navigator.clipboard.writeText(window.location.href); alert('Link copied!'); }
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDelete = () => {
+    if (window.confirm('Delete this showcase? This action cannot be undone.')) {
+      deleteMutation.mutate(showcaseId);
     }
   };
 
-  const isBookmarked = user?.bookmarks?.some(b => b.itemId === showcase._id && b.itemType === 'showcase');
-
-  // Connection Helpers
-  const getConnectionStatus = () => {
-    if (!user || !showcase.founder || user._id === showcase.founder._id) return null;
-    if (connections?.some(conn => conn._id === showcase.founder._id)) return 'connected';
-    if (pendingRequests?.some(req => req.recipient?._id === showcase.founder._id)) return 'pending_sent';
-    if (pendingRequests?.some(req => req.requester?._id === showcase.founder._id)) return 'pending_received';
-    return 'not_connected';
-  };
-
-  const connectionStatus = getConnectionStatus();
-
-  const connectionHandlers = {
-    onConnect: () => showcase.founder?._id && dispatch(sendConnectionRequest(showcase.founder._id)),
-    onCancel:  () => showcase.founder?._id && dispatch(removeOrCancelConnection(showcase.founder._id)),
-    onRemove:  () => showcase.founder?._id && dispatch(removeOrCancelConnection(showcase.founder._id)),
-    onAccept:  () => showcase.founder?._id && dispatch(acceptConnectionRequest(showcase.founder._id)),
-    onDecline: () => showcase.founder?._id && dispatch(removeOrCancelConnection(showcase.founder._id)),
-  };
-
-  const stageStyle = stageColorMap[showcase.stage] || stageColorMap.Idea;
-  const isOwner = user && showcase.founder && user._id === showcase.founder._id;
+  const authorField = showcase.founder || showcase.author;
+  const authorId = authorField?._id;
+  const authorName = authorField?.name;
 
   return (
     <div className={styles.detailContainer}>
@@ -131,222 +129,190 @@ function ShowcaseDetail({ showcaseId, onBack }) {
         <ArrowLeft size={16} /> Back to Showcases
       </button>
 
-      <div className={styles.card} style={{ overflow: 'hidden', marginBottom: 24 }}>
-        <div className={`${styles.detailHeader} bg-gradient-to-r ${showcase.gradient}`}>
-          <div className={styles.detailHeaderInner}>
-            <div className={styles.detailIcon}>
-              {showcase.icon || showcase.name.slice(0, 2).toUpperCase()}
-            </div>
-            <div className={styles.detailMainInfo}>
-              <div className={styles.detailTitleRow}>
-                <h1 className={styles.detailTitle}>{showcase.name}</h1>
-                <span className={styles.badge} style={{ background: stageStyle.bg, color: stageStyle.text, fontWeight: 600 }}>{showcase.stage}</span>
-                {showcase.launched && (
-                  <span className={styles.badge} style={{ background: 'transparent', border: '1px solid var(--border)' }}>
-                    <Calendar size={12} style={{ marginRight: 4 }} /> Launched {showcase.launched}
-                  </span>
-                )}
-              </div>
-              <p className={styles.detailDescription}>{showcase.description}</p>
-            </div>
-            <div className={styles.detailHeaderActions}>
-              {isOwner && (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => setIsEditModalOpen(true)} className={`${styles.btn} ${styles.btnOutline}`} style={{ display: 'flex', flex: 1, alignItems: 'center', gap: 8, padding: '10px 16px', background: 'var(--card-background)', color: 'var(--foreground)' }}>
-                    <Edit2 size={16} /> Edit
-                  </button>
-                  <button onClick={() => { if(window.confirm('Are you sure you want to delete this showcase?')) deleteMutation.mutate(showcase._id); }} className={`${styles.btn} ${styles.btnOutline}`} style={{ display: 'flex', flex: 1, alignItems: 'center', gap: 8, padding: '10px 16px', color: 'var(--destructive)', borderColor: 'var(--destructive)', background: 'var(--card-background)' }}>
-                    <Trash2 size={16} /> Delete
-                  </button>
-                </div>
-              )}
-              <button className={`${styles.btn} ${styles.btnPrimary}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 20px' }}>
-                <ExternalLink size={16} /> Visit Project
-              </button>
-            </div>
+      <article className={styles.card} style={{ overflow: 'hidden' }}>
+        {/* Media Hero */}
+        {showcase.imageUrl && (
+          <div style={{ aspectRatio: '16/9', overflow: 'hidden', background: 'var(--input-background)' }}>
+            <img src={showcase.imageUrl} alt={showcase.name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           </div>
-        </div>
-
-        {isEditModalOpen && (
-          <EditShowcaseModal showcase={showcase} onClose={() => setIsEditModalOpen(false)} />
         )}
 
-        <div className={styles.detailSubHeader}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ padding: 32 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+            {showcase.stage && (
+              <span className={`${styles.badge} ${stageBadge[showcase.stage] || styles.badgeIdea}`}>
+                <Rocket size={11} /> {showcase.stage}
+              </span>
+            )}
+            {showcase.techStack?.slice(0, 4).map(tech => (
+              <span key={tech} className={styles.chip} style={{ backgroundColor: 'rgba(79,70,229,0.06)', color: 'var(--primary)' }}>
+                {tech}
+              </span>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--foreground)', margin: 0, wordBreak: 'break-word' }}>
+              {showcase.name}
+            </h1>
+          </div>
+
+          <p style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--foreground)', opacity: 0.9, marginBottom: 24, whiteSpace: 'pre-line', wordBreak: 'break-word' }}>
+            {showcase.description}
+          </p>
+
+          {/* Vote column inline */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
             <button
-              onClick={() => upvoteMutation.mutate(showcase._id)}
-              className={`${styles.upvoteBtn} ${showcase.isUpvoted ? styles.upvoteBtnActive : ''}`}
+              className={`${styles.upvoteBtn} ${styles.upvoteBtnSm} ${showcase.isUpvoted ? styles.upvoteBtnActive : ''}`}
+              onClick={() => upvoteMutation.mutate(showcaseId)}
             >
-              <ArrowBigUp size={20} />
-              <span>{showcase.upvoteCount} Upvotes</span>
+              <ChevronUp size={14} /> {showcase.upvoteCount || 0}
             </button>
-            <div style={{ width: 1, height: 24, background: 'var(--border)' }}></div>
-            <span style={{ fontSize: 14, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <MessageSquare size={16} /> {showcase.commentCount || 0} Comments
+            <button
+              className={`${styles.upvoteBtn} ${styles.upvoteBtnSm} ${showcase.isDownvoted ? styles.upvoteBtnActive : ''}`}
+              onClick={() => downvoteMutation.mutate(showcaseId)}
+            >
+              <ChevronDown size={14} /> {showcase.downvoteCount || 0}
+            </button>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--muted-foreground)' }}>
+              <Eye size={14} /> {showcase.views || 0} views
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button 
-              onClick={() => dispatch(toggleBookmark({ itemId: showcase._id, itemType: 'showcase' }))} 
-              className={`${styles.iconBtn} ${isBookmarked ? styles.iconBtnActive : ''}`}
-            >
-              <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
-            </button>
-            <button onClick={handleShare} className={styles.iconBtn}><Share2 size={18} /></button>
-          </div>
-        </div>
 
-        <div className={styles.detailLayout}>
-          <div>
-            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--foreground)' }}>About Project</h3>
-            <div style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--foreground)', whiteSpace: 'pre-line', opacity: 0.9 }}>
-              {showcase.longDescription || showcase.description}
-            </div>
-
-            <h3 style={{ fontSize: 18, fontWeight: 700, marginTop: 40, marginBottom: 16, color: 'var(--foreground)' }}>Tech Stack</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-              {showcase.techStack?.map(tech => (
-                <div key={tech} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 100, fontSize: 13, fontWeight: 500 }}>
-                  <Code size={14} color="var(--primary-color)" /> {tech}
-                </div>
-              ))}
-            </div>
-            
-            <div style={{ marginTop: 48, paddingTop: 32, borderTop: '1px solid var(--border)' }}>
-              <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20, color: 'var(--foreground)' }}>Discussion ({showcase.commentCount || 0})</h2>
-              {commentsLoading ? <p style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>Loading comments...</p> 
-               : <CommentThread comments={comments} parentType="showcase" parentId={showcase._id} />}
-            </div>
+          {/* External links */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 24 }}>
+            {showcase.liveUrl && (
+              <a href={showcase.liveUrl} target="_blank" rel="noopener noreferrer"
+                className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`}>
+                <ExternalLink size={14} /> Live Demo
+              </a>
+            )}
+            {showcase.githubUrl && (
+              <a href={showcase.githubUrl} target="_blank" rel="noopener noreferrer"
+                className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`}>
+                <Github size={14} /> Source
+              </a>
+            )}
           </div>
 
-          <div>
-            <div className={styles.sideCard}>
-              <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Post By:</h4>
-              <div className={styles.makerRow}>
-                <div className={`${styles.avatar} ${styles.avatarLg}`}>
-                  {showcase.founder?.avatarUrl ? (
-                    <img src={showcase.founder.avatarUrl} alt={showcase.founder.name} />
-                  ) : (
-                    showcase.founder?.name ? showcase.founder.name.slice(0, 2).toUpperCase() : 'U'
-                  )}
-                </div>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--foreground)' }}>{showcase.founder?.name || 'Unknown'}</div>
-                  <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{showcase.founder?.role || 'Founder'}</div>
-                </div>
+          {/* Looking For */}
+          {showcase.looking?.length > 0 && (
+            <div style={{ marginBottom: 24, padding: 16, background: 'var(--background)', borderRadius: 12, border: '1px solid var(--border)' }}>
+              <h3 style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted-foreground)', marginBottom: 10 }}>
+                Looking For
+              </h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {showcase.looking.map(role => (
+                  <span key={role} className={`${styles.badge} ${styles.badgePrimary}`}>
+                    <Users size={11} /> {role}
+                  </span>
+                ))}
               </div>
-              {showcase.teamSize > 1 && (
-                <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', fontSize: 13, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Users size={14} /> + {showcase.teamSize - 1} other team member(s)
-                </div>
+            </div>
+          )}
+
+          {/* Author */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+            <div className={`${styles.avatar} ${styles.avatarMd} ${styles.avatarPrimary}`}
+              style={{ cursor: 'pointer' }}
+              onClick={() => { if (authorId) navigate(`/profile/${authorId}`); }}>
+              {authorField?.avatarUrl ? (
+                <img src={authorField.avatarUrl} alt={authorName} />
+              ) : (
+                authorName ? authorName.slice(0, 2).toUpperCase() : 'U'
               )}
             </div>
-
-            {showcase.looking?.length > 0 && (
-              <div style={{ background: 'rgba(var(--primary-rgb), 0.05)', border: '1px dashed rgba(var(--primary-rgb), 0.3)', borderRadius: 16, padding: 24, marginBottom: 24 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                  <Target size={18} color="var(--primary-color)" />
-                  <h4 style={{ fontSize: 15, fontWeight: 700, color: 'var(--foreground)' }}>Looking For</h4>
-                </div>
-                <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {showcase.looking.map(role => (
-                    <li key={role} style={{ fontSize: 13, color: 'var(--foreground)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--primary-color)', marginTop: 6 }}></div>
-                      {role}
-                    </li>
-                  ))}
-                </ul>
-                
-                {!isOwner && connectionStatus && (
-                  <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
-                    <p style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 12, fontWeight: 500 }}>READY TO HELP?</p>
-                    <ConnectionButton 
-                      status={connectionStatus}
-                      targetUserId={showcase.founder?._id}
-                      isLoading={isConnectionLoading}
-                      {...connectionHandlers}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {showcase.links?.length > 0 && (
-              <div style={{ marginTop: 24 }}>
-                <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Links</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {showcase.links.map((link, idx) => (
-                    <a 
-                      key={idx} 
-                      href={link.url.startsWith('http') ? link.url : `https://${link.url}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: 10, 
-                        fontSize: 14, 
-                        color: 'var(--foreground)', 
-                        textDecoration: 'none',
-                        padding: '10px 14px',
-                        background: 'var(--background)',
-                        border: '1px solid var(--border)',
-                        borderRadius: 10,
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary-color)'}
-                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-                    >
-                      <Globe size={16} color="var(--primary-color)" />
-                      <span style={{ fontWeight: 500 }}>{link.name}</span>
-                      <ExternalLink size={12} style={{ marginLeft: 'auto', opacity: 0.5 }} />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)', cursor: 'pointer' }}
+                onClick={() => { if (authorId) navigate(`/profile/${authorId}`); }}>
+                {authorName || 'Anonymous'}
+              </span>
+              <span style={{ fontSize: 11, color: 'var(--muted-foreground)', marginLeft: 10 }}>
+                {showcase.createdAt ? new Date(showcase.createdAt).toLocaleDateString() : ''}
+              </span>
+            </div>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+              {isAuthorized && (
+                <button onClick={handleDelete} className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} style={{ color: 'var(--destructive)', borderColor: 'var(--destructive)' }}>
+                  <Trash2 size={14} /> Delete
+                </button>
+              )}              <button
+                onClick={() => followMutation.mutate({ id: showcaseId, follow: !showcase.isFollowing })}
+                className={styles.iconBtn}
+                style={{ color: showcase.isFollowing ? 'var(--primary-color)' : 'var(--muted-foreground)', fontWeight: 700 }}
+              >
+                {showcase.isFollowing ? `Following • ${showcase.followerCount || 0}` : `Follow • ${showcase.followerCount || 0}`}
+              </button>              <button onClick={() => dispatch(toggleBookmark({ itemId: showcaseId, itemType: 'showcase' }))}
+                className={styles.iconBtn}
+                style={{ color: isBookmarked ? 'var(--star-color)' : 'var(--muted-foreground)' }}>
+                <Bookmark size={16} fill={isBookmarked ? 'currentColor' : 'none'} />
+              </button>
+              <button onClick={handleShare} className={styles.iconBtn}><Share2 size={16} /></button>
+            </div>
           </div>
+
+          {/* Stats */}
+          <div style={{ display: 'flex', gap: 20, marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--border)', color: 'var(--muted-foreground)', fontSize: 13 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><MessageCircle size={14} /> {showcase.commentCount || 0} comments</span>
+          </div>
+        </div>
+      </article>
+
+      {/* Comments */}
+      <div style={{ marginTop: 24 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: 'var(--foreground)' }}>
+          Feedback & Discussion ({showcase.commentCount || 0})
+        </h2>
+        <div className={styles.card} style={{ padding: 24 }}>
+          {commentsLoading ? (
+            <p style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>Loading comments...</p>
+          ) : (
+            <CommentThread comments={comments} parentType="showcase" parentId={showcase._id} />
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-/* ─────────── List View ─────────── */
-export function ShowcasesTab({ search, stage }) {
+/* ─── List View ─── */
+export function ShowcasesTab({ search, tagFilter, roleFilter, sortBy, onTagClick }) {
   const [selectedId, setSelectedId] = useState(null);
   const queryClient = useQueryClient();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user } = useSelector(state => state.auth);
 
-  const { data: showcases = [], isLoading } = useQuery({
-    queryKey: ['showcases', { search, stage }],
-    queryFn: () => getShowcases({ search, stage }),
+  const followMutation = useMutation({
+    mutationFn: ({ id, follow }) => follow ? followShowcase(id) : unfollowShowcase(id),
+    onSuccess: (res, vars) => {
+      const id = vars.id;
+      queryClient.setQueryData(['showcase', id], prev => ({ ...prev, followerCount: res.followerCount, isFollowing: (!!vars.follow) }));
+      queryClient.invalidateQueries(['showcases']);
+    }
   });
 
-  const upvoteMutation = useMutation({
-    mutationFn: (id) => upvoteShowcase(id),
-    onMutate: async (id) => {
-      await queryClient.cancelQueries(['showcases']);
-      const prev = queryClient.getQueryData(['showcases', { search, stage }]);
-      if (prev) {
-        queryClient.setQueryData(['showcases', { search, stage }], prev.map(s => {
-          if (s._id === id) {
-            return {
-              ...s,
-              upvoteCount: s.isUpvoted ? s.upvoteCount - 1 : s.upvoteCount + 1,
-              isUpvoted: !s.isUpvoted,
-            };
-          }
-          return s;
-        }));
-      }
-      return { prev };
-    },
-    onError: (err, id, context) => queryClient.setQueryData(['showcases', { search, stage }], context.prev),
-    onSettled: () => queryClient.invalidateQueries(['showcases'])
+  const sortParam = sortBy === 'Most Upvoted' || sortBy === 'Trending' ? 'popular' : undefined;
+
+  const { data: showcases = [], isLoading } = useQuery({
+    queryKey: ['showcases', { search, sortBy, roleFilter }],
+    queryFn: () => getShowcases({ search, sort: sortParam }),
+  });
+
+  const filtered = showcases.filter(showcase => {
+    const matchesTag = tagFilter
+      ? showcase.techStack?.some(t => t.toLowerCase() === tagFilter.toLowerCase()) || showcase.looking?.some(l => l.toLowerCase() === tagFilter.toLowerCase())
+      : true;
+    const matchesRole = roleFilter && roleFilter !== 'all'
+      ? showcase.founder?.role?.toLowerCase() === roleFilter.toLowerCase() || showcase.author?.role?.toLowerCase() === roleFilter.toLowerCase()
+      : true;
+    return matchesTag && matchesRole;
   });
 
   if (selectedId) {
-    return <ShowcaseDetail showcaseId={selectedId} onBack={() => setSelectedId(null)} />;
+    return <ShowcaseDetailView showcaseId={selectedId} onBack={() => setSelectedId(null)} />;
   }
 
   if (isLoading) {
@@ -357,101 +323,156 @@ export function ShowcasesTab({ search, stage }) {
     );
   }
 
-  if (showcases.length === 0) {
+  if (filtered.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--card-background)', borderRadius: '16px', border: '1px solid var(--border)' }}>
+      <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--card-background)', borderRadius: 16, border: '1px solid var(--border)' }}>
         <Rocket size={32} style={{ color: 'var(--muted-foreground)', marginBottom: 16, opacity: 0.5 }} />
-        <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--foreground)', marginBottom: 8 }}>No projects found</h3>
-        <p style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>Change your filters or launch the first project.</p>
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--foreground)', marginBottom: 8 }}>No showcases found</h3>
+        <p style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>Be the first to share your project.</p>
       </div>
     );
   }
 
+  const handleUpvote = (e, id) => {
+    e.stopPropagation();
+    queryClient.setQueryData(['showcases', { search }], (old) =>
+      old?.map(s => s._id === id ? { ...s, upvoteCount: (s.upvoteCount || 0) + (s.isUpvoted ? -1 : 1), isUpvoted: !s.isUpvoted, isDownvoted: false, downvoteCount: s.isDownvoted ? (s.downvoteCount || 1) - 1 : (s.downvoteCount || 0) } : s)
+    );
+    upvoteShowcase(id).catch(() => queryClient.invalidateQueries({ queryKey: ['showcases', { search }] }));
+  };
+
+  const handleDownvote = (e, id) => {
+    e.stopPropagation();
+    queryClient.setQueryData(['showcases', { search }], (old) =>
+      old?.map(s => s._id === id ? { ...s, downvoteCount: (s.downvoteCount || 0) + (s.isDownvoted ? -1 : 1), isDownvoted: !s.isDownvoted, isUpvoted: false, upvoteCount: s.isUpvoted ? (s.upvoteCount || 1) - 1 : (s.upvoteCount || 0) } : s)
+    );
+    downvoteShowcase(id).catch(() => queryClient.invalidateQueries({ queryKey: ['showcases', { search }] }));
+  };
+
   return (
     <div className={styles.showcaseGrid}>
-      {showcases.map(showcase => {
-        const stageStyle = stageColorMap[showcase.stage] || stageColorMap.Idea;
-
+      {filtered.map(showcase => {
+        const netScore = (showcase.upvoteCount || 0) - (showcase.downvoteCount || 0);
+        const authorField = showcase.founder || showcase.author;
+        const authorId = authorField?._id;
+        const authorName = authorField?.name;
         return (
-          <article 
-            key={showcase._id} 
-            className={styles.card} 
-            style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
+          <article
+            key={showcase._id}
+            className={styles.card}
+            style={{ cursor: 'pointer', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
             onClick={() => setSelectedId(showcase._id)}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedId(showcase._id); }}}
-            tabIndex={0}
-            role="button"
           >
-            <div className={`bg-gradient-to-br ${showcase.gradient}`} style={{ height: 120, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: 100, fontSize: 11, fontWeight: 700, color: stageStyle.text, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                {showcase.stage}
-              </div>
-              <div style={{ width: 64, height: 64, background: 'white', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 800, color: '#0F172A', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                {showcase.icon || showcase.name.slice(0, 2).toUpperCase()}
-              </div>
+            {/* Media thumbnail */}
+            <div style={{ aspectRatio: '16/10', overflow: 'hidden', background: 'var(--input-background)', position: 'relative' }}>
+              {showcase.imageUrl ? (
+                <img src={showcase.imageUrl} alt={showcase.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--muted-foreground)', opacity: 0.3 }}>
+                  <Image size={40} />
+                </div>
+              )}
+              {showcase.stage && (
+                <span className={`${styles.badge} ${stageBadge[showcase.stage] || styles.badgeIdea}`}
+                  style={{ position: 'absolute', top: 10, left: 10, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)' }}>
+                  <Rocket size={10} /> {showcase.stage}
+                </span>
+              )}
             </div>
 
-            <div style={{ padding: 20, flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--foreground)' }}>{showcase.name}</h3>
-                {showcase.launched && (
-                  <span style={{ fontSize: 11, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Calendar size={11} /> {showcase.launched}
-                  </span>
-                )}
-              </div>
-              
-              <p style={{ fontSize: 13, color: 'var(--muted-foreground)', lineHeight: 1.5, marginBottom: 16, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>
+            <div style={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--foreground)', marginBottom: 6, lineHeight: 1.3, wordBreak: 'break-word' }}>
+                {showcase.name}
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--muted-foreground)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5, marginBottom: 12, flex: 1, wordBreak: 'break-word' }}>
                 {showcase.description}
               </p>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
-                {showcase.techStack?.slice(0, 3).map(tech => (
-                  <span key={tech} className={styles.chip} style={{ fontSize: 11, background: 'var(--background)' }}>{tech}</span>
-                ))}
-                {showcase.techStack?.length > 3 && (
-                  <span className={styles.chip} style={{ fontSize: 11, background: 'var(--background)' }}>+{showcase.techStack.length - 3}</span>
-                )}
-              </div>
-
-              {showcase.looking?.length > 0 && (
-                <div style={{ background: 'rgba(var(--primary-rgb), 0.05)', padding: '10px 12px', borderRadius: 8, marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--primary-color)', marginBottom: 4, textTransform: 'uppercase' }}>Looking For</div>
-                  <div style={{ fontSize: 12, color: 'var(--foreground)' }}>{showcase.looking.slice(0, 2).join(', ')}{showcase.looking.length > 2 ? '...' : ''}</div>
+              {/* Tech tags */}
+              {showcase.techStack?.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
+                  {showcase.techStack.slice(0, 3).map(tech => (
+                    <span
+                      key={tech}
+                      className={styles.chip}
+                      style={{ fontSize: 10, cursor: 'pointer' }}
+                      onClick={(e) => { e.stopPropagation(); if (onTagClick) onTagClick(tech); }}
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                  {showcase.techStack.length > 3 && (
+                    <span style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>+{showcase.techStack.length - 3}</span>
+                  )}
                 </div>
               )}
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 16, borderTop: '1px solid var(--border)', marginTop: 'auto' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); upvoteMutation.mutate(showcase._id); }}
-                    className={`${styles.upvoteBtn} ${showcase.isUpvoted ? styles.upvoteBtnActive : ''}`}
-                    style={{ padding: '6px 10px', fontSize: 13 }}
-                  >
-                    <ArrowBigUp size={16} />
-                    <span>{showcase.upvoteCount}</span>
-                  </button>
-                  <span style={{ fontSize: 13, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <MessageSquare size={14} /> {showcase.commentCount || 0}
-                  </span>
-                </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <div className={styles.avatarGroup} style={{ marginRight: -10 }}>
-                    <div className={`${styles.avatar} ${styles.avatarSm}`} style={{ border: '2px solid var(--card-background)' }}>
-                      {showcase.founder?.avatarUrl ? (
-                        <img src={showcase.founder.avatarUrl} alt={showcase.founder.name} />
-                      ) : (
-                        showcase.founder?.name ? showcase.founder.name.slice(0, 2).toUpperCase() : 'U'
-                      )}
-                    </div>
+              {/* Vote + views row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <ChevronUp size={14}
+                  style={{ color: showcase.isUpvoted ? 'var(--primary)' : 'var(--muted-foreground)', cursor: 'pointer' }}
+                  onClick={(e) => handleUpvote(e, showcase._id)} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: netScore > 0 ? 'var(--primary)' : 'var(--muted-foreground)' }}>{netScore}</span>
+                <ChevronDown size={14}
+                  style={{ color: showcase.isDownvoted ? 'var(--primary)' : 'var(--muted-foreground)', cursor: 'pointer' }}
+                  onClick={(e) => handleDownvote(e, showcase._id)} />
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginLeft: 6, fontSize: 11, color: 'var(--muted-foreground)' }}>
+                  <Eye size={11} /> {showcase.views || 0}
+                </span>
+              </div>
+
+              {/* Action row */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 12, marginTop: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--muted-foreground)', fontSize: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <MessageCircle size={13} />
+                    <span>{showcase.commentCount || 0}</span>
                   </div>
-                  {showcase.teamSize > 1 && (
-                    <div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginLeft: 16, fontWeight: 500 }}>
-                      +{showcase.teamSize - 1}
-                    </div>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {showcase.liveUrl && (
+                    <a href={showcase.liveUrl} target="_blank" rel="noopener noreferrer"
+                      className={styles.iconBtn}
+                      onClick={e => e.stopPropagation()}
+                      title="Live Demo">
+                      <ExternalLink size={14} style={{ color: 'var(--primary)' }} />
+                    </a>
+                  )}
+                  {showcase.githubUrl && (
+                    <a href={showcase.githubUrl} target="_blank" rel="noopener noreferrer"
+                      className={styles.iconBtn}
+                      onClick={e => e.stopPropagation()}
+                      title="Source Code">
+                      <Github size={14} />
+                    </a>
+                  )}
+                  <button
+                    onClick={e => { e.stopPropagation(); followMutation.mutate({ id: showcase._id, follow: !showcase.isFollowing }); }}
+                    className={styles.iconBtn}
+                    style={{ color: showcase.isFollowing ? 'var(--primary-color)' : 'var(--muted-foreground)', fontWeight: 700 }}
+                    title={showcase.isFollowing ? 'Following' : 'Follow'}
+                  >
+                    {showcase.isFollowing ? 'Following' : 'Follow'} • {showcase.followerCount || 0}
+                  </button>
+                </div>
+              </div>
+
+              {/* Author */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
+                <div className={`${styles.avatar} ${styles.avatarSm}`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={e => { e.stopPropagation(); if (authorId) navigate(`/profile/${authorId}`); }}>
+                  {authorField?.avatarUrl ? (
+                    <img src={authorField.avatarUrl} alt={authorName} />
+                  ) : (
+                    authorName ? authorName.slice(0, 2).toUpperCase() : 'U'
                   )}
                 </div>
+                <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--muted-foreground)', cursor: 'pointer' }}
+                  onClick={e => { e.stopPropagation(); if (authorId) navigate(`/profile/${authorId}`); }}>
+                  {authorName || 'Anonymous'}
+                </span>
               </div>
             </div>
           </article>

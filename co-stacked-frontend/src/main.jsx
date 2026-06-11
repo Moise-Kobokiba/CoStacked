@@ -14,6 +14,7 @@ import { store } from './store/store.js';
 // --- THIS IS THE UPDATE ---
 // Import the ThemeProvider from its new, dedicated file.
 import { ThemeProvider } from './context/ThemeProvider';
+import { SocketProvider } from './context/SocketProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,7 +36,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <App />
+          <SocketProvider>
+            <App />
+          </SocketProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </Provider>

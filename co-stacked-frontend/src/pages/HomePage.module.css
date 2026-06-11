@@ -113,10 +113,22 @@
   text-decoration: none;
 }
 
+.carouselGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
 .contentGrid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .carouselGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 /* ======================================== */

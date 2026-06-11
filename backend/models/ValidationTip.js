@@ -16,6 +16,14 @@ const validationTipSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  startAt: {
+    type: Date,
+    default: null
+  },
+  endAt: {
+    type: Date,
+    default: null
   }
 }, { timestamps: true });
 

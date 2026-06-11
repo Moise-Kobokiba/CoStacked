@@ -48,11 +48,16 @@ const verifyPaymentAndBoost = async (req, res) => {
     });
 
     // Create notification for the user
-    await Notification.create({
+    const notif = await Notification.create({
       recipient: req.user._id,
       type: 'BOOST_SUCCESS',
       projectId: updatedProject._id
     });
+    try {
+      const socketUtil = require('../utils/socket');
+      const io = socketUtil.getIo();
+      if (io) io.to(req.user._id.toString()).emit('notification_created', notif);
+    } catch (e) { console.error('Socket emit error (boost success):', e); }
 
     // --- CREATE ADMIN NOTIFICATION ---
     await AdminNotification.create({
@@ -109,10 +114,11 @@ const verifySubscription = async (req, res) => {
     });
 
     // Create notification for the user
-    await Notification.create({
+    const notifSub = await Notification.create({
       recipient: req.user._id,
       type: 'SUBSCRIPTION_SUCCESS'
     });
+    try { const socketUtil = require('../utils/socket'); const io = socketUtil.getIo(); if (io) io.to(req.user._id.toString()).emit('notification_created', notifSub); } catch (e) { console.error('Socket emit error (subscription success):', e); }
     
     // --- CREATE ADMIN NOTIFICATION ---
     await AdminNotification.create({
@@ -421,12 +427,13 @@ const verifyCheckout = async (req, res) => {
         });
         
         if (!existingNotif) {
-            await Notification.create({
-                recipient: user._id,
-                type: 'BOOST_SUCCESS',
-                relatedId: checkoutId,
-                relatedModel: 'Transaction' 
-            });
+          const n = await Notification.create({
+            recipient: user._id,
+            type: 'BOOST_SUCCESS',
+            relatedId: checkoutId,
+            relatedModel: 'Transaction' 
+          });
+          try { const socketUtil = require('../utils/socket'); const io = socketUtil.getIo(); if (io) io.to(user._id.toString()).emit('notification_created', n); } catch (e) { console.error('Socket emit error (checkout boost):', e); }
         }
 
         res.json({ success: true, message: `Profile boosted for ${durationDays} days!`, user: updatedUser });

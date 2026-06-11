@@ -100,7 +100,7 @@ const userSchema = mongoose.Schema(
     // --- Profile Completion Tracking ---
     profileCompleted: { type: Boolean, default: false },
     isOnline: { type: Boolean, default: false },
-    lastActiveAt: { type: Date, default: Date.now },
+    lastActiveAt: { type: Date },
 
     // --- NEW: Account Views History ---
     viewHistory: [
@@ -134,6 +134,14 @@ const userSchema = mongoose.Schema(
         description: { type: String },
       }
     ],
+
+    // --- NEW: Skills Categorization ---
+    softSkills: { type: [String], default: [] },
+    startupSkills: { type: [String], default: [] },
+
+    // --- NEW: Endorsement Tracking ---
+    endorsementCount: { type: Number, default: 0 },
+    endorsedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
   },
   {

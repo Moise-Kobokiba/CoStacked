@@ -5,10 +5,9 @@ import {
   Search, PlusCircle, Lightbulb, ChevronLeft, ChevronRight, Loader2,
   ThumbsUp, MessageSquare, X
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getStackPosts } from '../api/stackSuiteApi';
-import { DiscussionDetail } from '../components/stack-suite/DiscussionDetail';
+import { getIdeas } from '../api/ideasApi';
 import { createValidationTip, updateValidationTip, deleteValidationTip } from '../api/validationTipApi';
 import { useSelector } from 'react-redux';
 import { getCommunityStats } from '../api/statsApi';
@@ -26,13 +25,13 @@ const PHASE_BADGE_CLASS = {
 export function ValidationBoardPage() {
   const [phaseFilter, setPhaseFilter] = useState('all');
   const [search, setSearch]             = useState('');
-  const [selectedId, setSelectedId]     = useState(null);
+  const navigate = useNavigate();
 
   const debouncedSearch = useDebounce(search, 500);
 
   const { data: posts = [], isLoading, isFetching } = useQuery({
-    queryKey: ['validationPosts', { search: debouncedSearch, phase: phaseFilter }],
-    queryFn: () => getStackPosts({ boardType: 'validation-board', search: debouncedSearch, phase: phaseFilter }),
+    queryKey: ['validationPosts', { search: debouncedSearch, stage: phaseFilter }],
+    queryFn: () => getIdeas({ search: debouncedSearch, stage: phaseFilter, visibility: 'public', status: 'active' }),
   });
 
   const { data: statsData } = useQuery({
@@ -44,6 +43,8 @@ export function ValidationBoardPage() {
     queryKey: ['validationTips'],
     queryFn: () => getValidationTips(),
   });
+
+  // Subscribe to socket events via query invalidation handled in SocketProvider
 
   const queryClient = useQueryClient();
   const { token, user } = useSelector((state) => state.auth || {});
@@ -73,14 +74,6 @@ export function ValidationBoardPage() {
     { id: 'Solution', label: 'Solution Validation' },
     { id: 'MVP', label: 'MVP/Landing Page' },
   ];
-
-  if (selectedId) {
-    return (
-      <div className={styles.container}>
-        <DiscussionDetail discussionId={selectedId} onBack={() => setSelectedId(null)} />
-      </div>
-    );
-  }
 
   return (
     <main className={styles.container}>
@@ -150,48 +143,53 @@ export function ValidationBoardPage() {
           ) : (
             <div className={styles.grid}>
               {posts.map(post => {
-                const phaseClass = PHASE_BADGE_CLASS[post.phase] || styles.badgeGeneral;
+                const phaseClass = PHASE_BADGE_CLASS[post.stage] || styles.badgeGeneral;
+                const description = post.problemStatement || post.valueProposition || post.targetAudience || '';
+                const tags = post.tags?.length > 0 ? post.tags : post.industry ? [post.industry] : [];
+                const author = post.founder || post.author;
+                const upvoteCount = post.upvoteCount ?? post.upvotes?.length ?? 0;
+                const commentCount = post.engagementCount ?? post.commentCount ?? 0;
                 return (
                   <div 
                     key={post._id} 
-                    onClick={() => setSelectedId(post._id)}
+                    onClick={() => navigate(`/validation-board/${post._id}`)}
                     className={styles.ideaCard}
                   >
                     <div className={styles.cardHeader}>
                       <span className={`${styles.phaseBadge} ${phaseClass}`}>
-                        {post.phase} Phase
+                        {post.stage || 'General'} Phase
                       </span>
                       <div style={{ textAlign: 'right' }}>
-                        <span className={styles.confidenceValue}>{post.confidenceScore || 0}%</span>
+                        <span className={styles.confidenceValue}>{post.validationScore ?? 0}%</span>
                         <div className={styles.confidenceLabel}>Confidence</div>
                       </div>
                     </div>
                     <h3 className={styles.cardTitle}>{post.title}</h3>
-                    <p className={styles.cardBody}>{post.body}</p>
+                    <p className={styles.cardBody}>{description}</p>
                     <div className={styles.tagList}>
-                      {post.tags?.map(tag => (
+                      {tags.map(tag => (
                         <span key={tag} className={styles.tag}>{tag}</span>
                       ))}
                     </div>
                     <div className={styles.cardFooter}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <div style={{ width: '1.5rem', height: '1.5rem', borderRadius: '50%', backgroundColor: 'var(--input-background)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>
-                          {post.author?.avatarUrl ? (
-                            <img src={post.author.avatarUrl} alt={post.author.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          {author?.avatarUrl ? (
+                            <img src={author.avatarUrl} alt={author.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
-                            post.author?.name?.slice(0, 2).toUpperCase() || '??'
+                            author?.name?.slice(0, 2).toUpperCase() || '??'
                           )}
                         </div>
-                        <span style={{ fontSize: '12px', fontWeight: '600' }}>{post.author?.name || 'Unknown'}</span>
+                        <span style={{ fontSize: '12px', fontWeight: '600' }}>{author?.name || 'Unknown'}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--muted-foreground)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                           <ThumbsUp size={14} />
-                          <span style={{ fontSize: '12px', fontWeight: '700' }}>{post.upvoteCount || 0}</span>
+                          <span style={{ fontSize: '12px', fontWeight: '700' }}>{upvoteCount}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                           <MessageSquare size={14} />
-                          <span style={{ fontSize: '12px', fontWeight: '700' }}>{post.commentCount || 0}</span>
+                          <span style={{ fontSize: '12px', fontWeight: '700' }}>{commentCount}</span>
                         </div>
                       </div>
                     </div>
@@ -219,17 +217,21 @@ export function ValidationBoardPage() {
             <h4 className={styles.sidebarLabel}>Community Stats</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <p style={{ fontSize: '1.875rem', fontWeight: '900', color: 'var(--foreground)' }}>{statsData?.totalIdeas ?? '—'}</p>
+                <p style={{ fontSize: '1.875rem', fontWeight: '900', color: 'var(--foreground)' }}>{statsData?.totalIdeas ?? 0}</p>
                 <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Total Ideas</p>
               </div>
               <div>
-                <p style={{ fontSize: '1.375rem', fontWeight: '800', color: 'var(--foreground)' }}>{statsData?.validatedIdeasCount ?? '—'}</p>
-                <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Ideas Validated (score ≥ 100)</p>
+                <p style={{ fontSize: '1.375rem', fontWeight: '800', color: 'var(--foreground)' }}>{statsData?.activeIdeas ?? 0}</p>
+                <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Active Ideas</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '1.375rem', fontWeight: '800', color: 'var(--foreground)' }}>{statsData?.validatedIdeasCount ?? 0}</p>
+                <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Validated Ideas</p>
               </div>
               <div className={styles.progressWrapper}>
-                <div className={styles.progressBar} style={{ width: `${Math.min(100, (statsData?.totalValidations || 0) / 10)}%` }}></div>
+                <div className={styles.progressBar} style={{ width: `${Math.min(100, ((statsData?.validatedIdeasCount || 0) / Math.max(statsData?.totalIdeas || 1, 1)) * 100)}%` }}></div>
               </div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{statsData?.totalUsers ?? '—'} users on the platform</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{statsData?.totalUsers ?? 0} users on the platform</p>
             </div>
           </div>
 
@@ -246,50 +248,24 @@ export function ValidationBoardPage() {
                     <p className={styles.tipText}>
                       <span style={{ fontWeight: '600', color: 'var(--foreground)' }}>{tip.title}</span> {tip.content}
                     </p>
-                    {/* Admin controls for manual tips only */}
-                    {user?.isAdmin && String(tip._id).startsWith('article-') === false && (
-                      <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => {
-                          const newTitle = prompt('Edit title', tip.title);
-                          if (newTitle === null) return;
-                          const newContent = prompt('Edit content', tip.content);
-                          if (newContent === null) return;
-                          updateTipMutation.mutate({ id: tip._id, data: { title: newTitle, content: newContent } });
-                        }}>Edit</button>
-                        <button onClick={() => {
-                          if (!confirm('Delete this tip?')) return;
-                          deleteTipMutation.mutate(tip._id);
-                        }}>Delete</button>
-                      </div>
-                    )}
                   </div>
                 ))
               ) : (
                 <div>Loading tips…</div>
               )}
-
-              {/* Admin management area */}
-              {user?.isAdmin && (
-                <div style={{ marginTop: '1rem', borderTop: '1px dashed var(--border)', paddingTop: '0.75rem' }}>
-                  <button onClick={() => setManageOpen((s) => !s)} style={{ fontWeight: 700 }}>{manageOpen ? 'Close Tip Manager' : 'Manage Tips'}</button>
-                  {manageOpen && (
-                    <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      <input placeholder='Tip title' value={newTipTitle} onChange={(e) => setNewTipTitle(e.target.value)} />
-                      <input placeholder='Tip content' value={newTipContent} onChange={(e) => setNewTipContent(e.target.value)} />
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => {
-                          if (!newTipTitle.trim() || !newTipContent.trim()) return alert('Title and content required');
-                          createTipMutation.mutate({ title: newTipTitle.trim(), content: newTipContent.trim(), order: 0 });
-                          setNewTipTitle(''); setNewTipContent('');
-                        }}>Create Tip</button>
-                        <button onClick={() => { setNewTipTitle(''); setNewTipContent(''); }}>Cancel</button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
-            <a style={{ marginTop: '1.5rem', display: 'inline-block', fontSize: '0.875rem', fontWeight: '700', color: 'var(--primary)', textDecoration: 'none' }} href="#">Read full guide →</a>
+            {user?.isAdmin && (
+              <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem' }}>
+                <a
+                  href="/admin/validation-tips"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: '0.875rem', fontWeight: '700', color: 'var(--primary)', textDecoration: 'none' }}
+                >
+                  Manage Tips in Admin Panel →
+                </a>
+              </div>
+            )}
           </div>
         </aside>
       </div>

@@ -1,321 +1,488 @@
-// src/pages/DiscoverProjectsPage.jsx
+// src/pages/DashboardPage.jsx
 
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { fetchProjects } from '../features/projects/projectsSlice';
-import { DiscoverProjectCard } from '../components/discover/DiscoverProjectCard';
-import { LayoutGrid, Search, Activity, Settings, HelpCircle, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
-import styles from './DiscoverProjectsPage.module.css';
+import { fetchMyProjects } from '../features/projects/projectsSlice';
+import { fetchAllNotifications } from '../features/notifications/notificationsSlice';
+import { fetchConnections, fetchPendingRequests, acceptConnectionRequest, removeOrCancelConnection } from '../features/connections/connectionsSlice';
+import { fetchConversations } from '../features/messages/messagesSlice';
+import { Avatar } from '../components/shared/Avatar';
+import {
+  LayoutDashboard, Briefcase, UserPlus, MessageSquare, CheckSquare,
+  Bell, Settings, Search, ChevronRight, Clock, TrendingUp,
+  Check, X, ArrowRight, Star, Eye, FileText, Users, Loader2
+} from 'lucide-react';
+import styles from './DashboardPage.module.css';
 
-const LoadingSpinner = () => (
-  <div className={styles.loading}>
-    <div className={styles.loaderInner}>
-      <div className={styles.spinner} />
-      <span>Loading matching projects...</span>
+// ---- Skeleton Loader ----
+const SkeletonBlock = ({ height = '1rem', width = '100%', borderRadius = '0.5rem' }) => (
+  <div className={styles.skeleton} style={{ height, width, borderRadius }} />
+);
+
+const MetricCard = ({ icon: Icon, label, value, to, loading }) => {
+  const content = (
+    <div className={styles.metricCard}>
+      <div className={styles.metricTop}>
+        <div className={styles.metricIcon}>
+          <Icon size={20} />
+        </div>
+      </div>
+      {loading ? (
+        <>
+          <SkeletonBlock height="1.75rem" width="60%" />
+          <SkeletonBlock height="0.875rem" width="80%" />
+        </>
+      ) : (
+        <>
+          <p className={styles.metricValue}>{value}</p>
+          <p className={styles.metricLabel}>{label}</p>
+        </>
+      )}
     </div>
-  </div>
-);
-
-const ErrorDisplay = ({ error }) => (
-  <div className={styles.error}>
-    Error: {error ?? "Unable to safely index project registries."}
-  </div>
-);
-
-export const DashboardPage = () => {
-  const dispatch = useDispatch();
-  const { items: allProjects = [], status, error } = useSelector((state) => state.projects || {});
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState(['All']);
-  const [selectedStatus, setSelectedStatus] = useState('All');
-  const [selectedRoles, setSelectedRoles] = useState([]);
-  const [sortOption, setSortOption] = useState('newest');
-  const [currentPage, setCurrentPage] = useState(1);
-  
-  const CATEGORIES = ['SaaS', 'FinTech', 'AI', 'HealthTech', 'E-commerce', 'Other'];
-  const STATUSES = ['Concept', 'Wireframe', 'Prototype', 'MVP Development', 'Alpha', 'Live'];
-  const ROLES = ['Developer', 'Designer', 'Marketer', 'PM'];
-  const PROJECTS_PER_PAGE = 9;
-
-  useEffect(() => {
-    if (status === 'idle') {
-      dispatch(fetchProjects());
-    }
-  }, [dispatch, status]);
-
-  const toggleCategory = (cat) => {
-    if (cat === 'All') {
-      setSelectedCategories(['All']);
-      return;
-    }
-    const newCats = selectedCategories.filter(c => c !== 'All');
-    if (newCats.includes(cat)) {
-      const filtered = newCats.filter(c => c !== cat);
-      setSelectedCategories(filtered.length === 0 ? ['All'] : filtered);
-    } else {
-      setSelectedCategories([...newCats, cat]);
-    }
-    setCurrentPage(1);
-  };
-
-  const toggleRole = (role) => {
-    if (selectedRoles.includes(role)) {
-      setSelectedRoles(selectedRoles.filter(r => r !== role));
-    } else {
-      setSelectedRoles([...selectedRoles, role]);
-    }
-    setCurrentPage(1);
-  };
-
-  const clearFilters = () => {
-    setSelectedCategories(['All']);
-    setSelectedStatus('All');
-    setSelectedRoles([]);
-    setSearchQuery('');
-    setSortOption('newest');
-    setCurrentPage(1);
-  };
-
-  const sortedAndFilteredProjects = useMemo(() => {
-    if (!Array.isArray(allProjects)) return [];
-    
-    return [...allProjects]
-      .filter(project => {
-        const titleDesc = `${project.title || ''} ${project.description || ''}`.toLowerCase();
-        const searchLower = searchQuery.toLowerCase();
-        const matchesSearch = !searchLower || titleDesc.includes(searchLower);
-        
-        const isAllCategories = selectedCategories.includes('All') || selectedCategories.length === 0;
-        const matchesCategory = isAllCategories || selectedCategories.some(cat => {
-          if (cat === 'Other') return true; 
-          return titleDesc.includes(cat.toLowerCase());
-        });
-
-        let matchesStatus = false;
-        if (selectedStatus === 'All') {
-          matchesStatus = true;
-        } else if (selectedStatus === 'Alpha') {
-          matchesStatus = ['Pre-Alpha', 'Alpha', 'Beta'].includes(project.stage || '');
-        } else {
-          matchesStatus = project.stage === selectedStatus;
-        }
-        
-        const skillsString = (Array.isArray(project.skillsNeeded) 
-            ? project.skillsNeeded.join(' ') 
-            : project.skillsNeeded || '').toLowerCase();
-            
-        const matchesRoles = selectedRoles.length === 0 || selectedRoles.some(role => {
-           const r = role.toLowerCase();
-           if (r === 'developer') return skillsString.includes('dev') || skillsString.includes('react') || skillsString.includes('node') || skillsString.includes('engineer') || skillsString.includes('software');
-           if (r === 'designer') return skillsString.includes('design') || skillsString.includes('figma') || skillsString.includes('ui') || skillsString.includes('ux');
-           if (r === 'marketer') return skillsString.includes('market') || skillsString.includes('growth') || skillsString.includes('sales');
-           if (r === 'pm') return skillsString.includes('product') || skillsString.includes('manager') || skillsString.includes('pm') || skillsString.includes('owner');
-           return skillsString.includes(r);
-        });
-
-        return matchesSearch && matchesCategory && matchesStatus && matchesRoles;
-      })
-      .sort((a, b) => {
-        if (sortOption === 'newest') {
-          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-        } else if (sortOption === 'active') {
-          return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
-        } else if (sortOption === 'team') {
-          const aSkills = Array.isArray(a.skillsNeeded) ? a.skillsNeeded.length : 0;
-          const bSkills = Array.isArray(b.skillsNeeded) ? b.skillsNeeded.length : 0;
-          return bSkills - aSkills;
-        }
-        return 0;
-      });
-  }, [allProjects, searchQuery, selectedCategories, selectedStatus, selectedRoles, sortOption]);
-
-  const totalPages = Math.max(1, Math.ceil(sortedAndFilteredProjects.length / PROJECTS_PER_PAGE));
-  const paginatedProjects = sortedAndFilteredProjects.slice(
-    (currentPage - 1) * PROJECTS_PER_PAGE,
-    currentPage * PROJECTS_PER_PAGE
   );
 
-  const renderPaginationNumbers = () => {
-    const pages = [];
-    for (let i = 1; i <= Math.min(4, totalPages); i++) {
-      pages.push(
-        <button
-          key={i}
-          onClick={() => setCurrentPage(i)}
-          style={{
-            height: '2.25rem', width: '2.25rem', borderRadius: '0.5rem', fontSize: '0.875rem',
-            fontWeight: 700, border: 'none', cursor: 'pointer', transition: 'all 150ms ease',
-            backgroundColor: currentPage === i ? '#2563eb' : 'transparent',
-            color: currentPage === i ? '#ffffff' : '#475569'
-          }}
-        >
-          {i}
-        </button>
-      );
+  if (to) return <Link to={to} className={styles.metricLink}>{content}</Link>;
+  return content;
+};
+
+// ---- Notification Snapshot Item ----
+const NotificationSnapshot = ({ notification, onAccept, onDecline }) => {
+  const [actionState, setActionState] = useState(null);
+
+  const senderName = notification.sender?.name || 'Someone';
+  const senderAvatar = notification.sender?.avatarUrl;
+  const isConnection = notification.type === 'NEW_CONNECTION_REQUEST';
+
+  const handleAccept = async (e) => {
+    e.stopPropagation();
+    setActionState('loading');
+    try {
+      await onAccept(notification.sender?._id);
+      setActionState('accepted');
+    } catch {
+      setActionState(null);
     }
-    return pages;
   };
 
-  let content;
+  const handleDecline = async (e) => {
+    e.stopPropagation();
+    setActionState('loading');
+    try {
+      await onDecline(notification.sender?._id);
+      setActionState('declined');
+    } catch {
+      setActionState(null);
+    }
+  };
 
-  if (status === "loading" || status === "idle") {
-    content = <LoadingSpinner />;
-  } else if (status === "succeeded") {
-    content = (
-      <>
-        <div className={styles.projectsGrid}>
-          {paginatedProjects.length > 0 ? (
-            paginatedProjects.map((project) => (
-              <DiscoverProjectCard key={project._id || project.title} project={project} />
-            ))
-          ) : (
-            <div className={styles.noResults}>
-              No alternative platforms map to these choices. Adjust parameters above.
-            </div>
-          )}
-        </div>
-
-        {/* Custom Nav Footer */}
-        <div style={{ marginTop: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            style={{ display: 'flex', height: '2.25rem', width: '2.25rem', alignItems: 'center', justifyContent: 'center', borderRadius: '0.5rem', border: '1px solid #e2e8f0', backgroundColor: '#ffffff', color: '#475569', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.4 : 1 }}
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            {renderPaginationNumbers()}
-          </div>
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            style={{ display: 'flex', height: '2.25rem', width: '2.25rem', alignItems: 'center', justifyContent: 'center', borderRadius: '0.5rem', border: '1px solid #e2e8f0', backgroundColor: '#ffffff', color: '#475569', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.4 : 1 }}
-          >
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </>
+  if (actionState === 'accepted' || actionState === 'declined') {
+    return (
+      <div className={`${styles.notificationItem} ${actionState === 'accepted' ? styles.acceptedSnap : styles.declinedSnap}`}>
+        <Check size={16} />
+        <span>{actionState === 'accepted' ? 'Connection Accepted!' : 'Request Declined'}</span>
+      </div>
     );
-  } else if (status === "failed") {
-    content = <ErrorDisplay error={error} />;
   }
 
   return (
-    <div className={styles.pageContainer}>
-      <div className={styles.layout}>
-        
-        {/* Sidebar Filter Panel */}
-        <aside className={styles.sidebar}>
-          <div className={styles.filterHeader}>
-            <div>
-              <LayoutGrid size={16} style={{ color: '#2563eb' }} />
-              <span>Project Filters</span>
-            </div>
-          </div>
-
-          {/* Categories Filter Block */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <span style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.05em' }}>Categories</span>
-            <div className={styles.filterOptions}>
-              {['All', ...CATEGORIES].map(cat => (
-                <label key={cat}>
-                  <input 
-                    type="checkbox" 
-                    checked={selectedCategories.includes(cat)}
-                    onChange={() => toggleCategory(cat)}
-                  />
-                  <span>{cat === 'All' ? 'All Hubs' : cat}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Lifecycle Matrix Block */}
-          <div style={{ marginBottom: '1.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '1.25rem' }}>
-            <span style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.05em' }}>Development Phase</span>
-            <div className={styles.filterOptions}>
-              {['All', ...STATUSES].map(phase => (
-                <label key={phase}>
-                  <input 
-                    type="radio" 
-                    name="status"
-                    checked={selectedStatus === phase}
-                    onChange={() => setSelectedStatus(phase)}
-                  />
-                  <span>{phase === 'All' ? 'All Lifecycle Stages' : phase}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Talent Requirements Mapping */}
-          <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1.25rem', marginBottom: '1.5rem' }}>
-            <span style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.05em' }}>Roles Needed</span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              {ROLES.map(role => {
-                const active = selectedRoles.includes(role);
-                return (
-                  <button 
-                    key={role}
-                    onClick={() => toggleRole(role)}
-                    style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', fontWeight: 600, borderRadius: '0.5rem', border: active ? '1px solid #0f172a' : '1px solid #e2e8f0', backgroundColor: active ? '#0f172a' : '#ffffff', color: active ? '#ffffff' : '#475569', cursor: 'pointer', transition: 'all 150ms ease' }}
-                  >
-                    {role}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <button 
-            onClick={clearFilters}
-            style={{ width: '100%', padding: '0.5rem 0', fontSize: '0.75rem', fontWeight: 700, color: '#ef4444', backgroundColor: '#fef2f2', border: '1px dashed #fca5a5', borderRadius: '0.5rem', cursor: 'pointer', marginTop: 'auto' }}
-          >
-            Reset Filters
+    <div className={styles.notificationItem}>
+      <div className={styles.notifAvatar}>
+        <Avatar
+          src={senderAvatar}
+          fallback={senderName.charAt(0)}
+          size="small"
+        />
+      </div>
+      <div className={styles.notifContent}>
+        <span className={styles.notifText}>
+          <strong className={styles.notifSenderLink}>
+            <Link to={notification.sender?._id ? `/users/${notification.sender._id}` : '#'} onClick={(e) => e.stopPropagation()}>{senderName}</Link>
+          </strong>{' '}
+          {isConnection ? 'sent a connection request' : notification.message || 'New activity'}
+        </span>
+        <span className={styles.notifTime}>
+          {new Date(notification.createdAt).toLocaleDateString()}
+        </span>
+      </div>
+      {isConnection && (
+        <div className={styles.notifActions}>
+          <button className={styles.acceptMiniBtn} onClick={handleAccept} disabled={actionState === 'loading'}>
+            {actionState === 'loading' ? <Loader2 size={14} className={styles.spinIcon} /> : <Check size={14} />}
           </button>
-        </aside>
+          <button className={styles.declineMiniBtn} onClick={handleDecline} disabled={actionState === 'loading'}>
+            <X size={14} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
-        {/* Central Grid Feed Display */}
-        <main className={styles.mainContent}>
-          <div className={styles.contentHeader}>
+// ---- Main Dashboard Page ----
+export const DashboardPage = () => {
+  const dispatch = useDispatch();
+
+  const { user: currentUser } = useSelector(state => state.auth);
+  const { items: projects = [], status: projectStatus } = useSelector(state => state.projects || {});
+  const { allItems: notifications } = useSelector(state => state.notifications);
+  const { connections, pendingRequests, status: connStatus } = useSelector(state => state.connections);
+  const { conversations } = useSelector(state => state.messages);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
+
+  // Fetch all real data on mount - use myProjects for user-specific data
+  useEffect(() => {
+    dispatch(fetchMyProjects());
+    dispatch(fetchAllNotifications());
+    dispatch(fetchConnections());
+    dispatch(fetchPendingRequests());
+    dispatch(fetchConversations());
+  }, [dispatch]);
+
+  // Derivative real-time metrics - only user's own projects
+  const activeProjects = useMemo(() => {
+    if (!Array.isArray(projects)) return [];
+    return projects.filter(p => (p.status === 'active' || p.status === 'in_progress') && p.founderId?._id === currentUser?._id).slice(0, 4);
+  }, [projects, currentUser]);
+
+  const recentProjects = useMemo(() => {
+    if (!Array.isArray(projects)) return [];
+    return [...projects]
+      .filter(p => p.founderId?._id === currentUser?._id || p.founderId === currentUser?._id)
+      .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0)).slice(0, 5);
+  }, [projects, currentUser]);
+
+  const unreadNotifs = useMemo(() => notifications.filter(n => !n.isRead).slice(0, 5), [notifications]);
+  const totalUnread = notifications.filter(n => !n.isRead).length;
+
+  // Real unread message count
+  const unreadMessageCount = useMemo(() => {
+    if (!Array.isArray(conversations)) return 0;
+    return conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+  }, [conversations]);
+
+  const filteredProjects = useMemo(() => {
+    if (!searchQuery.trim()) return recentProjects;
+    const q = searchQuery.toLowerCase();
+    return recentProjects.filter(p =>
+      (p.title || '').toLowerCase().includes(q) ||
+      (p.description || '').toLowerCase().includes(q)
+    );
+  }, [recentProjects, searchQuery]);
+
+  const connectionRequests = useMemo(() => {
+    if (!Array.isArray(pendingRequests)) return [];
+    return pendingRequests.slice(0, 3);
+  }, [pendingRequests]);
+
+  // Handlers
+  const handleAcceptConnection = async (requesterId) => {
+    await dispatch(acceptConnectionRequest(requesterId));
+    dispatch(fetchPendingRequests());
+    dispatch(fetchAllNotifications());
+  };
+
+  const handleDeclineConnection = async (requesterId) => {
+    await dispatch(removeOrCancelConnection(requesterId));
+    dispatch(fetchPendingRequests());
+    dispatch(fetchAllNotifications());
+  };
+
+  const isLoading = projectStatus === 'loading' || projectStatus === 'idle';
+
+  // Get user's first name
+  const firstName = currentUser?.name?.split(' ')[0] || 'User';
+  const userRole = currentUser?.role || 'Developer';
+
+  return (
+    <div className={styles.page}>
+      <div className={styles.container}>
+        {/* ========== HERO WELCOME & METRICS ========== */}
+        <section className={styles.heroSection}>
+          <div className={styles.welcomeRow}>
             <div>
-              <h1 className={styles.pageTitle}>Discover Projects</h1>
-              <p className={styles.pageSubtitle}>Deploying tactical tools across a verified matching grid.</p>
+              <h1 className={styles.greeting}>Welcome back, {firstName} 👋</h1>
+              <p className={styles.subtitle}>
+                Here's what's happening with your {userRole.toLowerCase()} workspace today.
+              </p>
             </div>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <Search size={15} style={{ position: 'absolute', left: '0.875rem', color: '#94a3b8' }} />
-                <input 
-                  type="text" 
-                  placeholder="Search stacks or concepts..." 
+            <div className={styles.headerActions}>
+              <div className={styles.searchBox}>
+                <Search size={16} className={styles.searchIcon} />
+                <input
+                  type="text"
+                  placeholder="Search projects, tasks, or activity..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ width: '240px', padding: '0.5rem 1rem 0.5rem 2.25rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', fontSize: '0.875rem', fontWeight: 500, color: '#0f172a', outline: 'none', backgroundColor: '#ffffff' }}
+                  className={styles.searchInput}
                 />
               </div>
-
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <select 
-                  value={sortOption} 
-                  onChange={(e) => setSortOption(e.target.value)}
-                  style={{ padding: '0.5rem 2rem 0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', backgroundColor: '#ffffff', fontSize: '0.875rem', fontWeight: 600, color: '#475569', outline: 'none', cursor: 'pointer', appearance: 'none' }}
-                >
-                  <option value="newest">Sort: Newest</option>
-                  <option value="active">Sort: Active</option>
-                  <option value="team">Sort: Stack Size</option>
-                </select>
-                <Activity size={14} style={{ position: 'absolute', right: '0.75rem', color: '#94a3b8', pointerEvents: 'none' }} />
-              </div>
+              <Link to="/notifications" className={styles.iconBtn}>
+                <Bell size={20} />
+                {totalUnread > 0 && <span className={styles.badge}>{totalUnread}</span>}
+              </Link>
+              <Link to="/settings" className={styles.iconBtn}>
+                <Settings size={20} />
+              </Link>
+              <Link to="/profile" className={styles.avatarLink}>
+                <Avatar
+                  src={currentUser?.avatarUrl}
+                  fallback={(currentUser?.name || '?').charAt(0)}
+                  size="small"
+                />
+              </Link>
             </div>
           </div>
 
-          {content}
-        </main>
+          {/* Metrics Grid - Real-time data */}
+          <div className={styles.metricsGrid}>
+            <MetricCard
+              icon={Briefcase}
+              label="Active Projects"
+              value={activeProjects.length}
+              to="/my-projects"
+              loading={isLoading}
+            />
+            <MetricCard
+              icon={UserPlus}
+              label="Connection Requests"
+              value={connectionRequests.length}
+              to="/my-network"
+              loading={connStatus === 'loading'}
+            />
+            <MetricCard
+              icon={MessageSquare}
+              label="Unread Messages"
+              value={unreadMessageCount}
+              to="/messages"
+              loading={false}
+            />
+            <MetricCard
+              icon={CheckSquare}
+              label="Notifications"
+              value={totalUnread}
+              to="/notifications"
+              loading={false}
+            />
+          </div>
+        </section>
 
+        {/* ========== MAIN CONTENT GRID ========== */}
+        <div className={styles.mainGrid}>
+          {/* Left/Center Column */}
+          <div className={styles.primaryColumn}>
+            {/* Active Projects */}
+            <section className={styles.cardSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>
+                  <Briefcase size={18} />
+                  Active Projects
+                </h2>
+                <Link to="/my-projects" className={styles.seeAllLink}>
+                  View All <ArrowRight size={14} />
+                </Link>
+              </div>
+
+              <div className={styles.projectList}>
+                {isLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className={styles.projectCardSkeleton}>
+                      <SkeletonBlock height="1rem" width="60%" />
+                      <SkeletonBlock height="0.75rem" width="90%" />
+                      <SkeletonBlock height="0.5rem" width="40%" />
+                    </div>
+                  ))
+                ) : filteredProjects.length > 0 ? (
+                  filteredProjects.map(project => (
+                    <Link
+                      key={project._id || project.title}
+                      to={`/projects/${project._id}`}
+                      className={styles.projectCard}
+                    >
+                      <div className={styles.projectCardTop}>
+                        <h3 className={styles.projectCardTitle}>{project.title || 'Untitled Project'}</h3>
+                        <span className={`${styles.projectStatus} ${project.status === 'active' ? styles.statusActive : styles.statusDraft}`}>
+                          {project.stage || project.status || 'Active'}
+                        </span>
+                      </div>
+                      <p className={styles.projectCardDesc}>
+                        {project.description?.slice(0, 120) || 'No description available.'}{project.description?.length > 120 ? '...' : ''}
+                      </p>
+                      <div className={styles.projectCardMeta}>
+                        <span className={styles.metaItem}>
+                          <Users size={12} />
+                          {project.skillsNeeded?.length || 0} roles needed
+                        </span>
+                        <span className={styles.metaItem}>
+                          <Clock size={12} />
+                          {new Date(project.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className={styles.emptyBlock}>
+                    <FileText size={32} className={styles.emptyIcon} />
+                    <p>{searchQuery ? 'No projects match your search.' : 'No active projects yet.'}</p>
+                    {!searchQuery && (
+                      <Link to="/post-project" className={styles.emptyAction}>Post a Project</Link>
+                    )}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Real Validation Board Data */}
+            <section className={styles.cardSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>
+                  <Star size={18} />
+                  Recent Validations
+                </h2>
+                <Link to="/validation-board" className={styles.seeAllLink}>
+                  View Board <ArrowRight size={14} />
+                </Link>
+              </div>
+              <div className={styles.validationPreview}>
+                <p className={styles.validationPlaceholder}>
+                  Head to the <Link to="/validation-board">Validation Board</Link> to see community-submitted ideas and their scores.
+                </p>
+              </div>
+            </section>
+          </div>
+
+          {/* Right Sidebar Column */}
+          <aside className={styles.sidebarColumn}>
+            {/* Live Notification Snapshot */}
+            <section className={styles.cardSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>
+                  <Bell size={16} />
+                  Recent Activity
+                </h2>
+                <Link to="/notifications" className={styles.seeAllLink}>
+                  See All
+                </Link>
+              </div>
+
+              <div className={styles.notifSnapList}>
+                {unreadNotifs.length > 0 ? (
+                  unreadNotifs.map(notif => (
+                    <NotificationSnapshot
+                      key={notif._id}
+                      notification={notif}
+                      onAccept={handleAcceptConnection}
+                      onDecline={handleDeclineConnection}
+                    />
+                  ))
+                ) : (
+                  <div className={styles.emptyBlock}>
+                    <Bell size={24} className={styles.emptyIcon} />
+                    <p>No new notifications</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Real connection requests */}
+              {connectionRequests.length > 0 && (
+                <div className={styles.connRequestsSection}>
+                  <h4 className={styles.subSectionTitle}>
+                    <UserPlus size={14} />
+                    Connection Requests ({connectionRequests.length})
+                  </h4>
+                  {connectionRequests.map(req => (
+                    <div key={req._id} className={styles.connRequestCard}>
+                      <Link to={req.requester?._id ? `/users/${req.requester._id}` : '#'} className={styles.connReqLink}>
+                        <Avatar
+                          src={req.requester?.avatarUrl}
+                          fallback={(req.requester?.name || '?').charAt(0)}
+                          size="small"
+                        />
+                        <div className={styles.connReqInfo}>
+                          <span className={styles.connReqName}>{req.requester?.name || 'Unknown'}</span>
+                          <span className={styles.connReqRole}>{req.requester?.headline || 'Professional'}</span>
+                        </div>
+                      </Link>
+                      <div className={styles.connReqActions}>
+                        <button
+                          className={styles.acceptMiniBtn}
+                          onClick={() => handleAcceptConnection(req.requester?._id)}
+                          title="Accept"
+                        >
+                          <Check size={14} />
+                        </button>
+                        <button
+                          className={styles.declineMiniBtn}
+                          onClick={() => handleDeclineConnection(req.requester?._id)}
+                          title="Decline"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Recent Interactions - Clickable real items */}
+            <section className={styles.cardSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>
+                  <Clock size={16} />
+                  Recent Interactions
+                </h2>
+              </div>
+              <div className={styles.timelineList}>
+                {recentProjects.slice(0, 3).length > 0 ? (
+                  recentProjects.slice(0, 3).map((project, i) => (
+                    <Link key={project._id || i} to={`/projects/${project._id}`} className={styles.timelineItem}>
+                      <div className={styles.timelineDot} />
+                      <div className={styles.timelineContent}>
+                        <p>
+                          <strong>{project.title || 'Project'}</strong> updated {project.stage ? `to ${project.stage}` : ''}
+                        </p>
+                        <span className={styles.timelineTime}>
+                          {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString() : 'Recently'}
+                        </span>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className={styles.emptyBlock}>
+                    <Clock size={24} className={styles.emptyIcon} />
+                    <p>No recent interactions</p>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Quick Links */}
+            <section className={styles.cardSection}>
+              <h2 className={styles.sectionTitle}>Quick Actions</h2>
+              <div className={styles.quickLinksGrid}>
+                <Link to="/post-project" className={styles.quickLink}>
+                  <Briefcase size={16} />
+                  Post a Project
+                </Link>
+                <Link to="/messages" className={styles.quickLink}>
+                  <MessageSquare size={16} />
+                  Open Messages
+                </Link>
+                <Link to="/validation-board/create" className={styles.quickLink}>
+                  <Star size={16} />
+                  Submit an Idea
+                </Link>
+                <Link to="/users" className={styles.quickLink}>
+                  <Users size={16} />
+                  Browse Network
+                </Link>
+              </div>
+            </section>
+          </aside>
+        </div>
       </div>
     </div>
   );

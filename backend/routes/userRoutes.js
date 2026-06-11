@@ -23,7 +23,8 @@ const {
   completeProfile,
   toggleBookmark,
   getProfileViews,
-  getResponseRate
+  getResponseRate,
+  endorseUser
 } = require('../controllers/userController');
 
 const { protect, trackActivity } = require('../middleware/authMiddleware');
@@ -74,7 +75,8 @@ router.post('/heartbeat', protect, trackActivity, (req, res) => {
 // Dynamic routes like ':id' should be placed last to avoid conflicts
 // with static routes like '/profile'.
 router.route('/:id/response-rate').get(getResponseRate);
-router.route('/:id/view').put(protect, trackActivity, recordProfileView);
+router.route('/:id/view').put(protect, recordProfileView);
+router.route('/:id/endorse').post(protect, endorseUser);
 
 
 module.exports = router;

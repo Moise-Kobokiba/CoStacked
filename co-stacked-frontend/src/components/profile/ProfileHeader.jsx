@@ -10,9 +10,6 @@ import {
   Edit, Share2, MapPin, Briefcase, Clock, 
   MessageSquare 
 } from 'lucide-react';
-
-import { formatDistanceToNow } from 'date-fns';
-
 export const ProfileHeader = ({ 
   user, 
   isOwnProfile, 
@@ -29,10 +26,7 @@ export const ProfileHeader = ({
   isConnectionLoading,
   onMessage,
 }) => {
-  const isOnline = user.isOnline;
-  const lastActiveText = user.lastActiveAt 
-    ? `Last active ${formatDistanceToNow(new Date(user.lastActiveAt), { addSuffix: true })}`
-    : 'Offline';
+  const isOnline = !!user?.isOnline;
 
   return (
   <div className={styles.profileHeaderCard}>
@@ -50,7 +44,7 @@ export const ProfileHeader = ({
           </div>
           <div 
             className={isOnline ? styles.onlineBadge : styles.offlineBadge} 
-            title={isOnline ? 'Online now' : lastActiveText}
+            title={isOnline ? 'Online now' : 'Offline'}
           ></div>
           {isOwnProfile && (
             <button className={styles.avatarEditButton} onClick={onAvatarClick} aria-label="Change profile picture">
@@ -104,7 +98,12 @@ export const ProfileHeader = ({
                   isLoading={isConnectionLoading}
                 />
               </div>
-              <Button onClick={onMessage} className={styles.messageBtn}>
+              <Button
+                onClick={connectionStatus === 'connected' ? onMessage : undefined}
+                className={styles.messageBtn}
+                disabled={connectionStatus !== 'connected'}
+                title={connectionStatus === 'connected' ? 'Message' : 'Connect to message'}
+              >
                 <MessageSquare size={18} />
                 Message
               </Button>

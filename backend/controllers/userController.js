@@ -273,10 +273,9 @@ const user = await User.findOne({ email });
         });
       }
 
-      // Mark user as online and update last active timestamp
-      user.isOnline = true;
+      // Update last active timestamp on login
       user.lastActiveAt = new Date();
-      await user.save({ validateBeforeSave: false });
+      await user.save();
 
       // Generate JWT token
       const token = generateToken(user._id);
@@ -290,7 +289,15 @@ const user = await User.findOne({ email });
       delete userObj.emailVerificationExpires;
 
       res.json({
-        user: userObj,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isAdmin: user.isAdmin,
+          isOnline: user.isOnline,
+          lastActiveAt: user.lastActiveAt,
+        },
         token
       });
     } else {
@@ -375,6 +382,14 @@ const updateUserProfile = async (req, res) => {
       }
       if (req.body.education) {
         user.education = req.body.education;
+      }
+
+      // --- NEW: Handle Categorized Skills ---
+      if (req.body.softSkills) {
+        user.softSkills = Array.isArray(req.body.softSkills) ? req.body.softSkills : [];
+      }
+      if (req.body.startupSkills) {
+        user.startupSkills = Array.isArray(req.body.startupSkills) ? req.body.startupSkills : [];
       }
 
       const updatedUser = await user.save();
@@ -879,6 +894,53 @@ const getResponseRate = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Endorse a user (toggle endorsement)
+ * @route   POST /api/users/:id/endorse
+ * @access  Private
+ */
+const endorseUser = async (req, res) => {
+  try {
+    const targetUserId = req.params.id;
+    const currentUserId = req.user._id;
+
+    if (targetUserId === currentUserId.toString()) {
+      return res.status(400).json({ message: 'You cannot endorse yourself.' });
+    }
+
+    const targetUser = await User.findById(targetUserId);
+    if (!targetUser) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    const alreadyEndorsed = targetUser.endorsedBy.some(
+      (id) => id.toString() === currentUserId.toString()
+    );
+
+    if (alreadyEndorsed) {
+      // Remove endorsement
+      targetUser.endorsedBy = targetUser.endorsedBy.filter(
+        (id) => id.toString() !== currentUserId.toString()
+      );
+      targetUser.endorsementCount = Math.max(0, targetUser.endorsementCount - 1);
+    } else {
+      // Add endorsement
+      targetUser.endorsedBy.push(currentUserId);
+      targetUser.endorsementCount = (targetUser.endorsementCount || 0) + 1;
+    }
+
+    await targetUser.save();
+
+    res.json({
+      endorsed: !alreadyEndorsed,
+      endorsementCount: targetUser.endorsementCount,
+    });
+  } catch (error) {
+    console.error(`[ENDORSE USER ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server error while endorsing user.' });
+  }
+};
+
 module.exports = {
   registerUser,
   authUser,
@@ -898,4 +960,5 @@ module.exports = {
   toggleBookmark,
   getProfileViews,
   getResponseRate,
+  endorseUser,
 };

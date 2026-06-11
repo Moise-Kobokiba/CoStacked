@@ -1,9 +1,28 @@
 const ValidationTip = require('../models/ValidationTip');
 const Article = require('../models/Article');
+const socketUtil = require('../utils/socket');
 
 exports.getValidationTips = async (req, res) => {
   try {
-    const tips = await ValidationTip.find({ isActive: true }).sort({ order: 1 });
+    const now = new Date();
+    let tipsQuery = { isActive: true };
+
+    if (req.query.admin === 'true') {
+      if (!req.user || !req.user.isAdmin) {
+        return res.status(403).json({ message: 'Forbidden' });
+      }
+      tipsQuery = {}; // Admin can view all tips for management
+    } else {
+      tipsQuery = {
+        isActive: true,
+        $and: [
+          { $or: [{ startAt: null }, { startAt: { $lte: now } }] },
+          { $or: [{ endAt: null }, { endAt: { $gte: now } }] },
+        ],
+      };
+    }
+
+    const tips = await ValidationTip.find(tipsQuery).sort({ order: 1 });
 
     const articleTips = await Article.find({
       isPublished: true,
@@ -38,12 +57,24 @@ exports.getValidationTips = async (req, res) => {
 
 exports.createValidationTip = async (req, res) => {
   try {
-    const { title, content, order } = req.body;
+    const { title, content, order, startAt, endAt, isActive } = req.body;
     if (!title || !content) {
       return res.status(400).json({ message: 'Title and content are required.' });
     }
-    const tip = await ValidationTip.create({ title, content, order: order || 0, isActive: true });
+    const tip = await ValidationTip.create({
+      title,
+      content,
+      order: order || 0,
+      isActive: typeof isActive === 'boolean' ? isActive : true,
+      startAt: startAt ? new Date(startAt) : null,
+      endAt: endAt ? new Date(endAt) : null,
+    });
     res.status(201).json(tip);
+
+    try {
+      const io = socketUtil.getIo();
+      if (io) io.to('validation_tips').emit('validation_tips_updated', { action: 'create', tip });
+    } catch (e) { console.error('Socket emit error (validation tip create):', e); }
   } catch (error) {
     console.error('Error creating validation tip:', error);
     res.status(500).json({ message: 'Server error' });
@@ -60,8 +91,15 @@ exports.updateValidationTip = async (req, res) => {
     tip.content = req.body.content ?? tip.content;
     tip.order = req.body.order ?? tip.order;
     tip.isActive = req.body.isActive ?? tip.isActive;
+    tip.startAt = req.body.startAt ? new Date(req.body.startAt) : req.body.startAt === '' ? null : tip.startAt;
+    tip.endAt = req.body.endAt ? new Date(req.body.endAt) : req.body.endAt === '' ? null : tip.endAt;
     await tip.save();
     res.status(200).json(tip);
+
+    try {
+      const io = socketUtil.getIo();
+      if (io) io.to('validation_tips').emit('validation_tips_updated', { action: 'update', tip });
+    } catch (e) { console.error('Socket emit error (validation tip update):', e); }
   } catch (error) {
     console.error('Error updating validation tip:', error);
     res.status(500).json({ message: 'Server error' });
@@ -76,6 +114,11 @@ exports.deleteValidationTip = async (req, res) => {
     }
     await tip.deleteOne();
     res.status(200).json({ message: 'Validation tip deleted' });
+
+    try {
+      const io = socketUtil.getIo();
+      if (io) io.to('validation_tips').emit('validation_tips_updated', { action: 'delete', tipId: req.params.id });
+    } catch (e) { console.error('Socket emit error (validation tip delete):', e); }
   } catch (error) {
     console.error('Error deleting validation tip:', error);
     res.status(500).json({ message: 'Server error' });

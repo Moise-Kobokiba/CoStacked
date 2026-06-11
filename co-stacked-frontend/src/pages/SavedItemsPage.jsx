@@ -1,36 +1,119 @@
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSelector, useDispatch } from 'react-redux';
-import { Bookmark, Share2, MessageSquare, ArrowBigUp, Loader2, Trash2, ExternalLink, Calendar, GitBranch } from 'lucide-react';
-import { getSavedItems } from '../api/stackSuiteApi';
-import { toggleBookmark } from '../features/auth/authSlice';
+import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
+import { Bookmark, Share2, MessageSquare, Loader2, Trash2, ExternalLink, Search, X, Filter } from 'lucide-react';
+import { getSavedItems, unsaveItem } from '../api/savedItemsApi';
 import styles from './SavedItemsPage.module.css';
+
+const CATEGORIES = [
+  { id: 'all', label: 'All Items' },
+  { id: 'project', label: 'Projects' },
+  { id: 'idea', label: 'Validation Ideas' },
+  { id: 'stackpost', label: 'StackSuite Posts' },
+  { id: 'showcase', label: 'Showcases' },
+  { id: 'collab', label: 'Collaborations' },
+  { id: 'talent', label: 'Talent Profiles' },
+  { id: 'article', label: 'Info Hub' },
+];
+
+const getDeepLink = (item) => {
+  switch (item.itemType) {
+    case 'project': return `/projects/${item.itemId}`;
+    case 'talent': return `/users/${item.itemId}`;
+    case 'idea': return `/validation-board/${item.itemId}`;
+    case 'stackpost': return `/stack-suite?tab=discussions`;
+    case 'showcase': return `/stack-suite?tab=showcases`;
+    case 'collab': return `/stack-suite?tab=collaboration`;
+    case 'article': return `/info-hub`;
+    default: return '#';
+  }
+};
+
+const getTitle = (item) => {
+  const data = item.itemData;
+  if (!data) return 'Untitled';
+  return data.title || data.name || data.bio?.slice(0, 40) || 'Untitled';
+};
+
+const getDescription = (item) => {
+  const data = item.itemData;
+  if (!data) return '';
+  return data.description || data.body || data.problemStatement || data.bio || '';
+};
+
+const getAuthor = (item) => {
+  const data = item.itemData;
+  if (!data) return null;
+  const author = data.founder || data.author || data.creator || data.founderId;
+  if (!author) return null;
+  return {
+    name: author.name || 'Unknown',
+    avatarUrl: author.avatarUrl,
+    _id: author._id,
+  };
+};
 
 export const SavedItemsPage = () => {
   const queryClient = useQueryClient();
-  const dispatch = useDispatch();
-  const user = useSelector(state => state.auth.user);
+  const { token, isAuthenticated, user } = useSelector((state) => state.auth || {});
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [removingId, setRemovingId] = useState(null);
 
-  const { data: items = [], isLoading, error } = useQuery({
-    queryKey: ['savedItems'],
-    queryFn: getSavedItems,
-    enabled: !!user,
+  // Debounce search input to avoid spamming the API
+  React.useEffect(() => {
+    const t = setTimeout(() => setSearchQuery(searchInput.trim()), 350);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ['savedItems', { type: activeCategory, search: searchQuery }],
+    queryFn: () => getSavedItems(token, { type: activeCategory, search: searchQuery }),
+    enabled: !!token && !!isAuthenticated,
   });
 
-  const handleUnsave = async (itemId, itemType) => {
+  // Also fetch all saved items (no filters) to compute category counts for tabs
+  const { data: allItems = [] } = useQuery({
+    queryKey: ['savedItems', 'all'],
+    queryFn: () => getSavedItems(token, { type: 'all', search: '' }),
+    enabled: !!token && !!isAuthenticated,
+  });
+
+  const counts = React.useMemo(() => {
+    const map = { all: allItems.length };
+    allItems.forEach((it) => {
+      map[it.itemType] = (map[it.itemType] || 0) + 1;
+    });
+    return map;
+  }, [allItems]);
+
+  const unsaveMutation = useMutation({
+    mutationFn: (savedItemId) => unsaveItem(token, savedItemId),
+    onMutate: (savedItemId) => {
+      setRemovingId(savedItemId);
+    },
+    onError: () => {
+      setRemovingId(null);
+    },
+    onSuccess: () => {
+      setRemovingId(null);
+      queryClient.invalidateQueries({ queryKey: ['savedItems'] });
+    },
+  });
+
+  const handleUnsave = (savedItemId) => {
     if (window.confirm('Remove this item from your saved list?')) {
-      await dispatch(toggleBookmark({ itemId, itemType }));
-      queryClient.invalidateQueries(['savedItems']);
+      unsaveMutation.mutate(savedItemId);
     }
   };
 
   const handleShare = async (item) => {
-    const url = `${window.location.origin}/stack-suite`; // Simplified for now
+    const url = `${window.location.origin}${getDeepLink(item)}`;
     try {
       if (navigator.share) {
-        await navigator.share({
-          title: item.title || item.name || item.milestone,
-          url
-        });
+        await navigator.share({ title: getTitle(item), url });
       } else {
         await navigator.clipboard.writeText(url);
         alert('Link copied to clipboard!');
@@ -40,10 +123,15 @@ export const SavedItemsPage = () => {
     }
   };
 
-  if (isLoading) {
+  if (!isAuthenticated) {
     return (
-      <div className={styles.pageContainer} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <Loader2 className="animate-spin" size={40} style={{ color: 'var(--primary)', opacity: 0.5 }} />
+      <div className={styles.pageContainer}>
+        <div className={styles.emptyState}>
+          <Bookmark size={48} className={styles.emptyIcon} />
+          <h2 className={styles.emptyTitle}>Login Required</h2>
+          <p className={styles.emptyText}>Please log in to view your saved items.</p>
+          <Link to="/login" className={styles.loginBtn}>Log In</Link>
+        </div>
       </div>
     );
   }
@@ -51,76 +139,123 @@ export const SavedItemsPage = () => {
   return (
     <div className={styles.pageContainer}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Saved Items</h1>
-        <p className={styles.subtitle}>Your curated collection of projects, ideas, and collaborations.</p>
+        <div>
+          <h1 className={styles.title}>Saved Items</h1>
+          <p className={styles.subtitle}>
+            {items.length > 0
+              ? `You have ${items.length} saved ${items.length === 1 ? 'item' : 'items'}`
+              : 'Your curated collection across the platform'}
+          </p>
+        </div>
       </header>
 
-      {items.length === 0 ? (
+      {/* Search & Filter Bar */}
+      <div className={styles.controls}>
+        <div className={styles.searchWrapper}>
+          <Search size={16} className={styles.searchIcon} />
+          <input
+            type="text"
+            placeholder="Search saved items..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className={styles.searchInput}
+          />
+          {searchInput && (
+            <button className={styles.clearBtn} onClick={() => setSearchInput('')}>
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Category Tabs */}
+      <div className={styles.tabsRow}>
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            className={`${styles.tabBtn} ${activeCategory === cat.id ? styles.tabActive : ''}`}
+            onClick={() => setActiveCategory(cat.id)}
+          >
+            {cat.label}
+            {counts[cat.id] > 0 && (
+              <span className={styles.tabCount}>{counts[cat.id]}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Items */}
+      {isLoading ? (
+        <div className={styles.loadingState}>
+          <Loader2 size={36} className="animate-spin" />
+        </div>
+      ) : items.length === 0 ? (
         <div className={styles.emptyState}>
           <Bookmark size={48} className={styles.emptyIcon} />
-          <h2 className={styles.emptyTitle}>Your collection is empty</h2>
-          <p className={styles.emptyText}>Bookmark interesting projects or discussions in the StackSuite to see them here.</p>
+          <h2 className={styles.emptyTitle}>
+            {searchQuery ? 'No results found' : 'Your collection is empty'}
+          </h2>
+          <p className={styles.emptyText}>
+            {searchQuery
+              ? 'Try a different search term.'
+              : 'Save projects, ideas, profiles, and posts to access them quickly here.'}
+          </p>
         </div>
       ) : (
         <div className={styles.grid}>
-          {items.map(item => {
-            const isPost = item.bookmarkType === 'post';
-            const isShowcase = item.bookmarkType === 'showcase';
-            const isCollab = item.bookmarkType === 'collabThread';
-
-            const title = item.title || item.name || item.milestone;
-            const desc = item.body || item.description;
+          {items.map((item) => {
+            const title = getTitle(item);
+            const desc = getDescription(item);
+            const author = getAuthor(item);
+            const deepLink = getDeepLink(item);
 
             return (
-              <div key={item._id} className={styles.savedCard} style={{ background: 'var(--card-background)', border: '1px solid var(--border)', borderRadius: '16px', padding: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <div key={item._id} className={styles.savedCard}>
+                <div className={styles.cardTop}>
                   <div>
-                    <span className={`${styles.typeBadge} ${isPost ? styles.badgePost : isShowcase ? styles.badgeShowcase : styles.badgeCollab}`}>
-                      {item.bookmarkType}
+                    <span className={`${styles.typeBadge} ${styles[`badge${item.itemType}`] || ''}`}>
+                      {item.itemType}
                     </span>
-                    <h3 style={{ fontSize: '18px', fontWeight: '700', margin: '0 0 8px 0' }}>{title}</h3>
+                    <Link to={deepLink} className={styles.savedTitle}>
+                      <h3>{title}</h3>
+                    </Link>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => handleShare(item)} className="btn-icon" style={{ padding: '8px', borderRadius: '8px', color: 'var(--muted-foreground)' }} title="Share">
-                      <Share2 size={18} />
+                  <div className={styles.cardActions}>
+                    <button onClick={() => handleShare(item)} className={styles.iconBtn} title="Share">
+                      <Share2 size={16} />
                     </button>
-                    <button onClick={() => handleUnsave(item._id, item.bookmarkType)} className="btn-icon" style={{ padding: '8px', borderRadius: '8px', color: 'var(--destructive)' }} title="Remove">
-                      <Trash2 size={18} />
+                    <button
+                      onClick={() => handleUnsave(item._id)}
+                      className={styles.iconBtn}
+                      style={{ color: 'var(--destructive)' }}
+                      title="Remove"
+                      disabled={unsaveMutation.isLoading && removingId === item._id}
+                    >
+                      {unsaveMutation.isLoading && removingId === item._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                     </button>
                   </div>
                 </div>
 
-                <p style={{ fontSize: '14px', color: 'var(--muted-foreground)', margin: '0 0 20px 0', lineClamp: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                  {desc}
-                </p>
+                {desc && (
+                  <p className={styles.desc}>{desc.slice(0, 150)}{desc.length > 150 ? '...' : ''}</p>
+                )}
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
-                   <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'var(--muted-foreground)' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <MessageSquare size={14} /> {item.commentCount || 0}
-                      </span>
-                      {item.upvotes && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <ArrowBigUp size={16} /> {item.upvoteCount}
-                        </span>
-                      )}
-                      {isCollab && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <GitBranch size={14} /> {item.progress}
-                        </span>
-                      )}
-                   </div>
-                   
-                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                     <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>
-                        {(item.author || item.founder)?.avatarUrl ? (
-                          <img src={(item.author || item.founder).avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div className={styles.cardFooter}>
+                  <Link to={deepLink} className={styles.viewLink}>
+                    <ExternalLink size={14} /> View
+                  </Link>
+                  {author && (
+                    <Link to={`/users/${author._id}`} className={styles.authorLink}>
+                      <div className={styles.miniAvatar}>
+                        {author.avatarUrl ? (
+                          <img src={author.avatarUrl} alt="" />
                         ) : (
-                          (item.author || item.founder)?.name?.slice(0, 2).toUpperCase() || '??'
+                          author.name?.slice(0, 2).toUpperCase() || '??'
                         )}
-                     </div>
-                     <span style={{ fontSize: '13px', fontWeight: '500' }}>{(item.author || item.founder)?.name}</span>
-                   </div>
+                      </div>
+                      <span>{author.name}</span>
+                    </Link>
+                  )}
                 </div>
               </div>
             );

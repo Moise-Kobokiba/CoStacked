@@ -33,7 +33,7 @@ import { ProfileBoostModal } from "../components/billing/ProfileBoostModal";
 import { 
   MapPin, Link as LinkIcon, X, ArrowLeft, 
   Globe, Github, Linkedin, Briefcase, Rocket, Laptop,
-  Quote
+  Quote, ThumbsUp
 } from "lucide-react";
 
 const LoadingSpinner = () => (
@@ -55,6 +55,14 @@ const formatPeriod = (start, end, isCurrent) => {
   const startStr = start ? new Date(start).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
   const endStr = isCurrent ? 'Present' : (end ? new Date(end).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '');
   return `${startStr} — ${endStr}`;
+};
+
+// Education year-only formatter
+const formatEducationYear = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.getFullYear().toString();
 };
 
 export const ProfilePage = () => {
@@ -93,6 +101,8 @@ export const ProfilePage = () => {
   const connectionStatus = getConnectionStatus();
   const isConnectionLoading = actionStatus === 'loading';
 
+  const { token, isAuthenticated } = useSelector((state) => state.auth || {});
+
   const handleShare = useCallback(async () => {
     if (!userToDisplay) return;
     const url = window.location.href;
@@ -108,6 +118,14 @@ export const ProfilePage = () => {
       } catch (err) { console.error(err); }
     }
   }, [userToDisplay]);
+
+  const handleOpenEndorsement = useCallback(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    setReviewModalOpen(true);
+  }, [isAuthenticated, navigate]);
 
   // Connection handlers
   const connectionHandlers = {
@@ -146,7 +164,7 @@ export const ProfilePage = () => {
   if (usersStatus === "loading" || !userToDisplay) return <div className={styles.pageContainer}><LoadingSpinner /></div>;
 
   const developerReviews = reviewsByUser[userToDisplay._id] || [];
-  const userProjects = userToDisplay.role === "founder" ? allProjects.filter((p) => p.founderId === userToDisplay._id) : [];
+  const userProjects = allProjects.filter((p) => p.founderId === userToDisplay._id);
   const averageRating = developerReviews.length > 0 ? developerReviews.reduce((acc, r) => acc + r.rating, 0) / developerReviews.length : 0;
   
   const reviewableProjects =
@@ -166,6 +184,11 @@ export const ProfilePage = () => {
 
   const experience = userToDisplay.experience || [];
   const education = userToDisplay.education || [];
+  const softSkills = userToDisplay.softSkills || [];
+  const startupSkills = userToDisplay.startupSkills || [];
+
+  // Portfolio projects - display user's projects as portfolio
+  const portfolioProjects = userProjects.filter(p => p.status !== 'archived');
 
   return (
     <>
@@ -255,7 +278,10 @@ export const ProfilePage = () => {
                           <div className={styles.eduDot}></div>
                           <p className={styles.eduDegree}>{edu.degree}</p>
                           <p className={styles.eduSchool}>{edu.school}</p>
-                          <p className={styles.eduDate}>{edu.startDate} — {edu.endDate}</p>
+                          <p className={styles.eduDate}>
+                            {formatEducationYear(edu.startDate)}
+                            {edu.endDate ? ` — ${formatEducationYear(edu.endDate)}` : ''}
+                          </p>
                         </div>
                       )) : (
                         <div className={styles.emptyStateContainer}>
@@ -297,6 +323,43 @@ export const ProfilePage = () => {
                     <p className={styles.bioText}>{userToDisplay.bio || "Passionate builder looking for the next big challenge."}</p>
                   </section>
 
+                  {/* Portfolio Showcase Section */}
+                  {portfolioProjects.length > 0 && (
+                    <section className={styles.section}>
+                      <h2 className={styles.sectionTitle}>Portfolio Showcase</h2>
+                      <div className={styles.portfolioGrid}>
+                        {portfolioProjects.map((project) => (
+                          <Link
+                            key={project._id}
+                            to={`/projects/${project._id}`}
+                            className={styles.portfolioCard}
+                          >
+                            <div className={styles.portfolioThumbnail}>
+                              {project.coverImage ? (
+                                <img src={project.coverImage} alt={project.title} className={styles.portfolioThumbnailImg} />
+                              ) : (
+                                <div className={styles.portfolioThumbnailPlaceholder}>
+                                  <Rocket size={32} />
+                                </div>
+                              )}
+                            </div>
+                            <div className={styles.portfolioInfo}>
+                              <h4 className={styles.portfolioTitle}>{project.title}</h4>
+                              {project.subtitle && <p className={styles.portfolioSubtitle}>{project.subtitle}</p>}
+                              {(project.tags || project.techStack) && (
+                                <div className={styles.portfolioTags}>
+                                  {(project.tags || project.techStack || []).slice(0, 3).map((tag, i) => (
+                                    <span key={i} className={styles.portfolioTag}>{tag}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
                   <section className={styles.section}>
                     <h2 className={styles.sectionTitle}>Experience</h2>
                     <div className={styles.experienceList}>
@@ -337,47 +400,112 @@ export const ProfilePage = () => {
                         )}
                       </div>
                     </div>
-                    <div className={styles.skillGroup}>
-                      <h4 className={styles.skillGroupLabel}>Startup & Soft Skills</h4>
-                      <div className={styles.skillsWrap}>
-                        {userToDisplay.softSkills?.length > 0 ? (
-                          userToDisplay.softSkills.map(skill => (
+                    {startupSkills.length > 0 && (
+                      <div className={styles.skillGroup}>
+                        <h4 className={styles.skillGroupLabel}>Startup Skills</h4>
+                        <div className={styles.skillsWrap}>
+                          {startupSkills.map(skill => (
                             <span key={skill} className={styles.skillTagSecondary}>{skill}</span>
-                          ))
-                        ) : (
-                          <p className={styles.emptyStateText} style={{ margin: 0 }}>No soft skills listed yet.</p>
-                        )}
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {softSkills.length > 0 && (
+                      <div className={styles.skillGroup}>
+                        <h4 className={styles.skillGroupLabel}>Soft Skills</h4>
+                        <div className={styles.skillsWrap}>
+                          {softSkills.map(skill => (
+                            <span key={skill} className={styles.skillTagSecondary}>{skill}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {startupSkills.length === 0 && softSkills.length === 0 && (
+                      <div className={styles.skillGroup}>
+                        <h4 className={styles.skillGroupLabel}>Startup & Soft Skills</h4>
+                        <div className={styles.skillsWrap}>
+                          {userToDisplay.softSkills?.length > 0 ? (
+                            userToDisplay.softSkills.map(skill => (
+                              <span key={skill} className={styles.skillTagSecondary}>{skill}</span>
+                            ))
+                          ) : (
+                            <p className={styles.emptyStateText} style={{ margin: 0 }}>No soft skills listed yet.</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Stats Summary - Moved above endorsements for mobile-friendliness */}
+                  <section className={styles.section}>
+                    <div className={styles.statsRow}>
+                      <div className={styles.statChip}>
+                        <span className={styles.statChipValue}>{developerReviews.length}</span>
+                        <span className={styles.statChipLabel}>Endorsements</span>
+                      </div>
+                      <div className={styles.statChip}>
+                        <span className={styles.statChipValue}>{developerReviews.length}</span>
+                        <span className={styles.statChipLabel}>Reviews</span>
                       </div>
                     </div>
                   </section>
 
                   <section className={styles.section}>
                     <div className={styles.sectionHeader}>
-                      <h2 className={styles.sectionTitle}>Endorsements</h2>
-                      <button className={styles.requestBtn}>Request Endorsement</button>
+                      <div>
+                        <h2 className={styles.sectionTitle}>Endorsements & Reviews</h2>
+                        <p className={styles.sectionSubtitle}>Verified feedback from founders who have worked with this developer.</p>
+                      </div>
+                      <div className={styles.endorsementActions}>
+                        {!isOwnProfile && isAuthenticated && canLeaveReview && (
+                          <button className={styles.endorseButton} onClick={handleOpenEndorsement}>
+                            <ThumbsUp size={16} />
+                            <span>Leave Endorsement</span>
+                            <span className={styles.endorseCount}>{developerReviews.length}</span>
+                          </button>
+                        )}
+                        {isOwnProfile && (
+                          <span className={styles.endorseCountLabel}>{developerReviews.length} endorsements</span>
+                        )}
+                      </div>
                     </div>
-                    <div className={styles.endorsementsGrid}>
-                      {developerReviews.length > 0 ? developerReviews.map(review => (
-                        <div key={review._id} className={styles.endorsementCard}>
-                          <Quote className={styles.quoteIcon} size={32} />
-                          <p className={styles.endorsementText}>"{review.comment}"</p>
-                          <div className={styles.endorserInfo}>
-                             <div className={styles.endorserAvatar}>
-                                <img src={review.reviewerId?.avatarUrl || "https://ui-avatars.com/api/?name=" + review.reviewerId?.name} alt={review.reviewerId?.name} />
-                             </div>
-                             <div>
-                                <p className={styles.endorserName}>{review.reviewerId?.name}</p>
-                                <p className={styles.endorserRole}>{review.reviewerId?.role || 'Co-founder'}</p>
-                             </div>
+
+                    {developerReviews.length > 0 ? (
+                      <div className={styles.endorsementsGrid}>
+                        {developerReviews.map((review) => (
+                          <div key={review._id} className={styles.endorsementCard}>
+                            <div className={styles.endorsementHeader}>
+                              <div className={styles.endorserAvatar}>
+                                <img
+                                  src={review.founderId?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.founderId?.name || 'Founder')}`}
+                                  alt={review.founderId?.name || 'Founder'}
+                                />
+                              </div>
+                              <div className={styles.endorsementMeta}>
+                                <p className={styles.endorserName}>{review.founderId?.name}</p>
+                                <p className={styles.endorserRole}>Founder · {review.projectId?.title}</p>
+                                <p className={styles.endorsementDate}>{new Date(review.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                              </div>
+                            </div>
+                            <p className={styles.endorsementText}>&ldquo;{review.comment}&rdquo;</p>
+                            <div className={styles.reviewRating}>
+                              {Array.from({ length: 5 }).map((_, index) => (
+                                <span key={index} className={index < review.rating ? styles.starFilled : styles.starEmpty}>★</span>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )) : (
-                        <div className={styles.emptyStateContainer} style={{ gridColumn: '1 / -1' }}>
-                          <p className={styles.emptyStateText}>No endorsements received yet.</p>
-                          {isOwnProfile && <button className={styles.emptyStateBtn} onClick={() => setCopySuccess("Ask for Endorsement copied!")}>Request Endorsement</button>}
-                        </div>
-                      )}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={styles.emptyStateContainer} style={{ gridColumn: '1 / -1' }}>
+                        <p className={styles.emptyStateText}>No endorsements received yet.</p>
+                        {isOwnProfile ? (
+                          <button className={styles.emptyStateBtn} onClick={() => setCopySuccess('Ask for Endorsement copied!')}>Request an endorsement</button>
+                        ) : (
+                          <p className={styles.emptyStateText}>Work with this developer on an approved project to leave the first endorsement.</p>
+                        )}
+                      </div>
+                    )}
                   </section>
                 </main>
               </div>

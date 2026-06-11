@@ -24,6 +24,14 @@ const commentSchema = mongoose.Schema(
       ref: 'Comment',
       default: null,
     },
+    likes: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    likeCount: {
+      type: Number,
+      default: 0,
+    },
     // For moderation
     isDeleted: {
       type: Boolean,
