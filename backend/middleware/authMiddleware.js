@@ -61,4 +61,21 @@ const admin = (req, res, next) => {
 // Alias for clarity
 const requireAdmin = admin;
 
-module.exports = { protect, admin, requireAdmin };
+// Middleware to update user's lastActiveAt timestamp for presence tracking
+const trackActivity = async (req, res, next) => {
+  if (req.user && req.user._id) {
+    try {
+      // Use a lightweight fire-and-forget update to avoid slowing down requests
+      User.findByIdAndUpdate(
+        req.user._id,
+        { lastActiveAt: new Date() },
+        { new: false, upsert: false }
+      ).catch(() => {}); // Silently ignore errors
+    } catch (err) {
+      // Non-critical - don't break the request
+    }
+  }
+  next();
+};
+
+module.exports = { protect, admin, requireAdmin, trackActivity };

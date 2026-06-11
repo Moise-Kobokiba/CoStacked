@@ -16,23 +16,25 @@ const oauthCallback = async (req, res) => {
       return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
     }
 
+    // Mark user as online and update last active timestamp
+    const User = require('../models/User');
+    const user = await User.findById(req.user._id);
+    
+    if (user) {
+      user.isOnline = true;
+      user.lastActiveAt = new Date();
+      if (!user.isVerified) {
+        user.isVerified = true;
+        // Send welcome/verification email
+        const token = generateToken(user._id);
+        const verificationLink = `${FRONTEND_URL}/verify?token=${token}`;
+        await sendVerificationEmail(user.email, verificationLink);
+      }
+      await user.save({ validateBeforeSave: false });
+    }
+
     // Generate JWT token
     const token = generateToken(req.user._id);
-
-    // Check if user is new / not verified
-    const user = await User.findById(req.user._id);
-
-    if (!user.isVerified) {
-      // Optional: mark them as verified immediately or keep separate verification flow
-      user.isVerified = true;
-      await user.save();
-
-      // Generate a verification/welcome link (could be the same token)
-      const verificationLink = `${FRONTEND_URL}/verify?token=${token}`;
-
-      // Send welcome/verification email
-      await sendVerificationEmail(user.email, verificationLink);
-    }
 
     // Redirect to frontend with token
     res.redirect(`${FRONTEND_URL}/auth/callback?token=${token}`);

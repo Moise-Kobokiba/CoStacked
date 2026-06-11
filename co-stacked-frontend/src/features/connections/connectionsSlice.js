@@ -101,7 +101,17 @@ const initialState = {
 const connectionsSlice = createSlice({
   name: 'connections',
   initialState,
-  reducers: {},
+  reducers: {
+    // Update presence status for a user in connections list
+    updateConnectionUserStatus: (state, action) => {
+      const { userId, isOnline, lastActiveAt } = action.payload;
+      const connection = state.connections.find((u) => u._id === userId);
+      if (connection) {
+        connection.isOnline = isOnline;
+        connection.lastActiveAt = lastActiveAt;
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
       // Fetching all connections
@@ -185,5 +195,5 @@ const connectionsSlice = createSlice({
   },
 });
 
-export const { } = connectionsSlice.actions;
+export const { updateConnectionUserStatus } = connectionsSlice.actions;
 export default connectionsSlice.reducer;
