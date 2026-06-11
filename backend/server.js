@@ -175,6 +175,19 @@ io.on('connection', (socket) => {
     }
   })();
 
+  // --- Heartbeat: client sends periodic ping to stay alive ---
+  socket.on('heartbeat', async (userId) => {
+    if (!userId) return;
+    try {
+      const User = require('./models/User');
+      await User.findByIdAndUpdate(userId, {
+        lastActiveAt: new Date()
+      });
+    } catch (error) {
+      console.error('Error updating heartbeat:', error);
+    }
+  });
+
   // Join conversation room
   socket.on('joinConversation', (conversationId) => {
     socket.join(conversationId);
@@ -416,6 +429,46 @@ io.on('connection', (socket) => {
   });
 });
 
-// --- 9. START SERVER ---
+// --- 9. PERIODIC PRESENCE CHECKER ---
+// Every 60 seconds, mark users as offline if their lastActiveAt is older than 90 seconds
+const PRESENCE_CHECK_INTERVAL = 60 * 1000; // 60 seconds
+const PRESENCE_TIMEOUT = 90 * 1000; // 90 seconds
+
+setInterval(async () => {
+  try {
+    const User = require('./models/User');
+    const cutoff = new Date(Date.now() - PRESENCE_TIMEOUT);
+    
+    // Find users who are marked online but haven't been active recently
+    const staleUsers = await User.find({
+      isOnline: true,
+      lastActiveAt: { $lt: cutoff }
+    }).select('_id');
+
+    if (staleUsers.length > 0) {
+      const staleIds = staleUsers.map(u => u._id);
+      
+      await User.updateMany(
+        { _id: { $in: staleIds } },
+        { isOnline: false }
+      );
+
+      // Broadcast offline status for each stale user
+      for (const userId of staleIds) {
+        io.emit('user_status_changed', {
+          userId: userId.toString(),
+          isOnline: false,
+          lastActiveAt: new Date()
+        });
+      }
+
+      console.log(`Presence checker: marked ${staleIds.length} stale users offline`);
+    }
+  } catch (error) {
+    console.error('Presence checker error:', error);
+  }
+}, PRESENCE_CHECK_INTERVAL);
+
+// --- 10. START SERVER ---
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`));

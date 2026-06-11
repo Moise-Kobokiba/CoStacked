@@ -280,6 +280,14 @@ const user = await User.findOne({ email });
       // Generate JWT token
       const token = generateToken(user._id);
 
+      // Return full user object (minus password) so frontend has presence fields
+      const userObj = user.toObject();
+      delete userObj.password;
+      delete userObj.passwordResetToken;
+      delete userObj.passwordResetExpires;
+      delete userObj.emailVerificationToken;
+      delete userObj.emailVerificationExpires;
+
       res.json({
         user: {
           _id: user._id,
